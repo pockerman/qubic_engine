@@ -23,23 +23,16 @@ class GeomPoint
 public:
 
 	static const int dimension = spacedim;
-// @}
-  /**
-   * @name Constructors
-   */
-// @{
 
   /**
     * ctor all dim data are assigned the given value
     */
-  explicit GeomPoint(kernel::real_t val=static_cast<real_t>(0.0));
-
+  explicit GeomPoint(kernel::real_t val=static_cast<kernel::real_t>(0.0));
 
   /**
     * ctor construct a 2D point
     */
  GeomPoint(kernel::real_t x, kernel::real_t y);
-
 
  /**
     * ctor construct a 3D point
