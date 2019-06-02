@@ -1,0 +1,20 @@
+cmake_minimum_required(VERSION 3.0)
+
+# Add the example subdirectories
+ADD_SUBDIRECTORY(exe1)
+
+INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR})
+#INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
+
+#INCLUDE_DIRECTORIES(${RAPIDXML_INCL_DIR})
+
+# Flags that the examples should use
+#SET(CMAKE_CXX_FLAGS "-std=c++14 -g")
+#SET(CMAKE_LINKER_FLAGS "-pthread")
+
+LINK_DIRECTORIES(${PROJECT_LIB_DIR})
+#LINK_DIRECTORIES(${BOOST_LIBRARYDIR})
+
+
+
+
