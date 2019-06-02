@@ -1,2 +1,3 @@
 parframe/examples/build-example_1-*
 parframe/CMakeLists.txt.user
+cubic_engine/CMakeLists.txt.user
