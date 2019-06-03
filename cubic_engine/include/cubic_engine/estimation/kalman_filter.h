@@ -6,9 +6,9 @@
  */
 
 #include "cubic_engine/base/cubic_engine_types.h"
+
 #include <map>
 #include <string>
-
 
 namespace cengine
 {
@@ -62,12 +62,15 @@ class KalmanFilter
         /// \brief Constructor
         KalmanFilter();
 
+        /// \brief Destructor
+        virtual ~KalmanFilter();
+
         /// \brief Predict system state and process covariance matrix
         /// using the given input
-        void predict(const DynVec<real_t>& u);
+        virtual void predict(const DynVec<real_t>& u);
 
         /// \brief Correct the predicted estimate by using the given measurement
-        void update(const DynVec<real_t>& y);
+        virtual void update(const DynVec<real_t>& y);
 
         /// \brief Perform one iteration i.e. predict + update of the linear Kalman filter
         void iterate(const DynVec<real_t>& u, const DynVec<real_t>& y);
@@ -78,15 +81,13 @@ class KalmanFilter
         /// \brief Set the pointer matrix
         void set_mat_ptr(const std::string& name, const DynMat<real_t>& mat);
 
-    private:
+    protected:
 
         /// \brief Pointers to the matrices describing the system
         std::map<std::string, const DynMat<real_t>* > system_maps_;
 
         /// The Kalman gain calculated during the course of the update step
         DynMat<real_t> K_;
-
-
 };
 
 inline

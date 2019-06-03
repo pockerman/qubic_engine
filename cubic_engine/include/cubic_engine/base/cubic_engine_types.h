@@ -2,6 +2,7 @@
 #define CUBIC_ENGINE_TYPES_H
 
 #include <cstddef>
+#include "parframe/base/types.h"
 #include <blaze/Math.h>
 
 
@@ -16,8 +17,9 @@ namespace cengine
     template<typename T>
     using DynVec = blaze::DynamicVector<T>;
 
-    using real_t = double;
-    using uint_t = std::size_t;
+    /// \brief basic primitive data types
+    using real_t = kernel::real_t;
+    using uint_t = kernel::uint_t;
 
 }
 

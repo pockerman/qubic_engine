@@ -8,124 +8,49 @@
 #ifndef EXE_H
 #define	EXE_H
 
-#include "robosim/base/robosim.h"
-#include "robosim/models/ground_moving_vehicle/differential_drive_vehicle.h"
-#include "robosim/models/chassis/pioneer_3dx.h"
-#include "robosim/grids/occupancy_grid.h"
-#include "robosim/plans/location_plan.h"
+#include "cubic_engine/base/cubic_engine_types.h"
 
-
-
-#include <map>
-
-using namespace std;
-using namespace robosim;
-using namespace utilities;
 
 namespace exe2{
-    
-//forward declarations
-class Robot;
 
-struct LineSegment
-{
-    
-    bool line_started;
-    bool line_finished;
-    size_type id;
-    
-};
-    
-//The object that makes the decisions
-//about the robot
-class RobotAI
+using cengine::DynVec;
+using cengine::real_t;
+using cengine::uint_t;
+
+// The class that describes the dynamics of the robot
+// The following model is useed
+// $$ \dot{x} = vcos(\phi)$$
+// $$ \dot{y} = vsin((\phi)$$
+// $$ \dot{\phi} = \omega$$
+
+class Dynamics
 {
 
 public:
 
-	//Constructor
-	RobotAI();
+    template<typename... Args>
+    void execute(const Args&... args);
 
-	//set up the occupancy grid
-	void set_up_occupancy_grid();
+};
+
+// The robot to simulate
+class Robot
+{
+public:
 
 
-	//create the static location plan
-	void create_location_plan();
-  
-  //generate heading and left and right
-  //wheels speeds 
-  void generate_cmds(const State<2>& state);
-  
+    void simulate();
+
 private:
 
-  //the object that holds the info
-  //about the current line segment the
-  //robot is on
-  LineSegment current_seg_;  
+    // the state of the robot:
+    // x, y are a 2D x-y position, $\phi$ is orientation, and v is velocity
+    DynVec<real_t> state_;
 
-	//The static occupancy grid map
-	OccupancyGrid grid_;
-
-	//the static location plan
-	LocationPlan2D plan_;
-  
-  //make friends with the robot class
-  friend class Robot;
-  
-  //flag indicating the goal has been reached
-  bool goal_reached_;
-  
-  //brief the desired heading
-  real_type theta_d_;
-    
-  //the desired right wheel velocity
-  real_type Vr_d_;
-    
-  //the desired left wheel velocity
-  real_type Vl_d_;
-	
+    // The object that handles the dynamics of the robot
+    Dynamics dynamics;
 };
 
-//the robot class
-class Robot: public DifDriveVehicle<RobotAI,Pioneer3DX>
-{
-
-
-public:
-
-	//Constructor
-	Robot(size_type id);
-
-	//perform any calculations that the robot must perform
-	virtual void execute();
-  
-protected:
-    
-    //flag indicating that the grid and the
-    //plan have been generated. This has to be 
-    //done only once as we use a static grid
-    //and static location plan
-    bool has_grid_and_plan_ =false;
-    
-    
-    
-
-};
-
-
-inline
-Robot::Robot(size_type id)
-:
-DifDriveVehicle<RobotAI,Pioneer3DX>(id)
-{}
-
-
-
-  
- 
-
-    
 }//exe2
 
 

@@ -16,6 +16,9 @@ namespace cengine
         }
     }
 
+    KalmanFilter::~KalmanFilter()
+    {}
+
     void
     KalmanFilter::predict(const DynVec<real_t>& u){
 
@@ -27,5 +30,4 @@ namespace cengine
 
     }
 
-    
 }

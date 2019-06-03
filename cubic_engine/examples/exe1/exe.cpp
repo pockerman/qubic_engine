@@ -1,9 +1,6 @@
 /// \details
 /// Demostration of simple linear Kalman Filter
 
-
-
-
 #include "exe.h"
 #include "cubic_engine/base/cubic_engine_types.h"
 
