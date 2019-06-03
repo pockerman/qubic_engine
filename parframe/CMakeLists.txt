@@ -88,17 +88,27 @@ LINK_DIRECTORIES(${BOOST_LIBRARYDIR})
 
 # add a shared library to link the app
 # TODO: do this better as this way is not scalable
-ADD_LIBRARY(${LIB_NAME} SHARED
-                     src/parframe/base/algorithm_info.cpp
-                     src/parframe/base/kernel_consts.cpp
-                     src/parframe/executors/thread_pool.cpp
-                     src/parframe/executors/task_base.cpp
-                     src/parframe/executors/simple_task.cpp
-                     src/parframe/executors/stoppable_task.cpp
-                     src/parframe/executors/parframe_thread.cpp
-                     src/parframe/utilities/read_write_lock.cpp
-                     src/parframe/data_structs/range_1d.cpp
-                     )
+FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
+                 ${PROJECT_SRC_DIR}/executors/*.cpp
+                 ${PROJECT_SRC_DIR}/utilities/*.cpp
+                 ${PROJECT_SRC_DIR}/data_structs/*.cpp)
+                 
+SOURCE_GROUP(${PROJECT_SRC_DIR}/base FILES base/*.cpp
+            ${PROJECT_SRC_DIR}/executors FILES executors/*.cpp
+            ${PROJECT_SRC_DIR}/utilities FILES utilities/*.cpp
+            ${PROJECT_SRC_DIR}/data_structs FILES data_structs/*.cpp)
+
+ADD_LIBRARY(${LIB_NAME} SHARED {SRCS})
+                     #src/parframe/base/algorithm_info.cpp
+                     #src/parframe/base/kernel_consts.cpp
+                     #src/parframe/executors/thread_pool.cpp
+                     #src/parframe/executors/task_base.cpp
+                     #src/parframe/executors/simple_task.cpp
+                     #src/parframe/executors/stoppable_task.cpp
+                     #src/parframe/executors/parframe_thread.cpp
+                     #src/parframe/utilities/read_write_lock.cpp
+                     #src/parframe/data_structs/range_1d.cpp
+                     #)
 
 SET_TARGET_PROPERTIES(parframelib PROPERTIES LINKER_LANGUAGE CXX)
 INSTALL(TARGETS parframelib DESTINATION ${CMAKE_INSTALL_PREFIX})
