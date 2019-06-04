@@ -6,9 +6,12 @@
  */
 
 #include "cubic_engine/base/cubic_engine_types.h"
+#include <boost/noncopyable.hpp>
 
 #include <map>
 #include <string>
+#include <stdexcept> //for std::invalid_argument
+
 
 namespace cengine
 {
@@ -51,25 +54,30 @@ namespace cengine
 /// where
 ///
 /// K n x m
-
-
-
-class KalmanFilter
+///
+/// As the class manipulates a a given state vector it does not make  sense to
+/// be copyable
+class KalmanFilter: private boost::noncopyable
 {
-
     public:
 
         /// \brief Constructor
-        KalmanFilter();
+        explicit KalmanFilter(DynVec<real_t>* x=nullptr);
 
         /// \brief Destructor
         virtual ~KalmanFilter();
 
-        /// \brief Predict system state and process covariance matrix
-        /// using the given input
+        /// \brief Predicts the state and the process covariance matrix using
+        /// X_{k}^{-} = A_{k-1}X_{k-1} + B_k U_k
+        /// P_{k}^{-} = A_{k-1}P_{k-1}A_{k-1}^T + Q_{k-1}
+        /// u: The control input
         virtual void predict(const DynVec<real_t>& u);
 
-        /// \brief Correct the predicted estimate by using the given measurement
+       /// \brief Updates the state and covariance matrices using the measurement
+       ///
+       ///K_k = P_{k}^{-}H_{k}^T(H_kP_k{-}H_{k}^T + R_k)^{-1}
+       ///\hat{X}_k = X_{k}^{-} + K_k(y_k - H_kX_{k}^{-})
+       ///\hat{P}_k = (I - K_kH_k)P_{k}^{-}
         virtual void update(const DynVec<real_t>& y);
 
         /// \brief Perform one iteration i.e. predict + update of the linear Kalman filter
@@ -79,15 +87,22 @@ class KalmanFilter
         std::vector<std::string> get_mat_names()const;
 
         /// \brief Set the pointer matrix
-        void set_mat_ptr(const std::string& name, const DynMat<real_t>& mat);
+        void set_mat_ptr(const std::string& name, DynMat<real_t>& mat);
+
+        /// \brief Set the pointer to the state vector the filter manipulates
+        void set_state_vector_ptr(DynVec<real_t>& x ){x_ = &x;}
 
     protected:
 
         /// \brief Pointers to the matrices describing the system
-        std::map<std::string, const DynMat<real_t>* > system_maps_;
+        std::map<std::string, DynMat<real_t>* > system_maps_;
 
         /// The Kalman gain calculated during the course of the update step
         DynMat<real_t> K_;
+
+        /// \brief The state vector that the filter manipulates
+        DynVec<real_t>* x_;
+
 };
 
 inline
@@ -99,7 +114,15 @@ void KalmanFilter::iterate(const DynVec<real_t> &u, const DynVec<real_t> &y){
 
 inline
 void
-KalmanFilter::set_mat_ptr(const std::string& name, const DynMat<real_t>& mat){
+KalmanFilter::set_mat_ptr(const std::string& name, DynMat<real_t>& mat){
+
+    if( name != "Q" && name != "R" &&
+        name != "P" && name != "A" && name != "B" &&
+        name != "K" && name != "H" ){
+
+        throw  std::invalid_argument("Matrix name "+name+" not in []");
+    }
+
     system_maps_[name] = &mat;
 }
     
