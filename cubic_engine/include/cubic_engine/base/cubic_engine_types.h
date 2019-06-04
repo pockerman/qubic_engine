@@ -17,6 +17,10 @@ namespace cengine
     template<typename T>
     using DynVec = blaze::DynamicVector<T>;
 
+    /// \brief Identity matrix
+    template<typename T>
+    using IdentityMatrix = blaze::IdentityMatrix<T>;
+
     /// \brief basic primitive data types
     using real_t = kernel::real_t;
     using uint_t = kernel::uint_t;
