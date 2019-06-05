@@ -19,7 +19,6 @@ int main(int argc, char** argv) {
     DynVec<real_t> u;
     
     {
-
         // The Kalman filter class to use.
         KalmanFilter kf;
         kf.predict(u);
