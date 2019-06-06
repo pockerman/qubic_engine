@@ -35,7 +35,7 @@ IF(Boost_FOUND)
 ENDIF()
 
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
-SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/numengine)
+SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/numengine)
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
 MESSAGE(STATUS "INSTALL DIR ${CMAKE_INSTALL_PREFIX}")
 
@@ -92,25 +92,15 @@ INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 # use the Boost link directories
 LINK_DIRECTORIES(${BOOST_LIBRARYDIR})
 
-# add a shared library to link the app
-# TODO: Use FILE GLOB or sth similar
-
 FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/geom/*.cpp)
 SOURCE_GROUP(${PROJECT_SRC_DIR}/geom FILES geom/*.cpp)
-
 ADD_LIBRARY(${LIB_NAME} SHARED ${SRCS})
 
 SET_TARGET_PROPERTIES(numenginelib PROPERTIES LINKER_LANGUAGE CXX)
 INSTALL(TARGETS numenginelib DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # Add the examples
-#ADD_SUBDIRECTORY(examples/example_1)
-#ADD_SUBDIRECTORY(examples/example_2)
-#ADD_SUBDIRECTORY(examples/example_3)
-#ADD_SUBDIRECTORY(examples/example_4)
+ADD_SUBDIRECTORY(examples)
 
-#ENABLE_TESTING()
-#ADD_SUBDIRECTORY(tests/test_max_element)
-#ADD_SUBDIRECTORY(tests/test_range_1d)
-#ADD_SUBDIRECTORY(tests/test_stoppable_task)
-#ADD_SUBDIRECTORY(tests/test_cluster_with_initialization)
+ENABLE_TESTING()
+ADD_SUBDIRECTORY(tests)
