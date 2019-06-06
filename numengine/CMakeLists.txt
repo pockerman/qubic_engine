@@ -94,10 +94,11 @@ LINK_DIRECTORIES(${BOOST_LIBRARYDIR})
 
 # add a shared library to link the app
 # TODO: Use FILE GLOB or sth similar
-ADD_LIBRARY(${LIB_NAME} SHARED
-                     src/numengine/geom/node.cpp
-                     src/numengine/geom/mesh_entity.cpp
-                     )
+
+FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/geom/*.cpp)
+SOURCE_GROUP(${PROJECT_SRC_DIR}/geom FILES geom/*.cpp)
+
+ADD_LIBRARY(${LIB_NAME} SHARED ${SRCS})
 
 SET_TARGET_PROPERTIES(numenginelib PROPERTIES LINKER_LANGUAGE CXX)
 INSTALL(TARGETS numenginelib DESTINATION ${CMAKE_INSTALL_PREFIX})
