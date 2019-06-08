@@ -1,6 +1,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <blaze/Math.h>
 #include <cstddef>
 #include <string>
 
@@ -30,9 +31,15 @@ namespace kernel
         typedef double real_t;
     #endif
 
+    /// \brief General matrix type
+    template<typename T>
+    using DynMat = blaze::DynamicMatrix<T>;
+
+    /// \brief General vector type
+    template<typename T>
+    using DynVec = blaze::DynamicVector<T>;
+
 }
 
-    //typedef parframe::uint_t uint_t;
-    //typedef parframe::real_type real_type;
 
 #endif
