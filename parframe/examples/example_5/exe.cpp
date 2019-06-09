@@ -2,11 +2,11 @@
   * Parallel Implementation of Jacobi Iteration
   *
   **/
+#include "parframe/base/types.h"
 #include "parframe/executors/thread_pool.h"
 #include "parframe/models/reduce.h"
 #include "parframe/models/reduction_operations.h"
-
-#include <blaze/Math.h>
+#include "parframe/partitioners/array_partitioner.h"
 
 #include <thread>
 #include <vector>
@@ -16,26 +16,42 @@
 
 namespace  {
 
-    using parframe::uint_t;
-    using parframe::real_t;
+    using kernel::uint_t;
+    using kernel::real_t;
     using parframe::ThreadPool;
-    using Vector = blaze::DynamicVector<real_t>;
-    using Matrix = blaze::DynamicMatrix<real_t>;
-
+    using Vector = kernel::DynVec<real_t>;
 }
 
 int main(){
 
-    using parframe::ThreadPool;
-    Vector x(100, 1.0);
+    try {
 
-    //create a pool and start it with four threads
-    ThreadPool pool(4);
+        using parframe::ThreadPool;
+        Vector x(100, 1.0);
 
-    parframe::Sum<parframe::real_t> op;
-    std::vector<parframe::range1d<Vector::Iterator>> partitions;
-    parframe::reduce_array(partitions, op, pool);
-    op.get();
+        //create a pool and start it with four threads
+        ThreadPool pool(4);
+
+        parframe::Sum<parframe::real_t> op;
+        std::vector<parframe::range1d<Vector::Iterator>> partitions;
+
+        //create the partitions
+        partition_range(x.begin(), x.end(), partitions, pool.get_n_threads());
+
+        parframe::reduce_array(partitions, op, pool);
+        auto rslt = op.get();
+
+        if( rslt.first != 100.0 && rslt.second == false){
+            std::cout<<"Result: "<<rslt.first<<" should be 100"<<std::endl;
+            throw std::logic_error("Incorrect result");
+        }
+        else{
+            std::cout<<"Result: "<<rslt.first<<" is correct and valid "<<rslt.second<<std::endl;
+        }
+    }
+    catch (std::logic_error& e) {
+        std::cout<<e.what()<<std::endl;
+    }
 
     return 0;
 }
