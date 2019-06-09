@@ -9,6 +9,8 @@
 
 #include <vector>
 #include <memory>
+#include <thread>
+
 namespace parframe
 {
 
@@ -33,7 +35,7 @@ namespace detail
         template<typename IteratorTp, typename ReductionOpTp>
         struct reduce_task: public SimpleTaskBase
         {
-            typedef typename ReductionOpTp::result_type result_type;
+            typedef typename ReductionOpTp::value_type result_type;
 
             /// \brief Constructor
             reduce_task(const range1d<IteratorTp>& range);
@@ -44,7 +46,7 @@ namespace detail
 
         protected:
 
-            /// \brief Overrif base class run method
+            /// \brief Override base class run method
             virtual void run()override final;
         };
 
@@ -84,27 +86,30 @@ namespace detail
         //spawn the tasks
         for(uint_t t = 0; t < executor.get_n_threads(); ++t){
             tasks_.push_back(std::make_unique<task_type>(partitions[t]));
+            executor.add_task(*(tasks_[t].get()));
         }
 
-        // join the local retsults
-        // TODO: Perhaps we should hide this joining into a class
-        std::vector<bool> task_touched(tasks_.size(), false);
-
-        // This is O(n_tasks^2). We need
-        // a better way altogether here
+        // if the tasks have not finished yet
+        // then the calling thread waits here
         while(!tasks_finished()){
-            for(uint_t t=0; t < tasks_.size(); ++t){
-                if( !task_touched[t]){
-                    op.join(static_cast<task_type*>(tasks_[t].get())->get_result());
-                    task_touched[t] = true;
-                }
-            }
+           std::this_thread::yield();
         }
 
-        //finally validate the result
+        //validate the result
         op.validate_result();
-    }
 
+        for(uint_t t=0; t < tasks_.size(); ++t){
+
+            // if we reached here but for some reason the
+            // task has not finished properly invalidate the result
+           if(tasks_[t]->get_state() != TaskBase::TaskState::FINISHED){
+               op.invalidate_result();
+           }
+           else{
+               op.join(static_cast<task_type*>(tasks_[t].get())->get_result());
+           }
+        }
+    }
 }
 
 template<typename IteratorTp, typename ReductionOpTp, typename ExecutorTp>

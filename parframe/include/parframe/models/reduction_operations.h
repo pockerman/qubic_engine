@@ -2,6 +2,7 @@
 #define REDUCTION_OPERATIONS_H
 
 #include <thread>
+#include <utility>
 
 namespace parframe
 {
@@ -13,10 +14,10 @@ class Sum
 public:
 
     typedef T value_type;
-    typedef value_type result_type;
+    typedef std::pair<value_type, bool> result_type;
 
     /// \brief Join the given value to the given result
-    static void local_join(const value_type& val, result_type& rslt){rslt += val;}
+    static void local_join(const value_type& val, value_type& rslt){rslt += val;}
 
     Sum()
         :
@@ -38,7 +39,7 @@ public:
 
     /// \brief busy wait for the thread that calls it until the
     /// result becomes valid
-    value_type get()const;
+    result_type get()const;
 private:
 
     value_type result_;
@@ -46,16 +47,15 @@ private:
 };
 
 template<typename T>
-typename Sum<T>::value_type
+typename Sum<T>::result_type
 Sum<T>::get()const{
 
-    while(!valid_result_){
+    /*while(!valid_result_){
         std::this_thread::yield();
-    }
+    }*/
 
-    return result_;
+    return std::make_pair(result_, valid_result_);
 }
-
 
 }
 
