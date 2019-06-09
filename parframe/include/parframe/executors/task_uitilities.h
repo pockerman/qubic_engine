@@ -13,14 +13,12 @@ namespace parframe
 
             for(const auto& task: tasks){
 
-                if((task->get_state()  != TaskBase::TaskState::FINISHED) ||
-                    (task->get_state() != TaskBase::TaskState::INTERRUPTED) ||
-                    (task->get_state() != TaskBase::TaskState::INTERRUPTED_BY_EXCEPTION))
-
+                if(!task->finished()){
                     return false;
+                }
             }
 
-            return true
+            return true;
         }
     }
 }
