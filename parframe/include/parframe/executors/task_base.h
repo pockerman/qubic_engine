@@ -27,7 +27,13 @@ public:
     TaskState get_state()const{return state_;}
 
     /// \brief Execute the task
-    virtual void operator()(){run();};
+    virtual void operator()();
+
+    /// \brief Returns true if the task has completed
+    bool finished()const;
+
+    /// \brief Returns true if the taks has children
+    bool has_children()const{return false;}
 
 protected:
 
