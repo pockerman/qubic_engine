@@ -31,7 +31,7 @@ struct EKF_F_func
  **/
 struct EKF_H_func
 {
-    virtual void operator()(const DynVec<real_t>& x,  const DynVec<real_t>& u  )const=0;
+    virtual DynVec<real_t> operator()(const DynVec<real_t>& x)const=0;
 };
     
 /***
@@ -84,14 +84,22 @@ public:
    /// \hat{X}_k = X_{k}^{-} + K_k(y_k - h( X_{k}^{-}, 0)
    /// \hat{P}_k = (I - K_kH_k)P_{k}^{-}
    virtual void update(const DynVec<real_t>& y)override final;
+
+   /// \brief Set the motion model
+   void set_motion_model(EKF_F_func& func){f_ptr_ = &func;}
+
+   /// \brief Set the observation model
+   void set_observation_model(EKF_H_func& func){h_ptr_ = &func;}
            
 protected:
 
    /// \brief pointer to the function that computes f
-   std::weak_ptr<EKF_F_func> f_ptr_;
+   EKF_F_func* f_ptr_;
 
    /// \brief pointer to the function that computes h
-   std::weak_ptr<EKF_H_func> h_ptr_;
+   EKF_H_func* h_ptr_;
+
+   virtual void assert_matrix_name_(const std::string& name)const;
 
 };  
 

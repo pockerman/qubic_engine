@@ -6,7 +6,8 @@ namespace cengine
 ExtendedKalmanFilter::ExtendedKalmanFilter(DynVec<real_t>* x)
     :
     KalmanFilter (x),
-    f_ptr_(nullptr)
+    f_ptr_(nullptr),
+    h_ptr_(nullptr)
 {}
 
 ExtendedKalmanFilter::~ExtendedKalmanFilter()
@@ -16,8 +17,9 @@ void
 ExtendedKalmanFilter::predict(const DynVec<real_t>& u){
 
     auto& A = *this->system_maps_["A"];
+
     // update the prediction of the state vector
-    f_ptr_.lock()->operator()(*this->x_, *this->x_,  A, *this->system_maps_["B"], u);
+    f_ptr_->operator()(*this->x_, *this->x_,  A, *this->system_maps_["B"], u);
 
     // update the the covariance matrix
     auto& P = *this->system_maps_["P"];
@@ -44,11 +46,26 @@ ExtendedKalmanFilter::update(const DynVec<real_t>& y){
     auto& K = *this->system_maps_["K"];
     K = P*H_T*S_inv;
 
-    auto innovation = y - self['h'](self['x'], 0.0)
-                   self['x'] = self['x'] + np.dot(self['K'], innovation)
-                   I = np.identity(self['K'].shape[0])
-                   self['P'] = np.dot(I - np.dot(self['K'], self['H']), self['P'])
+    auto& x = *this->x_;
+    auto innovation = y - h_ptr_->operator()(x);
+    x += K*innovation;
 
+    IdentityMatrix<real_t> I(K.rows());
+
+    // update the covariance matrix
+    P =  (I - K*H)*P;
+
+}
+
+void
+ExtendedKalmanFilter::assert_matrix_name_(const std::string& name)const{
+
+    if( name != "Q" && name != "R" &&
+        name != "P" && name != "A" && name != "B" &&
+        name != "K" && name != "H" && name != "L"){
+
+        throw  std::invalid_argument("Matrix name "+name+" not in []");
+    }
 }
 
 }
