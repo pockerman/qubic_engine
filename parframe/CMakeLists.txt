@@ -97,11 +97,7 @@ SET_TARGET_PROPERTIES(parframelib PROPERTIES LINKER_LANGUAGE CXX)
 INSTALL(TARGETS parframelib DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # Add the examples
-ADD_SUBDIRECTORY(examples/example_1)
-ADD_SUBDIRECTORY(examples/example_2)
-ADD_SUBDIRECTORY(examples/example_3)
-ADD_SUBDIRECTORY(examples/example_4)
-ADD_SUBDIRECTORY(examples/example_5)
+ADD_SUBDIRECTORY(examples)
 
 ENABLE_TESTING()
 #ADD_SUBDIRECTORY(tests/test_max_element)
