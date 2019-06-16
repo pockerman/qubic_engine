@@ -103,6 +103,9 @@ class KalmanFilter: private boost::noncopyable
         /// \brief The state vector that the filter manipulates
         DynVec<real_t>* x_;
 
+
+        virtual void assert_matrix_name_(const std::string& name)const;
+
 };
 
 inline
@@ -116,13 +119,7 @@ inline
 void
 KalmanFilter::set_mat_ptr(const std::string& name, DynMat<real_t>& mat){
 
-    if( name != "Q" && name != "R" &&
-        name != "P" && name != "A" && name != "B" &&
-        name != "K" && name != "H" ){
-
-        throw  std::invalid_argument("Matrix name "+name+" not in []");
-    }
-
+    assert_matrix_name_(name);
     system_maps_[name] = &mat;
 }
     

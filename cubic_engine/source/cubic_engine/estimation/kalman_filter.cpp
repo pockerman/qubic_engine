@@ -69,4 +69,15 @@ namespace cengine
         P = (I - K*H)*P;
     }
 
+    void
+    KalmanFilter::assert_matrix_name_(const std::string& name)const{
+
+        if( name != "Q" && name != "R" &&
+            name != "P" && name != "A" && name != "B" &&
+            name != "K" && name != "H" ){
+
+            throw  std::invalid_argument("Matrix name "+name+" not in []");
+        }
+    }
+
 }
