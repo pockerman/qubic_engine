@@ -36,6 +36,21 @@ public:
     template<typename... Args>
     void execute(const Args&... args);
 
+private:
+
+
+
+};
+
+struct MotionModel: public cengine::EKF_F_func
+{
+    virtual void operator()(DynVec<real_t>& x, const DynVec<real_t>& x_prev, const DynMat<real_t>& A,
+                            const DynMat<real_t>& B, const DynVec<real_t>& u  )const override final;
+};
+
+struct ObservationModel: public cengine::EKF_H_func
+{
+   virtual DynVec<real_t> operator()(const DynVec<real_t>& x)const override final;
 };
 
 // The robot to simulate
@@ -43,8 +58,7 @@ class Robot
 {
 public:
 
-    template<typename... Args>
-    void simulate(const Args& ... args);
+    void simulate(DynVec<real_t>& u, const DynVec<real_t>& y);
 
     // initialize the robot
     void initialize();
@@ -61,6 +75,14 @@ private:
     // matrix that describes the input
     DynMat<real_t> B_;
 
+    // The covariance matrix
+    DynMat<real_t> P_;
+
+    // The covariance matrix
+    DynMat<real_t> Q_;
+
+    DynMat<real_t> L_;
+
     // The object that handles the dynamics of the robot
     Dynamics dynamics_;
 
@@ -72,6 +94,18 @@ private:
 
     // update the B_ matrix
     void update_B_mat();
+
+    // update the P_ matrix
+    void update_P_mat();
+
+    void update_Q_mat();
+    void update_L_mat();
+
+    // The motion model the rovot is using
+    MotionModel f_func_;
+
+    // The observation model the robot is using
+    ObservationModel h_func_;
 
 
 };
