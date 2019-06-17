@@ -1,4 +1,5 @@
 #include "cubic_engine/estimation/extended_kalman_filter.h"
+#include "cubic_engine/base/config.h"
 
 namespace cengine
 {
@@ -34,7 +35,7 @@ void
 ExtendedKalmanFilter::update(const DynVec<real_t>& y){
 
     auto& H = *this->system_maps_["H"];
-    auto H_T = inv(H);
+    auto H_T = trans(H);
     auto& P = *this->system_maps_["P"];
     auto& M = *this->system_maps_["M"];
     auto M_T = trans(M);
@@ -43,17 +44,26 @@ ExtendedKalmanFilter::update(const DynVec<real_t>& y){
     auto S = H*P*H_T + M*R*M_T;
     auto S_inv = inv(S);
 
-    auto& K = *this->system_maps_["K"];
-    K = P*H_T*S_inv;
+    //auto& K = *this->system_maps_["K"];
+    this->K_ = std::move(P*H_T*S_inv);
 
     auto& x = *this->x_;
     auto innovation = y - h_ptr_->operator()(x);
-    x += K*innovation;
 
-    IdentityMatrix<real_t> I(K.rows());
+#ifdef KERNEL_DEBUG
+
+    if(this->K_.columns() != innovation.size()){
+        throw std::runtime_error("Matrix columns: "+std::to_string(this->K_.columns())+" not equal to vector size: "+std::to_string(innovation.size()));
+    }
+
+#endif
+
+    x += this->K_*innovation;
+
+    IdentityMatrix<real_t> I(this->K_.rows());
 
     // update the covariance matrix
-    P =  (I - K*H)*P;
+    P =  (I - this->K_*H)*P;
 
 }
 
@@ -62,7 +72,7 @@ ExtendedKalmanFilter::assert_matrix_name_(const std::string& name)const{
 
     if( name != "Q" && name != "R" &&
         name != "P" && name != "A" && name != "B" &&
-        name != "K" && name != "H" && name != "L"){
+        name != "K" && name != "H" && name != "L" && name != "M"){
 
         throw  std::invalid_argument("Matrix name "+name+" not in []");
     }
