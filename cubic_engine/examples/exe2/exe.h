@@ -58,6 +58,9 @@ class Robot
 {
 public:
 
+    // constructor
+    Robot();
+
     void simulate(DynVec<real_t>& u, const DynVec<real_t>& y);
 
     // initialize the robot
@@ -82,30 +85,28 @@ private:
     DynMat<real_t> Q_;
 
     DynMat<real_t> L_;
-
-    // The object that handles the dynamics of the robot
-    Dynamics dynamics_;
+    DynMat<real_t> H_;
+    DynMat<real_t> M_;
+    DynMat<real_t> R_;
 
     // The state estimator of the robot
     cengine::ExtendedKalmanFilter state_estimator_;
-
-    // update the state matrix A_
-    void update_A_mat();
-
-    // update the B_ matrix
-    void update_B_mat();
-
-    // update the P_ matrix
-    void update_P_mat();
-
-    void update_Q_mat();
-    void update_L_mat();
 
     // The motion model the rovot is using
     MotionModel f_func_;
 
     // The observation model the robot is using
     ObservationModel h_func_;
+
+    void update_A_mat();
+    void update_B_mat();
+    void update_P_mat();
+    void update_Q_mat();
+    void update_L_mat();
+    void update_H_mat();
+    void update_M_mat();
+    void update_R_mat();
+
 
 
 };
