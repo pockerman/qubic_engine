@@ -11,18 +11,17 @@
 namespace exe2
 {
 
-void
+/*void
 MotionModel::operator()(DynVec<real_t>& x, const DynVec<real_t>& x_prev,
                         const DynMat<real_t>& A, const DynMat<real_t>& B, const DynVec<real_t>& u  )const{
-
-
+    x = A*x_prev + B*u;
 }
 
 DynVec<real_t>
 ObservationModel::operator()(const DynVec<real_t>& x)const{
 
     return DynVec<real_t>(2,0.0);
-}
+}*/
 
 Robot::Robot()
     :
@@ -35,6 +34,7 @@ Robot::Robot()
       H_(),
       M_(),
       R_(),
+      u_(nullptr),
       state_estimator_(),
       f_func_(),
       h_func_()
@@ -46,6 +46,35 @@ Robot::update_A_mat(){
      A_( 0,0 ) = 1.0;
      A_( 1,1 ) = 1.0;
      A_( 2,2 ) = 1.0;
+}
+
+void
+Robot::update_F_mat(){
+
+    F_.resize(4, 4);
+
+    real_t yaw = state_[2];
+    real_t v = (*u_)[0];
+
+    F_(0, 0) = 1.0;
+    F_(0,1 ) = 0.0;
+    F_(0, 2) = -DT * v * std::sin(yaw);
+    F_(0, 3) =  DT * std::cos(yaw);
+
+    F_(1, 0) = 0.0;
+    F_(1, 1) = 1.0;
+    F_(1, 2) = DT * v * std::cos(yaw);
+    F_(1,3 ) = DT * std::sin(yaw);
+
+    F_(2, 0 ) = 0.0;
+    F_(2, 1 ) = 0.0;
+    F_(2, 2 ) = 1.0;
+    F_(2, 3 ) = 0.0;
+
+    F_(3, 0 ) = 0.0;
+    F_(3, 1 ) = 0.0;
+    F_(3, 2 ) = 0.0;
+    F_(3, 3 ) = 1.0;
 }
 
 void
@@ -99,9 +128,7 @@ void
 Robot::update_B_mat(){
 
     if(B_.rows() == 0){
-
         B_.resize(4 , 2);
-
         B_(2, 1) = DT;
         B_( 3, 0 ) = 1.0;
     }
@@ -109,7 +136,6 @@ Robot::update_B_mat(){
     real_t phi = state_[2];
     B_(0,0) = std::cos(phi)*DT;
     B_(1,0) = std::sin(phi)*DT;
-
 }
 
 void
@@ -120,6 +146,7 @@ Robot::initialize(){
     state_estimator_.set_state_vector_ptr(state_);
 
     update_A_mat();
+    update_F_mat();
     update_B_mat();
     update_P_mat();
     update_Q_mat();
@@ -129,6 +156,7 @@ Robot::initialize(){
     update_R_mat();
 
     state_estimator_.set_mat_ptr("A", A_);
+    state_estimator_.set_mat_ptr("F", F_);
     state_estimator_.set_mat_ptr("B", B_);
     state_estimator_.set_mat_ptr("P", P_);
     state_estimator_.set_mat_ptr("Q", Q_);
@@ -147,7 +175,6 @@ Robot::simulate(DynVec<real_t>& u, const DynVec<real_t>& y){
     state_estimator_.iterate(u, y);
 
 }
-
 
 }
 

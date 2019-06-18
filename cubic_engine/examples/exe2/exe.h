@@ -28,30 +28,18 @@ const  real_t DT = 0.1;
 // $$ \dot{y} = vsin((\phi)$$
 // $$ \dot{\phi} = \omega$$
 
-class Dynamics
-{
-
-public:
-
-    template<typename... Args>
-    void execute(const Args&... args);
-
-private:
 
 
-
-};
-
-struct MotionModel: public cengine::EKF_F_func
+/*struct MotionModel: public cengine::EKF_F_func
 {
     virtual void operator()(DynVec<real_t>& x, const DynVec<real_t>& x_prev, const DynMat<real_t>& A,
                             const DynMat<real_t>& B, const DynVec<real_t>& u  )const override final;
-};
+};*/
 
-struct ObservationModel: public cengine::EKF_H_func
+/*struct ObservationModel: public cengine::EKF_H_func
 {
    virtual DynVec<real_t> operator()(const DynVec<real_t>& x)const override final;
-};
+};*/
 
 // The robot to simulate
 class Robot
@@ -74,6 +62,7 @@ private:
 
     // matrix that describe the state of the robot
     DynMat<real_t> A_;
+    DynMat<real_t> F_;
 
     // matrix that describes the input
     DynMat<real_t> B_;
@@ -89,16 +78,22 @@ private:
     DynMat<real_t> M_;
     DynMat<real_t> R_;
 
+    // The externally applied input
+    DynVec<real_t>* u_;
+
     // The state estimator of the robot
     cengine::ExtendedKalmanFilter state_estimator_;
 
     // The motion model the rovot is using
+    typedef cengine::EKF_F_func MotionModel;
     MotionModel f_func_;
 
     // The observation model the robot is using
+    typedef cengine::EKF_H_func ObservationModel;
     ObservationModel h_func_;
 
     void update_A_mat();
+    void update_F_mat();
     void update_B_mat();
     void update_P_mat();
     void update_Q_mat();

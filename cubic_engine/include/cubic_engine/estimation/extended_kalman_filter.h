@@ -21,8 +21,9 @@ namespace cengine
  **/
 struct EKF_F_func
 {
+    /// \brief By deafult computes x = A*x_prev + B*u
     virtual void operator()(DynVec<real_t>& x, const DynVec<real_t>& x_prev, const DynMat<real_t>& A,
-                            const DynMat<real_t>& B, const DynVec<real_t>& u  )const=0;
+                            const DynMat<real_t>& B, const DynVec<real_t>& u  )const;
 };
 
 /***
@@ -31,7 +32,8 @@ struct EKF_F_func
  **/
 struct EKF_H_func
 {
-    virtual DynVec<real_t> operator()(const DynVec<real_t>& x)const=0;
+    /// \brief By deafult it returns H*x
+    virtual DynVec<real_t> operator()(const DynVec<real_t>& x, const DynMat<real_t>& H)const;
 };
     
 /***

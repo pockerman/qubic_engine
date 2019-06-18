@@ -4,6 +4,17 @@
 namespace cengine
 {
 
+void
+EKF_F_func::operator()(DynVec<real_t>& x, const DynVec<real_t>& x_prev, const DynMat<real_t>& A,
+                       const DynMat<real_t>& B, const DynVec<real_t>& u  )const{
+    x = A*x_prev + B*u;
+}
+
+DynVec<real_t>
+EKF_H_func::operator()(const DynVec<real_t>& x, const DynMat<real_t>& H)const{
+        return H*x;
+}
+
 ExtendedKalmanFilter::ExtendedKalmanFilter(DynVec<real_t>* x)
     :
     KalmanFilter (x),
@@ -24,11 +35,14 @@ ExtendedKalmanFilter::predict(const DynVec<real_t>& u){
 
     // update the the covariance matrix
     auto& P = *this->system_maps_["P"];
-    auto A_T = trans(A);
+
     auto& Q = *this->system_maps_["Q"];
     auto& L = *this->system_maps_["L"];
     auto L_T = trans(L);
-    P = A*P*A_T + L*Q*L_T;
+
+    auto& F = *this->system_maps_["F"];
+    auto F_T = trans(F);
+    P = F*P*F_T + L*Q*L_T;
 }
 
 void
@@ -44,11 +58,10 @@ ExtendedKalmanFilter::update(const DynVec<real_t>& y){
     auto S = H*P*H_T + M*R*M_T;
     auto S_inv = inv(S);
 
-    //auto& K = *this->system_maps_["K"];
     this->K_ = std::move(P*H_T*S_inv);
 
     auto& x = *this->x_;
-    auto innovation = y - h_ptr_->operator()(x);
+    auto innovation = y - h_ptr_->operator()(x, H);
 
 #ifdef KERNEL_DEBUG
 
@@ -70,8 +83,9 @@ ExtendedKalmanFilter::update(const DynVec<real_t>& y){
 void
 ExtendedKalmanFilter::assert_matrix_name_(const std::string& name)const{
 
-    if( name != "Q" && name != "R" &&
-        name != "P" && name != "A" && name != "B" &&
+    // TODO: fix the names to bettern match literature
+    if( name != "Q" && name != "R" && name != "F" &&
+        name != "P" && name != "A" && name != "B" && name != "Hjac" &&
         name != "K" && name != "H" && name != "L" && name != "M"){
 
         throw  std::invalid_argument("Matrix name "+name+" not in []");
