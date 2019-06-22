@@ -89,7 +89,8 @@ LINK_DIRECTORIES(${BOOST_LIBRARYDIR})
 FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/executors/*.cpp
                  ${PROJECT_SRC_DIR}/utilities/*.cpp
-                 ${PROJECT_SRC_DIR}/data_structs/*.cpp)
+                 ${PROJECT_SRC_DIR}/data_structs/*.cpp
+                 ${PROJECT_SRC_DIR}/partitioners/*.cpp)
                  
 ADD_LIBRARY(${LIB_NAME} SHARED {SRCS})
 
