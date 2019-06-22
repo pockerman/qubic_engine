@@ -2,6 +2,7 @@
 #define SIMPLE_TASK_H
 
 #include "parframe/executors/task_base.h"
+#include "parframe/base/kernel_consts.h"
 
 namespace parframe
 {
@@ -21,7 +22,7 @@ public:
 protected:
 
     /// \brief Constructor
-    SimpleTaskBase();
+    SimpleTaskBase(uint_t id=kernel_consts::invalid_size_type());
 };
 
 

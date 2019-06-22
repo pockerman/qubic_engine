@@ -1,6 +1,9 @@
 #ifndef TASK_BASE_H
 #define TASK_BASE_H
 
+#include "parframe/base/types.h"
+#include "parframe/base/kernel_consts.h"
+
 #include <boost/noncopyable.hpp>
 
 namespace parframe
@@ -35,10 +38,16 @@ public:
     /// \brief Returns true if the taks has children
     bool has_children()const{return false;}
 
+    /// \brief Id of task
+    uint_t get_id()const{return id_;}
+
+    /// \brief Set the id of the task
+    void set_id(uint_t id){id_ = id;}
+
 protected:
 
     /// \brief Constructor
-    TaskBase();
+    TaskBase(uint_t id=kernel_consts::invalid_size_type());
 
     /// \brief Function to overrided by defived classes.
     /// It actually executes the compuational task
@@ -47,6 +56,9 @@ protected:
     /// \brief The state of the task. Upon creation the
     /// state is TaskState::PENDING
     TaskState state_;
+
+    /// \brief The id of the task
+    uint_t id_;
 
 };
 
