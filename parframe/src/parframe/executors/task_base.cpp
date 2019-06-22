@@ -1,11 +1,13 @@
 #include "parframe/executors/task_base.h"
 
+
 namespace parframe
 {
 
-TaskBase::TaskBase()
+TaskBase::TaskBase(uint_t id)
     :
-    state_(TaskBase::TaskState::PENDING)
+    state_(TaskBase::TaskState::PENDING),
+    id_(id)
 {}
 
 TaskBase::~TaskBase()

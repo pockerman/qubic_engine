@@ -3,9 +3,9 @@
 namespace parframe
 {
 
-SimpleTaskBase::SimpleTaskBase()
+SimpleTaskBase::SimpleTaskBase(uint_t id)
     :
-      TaskBase()
+   TaskBase(id)
 {}
 
 SimpleTaskBase::~SimpleTaskBase()
@@ -18,8 +18,9 @@ SimpleTaskBase::operator()(){
 
         // assume that the task state may have been set and
         // be different than PENDING in this case we don't run
-        if(get_state() != TaskBase::TaskState::PENDING)
+        if(get_state() != TaskBase::TaskState::PENDING){
             return;
+        }
 
         set_state(TaskBase::TaskState::STARTED);
         run();
