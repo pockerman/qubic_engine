@@ -76,9 +76,14 @@ void partition_range(IteratorTp begin, const IteratorTp end,
     //rt_root::log_info(message.str());
 #endif
 
-
-
 }
+
+/// \brief Partition the range [begin, end)
+void partition_range(uint_t begin, uint_t end,
+                     std::vector<range1d<uint_t>>& partitions, uint_t n_parts  );
+
+
+
 
 }
 
