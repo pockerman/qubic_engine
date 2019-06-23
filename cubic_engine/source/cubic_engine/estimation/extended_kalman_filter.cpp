@@ -48,19 +48,21 @@ ExtendedKalmanFilter::predict(const DynVec<real_t>& u){
 void
 ExtendedKalmanFilter::update(const DynVec<real_t>& y){
 
-    auto& H = *this->system_maps_["H"];
-    auto H_T = trans(H);
+
+    auto& Hjac = *this->system_maps_["Hjac"];
+    auto Hjac_T = trans(Hjac);
     auto& P = *this->system_maps_["P"];
     auto& M = *this->system_maps_["M"];
     auto M_T = trans(M);
     auto& R = *this->system_maps_["R"];
 
-    auto S = H*P*H_T + M*R*M_T;
+    auto S = Hjac*P*Hjac_T + M*R*M_T;
     auto S_inv = inv(S);
 
-    this->K_ = std::move(P*H_T*S_inv);
+    this->K_ = std::move(P*Hjac_T*S_inv);
 
     auto& x = *this->x_;
+    auto& H = *this->system_maps_["H"];
     auto innovation = y - h_ptr_->operator()(x, H);
 
 #ifdef KERNEL_DEBUG
@@ -68,7 +70,6 @@ ExtendedKalmanFilter::update(const DynVec<real_t>& y){
     if(this->K_.columns() != innovation.size()){
         throw std::runtime_error("Matrix columns: "+std::to_string(this->K_.columns())+" not equal to vector size: "+std::to_string(innovation.size()));
     }
-
 #endif
 
     x += this->K_*innovation;
