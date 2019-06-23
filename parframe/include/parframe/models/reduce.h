@@ -3,9 +3,9 @@
 
 #include "parframe/base/types.h"
 #include "parframe/executors/simple_task.h"
+#include "parframe/executors/task_uitilities.h"
 #include "parframe/data_structs/range_1d.h"
 #include "parframe/utilities/iterator_helpers.h"
-#include "parframe/executors/task_uitilities.h"
 
 #include <vector>
 #include <memory>

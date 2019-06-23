@@ -28,6 +28,9 @@ public:
     /// \brief Join the value with the result held
     void join(const value_type& value){ result_ += value;}
 
+    /// \brief Joint the value of the other Sum operation
+    void join(const Sum<T>& other);
+
     /// \brief Query whether the held result is valid
     bool is_result_valid()const{return valid_result_;}
 
@@ -40,6 +43,14 @@ public:
     /// \brief busy wait for the thread that calls it until the
     /// result becomes valid
     result_type get()const;
+
+    /// \brief Attempt to get the result only if it is valid. Perfroms busy
+    /// wait is the result is not valid
+    result_type get_or_wait()const;
+
+    /// \brief Overload operator!
+    bool operator!()const{ return valid_result_;}
+
 private:
 
     value_type result_;
@@ -47,16 +58,32 @@ private:
 };
 
 template<typename T>
+void
+Sum<T>::join(const Sum<T>& other){
+
+    if(!other){
+        return;
+    }
+
+    result_ += other.result_;
+}
+
+template<typename T>
 typename Sum<T>::result_type
 Sum<T>::get()const{
-
-    /*while(!valid_result_){
-        std::this_thread::yield();
-    }*/
-
     return std::make_pair(result_, valid_result_);
 }
 
+template<typename T>
+typename Sum<T>::result_type
+Sum<T>::get_or_wait()const{
+
+    while(!valid_result_){
+        std::this_thread::yield();
+    }
+
+    return std::make_pair(result_, valid_result_);
+}
 }
 
 #endif // REDUCTION_OPERATIONS_H
