@@ -101,7 +101,4 @@ INSTALL(TARGETS parframelib DESTINATION ${CMAKE_INSTALL_PREFIX})
 ADD_SUBDIRECTORY(examples)
 
 ENABLE_TESTING()
-#ADD_SUBDIRECTORY(tests/test_max_element)
-#ADD_SUBDIRECTORY(tests/test_range_1d)
-ADD_SUBDIRECTORY(tests/test_stoppable_task)
-ADD_SUBDIRECTORY(tests/test_thread_pool)
+ADD_SUBDIRECTORY(tests)
