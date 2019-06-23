@@ -45,6 +45,7 @@ private:
     real_t res_;
 
     struct MatVecProduct;
+    struct DotProduct;
 
     std::vector<std::unique_ptr<MatVecProduct>> mat_vec_tasks_;
 
@@ -116,6 +117,8 @@ CGSolver::solve(const Matrix& mat, const Vector& b, Vector& x, ThreadPool& execu
         mat_vec_tasks_.push_back(std::make_unique<MatVecProduct>(t, mat, x, w));
     }
 
+    real_t alpha = 0.0;
+    real_t beta = 0.0;
     for(uint itr = 0; itr < n_itrs_; ++itr){
 
 
