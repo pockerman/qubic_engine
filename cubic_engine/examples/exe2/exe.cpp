@@ -5,23 +5,12 @@
 
 #include "exe.h"
 #include "parframe/base/angle_calculator.h"
+#include "parframe/utilities/csv_file_writer.h"
 #include <cmath>
 #include <iostream>
 
 namespace exe2
 {
-
-/*void
-MotionModel::operator()(DynVec<real_t>& x, const DynVec<real_t>& x_prev,
-                        const DynMat<real_t>& A, const DynMat<real_t>& B, const DynVec<real_t>& u  )const{
-    x = A*x_prev + B*u;
-}
-
-DynVec<real_t>
-ObservationModel::operator()(const DynVec<real_t>& x)const{
-
-    return DynVec<real_t>(2,0.0);
-}*/
 
 Robot::Robot()
     :
@@ -57,7 +46,7 @@ Robot::update_F_mat(){
     real_t v = (*u_)[0];
 
     F_(0, 0) = 1.0;
-    F_(0,1 ) = 0.0;
+    F_(0, 1 ) = 0.0;
     F_(0, 2) = -DT * v * std::sin(yaw);
     F_(0, 3) =  DT * std::cos(yaw);
 
@@ -115,6 +104,22 @@ Robot::update_H_mat(){
 }
 
 void
+Robot::update_Hjac_mat(){
+
+    Hjac_.resize(2,4);
+    Hjac_(0,0) = 1.0;
+    Hjac_(0,1) = 0.0;
+    Hjac_(0,2) = 0.0;
+    Hjac_(0,3) = 0.0;
+
+    Hjac_(1,0) = 0.0;
+    Hjac_(1,1) = 1.0;
+    Hjac_(1,2) = 0.0;
+    Hjac_(1,3) = 0.0;
+
+}
+
+void
 Robot::update_M_mat(){
     M_ = std::move(cengine::IdentityMatrix<real_t>(2));
 }
@@ -152,6 +157,7 @@ Robot::initialize(){
     update_Q_mat();
     update_L_mat();
     update_H_mat();
+    update_Hjac_mat();
     update_M_mat();
     update_R_mat();
 
@@ -164,6 +170,7 @@ Robot::initialize(){
     state_estimator_.set_mat_ptr("H", H_);
     state_estimator_.set_mat_ptr("M", M_);
     state_estimator_.set_mat_ptr("R", R_);
+    state_estimator_.set_mat_ptr("Hjac", Hjac_);
 
     state_estimator_.set_motion_model(f_func_);
     state_estimator_.set_observation_model(h_func_);
@@ -172,8 +179,17 @@ Robot::initialize(){
 void
 Robot::simulate(DynVec<real_t>& u, const DynVec<real_t>& y){
 
+    u_ = &u;
+    update_F_mat();
+    update_Hjac_mat();
     state_estimator_.iterate(u, y);
+}
 
+
+void
+Robot::save_state(kernel::CSVWriter& writer)const{
+
+    writer.write_row(state_);
 }
 
 }
@@ -184,12 +200,21 @@ int main(int argc, char** argv) {
     uint_t n_steps = 1000;
     real_t dt = 0.1;
 
-    Robot robot;
-    robot.initialize();
-
     DynVec<real_t> u(2);
     u[0] = 2.0; //m/s
     u[1] = 0.1; //rad/s
+
+    Robot robot;
+    robot.set_input(u);
+    robot.initialize();
+
+    kernel::CSVWriter writer("robot_state", kernel::CSVWriter::default_delimiter(), true);
+    std::vector<std::string> names(4);
+    names[0] = "X";
+    names[1] = "Y";
+    names[2] = "Phi";
+    names[3] = "V";
+    writer.write_column_names(names);
 
     DynVec<real_t> y(2, 0.0);
 
@@ -197,8 +222,8 @@ int main(int argc, char** argv) {
         for(uint_t step=1; step < n_steps; ++step){
             std::cout<<"\tAt step: "<<step<<std::endl;
             robot.simulate(u, y);
+            robot.save_state(writer);
         }
-
     }
     catch(std::runtime_error& e){
         std::cerr<<e.what()<<std::endl;

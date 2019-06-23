@@ -11,6 +11,11 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/estimation/extended_kalman_filter.h"
 
+namespace kernel
+{
+class CSVWriter;
+}
+
 namespace exe2{
 
 using cengine::DynVec;
@@ -20,26 +25,6 @@ using cengine::uint_t;
 
 const uint_t N_STEPS = 1000;
 const  real_t DT = 0.1;
-
-
-// The class that describes the dynamics of the robot
-// The following model is useed
-// $$ \dot{x} = vcos(\phi)$$
-// $$ \dot{y} = vsin((\phi)$$
-// $$ \dot{\phi} = \omega$$
-
-
-
-/*struct MotionModel: public cengine::EKF_F_func
-{
-    virtual void operator()(DynVec<real_t>& x, const DynVec<real_t>& x_prev, const DynMat<real_t>& A,
-                            const DynMat<real_t>& B, const DynVec<real_t>& u  )const override final;
-};*/
-
-/*struct ObservationModel: public cengine::EKF_H_func
-{
-   virtual DynVec<real_t> operator()(const DynVec<real_t>& x)const override final;
-};*/
 
 // The robot to simulate
 class Robot
@@ -53,6 +38,12 @@ public:
 
     // initialize the robot
     void initialize();
+
+    // set the input
+    void set_input(const DynVec<real_t>& v){u_ = &v;}
+
+    // save the current state
+    void save_state(kernel::CSVWriter& writer)const;
 
 private:
 
@@ -75,11 +66,12 @@ private:
 
     DynMat<real_t> L_;
     DynMat<real_t> H_;
+    DynMat<real_t> Hjac_;
     DynMat<real_t> M_;
     DynMat<real_t> R_;
 
     // The externally applied input
-    DynVec<real_t>* u_;
+    const DynVec<real_t>* u_;
 
     // The state estimator of the robot
     cengine::ExtendedKalmanFilter state_estimator_;
@@ -99,6 +91,7 @@ private:
     void update_Q_mat();
     void update_L_mat();
     void update_H_mat();
+    void update_Hjac_mat();
     void update_M_mat();
     void update_R_mat();
 
