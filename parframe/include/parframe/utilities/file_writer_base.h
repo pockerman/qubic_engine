@@ -23,7 +23,7 @@ public:
       *@brief Constructor. Construct by passing the name
       * of the file to write into.
       */
-    FileWriterBase(const std::string& file_name, FileFormats::Type t);
+    FileWriterBase(const std::string& file_name, FileFormats::Type t, bool open_file=false);
 
     /**
       *@brief Destructor
