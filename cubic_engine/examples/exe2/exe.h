@@ -11,6 +11,7 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/estimation/extended_kalman_filter.h"
 
+
 namespace kernel
 {
 class CSVWriter;
@@ -31,6 +32,8 @@ class Robot
 {
 public:
 
+
+
     // constructor
     Robot();
 
@@ -44,6 +47,11 @@ public:
 
     // save the current state
     void save_state(kernel::CSVWriter& writer)const;
+
+    // Apply the motion model and return a state vector
+    void apply_motion_model(DynVec<real_t>& x, const DynVec<real_t>& u)const;
+
+
 
 private:
 
@@ -78,7 +86,7 @@ private:
 
     // The motion model the rovot is using
     typedef cengine::EKF_F_func MotionModel;
-    MotionModel f_func_;
+    MotionModel motion_model_;
 
     // The observation model the robot is using
     typedef cengine::EKF_H_func ObservationModel;
