@@ -3,9 +3,9 @@
 namespace kernel
 {
 
-CSVWriter::CSVWriter(const std::string& filename, char delim, bool open_file)
+CSVWriter::CSVWriter(const std::string& filename, char delim, bool open_file, const std::ios_base::openmode mode)
                 :
-FileWriterBase(filename, FileFormats::Type::CSV, open_file),
+FileWriterBase(filename, FileFormats::Type::CSV, open_file, mode),
 delim_(delim)
 {}
 

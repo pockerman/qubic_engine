@@ -23,7 +23,7 @@ public:
       *@brief Constructor. Construct by passing the name
       * of the file to write into.
       */
-    FileWriterBase(const std::string& file_name, FileFormats::Type t, bool open_file=false);
+    FileWriterBase(const std::string& file_name, FileFormats::Type t, bool open_file=false, const std::ios_base::openmode mode=std::ios_base::out);
 
     /**
       *@brief Destructor
@@ -33,7 +33,7 @@ public:
     /**
       *@brief Open the file for writing
       */
-    virtual void open();
+    virtual void open(std::ios_base::openmode mode);
 
     /**
       * @brief Return true if and only if the file is open

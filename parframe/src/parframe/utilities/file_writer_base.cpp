@@ -7,7 +7,7 @@
 namespace kernel
 {
 
-FileWriterBase::FileWriterBase(const std::string& file_name, FileFormats::Type t, bool open_file)
+FileWriterBase::FileWriterBase(const std::string& file_name, FileFormats::Type t, bool open_file, const std::ios_base::openmode mode)
 :
 file_name_(file_name),
 comment_mark_(FileWriterBase::default_comment_mark()),
@@ -15,7 +15,7 @@ t_(t)
 {
 
     if(open_file){
-        open();
+        open(mode);
     }
 }
 
@@ -31,11 +31,12 @@ FileWriterBase::close(){
 }
 
 void
-FileWriterBase::open(){
+FileWriterBase::open(std::ios_base::openmode mode){
 
     std::string suffix = FileFormats::type_to_string(t_);
     std::string filename = file_name_+"."+suffix;
-    file_.open(filename, std::ios_base::app);
+    //file_.open(filename, std::ios_base::app);
+    file_.open(filename, mode);
 }
 
 void FileWriterBase::write_header(){

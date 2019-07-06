@@ -24,7 +24,7 @@ public:
     /**
      * @brief Constructor
      */
-    CSVWriter(const std::string& filename, char delim=CSVWriter::default_delimiter(), bool open_file=false);
+    CSVWriter(const std::string& filename, char delim=CSVWriter::default_delimiter(), bool open_file=false, const std::ios_base::openmode mode=std::ios_base::out);
 
     /**
      * @brief Write the column names
