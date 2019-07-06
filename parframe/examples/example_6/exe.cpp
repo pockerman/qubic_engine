@@ -6,6 +6,7 @@
 #include "parframe/executors/thread_pool.h"
 #include "parframe/models/reduce.h"
 #include "parframe/models/reduction_operations.h"
+#include "parframe/models/dot_product.h"
 #include "parframe/partitioners/array_partitioner.h"
 #include "parframe/base/algorithm_info.h"
 #include "parframe/data_structs/partitioned_object.h"
@@ -47,7 +48,10 @@ private:
     struct MatVecProduct;
     struct DotProduct;
 
-    std::vector<std::unique_ptr<MatVecProduct>> mat_vec_tasks_;
+    // matrix-vector tasks
+    std::vector<std::unique_ptr<parframe::TaskBase>> mat_vec_tasks_;
+
+
 
     // structure responsible for computing the
     // matrix-vector product
@@ -111,19 +115,51 @@ CGSolver::solve(const Matrix& mat, const Vector& b, Vector& x, ThreadPool& execu
     Vector w(x.size());
 
     mat_vec_tasks_.reserve(executor.get_n_threads());
+    bool converged = false;
 
     // create the tasks
     for(uint_t t=0; t<executor.get_n_threads(); ++t){
         mat_vec_tasks_.push_back(std::make_unique<MatVecProduct>(t, mat, x, w));
     }
 
+    // object to perform the dot product
+    parframe::DotProduct<Vector, real_t> gg_dotproduct(g,g);
+    parframe::DotProduct<Vector, real_t> dw_dotproduct(d, w);
+
     real_t alpha = 0.0;
     real_t beta = 0.0;
     for(uint itr = 0; itr < n_itrs_; ++itr){
 
+        // perform the matrix-vector product
+        executor.add_tasks(mat_vec_tasks_);
+
+        dw_dotproduct.reexecute(executor);
+        auto result_1 = dw_dotproduct.get_or_wait();
+
+        gg_dotproduct.reexecute(executor);
+        auto result_2 = gg_dotproduct.get_or_wait();
+
+        // compute alpha
+        alpha = result_2.get().first/result_1.get().first;
+
+        // update g and x
+
+        gg_dotproduct.reexecute(executor);
+        auto result_3 = gg_dotproduct.get_or_wait();
+        beta = result_3.get().first/result_2.get().first;
+
+        // update d vector
 
         info.niterations = itr;
 
+        if(!converged){
+
+            //reset the state of the tasks
+            for(uint_t t=0; t< mat_vec_tasks_.size(); ++t){
+
+                mat_vec_tasks_[t]->set_state(parframe::TaskBase::TaskState::PENDING);
+            }
+        }
     }
 
     return info;
@@ -153,8 +189,6 @@ int main(){
 
         CGSolver solver(100, parframe::kernel_consts::tolerance());
         solver.solve(A, x, b, pool);
-        //parframe::reduce_array(partitions, op, pool);
-
     }
     catch (std::logic_error& e) {
         std::cout<<e.what()<<std::endl;
