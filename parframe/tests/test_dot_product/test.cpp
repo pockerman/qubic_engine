@@ -27,8 +27,8 @@ TEST(TestDotProduct, TestDotProductInvalidVectorSizes) {
         Vector v2(20);
         parframe::ThreadPool pool(1);
 
-        parframe::DotProduct<Vector, kernel::real_t> product;
-        product.execute(v1, v2, pool);
+        parframe::DotProduct<Vector, kernel::real_t> product(v1, v2);
+        product.execute(pool);
     }
     catch(std::runtime_error& e){
         std::string except_msg(e.what());
@@ -57,8 +57,8 @@ TEST(TestDotProduct, TestDotProductReturnedResult) {
         v1.set_partitions(std::move(partitions));
         v2.set_partitions(std::move(partitions));
 
-        parframe::DotProduct<Vector, kernel::real_t> product;
-        product.execute(v1, v2, pool);
+        parframe::DotProduct<Vector, kernel::real_t> product(v1, v2);
+        product.execute(pool);
 
         auto rslt = product.get();
         EXPECT_EQ(rslt.is_result_valid(), true);
