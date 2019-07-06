@@ -41,10 +41,15 @@ ThreadPool::add_task(TaskBase& task){
     next_thread_available_++;
 }
 
+void
+ThreadPool::add_tasks(const std::vector<std::unique_ptr<task_t>>& tasks){
+
+    for(uint_t t=0; t<tasks.size(); ++t){
+        add_task(*(tasks[t].get()));
+    }
+}
 
 
-
-inline
 void
 ThreadPool::close(){
 

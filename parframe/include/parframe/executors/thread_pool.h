@@ -24,6 +24,9 @@ class ThreadPool: private boost::noncopyable
 {
 public:
 
+    /// \brief Type of task this pool handles
+    typedef TaskBase task_t;
+
     /// \brief Constructor. Initialize the pool with the given number
     /// of threads
     ThreadPool(uint_t n_threads);
@@ -38,6 +41,9 @@ public:
     /// \brief Allocate the task for execution to one of the
     /// worker threads
     void add_task(TaskBase& task);
+
+    /// \brief Allocate the given tasks for execution
+    void add_tasks(const std::vector<std::unique_ptr<TaskBase>>& tasks);
 
     /// \brief Returns the number of threads the pool is using
     uint_t get_n_threads()const{return pool_.size();}
