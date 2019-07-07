@@ -28,7 +28,7 @@ public:
     uint_t n_partitions()const{return partitions_.size();}
 
     /// \brief Set the partitions
-    void set_partitions(std::vector<range1d<uint_t>>&& parts){partitions_ = std::move(parts);}
+    void set_partitions(const std::vector<range1d<uint_t>>& parts){partitions_ = parts;}
 
     /// \brief Return the t-th partiton. Throws std::invalid_argument if t
     /// is out of  bounds

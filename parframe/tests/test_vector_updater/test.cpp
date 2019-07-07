@@ -61,9 +61,9 @@ TEST(TestVectorUpdater, TestVectorUpdaterReturnedResult) {
         std::vector<parframe::range1d<parframe::uint_t>> partitions;
         parframe::partition_range(0, v1.size(), partitions, pool.get_n_threads() );
 
-        v1.set_partitions(std::move(partitions));
-        v2.set_partitions(std::move(partitions));
-        v3.set_partitions(std::move(partitions));
+        v1.set_partitions(partitions);
+        v2.set_partitions(partitions);
+        v3.set_partitions(partitions);
 
         kernel::VectorUpdater<Vector, kernel::ScaledSum<kernel::real_t>, kernel::real_t> product(v1, v2, v3, a, b);
         product.execute(pool);
