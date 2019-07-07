@@ -4,9 +4,6 @@
 /**
   *
   * Compute dot product between two vectors
-  *
-  *
-  *
   */
 
 #include "parframe/base/types.h"
@@ -26,7 +23,6 @@ class DotProduct: private boost::noncopyable
 {
 
 public:
-
     typedef VectorTp vector_type;
     typedef Sum<ResultTp> result_type;
 
@@ -98,7 +94,6 @@ private:
         result_type result;
     };
 };
-
 
 
 template<typename VectorTp, typename ResultTp>

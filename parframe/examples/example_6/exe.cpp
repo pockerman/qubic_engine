@@ -11,6 +11,8 @@
 #include "parframe/base/algorithm_info.h"
 #include "parframe/data_structs/partitioned_object.h"
 #include "parframe/executors/simple_task.h"
+#include "parframe/models/vector_updater.h"
+#include "parframe/models/scaled_sum.h"
 
 #include <thread>
 #include <vector>
@@ -50,8 +52,6 @@ private:
 
     // matrix-vector tasks
     std::vector<std::unique_ptr<parframe::TaskBase>> mat_vec_tasks_;
-
-
 
     // structure responsible for computing the
     // matrix-vector product
@@ -122,12 +122,16 @@ CGSolver::solve(const Matrix& mat, const Vector& b, Vector& x, ThreadPool& execu
         mat_vec_tasks_.push_back(std::make_unique<MatVecProduct>(t, mat, x, w));
     }
 
+    real_t alpha = 0.0;
+    real_t beta = 0.0;
+
     // object to perform the dot product
     parframe::DotProduct<Vector, real_t> gg_dotproduct(g,g);
     parframe::DotProduct<Vector, real_t> dw_dotproduct(d, w);
+    kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_x(x, x, d, 1.0, alpha);
+    kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_g(g, g, w, 1.0, alpha);
+    kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_d(d, g, w, -1.0, beta);
 
-    real_t alpha = 0.0;
-    real_t beta = 0.0;
     for(uint itr = 0; itr < n_itrs_; ++itr){
 
         // perform the matrix-vector product
@@ -143,12 +147,15 @@ CGSolver::solve(const Matrix& mat, const Vector& b, Vector& x, ThreadPool& execu
         alpha = result_2.get().first/result_1.get().first;
 
         // update g and x
+        update_x.reexecute(executor);
+        update_g.reexecute(executor);
 
         gg_dotproduct.reexecute(executor);
         auto result_3 = gg_dotproduct.get_or_wait();
         beta = result_3.get().first/result_2.get().first;
 
         // update d vector
+        update_d.reexecute(executor);
 
         info.niterations = itr;
 
