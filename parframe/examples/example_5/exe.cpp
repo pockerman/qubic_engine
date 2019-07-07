@@ -41,7 +41,7 @@ int main(){
         parframe::reduce_array(partitions, op, pool);
         auto rslt = op.get();
 
-        if( rslt.first != 100.0 && rslt.second == false){
+        if( rslt.first != 100.0 && !rslt.second ){
             std::cout<<"Result: "<<rslt.first<<" should be 100"<<std::endl;
             throw std::logic_error("Incorrect result");
         }
