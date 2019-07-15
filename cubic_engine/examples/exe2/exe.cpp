@@ -16,9 +16,72 @@ namespace exe2
 {
 
 DynVec<real_t> y(2, 0.0);
+DynVec<real_t> z(2, 0.0);
 DynVec<real_t> x_true(4, 0.0);
 DynVec<real_t> x_dr(4, 0.0);
 DynVec<real_t> ud(2, 0.0);
+
+
+struct MotionModel
+{
+    DynVec<real_t> operator()(const DynVec<real_t>& x, const DynVec<real_t>& u)const;
+};
+
+DynVec<real_t>
+MotionModel::operator()(const DynVec<real_t>& x, const DynVec<real_t>& u)const{
+
+    DynMat<real_t> A(4, 4, 0.0);
+
+    A( 0,0 ) = 1.0;
+    A( 1,1 ) = 1.0;
+    A( 2,2 ) = 1.0;
+
+    DynMat<real_t> B(4, 2, 0.0);
+
+    //std::cout<<"State is: "<<x<<std::endl;
+    real_t phi = x[2];
+    //std::cout<<"Phis is: "<<phi<<std::endl;
+    B(0, 0) = std::cos(phi)*DT;
+    B(0, 1) = 0.0;
+    B(1, 0) = std::sin(phi)*DT;
+    B(1, 1) = 0.0;
+    B(2, 0) = 0.0;
+    B(2, 1) = DT;
+    B(3, 0 ) = 1.0;
+    B(3, 1 ) = 0.0;
+
+    return A*x + B*u;
+}
+
+struct ObservationModel
+{
+    DynVec<real_t> operator()(const DynVec<real_t>& x)const;
+};
+
+DynVec<real_t>
+ObservationModel::operator()(const DynVec<real_t>& x)const{
+
+    DynMat<real_t> H(2, 4, 0.0);
+
+#ifdef KERNEL_DEBUG
+
+    if(H.columns() != x.size()){
+        throw std::runtime_error("Matrix columns: "+std::to_string(H.columns())+" not equal to vector size: "+std::to_string(x.size()));
+    }
+#endif
+
+    H(0,0) = 1.0;
+    H(0,1) = 0.0;
+    H(0,2) = 0.0;
+    H(0,3) = 0.0;
+
+    H(1,0) = 0.0;
+    H(1,1) = 1.0;
+    H(1,2) = 0.0;
+    H(1,3) = 0.0;
+
+    return H*x;
+}
 
 Robot::Robot()
     :
@@ -39,7 +102,7 @@ Robot::Robot()
 
 void
 Robot::update_A_mat(){
-     A_.resize(4, 4);
+     A_.resize(4, 4, 0.0);
      A_( 0,0 ) = 1.0;
      A_( 1,1 ) = 1.0;
      A_( 2,2 ) = 1.0;
@@ -76,21 +139,15 @@ Robot::update_F_mat(){
 
 void
 Robot::update_P_mat(){
-
     P_ = std::move(cengine::IdentityMatrix<real_t>(4));
-
-    /*P_.resize(4, 4);
-    P_( 0,0 ) = 1.0;
-    P_( 1,1 ) = 0.0;
-    P_( 2,2 ) = 0.0;*/
 }
 
 void
 Robot::update_Q_mat(){
-    Q_.resize(4 , 4 );
+    Q_.resize(4 , 4, 0.0 );
     Q_(0, 0) = 0.1*0.1;
     Q_(1, 1) = 0.1*0.1;
-    Q_(2, 2) = kernel::AngleCalculator::deg_to_rad(1.0);
+    Q_(2, 2) = kernel::AngleCalculator::deg_to_rad(1.0)*kernel::AngleCalculator::deg_to_rad(1.0);;
     Q_(3, 3) = 1.0;
 }
 
@@ -146,6 +203,7 @@ Robot::update_B_mat(){
         B_.resize(4 , 2);
         B_(0, 1) = 0.0;
         B_(1, 0) = 0.0;
+        B_(1, 1) = 0.0;
         B_(2, 0) = 0.0;
         B_(2, 1) = DT;
         B_(3, 0 ) = 1.0;
@@ -153,15 +211,15 @@ Robot::update_B_mat(){
     }
 
     real_t phi = state_[2];
-    B_(0,0) = std::cos(phi)*DT;
-    B_(1,0) = std::sin(phi)*DT;
+    B_(0, 0) = std::cos(phi)*DT;
+    B_(1, 0) = std::sin(phi)*DT;
 }
 
 void
 Robot::initialize(){
 
     // the state has 4 variables
-    state_.resize(4);
+    state_  = DynVec<real_t>(4, 0.0);
     state_estimator_.set_state_vector_ptr(state_);
 
     update_A_mat();
@@ -204,7 +262,7 @@ Robot::simulate(DynVec<real_t>& u, const DynVec<real_t>& y){
 void
 Robot::save_state(kernel::CSVWriter& writer)const{
 
-    DynVec<real_t> x(state_.size() + 2);
+    DynVec<real_t> x(state_.size() + 4);
 
     x[0] = state_[0];
     x[1] = state_[1];
@@ -212,6 +270,8 @@ Robot::save_state(kernel::CSVWriter& writer)const{
     x[3] = x_true[1];
     x[4] = state_[2];
     x[5] = state_[3];
+    x[6] = y[0];
+    x[7] = y[1];
     writer.write_row(x);
 }
 
@@ -222,20 +282,31 @@ Robot::apply_motion_model(DynVec<real_t>& x, const DynVec<real_t>& u)const{
 
 
 void
-observation(const Robot& r, const  DynVec<real_t>& u){
+observation( const  DynVec<real_t>& u){
 
-    r.apply_motion_model(x_true, u);
+    std::cout<<"========================"<<std::endl;
+    std::cout<<"Computing x_true vector"<<std::endl;
+    MotionModel mmodel;
+    x_true = mmodel(x_true, u);
+
+    //std::cout<<"x_true: "<<x_true[0]<<" , "<<x_true[1]<<" , "<<x_true[2]<<" , "<<x_true[3]<<std::endl;
 
     using boost::math::normal;
     normal ndist;
 
     // add noise to gps x-y
-    y[0] = x_true[0] + boost::math::pdf(ndist, 1.0) * 0.5*0.5;
-    y[1] = x_true[1] + boost::math::pdf(ndist, 1.0) * 0.5*0.5;
-    ud[0] = u[0] +  boost::math::pdf(ndist, 1.0) * 0.5*0.5;
-    ud[1] = u[1] + boost::math::pdf(ndist, 1.0) * 0.5*0.5;
+    y[0] = x_true[0] + boost::math::pdf(ndist, 0.0) * 0.5*0.5;
+    y[1] = x_true[1] + boost::math::pdf(ndist, 0.0) * 0.5*0.5;
 
-    r.apply_motion_model(x_dr, ud);
+    //ObservationModel obsmodel;
+    //y = obsmodel(x_true);
+
+    ud[0] = u[0] + boost::math::pdf(ndist, 0.0) * 1.0;
+    ud[1] = u[1] + boost::math::pdf(ndist,  0.0) * kernel::AngleCalculator::deg_to_rad(30.0) * kernel::AngleCalculator::deg_to_rad(30.0);
+
+    //std::cout<<"ud: "<<ud[0]<<","<<ud[1]<<std::endl;
+    //std::cout<<"Computing x_dr vector"<<std::endl;
+    x_dr = mmodel(x_dr, ud);
 }
 
 }
@@ -244,10 +315,9 @@ int main(int argc, char** argv) {
    
     using namespace exe2;
     uint_t n_steps = 500;
-    real_t dt = 0.1;
 
     DynVec<real_t> u(2);
-    u[0] = 2.0; //m/s
+    u[0] = 1.0; //m/s
     u[1] = 0.1; //rad/s
 
     Robot robot;
@@ -255,23 +325,17 @@ int main(int argc, char** argv) {
     robot.initialize();
 
     kernel::CSVWriter writer("robot_state", kernel::CSVWriter::default_delimiter(), true);
-    std::vector<std::string> names(6);
-    names[0] = "X";
-    names[1] = "Y";
-    names[2] = "X_true";
-    names[3] = "Y_true";
-    names[4] = "Phi";
-    names[5] = "V";
+    std::vector<std::string> names{"X", "Y", "X_true", "Y_true", "Phi", "V", "Zx", "Zy" };
     writer.write_column_names(names);
 
     try{
 
-        for(uint_t step=1; step < n_steps; ++step){
+        for(uint_t step=0; step < n_steps; ++step){
 
             std::cout<<"\tAt step: "<<step<<std::endl;
-            //observation(robot, u);
-            //robot.simulate(ud, y);
-            robot.simulate(u, y);
+            observation(u); // update y and ud
+            robot.simulate(ud, y);
+            //robot.simulate(u, y);
             robot.save_state(writer);
         }
     }
