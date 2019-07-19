@@ -2,6 +2,8 @@
 #define A_STAR_SEARCH_H
 
 #include "cubic_engine/base/cubic_engine_types.h"
+#include "parframe/data_structs/searchable_priority_queue.h"
+#include "parframe/utilities/map_utilities.h"
 
 #include <utility>
 #include <set>
@@ -10,7 +12,6 @@
 
 namespace cengine
 {
-
     namespace astar_impl
     {
 
@@ -47,21 +48,20 @@ namespace cengine
 
            return false;
         }
-
     }
 
 /// \brief Simple implementation of A* algorithm
 /// at the moment the algorithm is only usable with a
 /// boost_unidirected_serial_graph graph
-template<typename GraphTp,typename H>
-std::multimap<size_type,size_type>
+template<typename GraphTp, typename H>
+std::multimap<uint_t, uint_t>
 astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp::vertex_type& end, const H& h){
 
    std::multimap<uint_t, uint_t> came_from;
 
    if(start == end){
      //we don't have to search for anything
-     add_or_update_map(came_from,start.id,start.id);
+    kernel::add_or_update_map(came_from,start.id,start.id);
      return came_from;
    }
 
@@ -71,7 +71,7 @@ astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp:
    typedef typename GraphTp::vertex_type node_t;
 
    std::set<node_t,astar_impl::id_astar_node_compare> explored;
-   searchable_priority_queue<node_t, std::vector<node_t>, astar_impl::fcost_astar_node_compare> open;
+   kernel::searchable_priority_queue<node_t, std::vector<node_t>, astar_impl::fcost_astar_node_compare> open;
 
    //the cost of the path so far leading to this
    //node is obviously zero at the start node
@@ -105,7 +105,7 @@ astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp:
       for(; itr != neighbors.second; itr++){
 
          node_t& nv = g.get_vertex(itr);
-         size_type nid = nv.id;
+         uint_t nid = nv.id;
 
          //search explored set by id
          auto itr = std::find_if(explored.begin(), explored.end(),
@@ -113,25 +113,25 @@ astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp:
 
          //the node has been explored
          if(itr != explored.end()){
-                 continue;
+            continue;
          }
 
          //this actually the cost of the path from the current node
          //to reach its neighbor
-         cost_t tgCost = cv.data.gcost + h(cv.data.position, nv.data.position);
+         cost_t tg_cost = cv.data.gcost + h(cv.data.position, nv.data.position);
 
-         if (tgCost >= nv.data.gcost) {
+         if (tg_cost >= nv.data.gcost) {
             continue; //this is not a better path
          }
 
          // This path is the best until now. Record it!
-         add_or_update_map(came_from,nv.id,cv.id);
+         kernel::add_or_update_map(came_from,nv.id,cv.id);
 
          //came_from.put(nv.id,cv.id);
-         nv.data.gcost = tgCost;
+         nv.data.gcost = tg_cost;
 
          //acutally calculate f(nn) = g(nn)+h(nn)
-         nv.data.fcost = nv.data.gcost + h(nv.data.position,end.data.position);
+         nv.data.fcost = nv.data.gcost + h(nv.data.position, end.data.position);
 
          //update here the open as we copy
          if(!open.contains(nv)){
@@ -142,7 +142,6 @@ astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp:
 
    return came_from;
 }
-
 
 }
 
