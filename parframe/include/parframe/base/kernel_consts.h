@@ -4,7 +4,7 @@
 #include "parframe/base/types.h"
 #include <boost/noncopyable.hpp>
 
-namespace parframe
+namespace kernel
 {
 
 	/**
