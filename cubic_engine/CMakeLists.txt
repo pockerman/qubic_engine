@@ -26,8 +26,6 @@ SET(CUBIC_ENGINE_VERSION "${CUBIC_ENGINE_VERSION_MAJOR}.${CUBIC_ENGINE_VERSION_M
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/cubic_engine)
 
-SET(PARFRAMELIB_INCL_DIR " ")
-
 # Currently fail the build if the user does not supply the
 # variables.
 # TODO: How to do it better
@@ -89,10 +87,5 @@ INSTALL(TARGETS cubicengine DESTINATION ${CMAKE_INSTALL_PREFIX})
 # Add the examples
 ADD_SUBDIRECTORY(examples)
 
-#ENABLE_TESTING()
-#ADD_SUBDIRECTORY(tests/test_generic_line_path)
-#ADD_SUBDIRECTORY(tests/test_generic_line)
-#ADD_SUBDIRECTORY(tests/test_boost_serial_graph)
-#ADD_SUBDIRECTORY(tests/test_astar)
-#ADD_SUBDIRECTORY(tests/test_linear_function)
-#ADD_SUBDIRECTORY(tests/test_sse_error_function)cmake_minimum_required(VERSION 3.0)
+ENABLE_TESTING()
+ADD_SUBDIRECTORY(tests)
