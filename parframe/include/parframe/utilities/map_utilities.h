@@ -1,0 +1,4 @@
+#ifndef MAP_UTILITIES_H
+#define MAP_UTILITIES_H
+
+#endif // MAP_UTILITIES_H
