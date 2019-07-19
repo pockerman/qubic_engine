@@ -1,5 +1,0 @@
-# NumEngine
-
-## Dependencies
-
-## Installation
