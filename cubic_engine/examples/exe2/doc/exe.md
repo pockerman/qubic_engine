@@ -1,7 +1,11 @@
-# Example 1
+# Example: Extended Kalman Filter
 
 ## Contents
+* [Acknowledgements](#ackw)
 * [Overview](#overview) 
+                * [Extended Kalman Filter](#ekf)
+                * [Motion Model](#motion_model)
+                * [Discrete Motion Model](#discrete_motion_model)
 * [Include files](#include_files)
 * [Program structure](#prg_struct)
 				* [The Robot class](#ch_robot)
@@ -10,10 +14,97 @@
 * [The main function](#m_func)
 * [Results](#results)
 
+## <a name="ackw"></a>  Acknowledgements
+
+This example has been edited for here: https://github.com/AtsushiSakai/PythonRobotics/tree/master/Localization/extended_kalman_filter
+Thanks a lot. 
+
 ## <a name="overview"></a> Overview
 
-In this example we will develop an Extended Kalaman Filter or EKF for short. In you do not know what an EKF is or how it works have a look at here:
- 
+In this example we will develop an Extended Kalaman Filter or EKF for short. In you do not know what an EKF is or how it works have a look at here: 
+https://en.wikipedia.org/wiki/Extended_Kalman_filter. Below, we give a brief overview of how the filter works.
+
+### <a name="ekf"></a> Extended Kalman Filter
+
+Briefly, the EKF is an improvement over the classic Kalman Filter that can be applied to non-linear systems. The crux of the algorithm 
+remains the predictor-corrector steps as in the Kalman Filter 
+
+In the simulation below, we will assume that the state vector \f$\mathbf{x}\f$ at time \f$t\f$ 
+has four components; the 2D position coordinates \f$x,y\f$ the orientation \f$\phi\f$ and the velocity \f$v\f$. This
+
+\f[
+ \mathbf{x} = (x, y, \phi, v)
+\f]
+
+We will assume that the robot has a speed sensor and a gyro. The input vector therefore becomes  
+
+\f[
+\mathbf{u} = (v, \omega)
+\f]
+
+Also, we assume that the robot has a GNSS sensor. Hence, the robot can observe its \f$x,y\f$ position at each time step.
+Therefore, we have the following observation vector.
+
+\f[
+ \mathbf{z} = (x, y)
+\f]
+
+Both \f$\mathbf{u}\f$ and \f$\mathbf{z}\f$ are subject to sensor noise.  
+
+###<a name="motion_model"></a> Motion Model
+
+The robot motion  model is given by
+
+\f[
+  \dot{x} = v cos(\phi) \\
+  \dot{y} = v sin(\phi) \\
+  \dot{\phi} = \omega
+\f]
+
+###<a name="discrete_motion_model"></a> Discrete Motion Model
+
+The discrete motion model becomes
+
+\f[
+\mathbf{x}_{t+1} = F\mathbf{x}_{t} + B \mathbf{u}_{t}
+\f]
+
+where
+
+\f[
+F=\begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 0 & 0 \end{bmatrix}  
+\f]
+
+\f[
+B=\begin{bmatrix} cos(\phi)\Delta t & 0  \\ sin(\phi)\Delta t & 0  \\ 0 & \Delta t \\ 1 & 0   \end{bmatrix} 
+\f]
+
+where \f$\Delta t\f$ is the time interval.
+
+The Jacobian matrix is 
+
+\f[
+F=\begin{bmatrix} 1 & 0 & -vsin(\phi)\Delta t & cos(\phi)\Delta t \\ 
+                  0 & 1 &  vcos(\phi)\Delta t & sin(\phi)\Delta t \\ 
+                  0 & 0 &  1 & 0 \\ 
+                  0 & 0 & 0 & 1
+   \end{bmatrix}  
+\f]
+
+Similarly the GPS observation model becomes
+
+\f[
+\mathbf{z}_t = H \mathbf{x}_t
+\f]
+
+where
+
+\f[
+H=\begin{bmatrix} 1 & 0 & 0 & 0 \\ 
+                  0 & 1 & 0 & 0  
+                  
+   \end{bmatrix}  
+\f]
 
 ## <a name="include_files"></a> Include files
 The include files, bring into our program scope functionality that our program needs in order to compile and run. 
