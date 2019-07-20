@@ -1,6 +1,6 @@
 #include "parframe/base/algorithm_info.h"
 
-namespace parframe
+namespace kernel
 {
     
 std::ostream& 

@@ -55,7 +55,7 @@ private:
 
     /// \brief The pool of workers
     pool_t pool_;
-    uint_t next_thread_available_ {parframe::kernel_consts::invalid_size_type()};
+    uint_t next_thread_available_ {kernel::kernel_consts::invalid_size_type()};
 };
 
 }

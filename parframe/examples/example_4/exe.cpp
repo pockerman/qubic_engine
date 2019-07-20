@@ -23,10 +23,10 @@ namespace  {
     using parframe::uint_t;
     using parframe::real_t;
     using parframe::ThreadPool;
-    using parframe::AlgInfo;
     using parframe::ItrCtrl;
     using parframe::range1d;
     using parframe::SimpleTaskBase;
+    using kernel::AlgInfo;
 
     using Vector = blaze::DynamicVector<real_t>;
     using Matrix = blaze::DynamicMatrix<real_t>;
@@ -194,7 +194,7 @@ int main(){
 
     using parframe::ThreadPool;
     using parframe::ItrCtrl;
-    using parframe::AlgInfo;
+    using kernel::AlgInfo;
 
     Vector b(100, 2.0);
     Vector x(100, 0.0);
@@ -214,7 +214,7 @@ int main(){
     ThreadPool pool(4);
 
     // create the control
-    ItrCtrl control(100, pool.get_n_threads(), parframe::kernel_consts::tolerance());
+    ItrCtrl control(100, pool.get_n_threads(), kernel::kernel_consts::tolerance());
 
     // the object responsible for Jacobi iteration
     JacobiIterator iterator(control);
@@ -227,7 +227,6 @@ int main(){
 
     // uncomment this to view the solution
     //std::cout<<x<<std::endl;
-
 
     return 0;
 }

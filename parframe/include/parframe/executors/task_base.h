@@ -47,7 +47,7 @@ public:
 protected:
 
     /// \brief Constructor
-    TaskBase(uint_t id=kernel_consts::invalid_size_type());
+    TaskBase(uint_t id = kernel::kernel_consts::invalid_size_type());
 
     /// \brief Function to overrided by defived classes.
     /// It actually executes the compuational task

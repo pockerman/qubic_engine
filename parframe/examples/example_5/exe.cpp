@@ -32,7 +32,7 @@ int main(){
         //create a pool and start it with four threads
         ThreadPool pool(4);
 
-        parframe::Sum<parframe::real_t> op;
+        kernel::Sum<parframe::real_t> op;
         std::vector<parframe::range1d<Vector::Iterator>> partitions;
 
         //create the partitions

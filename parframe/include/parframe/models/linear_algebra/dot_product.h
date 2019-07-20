@@ -15,7 +15,7 @@
 #include <stdexcept>
 #include <memory>
 
-namespace parframe
+namespace kernel
 {
 
 template<typename VectorTp, typename ResultTp=typename VectorTp::value_type>
@@ -75,7 +75,7 @@ private:
     /// \brief Deallocate the memory for the tasks
     void clear_tasks_memory_();
 
-    struct DoDotProduct: public SimpleTaskBase
+    struct DoDotProduct: public parframe::SimpleTaskBase
     {
 
         /// \brief Constructor
@@ -163,7 +163,7 @@ DotProduct<VectorTp, ResultTp>::execute(ExecutorTp& executor){
 
         // if we reached here but for some reason the
         // task has not finished properly invalidate the result
-       if(tasks_[t]->get_state() != TaskBase::TaskState::FINISHED){
+       if(tasks_[t]->get_state() != parframe::TaskBase::TaskState::FINISHED){
            result_.invalidate_result();
        }
        else{
@@ -187,7 +187,7 @@ DotProduct<VectorTp, ResultTp>::reexecute(ExecutorTp& executor){
 
         for(uint_t t=0; t<executor.get_n_threads(); ++t){
 
-            tasks_[t]->set_state(TaskBase::TaskState::PENDING);
+            tasks_[t]->set_state(parframe::TaskBase::TaskState::PENDING);
             executor.add_task(*(tasks_[t].get()));
         }
 
@@ -204,7 +204,7 @@ DotProduct<VectorTp, ResultTp>::reexecute(ExecutorTp& executor){
 
             // if we reached here but for some reason the
             // task has not finished properly invalidate the result
-           if(tasks_[t]->get_state() != TaskBase::TaskState::FINISHED){
+           if(tasks_[t]->get_state() != parframe::TaskBase::TaskState::FINISHED){
                result_.invalidate_result();
            }
            else{

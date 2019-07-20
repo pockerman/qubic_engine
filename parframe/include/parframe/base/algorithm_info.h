@@ -15,7 +15,7 @@
 #include <ostream>
 #include <limits>
 
-namespace parframe
+namespace kernel
 {
  
 	/**

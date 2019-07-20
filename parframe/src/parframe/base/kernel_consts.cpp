@@ -1,6 +1,6 @@
 #include "parframe/base/kernel_consts.h"
 
-namespace parframe
+namespace kernel
 {
     real_t
 	kernel_consts::tol_ = 1.0e-8;
@@ -13,6 +13,4 @@ namespace parframe
 
 	kernel_consts::kernel_consts()
 	{}
-
-
 }

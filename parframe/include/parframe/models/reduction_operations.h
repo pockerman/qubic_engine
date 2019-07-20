@@ -4,7 +4,7 @@
 #include <thread>
 #include <utility>
 
-namespace parframe
+namespace kernel
 {
 
 template<typename T>

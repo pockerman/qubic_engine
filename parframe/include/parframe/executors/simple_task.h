@@ -10,7 +10,6 @@ namespace parframe
 class SimpleTaskBase: public TaskBase
 {
 
-
 public:
 
     /// \brief Destructor
@@ -22,7 +21,7 @@ public:
 protected:
 
     /// \brief Constructor
-    SimpleTaskBase(uint_t id=kernel_consts::invalid_size_type());
+    SimpleTaskBase(uint_t id = kernel::kernel_consts::invalid_size_type());
 };
 
 

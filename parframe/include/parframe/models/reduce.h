@@ -28,7 +28,7 @@ namespace detail
         void execute(const std::vector<range1d<IteratorTp>>& , ReductionOpTp& op, ExecutorTp& executor);
 
         /// \brief Returns true if the spawned tasks have finished
-        bool tasks_finished()const{return taskutils::tasks_finished(tasks_);}
+        bool tasks_finished()const{return kernel::taskutils::tasks_finished(tasks_);}
 
     private:
 

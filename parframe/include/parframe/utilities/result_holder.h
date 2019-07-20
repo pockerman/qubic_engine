@@ -98,8 +98,6 @@ ResultHolder<T>::get_or_wait_for(uint_t mills)const{
     return std::make_pair(&item_, valid_result_);
 }
 
-
 }
-
 
 #endif // RESULT_HOLDER_H

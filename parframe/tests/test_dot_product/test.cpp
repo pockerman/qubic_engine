@@ -1,4 +1,4 @@
-#include "parframe/models/dot_product.h"
+#include "parframe/models/linear_algebra/dot_product.h"
 #include "parframe/executors/thread_pool.h"
 #include "parframe/base/types.h"
 #include "parframe/data_structs/partitioned_object.h"
@@ -27,7 +27,7 @@ TEST(TestDotProduct, TestDotProductInvalidVectorSizes) {
         Vector v2(20);
         parframe::ThreadPool pool(1);
 
-        parframe::DotProduct<Vector, kernel::real_t> product(v1, v2);
+        kernel::DotProduct<Vector, kernel::real_t> product(v1, v2);
         product.execute(pool);
     }
     catch(std::runtime_error& e){
@@ -57,7 +57,7 @@ TEST(TestDotProduct, TestDotProductReturnedResult) {
         v1.set_partitions(partitions);
         v2.set_partitions(partitions);
 
-        parframe::DotProduct<Vector, kernel::real_t> product(v1, v2);
+        kernel::DotProduct<Vector, kernel::real_t> product(v1, v2);
         product.execute(pool);
 
         auto rslt = product.get();

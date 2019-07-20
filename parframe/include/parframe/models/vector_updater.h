@@ -51,7 +51,7 @@ public:
     void reexecute(ExecutorTp& executor);
 
     /// \brief Returns true if the spawned tasks have finished
-    bool tasks_finished()const{return parframe::taskutils::tasks_finished(tasks_);}
+    bool tasks_finished()const{return taskutils::tasks_finished(tasks_);}
 
     /// \brief Returns the result
     const result_type& get()const{return result_;}
