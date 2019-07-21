@@ -32,7 +32,7 @@ int main(){
         //create a pool and start it with four threads
         ThreadPool pool(4);
 
-        kernel::Sum<parframe::real_t> op;
+        kernel::Sum<kernel::real_t> op;
         std::vector<parframe::range1d<Vector::Iterator>> partitions;
 
         //create the partitions
@@ -41,12 +41,12 @@ int main(){
         parframe::reduce_array(partitions, op, pool);
         auto rslt = op.get();
 
-        if( rslt.first != 100.0 && !rslt.second ){
-            std::cout<<"Result: "<<rslt.first<<" should be 100"<<std::endl;
+        if( *rslt.first != 100.0 && !rslt.second ){
+            std::cout<<"Result: "<<*rslt.first<<" should be 100"<<std::endl;
             throw std::logic_error("Incorrect result");
         }
         else{
-            std::cout<<"Result: "<<rslt.first<<" is correct and valid "<<rslt.second<<std::endl;
+            std::cout<<"Result: "<<*rslt.first<<" is correct and valid "<<rslt.second<<std::endl;
         }
     }
     catch (std::logic_error& e) {

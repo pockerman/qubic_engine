@@ -60,9 +60,9 @@ TEST(TestDotProduct, TestDotProductReturnedResult) {
         kernel::DotProduct<Vector, kernel::real_t> product(v1, v2);
         product.execute(pool);
 
-        auto rslt = product.get();
+        auto& rslt = product.get();
         EXPECT_EQ(rslt.is_result_valid(), true);
-        EXPECT_EQ(rslt.get().first, 10.0);
+        EXPECT_EQ(*rslt.get().first, 10.0);
 
     }
     catch(...){

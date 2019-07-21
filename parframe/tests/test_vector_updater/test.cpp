@@ -4,7 +4,8 @@
 #include "parframe/data_structs/partitioned_object.h"
 #include "parframe/data_structs/range_1d.h"
 #include "parframe/partitioners/array_partitioner.h"
-#include "parframe/models/scaled_sum.h"
+#include "parframe/models/scaled_ops.h"
+#include "parframe/utilities/result_holder.h"
 
 #include <vector>
 #include <gtest/gtest.h>
@@ -29,9 +30,10 @@ TEST(TestVectorUpdater, TestVectorUpdaterInvalidVectorSizes) {
         Vector v3(20);
         kernel::real_t a = 1.0;
         kernel::real_t b = 1.0;
+        kernel::ResultHolder<Vector> x(std::move(v1));
         parframe::ThreadPool pool(1);
 
-        kernel::VectorUpdater<Vector, kernel::ScaledSum<kernel::real_t>, kernel::real_t> product(v1, v2, v3, a, b);
+        kernel::VectorUpdater<Vector, kernel::ScaledSum<kernel::real_t>, kernel::real_t> product(x, v2, v3, a, b);
         product.execute(pool);
     }
     catch(std::runtime_error& e){
@@ -64,8 +66,8 @@ TEST(TestVectorUpdater, TestVectorUpdaterReturnedResult) {
         v1.set_partitions(partitions);
         v2.set_partitions(partitions);
         v3.set_partitions(partitions);
-
-        kernel::VectorUpdater<Vector, kernel::ScaledSum<kernel::real_t>, kernel::real_t> product(v1, v2, v3, a, b);
+        kernel::ResultHolder<Vector> x(std::move(v1));
+        kernel::VectorUpdater<Vector, kernel::ScaledSum<kernel::real_t>, kernel::real_t> product(x, v2, v3, a, b);
         product.execute(pool);
 
         auto& rslt = product.get();

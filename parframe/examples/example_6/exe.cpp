@@ -12,7 +12,7 @@
 #include "parframe/data_structs/partitioned_object.h"
 #include "parframe/executors/simple_task.h"
 #include "parframe/models/vector_updater.h"
-#include "parframe/models/scaled_sum.h"
+#include "parframe/models/scaled_ops.h"
 #include "parframe/models/linear_algebra/dot_product.h"
 #include "parframe/models/linear_algebra/matrix_vector_product.h"
 
@@ -78,9 +78,17 @@ CGSolver::solve(const Matrix& mat, const Vector& b, Vector& x, ThreadPool& execu
     kernel::MatVecProduct<Matrix, Vector> A_times_b(mat, b);
     kernel::DotProduct<Vector, real_t> gg_dotproduct(g,g);
     kernel::DotProduct<Vector, real_t> dw_dotproduct(d, w);
-    kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_x(x, x, d, 1.0, alpha);
-    kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_g(g, g, w, 1.0, alpha);
-    kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_d(d, g, w, -1.0, beta);
+
+    kernel::ResultHolder<Vector> xrsult(std::move(x));
+    kernel::ResultHolder<Vector> grsult(std::move(g));
+    kernel::ResultHolder<Vector> drsult(std::move(d));
+
+    kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_x(xrsult, x, d, 1.0, alpha);
+    kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_g(grsult, g, w, 1.0, alpha);
+    kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_d(drsult, d, w, -1.0, beta);
+
+    A_times_b.execute(executor);
+    auto& r = A_times_b.get_or_wait();
 
     for(uint itr = 0; itr < n_itrs_; ++itr){
 
@@ -88,27 +96,27 @@ CGSolver::solve(const Matrix& mat, const Vector& b, Vector& x, ThreadPool& execu
         A_times_d.reexecute(executor);
 
         dw_dotproduct.reexecute(executor);
-        auto result_1 = dw_dotproduct.get_or_wait();
+        auto& result_1 = dw_dotproduct.get_or_wait();
 
         gg_dotproduct.reexecute(executor);
-        auto result_2 = gg_dotproduct.get_or_wait();
+        auto& result_2 = gg_dotproduct.get_or_wait();
 
         // compute alpha
-        alpha = result_2.get().first/result_1.get().first;
+        alpha = *(result_2.get().first) / *(result_1.get().first);
 
         // update g and x
         update_x.reexecute(executor);
         update_g.reexecute(executor);
 
         gg_dotproduct.reexecute(executor);
-        auto result_3 = gg_dotproduct.get_or_wait();
-        beta = result_3.get().first/result_2.get().first;
+        auto& result_3 = gg_dotproduct.get_or_wait();
+        beta = *(result_3.get().first) / *(result_2.get().first);
 
         // update d vector
         update_d.reexecute(executor);
 
         info.niterations = itr;
-        auto res = std::sqrt(result_3.get().first);
+        auto res = std::sqrt( *(result_3.get().first) );
 
         if( res - res_ < 0.){
             info.converged = true;
