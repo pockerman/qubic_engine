@@ -56,6 +56,7 @@ public:
 
 private:
 
+    /// \brief The matrix-vector task
     struct mat_vec_product;
 
     /// \brief The spaned tasks
@@ -64,7 +65,6 @@ private:
     /// \brief Pointers to vectors that product is to be computed
     const matrix_type* M_;
     const vector_type* x_;
-    vector_type rslt_;
 
     /// \brief The result returned
     result_type result_;
@@ -97,8 +97,7 @@ MatVecProduct<MatTp, VecTp>::MatVecProduct(const matrix_type& mat, const vector_
     :
    M_(&mat),
    x_(&x),
-   rslt_(x.size(), 0.0),
-   result_(rslt_)
+   result_(std::move(VecTp(x.size(), 0.0)))
 {}
 
 
@@ -126,7 +125,7 @@ MatVecProduct<MatTp, VecTp>::execute(ExecutorTp& executor){
 
     for(uint_t t=0; t<executor.get_n_threads(); ++t){
 
-        tasks_.push_back(std::make_unique<task_type>(t, *M_, *x_, rslt_));
+        tasks_.push_back(std::make_unique<task_type>(t, *M_, *x_, result_.get_resource()));
         executor.add_task(*(tasks_[t].get()));
     }
 
@@ -158,8 +157,6 @@ MatVecProduct<MatTp, VecTp>::reexecute(ExecutorTp& executor){
         execute(executor);
     }
     else{
-
-        typedef typename MatVecProduct<MatTp, VecTp>::mat_vec_product task_type;
 
         for(uint_t t=0; t<executor.get_n_threads(); ++t){
 
@@ -206,10 +203,9 @@ template<typename MatTp, typename VecTp>
 void
 MatVecProduct<MatTp, VecTp>::clear_tasks_memory_(){
 
-    if(tasks_.empty())
+    if(tasks_.empty()){
         return;
-
-    using task_type = MatVecProduct<MatTp, VecTp>::mat_vec_product;
+    }
 
     for(auto& task: tasks_){
         task.reset(nullptr);

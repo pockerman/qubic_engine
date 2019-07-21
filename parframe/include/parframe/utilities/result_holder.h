@@ -26,7 +26,10 @@ public:
     typedef std::pair<value_type*, bool> result_type;
 
     /// \brief Constructor
-    ResultHolder(T& item, bool valid=false);
+    explicit ResultHolder(bool valid=false);
+
+    /// \brief Constructor
+    explicit ResultHolder(value_type&& init, bool valid=false);
 
     /// \brief Overload operator!
     bool operator!()const{ return valid_result_;}
@@ -52,27 +55,44 @@ public:
     /// specified time in milliseconds. It then returns the result regardless of its validity
     result_type get_or_wait_for(uint_t milliseconds)const;
 
+    /// \brief Raw access to the resource
+    value_type& get_resource(){return item_; }
+
+    /// \brief Raw access to the resource
+    const value_type& get_resource()const{return item_; }
+
 private:
 
-    /// \brief The item the holder watchdogs over
-    value_type& item_;
+    /// \brief The resource to hold
+    value_type item_;
 
     /// \brief flag indicating whether the result is valid
     bool valid_result_;
 };
 
-template<typename T>
-ResultHolder<T>::ResultHolder(T& item, bool valid)
+template<typename T >
+ResultHolder<T>::ResultHolder(bool valid)
     :
-   item_(item),
+   item_(),
    valid_result_(valid)
 {}
+
+template<typename T>
+ResultHolder<T>::ResultHolder(T&& init, bool valid)
+    :
+   item_(),
+   valid_result_(valid)
+{
+    item_ = std::move(init);
+}
 
 
 template<typename T>
 typename ResultHolder<T>::result_type
 ResultHolder<T>::get()const{
-    return std::make_pair(&item_, valid_result_);
+
+
+    return std::make_pair(&(const_cast<ResultHolder<T>&>(*this).item_), valid_result_);
 }
 
 template<typename T>
@@ -83,7 +103,7 @@ ResultHolder<T>::get_or_wait()const{
         std::this_thread::yield();
     }
 
-    return std::make_pair(&item_, valid_result_);
+    return std::make_pair(&(const_cast<ResultHolder<T>&>(*this).item_), valid_result_);
 }
 
 
@@ -95,7 +115,7 @@ ResultHolder<T>::get_or_wait_for(uint_t mills)const{
         std::this_thread::sleep_for(std::chrono::milliseconds(mills));
     }
 
-    return std::make_pair(&item_, valid_result_);
+    return std::make_pair(&(const_cast<ResultHolder<T>&>(*this).item_), valid_result_);
 }
 
 }

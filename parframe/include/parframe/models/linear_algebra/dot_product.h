@@ -51,11 +51,11 @@ public:
     void set_vectors(const VectorTp& v1, const VectorTp& v2);
 
     /// \brief Returns the result
-    const result_type get()const{return result_;}
+    const result_type& get()const{return result_;}
 
     /// \brief Attempt to get the result only if it is valid. Perfroms busy
     /// wait is the result is not valid
-    result_type get_or_wait()const;
+    const result_type& get_or_wait()const;
 
 private:
 
@@ -82,7 +82,7 @@ private:
         DoDotProduct(uint_t t, const VectorTp& v1, const VectorTp& v2);
 
         /// \brief Returns the local task result
-        const result_type get_result()const{return result;}
+        const result_type& get_result()const{return result;}
 
     protected:
 
@@ -218,7 +218,7 @@ DotProduct<VectorTp, ResultTp>::reexecute(ExecutorTp& executor){
 
 
 template<typename VectorTp, typename ResultTp>
-typename DotProduct<VectorTp, ResultTp>::result_type
+const typename DotProduct<VectorTp, ResultTp>::result_type&
 DotProduct<VectorTp, ResultTp>::get_or_wait()const{
 
     while(!result_){
