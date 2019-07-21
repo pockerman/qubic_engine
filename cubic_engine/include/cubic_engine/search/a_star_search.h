@@ -143,6 +143,50 @@ astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp:
    return came_from;
 }
 
+template<typename IdTp>
+std::vector<IdTp>
+reconstruct_a_star_path(const std::multimap<IdTp,IdTp>& map, const IdTp& start){
+
+    if(map.empty()){
+        return std::vector<IdTp>();
+    }
+
+    std::vector<IdTp> path;
+    path.push_back(start);
+
+    auto next_itr = map.find(start);
+
+    if(next_itr == map.end()){
+        //such a key does not exist
+        throw std::logic_error("Key: "+std::to_string(start)+" does not exist");
+    }
+
+    IdTp next = next_itr->second;
+    path.push_back(next);
+
+    while(next_itr!=map.end()){
+
+        next_itr = map.find(next);
+        if(next_itr != map.end()){
+            next = next_itr->second;
+            path.push_back(next);
+        }
+    }
+
+    //let's reverse the path
+    std::vector<IdTp> the_path;
+    the_path.reserve(path.size());
+    auto itrb = path.rbegin();
+    auto itre = path.rend();
+
+    while(itrb != itre){
+        the_path.push_back(*itrb++);
+    }
+
+    return the_path;
+}
+
+
 }
 
 #endif // A_STAR_SEARCH_H
