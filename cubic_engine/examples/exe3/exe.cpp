@@ -1,59 +1,42 @@
-#include "robosim/plans/bfs_location_plan_builder.h"
-#include "robosim/plans/location_plan.h"
-#include "robosim/grids/occupancy_grid.h"
-#include "robosim/grids/occupancy_grid_creator.h"
-#include "robosim/simulator/simulator_base.h"
+#include "cubic_engine/base/cubic_engine_types.h"
+#include "cubic_engine/estimation/extended_kalman_filter.h"
 
-using namespace robosim;
+#include <boost/asio.hpp>
+#include <boost/asio/ip/tcp.hpp>
 
-namespace exe_data
+namespace exe
 {
 
-	void grid_creator(OccupancyGrid& grid){
-        
-        size_type ncells = 25;
-        std::vector<real_type> probs(ncells,0.0);
-        probs[1] = 1.0;
-        probs[3] = 1.0;
-        probs[6] = 1.0;
-        probs[8] = 1.0;
-        probs[13] = 1.0;
-        probs[16] = 1.0;
-        probs[21] = 1.0;
-        probs[23] = 1.0;
-        
-        //generate the grid
-        arma::vec low = {0.0,0.0};
-        arma::vec high = {5.0,5.0};
-        OccupancyGridCreator::build(low,high,5,5,probs,grid);
-        
-    }
+using cengine::uint_t;
+
+//forward declaration of the world model
+class WorldModel;
+
+// The state estimator of the robot
+cengine::ExtendedKalmanFilter ekf;
+
+uint8_t read_world(char* buffer, uint_t bytes ){
 
 
 }
 
+void handle_connections(uint_t port, boost::asio::io_service& service ){
 
+    boost::asio::ip::tcp::acceptor acceptor(service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port));
+
+
+}
+
+}
     
 int main(int argc, char** argv) {
 
+    using namespace exe;
 
-	//initialize properly constants etc
-  SimBase::init();
-        
-  //the location plan
-  LocationPlan2D plan;
-        
-  //the occupancy grid to use
-  OccupancyGrid grid;
-        
-  //generate the grid
-  exe_data::grid_creator(grid);
-        
-  //build the plan
-  BFSLocationPlanBuilder::build_shortest_path(grid,plan,20,4);
-        
-  //finalize the simulator
-  SimBase::finalize();
+    const uint_t PORT = 8001;
+    boost::asio::io_service con;
+
+    exe::handle_connections(PORT, con);
     
   return 0;
 }
