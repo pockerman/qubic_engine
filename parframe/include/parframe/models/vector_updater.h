@@ -244,7 +244,7 @@ VectorUpdater<VectorTp, OpTp, FactorTp>::clear_tasks_memory_(){
 
 template<typename VectorTp, typename OpTp, typename FactorTp>
 VectorUpdater<VectorTp, OpTp, FactorTp>::update_vector::update_vector(uint_t t, VectorTp& x, const VectorTp& y, const VectorTp& z,
-                                                                    const FactorTp& a, const FactorTp& b)
+                                                                      const FactorTp& a, const FactorTp& b)
     :
 SimpleTaskBase(t),
 x_(&x),
@@ -258,7 +258,6 @@ template<typename VectorTp, typename OpTp, typename FactorTp>
 void
 VectorUpdater<VectorTp, OpTp, FactorTp>::update_vector::run(){
 
-    // get the rows partiton indeces corresponding to this task
     const auto parts = x_->get_partition(this->get_id());
 
     auto begin = parts.begin();

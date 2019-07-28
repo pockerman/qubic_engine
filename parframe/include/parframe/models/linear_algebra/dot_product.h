@@ -10,6 +10,7 @@
 #include "parframe/executors/simple_task.h"
 #include "parframe/executors/task_uitilities.h"
 #include "parframe/models/reduction_operations.h"
+#include "parframe/utilities/result_holder.h"
 
 #include <boost/noncopyable.hpp>
 #include <stdexcept>
@@ -31,6 +32,9 @@ public:
 
     /// \brief Constructor
     DotProduct(const VectorTp& v1, const VectorTp& v2);
+
+    /// \brief Constructor
+    DotProduct(const ResultHolder<VectorTp>& v1, const ResultHolder<VectorTp>& v2);
 
     /// \brief Execute the dot product of the given two vectors
     /// using the given executor. This function will delete any tasks that have been
@@ -113,6 +117,16 @@ result_(),
 v1_ptr_(&v1),
 v2_ptr_(&v2)
 {}
+
+template<typename VectorTp, typename ResultTp>
+DotProduct<VectorTp, ResultTp>::DotProduct(const ResultHolder<VectorTp>& v1, const ResultHolder<VectorTp>& v2)
+    :
+tasks_(),
+result_(),
+v1_ptr_(&v1.get_resource()),
+v2_ptr_(&v2.get_resource())
+{}
+
 
 template<typename VectorTp, typename ResultTp>
 void

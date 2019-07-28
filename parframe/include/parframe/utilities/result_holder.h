@@ -43,6 +43,9 @@ public:
     /// \brief Invalidate the result
     void invalidate_result(){valid_result_ = false;}
 
+    /// \brief Get a copy of the internals
+    void get_copy(ResultHolder<T>& other)const;
+
     /// \brief busy wait for the thread that calls it until the
     /// result becomes valid
     result_type get()const;
@@ -86,6 +89,14 @@ ResultHolder<T>::ResultHolder(T&& init, bool valid)
     item_ = std::move(init);
 }
 
+template<typename T>
+void
+ResultHolder<T>::get_copy(ResultHolder<T>& other)const
+{
+
+    other.valid_result_ = valid_result_;
+    other.item_ = item_;
+}
 
 template<typename T>
 typename ResultHolder<T>::result_type

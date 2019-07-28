@@ -46,9 +46,16 @@ public:
     /// \brief Returns the result
     const result_type& get()const{return result_;}
 
+    /// \brief Get a copy of the held result
+    void get_copy(result_type& copy)const;
+
     /// \brief Attempt to get the result only if it is valid. It yields the calling thread
     /// as long as  the result is not valid
     const result_type& get_or_wait()const;
+
+    /// \brief Attempt to get the result only if it is valid. It yields the calling thread
+    /// as long as  the result is not valid
+    void get_or_wait_copy(result_type& copy)const;
 
     /// \brief Attempt to get the result. If the result is not valid is waits for the
     /// specified time in milliseconds. It then returns the result regardless of its validity
@@ -185,11 +192,26 @@ MatVecProduct<MatTp, VecTp>::reexecute(ExecutorTp& executor){
 }
 
 template<typename MatTp, typename VecTp>
+void
+MatVecProduct<MatTp, VecTp>::get_copy(typename MatVecProduct<MatTp, VecTp>::result_type& copy)const{
+    result_.get_copy(copy);
+}
+
+template<typename MatTp, typename VecTp>
 const typename MatVecProduct<MatTp, VecTp>::result_type&
 MatVecProduct<MatTp, VecTp>::get_or_wait()const{
     result_.get_or_wait();
     return result_;
 }
+
+template<typename MatTp, typename VecTp>
+void
+MatVecProduct<MatTp, VecTp>::get_or_wait_copy(result_type& copy)const{
+
+    get_or_wait();
+    get_copy(copy);
+}
+
 
 template<typename MatTp, typename VecTp>
 const typename MatVecProduct<MatTp, VecTp>::result_type&
