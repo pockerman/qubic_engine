@@ -17,7 +17,7 @@ namespace kernel
  */
 
 template<typename MatTp, typename VecTp>
-class MatVecProduct
+class MatVecProduct: private boost::noncopyable
 {
 
 public:
