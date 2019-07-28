@@ -5,21 +5,20 @@
 namespace parframe
 {
 
-ThreadPool::ThreadPool(uint_t n_threads)
+ThreadPool::ThreadPool(uint_t n_threads, bool start_)
     :
-pool_()
+pool_(),
+n_threads_(n_threads)
 {
     // TODO: perhaps we could request the system
     // using std::thread::hardware_concurrency()
     // or having a default number of threads?
-    if(n_threads == 0){
+    if(n_threads_ == 0){
         throw std::invalid_argument("Cannot start pool with no threads");
     }
 
-    pool_.reserve(n_threads);
-    for(uint_t t=0; t<n_threads; ++t){
-        pool_.push_back( std::make_unique<detail::parframe_thread>(t) );
-        pool_[t]->start();
+    if(start_){
+        start();
     }
 }
 
@@ -27,6 +26,17 @@ ThreadPool::~ThreadPool(){
     close();
 }
 
+
+void
+ThreadPool::start()
+{
+    pool_.reserve(n_threads_);
+    for(uint_t t=0; t < n_threads_; ++t){
+        pool_.push_back( std::make_unique<detail::parframe_thread>(t) );
+        pool_[t]->start();
+    }
+
+}
 
 void
 ThreadPool::add_task(TaskBase& task){

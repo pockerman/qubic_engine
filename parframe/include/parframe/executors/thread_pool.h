@@ -29,10 +29,13 @@ public:
 
     /// \brief Constructor. Initialize the pool with the given number
     /// of threads
-    ThreadPool(uint_t n_threads);
+    ThreadPool(uint_t n_threads, bool start_=true);
 
     /// Destructor
     ~ThreadPool();
+
+    /// \brief Start the thread pool
+    void start();
 
     /// \brief Terminates the threads in the pool.
     /// For every thread stop() and join() is called
@@ -55,6 +58,7 @@ private:
 
     /// \brief The pool of workers
     pool_t pool_;
+    uint_t n_threads_;
     uint_t next_thread_available_ {kernel::kernel_consts::invalid_size_type()};
 };
 
