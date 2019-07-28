@@ -235,7 +235,7 @@ template<typename VectorTp, typename ResultTp>
 const typename DotProduct<VectorTp, ResultTp>::result_type&
 DotProduct<VectorTp, ResultTp>::get_or_wait()const{
 
-    while(!result_){
+    while(!result_.is_result_valid()){
         std::this_thread::yield();
     }
 
