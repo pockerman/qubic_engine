@@ -38,11 +38,11 @@ FWDEulerInt<T, RHS_Tp>::integrate(const input_type* input){
     old = *this->val_;
 }
 
-//template<typename RHS_Tp>
-//using ScalarFWDEulerInt<real_t, RHS_Tp> = FWDEulerInt<real_t, RHS_Tp>;
+template<typename RHS_Tp>
+using ScalarFWDEulerInt = FWDEulerInt<real_t, RHS_Tp>;
 
-//template<typename RHS_Tp>
-///using VectorFWDEulerInt<DynVec<real_t>, RHS_Tp> = FWDEulerInt<DynVec<real_t>, RHS_Tp>;
+template<typename RHS_Tp>
+using VectorFWDEulerInt = FWDEulerInt<DynVec<real_t>, RHS_Tp>;
 
 }
 
