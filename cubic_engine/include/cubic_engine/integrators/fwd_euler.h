@@ -13,7 +13,7 @@ class FWDEulerInt: public ODEIntBase<T, RHS_Tp>
 public:
 
     typedef typename ODEIntBase<T, RHS_Tp>::rhs_type rhs_type;
-    typedef typename ODEIntBase<T, RHS_Tp>::rhs_type value_type;
+    typedef typename ODEIntBase<T, RHS_Tp>::value_type value_type;
     typedef typename ODEIntBase<T, RHS_Tp>::input_type input_type;
 
     /// \brief Constructor
@@ -34,8 +34,8 @@ template<typename T, typename RHS_Tp>
 void
 FWDEulerInt<T, RHS_Tp>::integrate(const input_type* input){
     auto& old = this->get_history(0);
-    this->val_ = old + this->get_time_step()*this->apply_rhs(input);
-    old = this->val_;
+    *(this->val_) = old + this->get_time_step()*this->apply_rhs(input);
+    old = *this->val_;
 }
 
 //template<typename RHS_Tp>
