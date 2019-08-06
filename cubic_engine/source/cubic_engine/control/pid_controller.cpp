@@ -42,4 +42,17 @@ PIDControl::execute(real_t error, real_t dt){
     return rslt;
 }
 
+real_t
+PIDControl::execute(real_t error){
+
+    auto rslt = 0.0;
+    rslt += parameters_["Kp"] * error;
+
+    //accummulate the error
+    error_ += error;
+    rslt += parameters_["Ki"] * error_;
+
+    return rslt;
+}
+
 }
