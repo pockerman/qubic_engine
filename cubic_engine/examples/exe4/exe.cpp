@@ -1,6 +1,7 @@
 #include "cubic_engine/integrators/fwd_euler.h"
 #include "cubic_engine/control/pid_controller.h"
 #include "parframe/base/physics_constants.h"
+#include "parframe/utilities/csv_file_writer.h"
 
 #include <iostream>
 #include <cmath>
@@ -61,23 +62,22 @@ VehicleDynamics::VehicleDynamics(real_t dt)
 
 void
 VehicleDynamics::integrate(const real_t* u){
-
     velocity_int_.integrate(u);
 }
     
 }
 
-int main(int argc, char** argv) {
+int main() {
 
     using cengine::uint_t;
     using cengine::real_t;
 
-    auto Ki = 1.0;
-    auto Kp = 0.5;
+    auto Ki = 0.5;
+    auto Kp = 1.5;
     auto Kd = 0.0;
 
     // number of simulation steps
-    auto n_steps = 30000;
+    uint_t n_steps = 30000;
 
     // the time step
     auto dt = 0.001;
@@ -103,25 +103,31 @@ int main(int argc, char** argv) {
     cengine::PIDControl controller(Kp, Kd, Ki);
     exe::VehicleDynamics dynamics(dt);
 
+
+    kernel::CSVWriter writer("velocity", kernel::CSVWriter::default_delimiter(), true);
+    std::vector<std::string> names{"t", "V", "Vref"};
+    writer.write_column_names(names);
+
+    std::vector<real_t> row(3);
+
     //time loop
-    for(uint_t step=0; step < n_steps; step){
+    for(uint_t step=0; step < n_steps; ++step){
 
         std::cout<<"At time: "<<time<<std::endl;
 
-        auto y = dynamics.get_state();
+        const auto y = dynamics.get_state();
 
         std::cout<<"\tVelocity is "<<y<<std::endl;
 
-        auto error = r - y;
-
-        auto u = controller.execute(error, dt);
+        const auto error = r - y;
+        const auto u = controller.execute(error);
 
         input[2] = u;
 
         dynamics.integrate(input);
 
         // at 1 second change reference signal to 30 m/s
-        if(step == 1000){
+        if(step == 2000){
             r = 30.0;
         }
 
@@ -132,11 +138,11 @@ int main(int argc, char** argv) {
 
         time += dt;
 
-        /*tarray.append(time)
-        yarray.append(vehicle.state)
+        row[0] = time;
+        row[1] = y;
+        row[2] = r;
 
-        t_ref.append(time)
-        y_ref.append(r)*/
+        writer.write_row(row);
     }
     
     return 0;
