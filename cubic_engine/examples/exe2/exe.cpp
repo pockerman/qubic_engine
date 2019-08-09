@@ -7,7 +7,6 @@
 #include "parframe/base/angle_calculator.h"
 #include "parframe/utilities/csv_file_writer.h"
 
-#include <boost/math/distributions/normal.hpp> // normal distribution
 #include <cmath>
 #include <iostream>
 #include <tuple>
@@ -16,11 +15,9 @@
 namespace exe2
 {
 
-
 DynVec<real_t> z(2, 0.0);
 DynVec<real_t> x_true(4, 0.0);
 DynVec<real_t> ud(2, 0.0);
-
 
 struct MotionModel
 {
@@ -62,7 +59,6 @@ ObservationModel::operator()(const DynVec<real_t>& x)const{
     DynMat<real_t> H(2, 4, 0.0);
 
 #ifdef KERNEL_DEBUG
-
     if(H.columns() != x.size()){
         throw std::runtime_error("Matrix columns: "+std::to_string(H.columns())+" not equal to vector size: "+std::to_string(x.size()));
     }
@@ -181,7 +177,6 @@ Robot::update_Hjac_mat(){
     Hjac_(1,1) = 1.0;
     Hjac_(1,2) = 0.0;
     Hjac_(1,3) = 0.0;
-
 }
 
 void
@@ -216,7 +211,6 @@ Robot::update_B_mat(){
 void
 Robot::initialize(){
 
-    // the state has 4 variables
     state_  = DynVec<real_t>(4, 0.0);
     state_estimator_.set_state_vector_ptr(state_);
 
