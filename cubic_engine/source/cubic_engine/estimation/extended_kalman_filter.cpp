@@ -77,7 +77,7 @@ ExtendedKalmanFilter::update(const DynVec<real_t>& y){
     IdentityMatrix<real_t> I(this->K_.rows());
 
     // update the covariance matrix
-    P =  (I - this->K_*H)*P;
+    P =  (I - this->K_*Hjac)*P;
 
 }
 
