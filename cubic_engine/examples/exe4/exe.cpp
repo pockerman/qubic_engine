@@ -30,19 +30,17 @@ private:
 
     public:
 
+        ComputeRhs()=default;
+
         real_t operator()(real_t dt, const std::vector<real_t>& old_solution, const real_t* input);
     };
 
     real_t velocity_;
     cengine::FWDEulerInt<real_t, ComputeRhs> velocity_int_;
-
 };
-
-
 
 real_t
 VehicleDynamics::ComputeRhs::operator()(real_t dt, const std::vector<real_t>& old_solution, const real_t* input){
-
 
     auto a = input[0];
     auto b = input[1];
@@ -102,7 +100,6 @@ int main() {
     // the controller to use
     cengine::PIDControl controller(Kp, Kd, Ki);
     exe::VehicleDynamics dynamics(dt);
-
 
     kernel::CSVWriter writer("velocity", kernel::CSVWriter::default_delimiter(), true);
     std::vector<std::string> names{"t", "V", "Vref"};
