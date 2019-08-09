@@ -78,10 +78,10 @@ class KalmanFilter: private boost::noncopyable
        ///K_k = P_{k}^{-}H_{k}^T(H_kP_k{-}H_{k}^T + R_k)^{-1}
        ///\hat{X}_k = X_{k}^{-} + K_k(y_k - H_kX_{k}^{-})
        ///\hat{P}_k = (I - K_kH_k)P_{k}^{-}
-        virtual void update(const DynVec<real_t>& y);
+        virtual void update(const DynVec<real_t>& z);
 
-        /// \brief Perform one iteration i.e. predict + update of the linear Kalman filter
-        void iterate(const DynVec<real_t>& u, const DynVec<real_t>& y);
+        /// \brief Perform one iteration i.e. predict + update of the Kalman filter
+        void iterate(const DynVec<real_t>& u, const DynVec<real_t>& z);
 
         /// \brief Returns the matrices names
         std::vector<std::string> get_mat_names()const;
@@ -103,16 +103,15 @@ class KalmanFilter: private boost::noncopyable
         /// \brief The state vector that the filter manipulates
         DynVec<real_t>* x_;
 
-
         virtual void assert_matrix_name_(const std::string& name)const;
 
 };
 
 inline
-void KalmanFilter::iterate(const DynVec<real_t> &u, const DynVec<real_t> &y){
+void KalmanFilter::iterate(const DynVec<real_t> &u, const DynVec<real_t> &z){
 
     predict(u);
-    update(y);
+    update(z);
 }
 
 inline

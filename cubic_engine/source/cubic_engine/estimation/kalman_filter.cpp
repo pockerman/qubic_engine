@@ -43,7 +43,7 @@ namespace cengine
     }
 
     void
-    KalmanFilter::update(const DynVec<real_t>& y){
+    KalmanFilter::update(const DynVec<real_t>& z){
 
         auto& H = *system_maps_["H"];
         auto& P = *system_maps_["P"];
@@ -59,7 +59,7 @@ namespace cengine
         K = P*H_T*S_inv;
 
         auto& x = *x_;
-        auto innovation = y - H*x;
+        auto innovation = z - H*x;
 
         x += K*innovation;
 
