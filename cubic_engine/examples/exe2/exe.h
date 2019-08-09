@@ -24,15 +24,13 @@ using cengine::DynMat;
 using cengine::real_t;
 using cengine::uint_t;
 
-const uint_t N_STEPS = 1000;
+const uint_t N_STEPS = 500;
 const  real_t DT = 0.1;
 
 // The robot to simulate
 class Robot
 {
 public:
-
-
 
     // constructor
     Robot();
@@ -50,8 +48,6 @@ public:
 
     // Apply the motion model and return a state vector
     void apply_motion_model(DynVec<real_t>& x, const DynVec<real_t>& u)const;
-
-
 
 private:
 
@@ -102,9 +98,6 @@ private:
     void update_Hjac_mat();
     void update_M_mat();
     void update_R_mat();
-
-
-
 };
 
 }//exe2

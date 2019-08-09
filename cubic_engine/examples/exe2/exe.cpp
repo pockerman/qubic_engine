@@ -11,14 +11,14 @@
 #include <cmath>
 #include <iostream>
 #include <tuple>
+#include <random>
 
 namespace exe2
 {
 
-DynVec<real_t> y(2, 0.0);
+
 DynVec<real_t> z(2, 0.0);
 DynVec<real_t> x_true(4, 0.0);
-DynVec<real_t> x_dr(4, 0.0);
 DynVec<real_t> ud(2, 0.0);
 
 
@@ -37,10 +37,8 @@ MotionModel::operator()(const DynVec<real_t>& x, const DynVec<real_t>& u)const{
     A( 2,2 ) = 1.0;
 
     DynMat<real_t> B(4, 2, 0.0);
-
-    //std::cout<<"State is: "<<x<<std::endl;
     real_t phi = x[2];
-    //std::cout<<"Phis is: "<<phi<<std::endl;
+
     B(0, 0) = std::cos(phi)*DT;
     B(0, 1) = 0.0;
     B(1, 0) = std::sin(phi)*DT;
@@ -139,7 +137,7 @@ Robot::update_F_mat(){
 
 void
 Robot::update_P_mat(){
-    P_ = std::move(cengine::IdentityMatrix<real_t>(4));
+    P_ = cengine::IdentityMatrix<real_t>(4);
 }
 
 void
@@ -147,13 +145,13 @@ Robot::update_Q_mat(){
     Q_.resize(4 , 4, 0.0 );
     Q_(0, 0) = 0.1*0.1;
     Q_(1, 1) = 0.1*0.1;
-    Q_(2, 2) = kernel::AngleCalculator::deg_to_rad(1.0)*kernel::AngleCalculator::deg_to_rad(1.0);;
+    Q_(2, 2) = kernel::AngleCalculator::deg_to_rad(1.0)*kernel::AngleCalculator::deg_to_rad(1.0);
     Q_(3, 3) = 1.0;
 }
 
 void
 Robot::update_L_mat(){
-    L_ = std::move(cengine::IdentityMatrix<real_t>(4));
+    L_ = cengine::IdentityMatrix<real_t>(4);
 }
 
 void
@@ -188,12 +186,12 @@ Robot::update_Hjac_mat(){
 
 void
 Robot::update_M_mat(){
-    M_ = std::move(cengine::IdentityMatrix<real_t>(2));
+    M_ = cengine::IdentityMatrix<real_t>(2);
 }
 
 void
 Robot::update_R_mat(){
-   R_ = std::move(cengine::IdentityMatrix<real_t>(2));
+   R_ = cengine::IdentityMatrix<real_t>(2);
 }
 
 void
@@ -252,12 +250,19 @@ void
 Robot::simulate(DynVec<real_t>& u, const DynVec<real_t>& y){
 
     u_ = &u;
-    update_F_mat();
-    //update_Hjac_mat();
-    update_B_mat();
     state_estimator_.iterate(u, y);
+
+    std::cout<<"\t Estimated state: "<<std::endl;
+    std::cout<<"\t\t"<<state_[0]<<", "<<state_[1]<<", "<<state_[2]<<", "<<state_[3]<<std::endl;
+
+    update_F_mat();
+    update_B_mat();
 }
 
+void
+Robot::apply_motion_model(DynVec<real_t>& x, const DynVec<real_t>& u)const{
+    motion_model_(x, x, A_, B_, u);
+}
 
 void
 Robot::save_state(kernel::CSVWriter& writer)const{
@@ -270,51 +275,45 @@ Robot::save_state(kernel::CSVWriter& writer)const{
     x[3] = x_true[1];
     x[4] = state_[2];
     x[5] = state_[3];
-    x[6] = y[0];
-    x[7] = y[1];
+    x[6] = z[0];
+    x[7] = z[1];
     writer.write_row(x);
 }
 
 void
-Robot::apply_motion_model(DynVec<real_t>& x, const DynVec<real_t>& u)const{
-    motion_model_(x, x, A_, B_, u);
-}
-
-
-void
 observation( const  DynVec<real_t>& u){
 
-    std::cout<<"========================"<<std::endl;
-    std::cout<<"Computing x_true vector"<<std::endl;
     MotionModel mmodel;
     x_true = mmodel(x_true, u);
 
-    //std::cout<<"x_true: "<<x_true[0]<<" , "<<x_true[1]<<" , "<<x_true[2]<<" , "<<x_true[3]<<std::endl;
+    std::cout<<"\t True state: "<<std::endl;
+    std::cout<<"\t\t"<<x_true[0]<<", "<<x_true[1]<<", "<<x_true[2]<<", "<<x_true[3]<<std::endl;
 
-    using boost::math::normal;
-    normal ndist;
+    std::default_random_engine generator;
+    std::normal_distribution<real_t> y_dist(0.0, 0.25);
 
     // add noise to gps x-y
-    y[0] = x_true[0] + boost::math::pdf(ndist, 0.0) * 0.5*0.5;
-    y[1] = x_true[1] + boost::math::pdf(ndist, 0.0) * 0.5*0.5;
+    z[0] = x_true[0] + y_dist(generator);
+    z[1] = x_true[1] + y_dist(generator);
 
-    //ObservationModel obsmodel;
-    //y = obsmodel(x_true);
+    std::cout<<"\t Measured position: "<<std::endl;
+    std::cout<<"\t\t"<<z[0]<<", "<<z[1]<<std::endl;
 
-    ud[0] = u[0] + boost::math::pdf(ndist, 0.0) * 1.0;
-    ud[1] = u[1] + boost::math::pdf(ndist,  0.0) * kernel::AngleCalculator::deg_to_rad(30.0) * kernel::AngleCalculator::deg_to_rad(30.0);
+    std::normal_distribution<real_t> u_dist_1(0.0, 1.0);
+    std::normal_distribution<real_t> u_dist_2(0.0,kernel::AngleCalculator::deg_to_rad(30.0) * kernel::AngleCalculator::deg_to_rad(30.0));
 
-    //std::cout<<"ud: "<<ud[0]<<","<<ud[1]<<std::endl;
-    //std::cout<<"Computing x_dr vector"<<std::endl;
-    x_dr = mmodel(x_dr, ud);
+    ud[0] = u[0] + u_dist_1(generator);
+    ud[1] = u[1] + u_dist_2(generator);
+
+    std::cout<<"\t Control input: "<<std::endl;
+    std::cout<<"\t\t"<<ud[0]<<", "<<ud[1]<<std::endl;
 }
-
 }
 
 int main(int argc, char** argv) {
    
     using namespace exe2;
-    uint_t n_steps = 500;
+    uint_t n_steps = N_STEPS;
 
     DynVec<real_t> u(2);
     u[0] = 1.0; //m/s
@@ -332,10 +331,9 @@ int main(int argc, char** argv) {
 
         for(uint_t step=0; step < n_steps; ++step){
 
-            std::cout<<"\tAt step: "<<step<<std::endl;
+            std::cout<<"At step: "<<step<<std::endl;
             observation(u); // update y and ud
-            robot.simulate(ud, y);
-            //robot.simulate(u, y);
+            robot.simulate(ud, z);
             robot.save_state(writer);
         }
     }
@@ -346,7 +344,6 @@ int main(int argc, char** argv) {
         std::cerr<<"Unknown exception was raised whilst running simulation."<<std::endl;
     }
    
-  
     return 0;
 }
 

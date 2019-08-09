@@ -7,11 +7,9 @@
 #define	EXTENDED_KALMAN_FILTER_H
 
 #include "cubic_engine/estimation/kalman_filter.h"
-#include <memory>
 
 namespace cengine
 {
-
 
 //TODO: The following don't look nice!!!!
 
@@ -85,7 +83,7 @@ public:
    /// K_k = P_{k}^{-} x H_{k}^T x (H_k x P_k{-} x H_{k}^T + M_k x R_k x M_k^T)^{-1}
    /// \hat{X}_k = X_{k}^{-} + K_k(y_k - h( X_{k}^{-}, 0)
    /// \hat{P}_k = (I - K_kH_k)P_{k}^{-}
-   virtual void update(const DynVec<real_t>& y)override final;
+   virtual void update(const DynVec<real_t>& z)override final;
 
    /// \brief Set the motion model
    void set_motion_model(EKF_F_func& func){f_ptr_ = &func;}
@@ -102,7 +100,6 @@ protected:
    EKF_H_func* h_ptr_;
 
    virtual void assert_matrix_name_(const std::string& name)const;
-
 };  
 
 }

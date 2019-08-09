@@ -33,40 +33,38 @@ ExtendedKalmanFilter::predict(const DynVec<real_t>& u){
     // update the prediction of the state vector
     f_ptr_->operator()(*this->x_, *this->x_,  A, *this->system_maps_["B"], u);
 
-    // update the the covariance matrix
     auto& P = *this->system_maps_["P"];
-
     auto& Q = *this->system_maps_["Q"];
     auto& L = *this->system_maps_["L"];
     auto L_T = trans(L);
-
     auto& F = *this->system_maps_["F"];
+
     auto F_T = trans(F);
     P = F*P*F_T + L*Q*L_T;
 }
 
 void
-ExtendedKalmanFilter::update(const DynVec<real_t>& y){
-
+ExtendedKalmanFilter::update(const DynVec<real_t>& z){
 
     auto& Hjac = *this->system_maps_["Hjac"];
-    auto Hjac_T = trans(Hjac);
-    auto& P = *this->system_maps_["P"];
-    auto& M = *this->system_maps_["M"];
-    auto M_T = trans(M);
-    auto& R = *this->system_maps_["R"];
-
-    auto S = Hjac*P*Hjac_T + M*R*M_T;
-    auto S_inv = inv(S);
-
-    this->K_ = std::move(P*Hjac_T*S_inv);
 
     auto& x = *this->x_;
     auto& H = *this->system_maps_["H"];
-    auto innovation = y - h_ptr_->operator()(x, H);
+    auto z_pred = h_ptr_->operator()(x, H);
+
+    auto innovation = z - z_pred;
+
+    auto& P = *this->system_maps_["P"];
+    auto Hjac_T = trans(Hjac);
+    auto& R = *this->system_maps_["R"];
+    auto& M = *this->system_maps_["M"];
+    auto M_T = trans(M);
+    auto S = Hjac*P*Hjac_T + M*R*M_T;
+
+    auto S_inv = inv(S);
+    this->K_ = P*Hjac_T*S_inv;
 
 #ifdef KERNEL_DEBUG
-
     if(this->K_.columns() != innovation.size()){
         throw std::runtime_error("Matrix columns: "+std::to_string(this->K_.columns())+" not equal to vector size: "+std::to_string(innovation.size()));
     }
@@ -74,11 +72,10 @@ ExtendedKalmanFilter::update(const DynVec<real_t>& y){
 
     x += this->K_*innovation;
 
-    IdentityMatrix<real_t> I(this->K_.rows());
+    IdentityMatrix<real_t> I(x.size());
 
     // update the covariance matrix
-    P =  (I - this->K_*H)*P;
-
+    P =  (I - this->K_*Hjac)*P;
 }
 
 void
