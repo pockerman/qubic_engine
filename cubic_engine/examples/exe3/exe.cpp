@@ -29,7 +29,6 @@ int main(int argc, char** argv) {
     Server server(PORT, 2);
     server.start();
 
-
   return 0;
 }
 
