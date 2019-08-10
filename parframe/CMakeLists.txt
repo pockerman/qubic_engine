@@ -48,6 +48,14 @@ else()
     INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
 endif()
 
+SET(CHRONO_INCL_DIR " ")
+
+if(${CHRONO_INCL_DIR} MATCHES " ")
+    MESSAGE(FATAL_ERROR " Blaze directory not set")
+else()
+    INCLUDE_DIRECTORIES(${CHRONO_INCL_DIR})
+endif()
+
 SET(GTEST_INC_DIR " ")
 SET(GTEST_LIB_DIR " ")
 
@@ -90,7 +98,8 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/executors/*.cpp
                  ${PROJECT_SRC_DIR}/utilities/*.cpp
                  ${PROJECT_SRC_DIR}/data_structs/*.cpp
-                 ${PROJECT_SRC_DIR}/partitioners/*.cpp)
+                 ${PROJECT_SRC_DIR}/partitioners/*.cpp
+                 ${PROJECT_SRC_DIR}/vehicles/*.cpp)
                  
 ADD_LIBRARY(${LIB_NAME} SHARED {SRCS})
 
