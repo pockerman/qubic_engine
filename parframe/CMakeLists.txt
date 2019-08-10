@@ -51,7 +51,7 @@ endif()
 SET(CHRONO_INCL_DIR " ")
 
 if(${CHRONO_INCL_DIR} MATCHES " ")
-    MESSAGE(FATAL_ERROR " Blaze directory not set")
+    MESSAGE(FATAL_ERROR " Chrono directory not set")
 else()
     INCLUDE_DIRECTORIES(${CHRONO_INCL_DIR})
 endif()
