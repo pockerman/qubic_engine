@@ -7,67 +7,67 @@
 namespace kernel
 {
 
-    namespace kernel_detail
-    {
+  namespace kernel_detail
+  {
 
-    template<typename NodeTp>
-    struct generic_line_base
-    {
-        typedef NodeTp node_type;
+  template<typename NodeTp>
+  struct generic_line_base
+  {
+      typedef NodeTp node_type;
 
-        /// \brief The starting point
-        const NodeTp* start_;
+      /// \brief The starting point
+      const NodeTp* start_;
 
-        /// \brief The ending point
-        const NodeTp* end_;
+      /// \brief The ending point
+      const NodeTp* end_;
 
-        /// \brief The id of the line
-        uint_t id_;
+      /// \brief The id of the line
+      uint_t id_;
 
-        /// \brief Constructor
-        generic_line_base();
+      /// \brief Constructor
+      generic_line_base();
 
-        /// \brief Constructor
-        generic_line_base(const NodeTp& p1,const NodeTp& p2, uint_t id);
+      /// \brief Constructor
+      generic_line_base(const NodeTp& p1,const NodeTp& p2, uint_t id);
 
-        /// \brief Returns true iff id_ != kernel_consts::invalid_size_type()
-        bool has_valid_id()const noexcept{return (id_ != kernel_consts::invalid_size_type());}
+      /// \brief Returns true iff id_ != kernel_consts::invalid_size_type()
+      bool has_valid_id()const noexcept{return (id_ != kernel_consts::invalid_size_type());}
 
-        /// \brief Returns the id of the line
-        uint_t get_id()const noexcept{return id_;}
+      /// \brief Returns the id of the line
+      uint_t get_id()const noexcept{return id_;}
 
-        /// \brief Set the id of the line
-        void set_id(uint_t id)noexcept{id_ = id;}
+      /// \brief Set the id of the line
+      void set_id(uint_t id)noexcept{id_ = id;}
 
-        /// \brief Returns the starting point of the line
-        NodeTp& start(){return *start_;}
+      /// \brief Returns the starting point of the line
+      NodeTp& start(){return *start_;}
 
-        /// \brief Returns the starting point of the line
-        const NodeTp& start()const{return *start_;}
+      /// \brief Returns the starting point of the line
+      const NodeTp& start()const{return *start_;}
 
-        /// \brief Returns the ending point of the line
-        NodeTp& end(){return *end_;}
+      /// \brief Returns the ending point of the line
+      NodeTp& end(){return *end_;}
 
-        /// \brief Returns the ending point of the line
-        const NodeTp& end()const{return *end_;}
+      /// \brief Returns the ending point of the line
+      const NodeTp& end()const{return *end_;}
 
-    };
+  };
 
-    template<typename NodeTp>
-    generic_line_base<NodeTp>::generic_line_base()
-    :
-    start_(),
-    end_(),
-    id_(kernel_consts::invalid_size_type())
-    {}
+  template<typename NodeTp>
+  generic_line_base<NodeTp>::generic_line_base()
+  :
+  start_(),
+  end_(),
+  id_(kernel_consts::invalid_size_type())
+  {}
 
-    template<typename NodeTp>
-    generic_line_base<NodeTp>::generic_line_base(const NodeTp& p1,const NodeTp& p2, uint_t id)
-    :
-    start_(&p1),
-    end_(&p2),
-    id_(id)
-    {}
+  template<typename NodeTp>
+  generic_line_base<NodeTp>::generic_line_base(const NodeTp& p1,const NodeTp& p2, uint_t id)
+  :
+  start_(&p1),
+  end_(&p2),
+  id_(id)
+  {}
 
 }// kernel_detail
 
