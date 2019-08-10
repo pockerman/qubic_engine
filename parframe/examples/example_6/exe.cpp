@@ -84,7 +84,7 @@ CGSolver::solve(const Matrix& mat, Vector& x, const Vector& b, ThreadPool& execu
 
     kernel::DotProduct<Vector, real_t> gg_dotproduct(g_rsult, g_rsult);
     kernel::DotProduct<Vector, real_t> gw_dotproduct(g_rsult, w_rsult);
-    kernel::DotProduct<Vector, real_t> rr_dotproduct(r_rsult, r_rsult);
+    kernel::DotProduct<Vector, real_t> rr_dotproduct(r_rsult);
 
     // update the solution vector
     kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_x(x_rsult, x_rsult.get_resource(), g_rsult.get_resource(), one, alpha);
@@ -109,12 +109,6 @@ CGSolver::solve(const Matrix& mat, Vector& x, const Vector& b, ThreadPool& execu
     // initialize g vector with r vector
     g_rsult.get_resource() = r_rsult.get_resource();
 
-    std::cout<<"r_0: "<<std::endl;
-    std::cout<<r_rsult.get_resource()<<std::endl;
-
-    std::cout<<"g: "<<std::endl;
-    std::cout<<g_rsult.get_resource()<<std::endl;
-
     for(uint itr = 0; itr < n_itrs_; ++itr){
 
         info.niterations = itr +1 ;
@@ -123,14 +117,8 @@ CGSolver::solve(const Matrix& mat, Vector& x, const Vector& b, ThreadPool& execu
         A_times_g.reexecute(executor);
         A_times_g.get_or_wait_copy(w_rsult);
 
-        //std::cout<<"A*g result: "<<std::endl;
-        //std::cout<<w_rsult.get_resource()<<std::endl;
-
         gw_dotproduct.reexecute(executor);
         auto& gw_dot = gw_dotproduct.get_or_wait();
-
-        //std::cout<<"g*w dot product: "<<std::endl;
-        //std::cout<<*gw_dot.get().first<<std::endl;
 
         rr_dotproduct.reexecute(executor);
         auto& result_2 = rr_dotproduct.get_or_wait();
@@ -138,26 +126,14 @@ CGSolver::solve(const Matrix& mat, Vector& x, const Vector& b, ThreadPool& execu
         // hold a copy of the just computed gTg product
         old_r_dot_product = *(result_2.get().first);
 
-        //std::cout<<" r*r dot product: "<<std::endl;
-        //std::cout<<old_r_dot_product<<std::endl;
-
         // compute alpha
         alpha = old_r_dot_product / *(gw_dot.get().first);
 
-        //std::cout<<"Alpha computed: "<<std::endl;
-        //std::cout<<alpha<<std::endl;
-
         // update solution x
-        std::cout<<"Update x solution"<<std::endl;
         update_x.reexecute(executor);
-
-        std::cout<<"Updated solution: "<<std::endl;
-        std::cout<<x_rsult.get_resource()<<std::endl;
 
         // update residual r
         update_r.reexecute(executor);
-        std::cout<<"Residual computed: "<<std::endl;
-        std::cout<<r_rsult.get_resource()<<std::endl;
 
         // check whether we converged... compute L2 norm of residual
         rr_dotproduct.reexecute(executor);
@@ -204,7 +180,7 @@ int main(){
         }
 
         //create a pool and start it with four threads
-        ThreadPool pool(1);
+        ThreadPool pool(4);
 
         //create the partitions
         std::vector<parframe::range1d<uint_t>> partitions;
@@ -222,7 +198,7 @@ int main(){
         std::cout<<info<<std::endl;
 
         // uncomment this to view the solution
-        //std::cout<<x<<std::endl;
+        std::cout<<x<<std::endl;
     }
     catch (std::logic_error& e) {
         std::cout<<e.what()<<std::endl;

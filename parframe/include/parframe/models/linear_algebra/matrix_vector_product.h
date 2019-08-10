@@ -107,7 +107,6 @@ MatVecProduct<MatTp, VecTp>::MatVecProduct(const matrix_type& mat, const vector_
    result_(std::move(VecTp(x.size(), 0.0)))
 {}
 
-
 template<typename MatTp, typename VecTp>
 template<typename ExecutorTp>
 void

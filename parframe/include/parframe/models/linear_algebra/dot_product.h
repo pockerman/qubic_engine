@@ -34,7 +34,13 @@ public:
     DotProduct(const VectorTp& v1, const VectorTp& v2);
 
     /// \brief Constructor
+    DotProduct(const VectorTp& v1);
+
+    /// \brief Constructor
     DotProduct(const ResultHolder<VectorTp>& v1, const ResultHolder<VectorTp>& v2);
+
+    /// \brief Constructor
+    DotProduct(const ResultHolder<VectorTp>& v1);
 
     /// \brief Execute the dot product of the given two vectors
     /// using the given executor. This function will delete any tasks that have been
@@ -88,6 +94,9 @@ private:
         /// \brief Returns the local task result
         const result_type& get_result()const{return result;}
 
+        /// \brief Invalidate the result
+        void invalidate_result(){result.invalidate_result(true);}
+
     protected:
 
         /// \brief Override base class run method
@@ -98,7 +107,6 @@ private:
         result_type result;
     };
 };
-
 
 template<typename VectorTp, typename ResultTp>
 DotProduct<VectorTp, ResultTp>::DotProduct()
@@ -116,6 +124,24 @@ tasks_(),
 result_(),
 v1_ptr_(&v1),
 v2_ptr_(&v2)
+{}
+
+template<typename VectorTp, typename ResultTp>
+DotProduct<VectorTp, ResultTp>::DotProduct(const VectorTp& v1)
+    :
+tasks_(),
+result_(),
+v1_ptr_(&v1),
+v2_ptr_(&v1)
+{}
+
+template<typename VectorTp, typename ResultTp>
+DotProduct<VectorTp, ResultTp>::DotProduct(const ResultHolder<VectorTp>& v1)
+    :
+tasks_(),
+result_(),
+v1_ptr_(&v1.get_resource()),
+v2_ptr_(&v1.get_resource())
 {}
 
 template<typename VectorTp, typename ResultTp>
@@ -151,6 +177,8 @@ DotProduct<VectorTp, ResultTp>::execute(ExecutorTp& executor){
     }
 
     //invalidate the result
+    // TODO result should be invalidated only if requested
+    // by the application
     result_.invalidate_result(true);
 
     // clear any memory it may have been allocated
@@ -206,6 +234,7 @@ DotProduct<VectorTp, ResultTp>::reexecute(ExecutorTp& executor){
 
         for(uint_t t=0; t<executor.get_n_threads(); ++t){
 
+            tasks_[t]->invalidate_result();
             tasks_[t]->set_state(parframe::TaskBase::TaskState::PENDING);
             executor.add_task(*(tasks_[t].get()));
         }
@@ -231,10 +260,7 @@ DotProduct<VectorTp, ResultTp>::reexecute(ExecutorTp& executor){
            }
         }
     }
-
-
 }
-
 
 template<typename VectorTp, typename ResultTp>
 const typename DotProduct<VectorTp, ResultTp>::result_type&
@@ -260,7 +286,6 @@ DotProduct<VectorTp, ResultTp>::clear_tasks_memory_(){
         task.reset(nullptr);
     }
 }
-
 
 template<typename VectorTp, typename ResultTp>
 DotProduct<VectorTp,ResultTp>::DoDotProduct::DoDotProduct(uint_t t, const VectorTp& v1, const VectorTp& v2)
@@ -289,7 +314,6 @@ DotProduct<VectorTp, ResultTp>::DoDotProduct::run(){
     // this is a valid result
     result.validate_result();
 }
-
 
 }
 

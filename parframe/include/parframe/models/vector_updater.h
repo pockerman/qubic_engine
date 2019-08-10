@@ -16,7 +16,6 @@
 #include <boost/noncopyable.hpp>
 #include <stdexcept>
 #include <memory>
-#include <iostream>
 
 namespace kernel
 {
@@ -117,7 +116,6 @@ a_(&a),
 b_(&b)
 {}
 
-
 template<typename VectorTp, typename OpTp, typename FactorTp>
 template<typename ExecutorTp>
 void
@@ -141,14 +139,7 @@ VectorUpdater<VectorTp, OpTp, FactorTp>::execute(ExecutorTp& executor){
 
     // create the dot product tasks
     tasks_.reserve(executor.get_n_threads());
-
     typedef VectorUpdater<VectorTp, OpTp, FactorTp>::update_vector task_type;
-
-    std::cout<<"VectorUpdater<VectorTp, OpTp, FactorTp>::execute: "<<std::endl;
-    std::cout<<"y: "<<std::endl;
-    std::cout<<*y_<<std::endl;
-    std::cout<<"z: "<<std::endl;
-    std::cout<<*z_<<std::endl;
 
     for(uint_t t=0; t<executor.get_n_threads(); ++t){
 
@@ -262,13 +253,6 @@ VectorUpdater<VectorTp, OpTp, FactorTp>::update_vector::run(){
     for(uint_t r  = begin; r < end; ++r){
         (*x_)[r] = OpTp::get((*y_)[r], *a_, (*z_)[r], *b_ );
     }
-
-    std::cout<<"Inside: VectorUpdater<VectorTp, OpTp, FactorTp>::update_vector::run"<<std::endl;
-    std::cout<<"y input: "<<std::endl;
-    std::cout<<*y_<<std::endl;
-    std::cout<<"z input: "<<std::endl;
-    std::cout<<*z_<<std::endl;
-    std::cout<<*x_<<std::endl;
 }
 
 
