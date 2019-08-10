@@ -150,7 +150,7 @@ MatVecProduct<MatTp, VecTp>::execute(ExecutorTp& executor){
         // if we reached here but for some reason the
         // task has not finished properly invalidate the result
        if(tasks_[t]->get_state() != parframe::TaskBase::TaskState::FINISHED){
-           result_.invalidate_result();
+           result_.invalidate_result(false);
        }
     }
 }
@@ -185,7 +185,7 @@ MatVecProduct<MatTp, VecTp>::reexecute(ExecutorTp& executor){
             // if we reached here but for some reason the
             // task has not finished properly invalidate the result
            if(tasks_[t]->get_state() != parframe::TaskBase::TaskState::FINISHED){
-               result_.invalidate_result();
+               result_.invalidate_result(false);
            }
         }
     }

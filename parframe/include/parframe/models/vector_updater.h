@@ -16,6 +16,7 @@
 #include <boost/noncopyable.hpp>
 #include <stdexcept>
 #include <memory>
+#include <iostream>
 
 namespace kernel
 {
@@ -52,17 +53,6 @@ public:
 
     /// \brief Returns true if the spawned tasks have finished
     bool tasks_finished()const{return taskutils::tasks_finished(tasks_);}
-
-    /*/// \brief Returns the result
-    const result_type& get()const{return result_;}
-
-    /// \brief Attempt to get the result only if it is valid. It yields the calling thread
-    /// as long as  the result is not valid
-    const result_type& get_or_wait()const;
-
-    /// \brief Attempt to get the result. If the result is not valid is waits for the
-    /// specified time in milliseconds. It then returns the result regardless of its validity
-    const result_type& get_or_wait_for(uint_t milliseconds)const;*/
 
     /// \brief Returns the result
     result_type& get(){return *result_;}
@@ -154,6 +144,12 @@ VectorUpdater<VectorTp, OpTp, FactorTp>::execute(ExecutorTp& executor){
 
     typedef VectorUpdater<VectorTp, OpTp, FactorTp>::update_vector task_type;
 
+    std::cout<<"VectorUpdater<VectorTp, OpTp, FactorTp>::execute: "<<std::endl;
+    std::cout<<"y: "<<std::endl;
+    std::cout<<*y_<<std::endl;
+    std::cout<<"z: "<<std::endl;
+    std::cout<<*z_<<std::endl;
+
     for(uint_t t=0; t<executor.get_n_threads(); ++t){
 
         tasks_.push_back(std::make_unique<task_type>(t, result_->get_resource(), *y_, *z_, *a_, *b_));
@@ -174,7 +170,7 @@ VectorUpdater<VectorTp, OpTp, FactorTp>::execute(ExecutorTp& executor){
         // if we reached here but for some reason the
         // task has not finished properly invalidate the result
        if(tasks_[t]->get_state() != parframe::TaskBase::TaskState::FINISHED){
-           result_->invalidate_result();
+           result_->invalidate_result(false);
        }
     }
 }
@@ -209,7 +205,7 @@ VectorUpdater<VectorTp, OpTp, FactorTp>::reexecute(ExecutorTp& executor){
             // if we reached here but for some reason the
             // task has not finished properly invalidate the result
            if(tasks_[t]->get_state() != parframe::TaskBase::TaskState::FINISHED){
-               result_->invalidate_result();
+               result_->invalidate_result(false);
            }
         }
     }
@@ -266,6 +262,13 @@ VectorUpdater<VectorTp, OpTp, FactorTp>::update_vector::run(){
     for(uint_t r  = begin; r < end; ++r){
         (*x_)[r] = OpTp::get((*y_)[r], *a_, (*z_)[r], *b_ );
     }
+
+    std::cout<<"Inside: VectorUpdater<VectorTp, OpTp, FactorTp>::update_vector::run"<<std::endl;
+    std::cout<<"y input: "<<std::endl;
+    std::cout<<*y_<<std::endl;
+    std::cout<<"z input: "<<std::endl;
+    std::cout<<*z_<<std::endl;
+    std::cout<<*x_<<std::endl;
 }
 
 

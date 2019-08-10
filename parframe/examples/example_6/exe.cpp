@@ -41,15 +41,13 @@ public:
 
     // solve the Ax=b. It assumes that the matrix and Vector
     // types already have their partitions established
-    kernel::AlgInfo solve(const Matrix& mat, const Vector& b, Vector& x, ThreadPool& executor );
+    kernel::AlgInfo solve(const Matrix& mat, Vector& x, const Vector& b, ThreadPool& executor );
 
 private:
 
     uint_t n_itrs_;
     real_t res_;
 };
-
-
 
 CGSolver::CGSolver(uint_t nitrs, real_t res)
     :
@@ -58,7 +56,7 @@ CGSolver::CGSolver(uint_t nitrs, real_t res)
 {}
 
 kernel::AlgInfo
-CGSolver::solve(const Matrix& mat, const Vector& b, Vector& x, ThreadPool& executor ){
+CGSolver::solve(const Matrix& mat, Vector& x, const Vector& b, ThreadPool& executor ){
 
     // do basic checks
     kernel::AlgInfo info;
@@ -69,11 +67,11 @@ CGSolver::solve(const Matrix& mat, const Vector& b, Vector& x, ThreadPool& execu
     g.set_partitions(b.get_partitions());
     Vector r(x.size());
     r.set_partitions(b.get_partitions());
-    //Vector w(x.size());
-    //w.set_partitions(b.get_partitions());
 
-    real_t alpha = 0.0;
-    real_t beta = 0.0;
+    const auto one = 1.0;
+    auto alpha = 0.0;
+    auto beta = 0.0;
+    auto old_r_dot_product = 0.0;
 
     kernel::ResultHolder<Vector> x_rsult(std::move(x));
     kernel::ResultHolder<Vector> g_rsult(std::move(g));
@@ -81,64 +79,106 @@ CGSolver::solve(const Matrix& mat, const Vector& b, Vector& x, ThreadPool& execu
     kernel::ResultHolder<Vector> w_rsult;
 
     // object to perform the dot product
-    kernel::MatVecProduct<Matrix, Vector> A_times_r(mat, r_rsult.get_resource());
-    A_times_r.get_copy(w_rsult);
+    kernel::MatVecProduct<Matrix, Vector> A_times_g(mat, g_rsult.get_resource());
+    A_times_g.get_copy(w_rsult);
 
-    kernel::MatVecProduct<Matrix, Vector> A_times_x(mat, x_rsult.get_resource());
     kernel::DotProduct<Vector, real_t> gg_dotproduct(g_rsult, g_rsult);
-    kernel::DotProduct<Vector, real_t> rw_dotproduct(r_rsult, w_rsult);
+    kernel::DotProduct<Vector, real_t> gw_dotproduct(g_rsult, w_rsult);
+    kernel::DotProduct<Vector, real_t> rr_dotproduct(r_rsult, r_rsult);
 
-    //kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_x(xrsult, x, r, 1.0, alpha);
-    //kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_g(grsult, g, w, 1.0, alpha);
-    //kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_d(drsult, r, w, -1.0, beta);
+    // update the solution vector
+    kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_x(x_rsult, x_rsult.get_resource(), g_rsult.get_resource(), one, alpha);
+    kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_g(g_rsult, r_rsult.get_resource(), g_rsult.get_resource(), one, beta);
 
-    // compute A*x_0
-    A_times_x.execute(executor);
-    auto& tmp = A_times_x.get_or_wait();
+    // update the residual vector
+    kernel::VectorUpdater<Vector, kernel::ScaledDif<real_t>, real_t> update_r(r_rsult, r_rsult.get_resource(), g_rsult.get_resource(), one, alpha);
 
-    // compute r_0 = b - A*x_0
-    kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_r(r_rsult, b, tmp.get_resource(), 1.0, -1.0);
-    update_r.execute(executor);
+    {
+        // compute A*x_0
+        kernel::MatVecProduct<Matrix, Vector> A_times_x(mat, x_rsult.get_resource());
 
-    //kernel::DotProduct<Vector, real_t> dw_dotproduct(r, w_rsult.get_resource());
+        // compute A*x_0
+        A_times_x.execute(executor);
+        auto& tmp = A_times_x.get_or_wait();
+
+        // compute r_0 = b - A*x_0
+        kernel::VectorUpdater<Vector, kernel::ScaledDif<real_t>, real_t> update_r0(r_rsult, b, tmp.get_resource(), 1.0, 1.0);
+        update_r0.execute(executor);
+    }
+
+    // initialize g vector with r vector
+    g_rsult.get_resource() = r_rsult.get_resource();
+
+    std::cout<<"r_0: "<<std::endl;
+    std::cout<<r_rsult.get_resource()<<std::endl;
+
+    std::cout<<"g: "<<std::endl;
+    std::cout<<g_rsult.get_resource()<<std::endl;
 
     for(uint itr = 0; itr < n_itrs_; ++itr){
 
-        // perform the matrix-vector product
+        info.niterations = itr +1 ;
 
-        // w = compute A*r
-        A_times_r.reexecute(executor);
-        A_times_r.get_or_wait_copy(w_rsult);
+        // w = compute A*g
+        A_times_g.reexecute(executor);
+        A_times_g.get_or_wait_copy(w_rsult);
 
-        rw_dotproduct.reexecute(executor);
-        auto& result_1 = rw_dotproduct.get_or_wait();
+        //std::cout<<"A*g result: "<<std::endl;
+        //std::cout<<w_rsult.get_resource()<<std::endl;
 
-        gg_dotproduct.reexecute(executor);
-        auto& result_2 = gg_dotproduct.get_or_wait();
+        gw_dotproduct.reexecute(executor);
+        auto& gw_dot = gw_dotproduct.get_or_wait();
+
+        //std::cout<<"g*w dot product: "<<std::endl;
+        //std::cout<<*gw_dot.get().first<<std::endl;
+
+        rr_dotproduct.reexecute(executor);
+        auto& result_2 = rr_dotproduct.get_or_wait();
+
+        // hold a copy of the just computed gTg product
+        old_r_dot_product = *(result_2.get().first);
+
+        //std::cout<<" r*r dot product: "<<std::endl;
+        //std::cout<<old_r_dot_product<<std::endl;
 
         // compute alpha
-        //alpha = *(result_2.get().first) / *(result_1.get().first);
+        alpha = old_r_dot_product / *(gw_dot.get().first);
 
-        // update g and x
-        //update_x.reexecute(executor);
-        //update_g.reexecute(executor);
+        //std::cout<<"Alpha computed: "<<std::endl;
+        //std::cout<<alpha<<std::endl;
 
-        //gg_dotproduct.reexecute(executor);
-        //auto& result_3 = gg_dotproduct.get_or_wait();
-        //beta = *(result_3.get().first) / *(result_2.get().first);
+        // update solution x
+        std::cout<<"Update x solution"<<std::endl;
+        update_x.reexecute(executor);
 
-        // update d vector
-        //update_d.reexecute(executor);
+        std::cout<<"Updated solution: "<<std::endl;
+        std::cout<<x_rsult.get_resource()<<std::endl;
 
-        info.niterations = itr;
-        //auto res = std::sqrt( *(result_3.get().first) );
+        // update residual r
+        update_r.reexecute(executor);
+        std::cout<<"Residual computed: "<<std::endl;
+        std::cout<<r_rsult.get_resource()<<std::endl;
 
-        /*if( res - res_ < 0.){
+        // check whether we converged... compute L2 norm of residual
+        rr_dotproduct.reexecute(executor);
+        auto& result_rr_dot_product = rr_dotproduct.get_or_wait();
+        auto res = std::sqrt( *result_rr_dot_product.get().first );
+        std::cout<<"Residual computed: "<<res<<" needed for convergence: "<<res_<<std::endl;
+
+        if( res < res_ ){
             info.converged = true;
             info.residual = res;
-        }*/
+            break; // iterations converged so break
+        }
+
+        // compute beta
+        beta = *(result_rr_dot_product.get().first) / old_r_dot_product;
+
+        // update g
+        update_g.reexecute(executor);
     }
 
+    x = std::move(x_rsult.get_resource());
     return info;
 }
 
@@ -149,9 +189,9 @@ int main(){
     try {
 
         using parframe::ThreadPool;
-        Vector x(100, 0.0);
-        Vector b(100, 2.0);
-        Matrix A(100, 100);
+        Vector x(5, 0.0);
+        Vector b(5, 2.0);
+        Matrix A(5, 5);
 
         // diagonilize A
         for(uint_t r=0; r < A.rows(); ++r){
@@ -164,7 +204,7 @@ int main(){
         }
 
         //create a pool and start it with four threads
-        ThreadPool pool(4);
+        ThreadPool pool(1);
 
         //create the partitions
         std::vector<parframe::range1d<uint_t>> partitions;
@@ -175,7 +215,7 @@ int main(){
         x.set_partitions(partitions);
         b.set_partitions(partitions);
 
-        CGSolver solver(100, kernel::kernel_consts::tolerance());
+        CGSolver solver(1, kernel::kernel_consts::tolerance());
         auto info = solver.solve(A, x, b, pool);
 
         // print useful information

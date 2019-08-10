@@ -103,7 +103,7 @@ namespace detail
             // if we reached here but for some reason the
             // task has not finished properly invalidate the result
            if(tasks_[t]->get_state() != TaskBase::TaskState::FINISHED){
-               op.invalidate_result();
+               op.invalidate_result(false);
            }
            else{
                op.join(static_cast<task_type*>(tasks_[t].get())->get_result());

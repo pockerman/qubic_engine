@@ -68,7 +68,7 @@ template<typename T>
 void
 Sum<T>::join(const Sum<T>& other){
 
-    if(!other){
+    if(!other.is_result_valid()){
         return;
     }
 

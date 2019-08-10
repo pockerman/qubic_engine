@@ -31,17 +31,15 @@ public:
     /// \brief Constructor
     explicit ResultHolder(value_type&& init, bool valid=false);
 
-    /// \brief Overload operator!
-    bool operator!()const{ return valid_result_;}
-
     /// \brief Query whether the held result is valid
     bool is_result_valid()const{return valid_result_;}
 
     /// \brief Validate the result
     void validate_result(){valid_result_ = true;}
 
-    /// \brief Invalidate the result
-    void invalidate_result(){valid_result_ = false;}
+    /// \brief Invalidate the result. If reinit is true
+    /// the underlying item is reinitialized using the default constructor
+    void invalidate_result(bool reinit);
 
     /// \brief Get a copy of the internals
     void get_copy(ResultHolder<T>& other)const;
@@ -101,8 +99,6 @@ ResultHolder<T>::get_copy(ResultHolder<T>& other)const
 template<typename T>
 typename ResultHolder<T>::result_type
 ResultHolder<T>::get()const{
-
-
     return std::make_pair(&(const_cast<ResultHolder<T>&>(*this).item_), valid_result_);
 }
 
@@ -127,6 +123,17 @@ ResultHolder<T>::get_or_wait_for(uint_t mills)const{
     }
 
     return std::make_pair(&(const_cast<ResultHolder<T>&>(*this).item_), valid_result_);
+}
+
+template<typename T>
+void
+ResultHolder<T>::invalidate_result(bool reinit){
+
+    if(reinit){
+       item_ = typename ResultHolder<T>::value_type();
+    }
+
+    valid_result_ = false;
 }
 
 }

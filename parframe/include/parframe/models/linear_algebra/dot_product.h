@@ -150,6 +150,9 @@ DotProduct<VectorTp, ResultTp>::execute(ExecutorTp& executor){
         throw std::runtime_error("Invalid vector sizes");
     }
 
+    //invalidate the result
+    result_.invalidate_result(true);
+
     // clear any memory it may have been allocated
     clear_tasks_memory_();
 
@@ -159,7 +162,6 @@ DotProduct<VectorTp, ResultTp>::execute(ExecutorTp& executor){
     typedef DotProduct<VectorTp, ResultTp>::DoDotProduct task_type;
 
     for(uint_t t=0; t<executor.get_n_threads(); ++t){
-
         tasks_.push_back(std::make_unique<task_type>(t, *v1_ptr_, *v2_ptr_));
         executor.add_task(*(tasks_[t].get()));
     }
@@ -178,7 +180,7 @@ DotProduct<VectorTp, ResultTp>::execute(ExecutorTp& executor){
         // if we reached here but for some reason the
         // task has not finished properly invalidate the result
        if(tasks_[t]->get_state() != parframe::TaskBase::TaskState::FINISHED){
-           result_.invalidate_result();
+           result_.invalidate_result(false);
        }
        else{
            result_.join(static_cast<task_type*>(tasks_[t].get())->get_result());
@@ -196,6 +198,9 @@ DotProduct<VectorTp, ResultTp>::reexecute(ExecutorTp& executor){
         execute(executor);
     }
     else{
+
+        //invalidate the result
+        result_.invalidate_result(true);
 
         typedef DotProduct<VectorTp, ResultTp>::DoDotProduct task_type;
 
@@ -219,7 +224,7 @@ DotProduct<VectorTp, ResultTp>::reexecute(ExecutorTp& executor){
             // if we reached here but for some reason the
             // task has not finished properly invalidate the result
            if(tasks_[t]->get_state() != parframe::TaskBase::TaskState::FINISHED){
-               result_.invalidate_result();
+               result_.invalidate_result(false);
            }
            else{
                result_.join(static_cast<task_type*>(tasks_[t].get())->get_result());
