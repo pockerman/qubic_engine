@@ -20,14 +20,14 @@ endif(COMMAND cmake_policy)
 # set the name of the library to link against
 SET(LIB_NAME "kernellib")
 
-SET(PARFRAMELIB_VERSION_MAJOR 0)
-SET(PARFRAMELIB_VERSION_MINOR 1)
-SET(PARFRAMELIB_VERSION_PATCH 0)
-PROJECT(ParallelFrameLib VERSION ${PARFRAMELIB_VERSION_MAJOR}.${PARFRAMELIB_VERSION_MINOR}.${PARFRAMELIB_VERSION_PATCH})
-SET(PARFRAMELIB_VERSION "${PARFRAMELIB_VERSION_MAJOR}.${PARFRAMELIB_VERSION_MINOR}.${PARFRAMELIB_VERSION_PATCH}")
+SET(KERNELLIB_VERSION_MAJOR 0)
+SET(KERNELLIB_VERSION_MINOR 1)
+SET(KERNELLIB_VERSION_PATCH 0)
+PROJECT(ParallelFrameLib VERSION ${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH})
+SET(KERNELLIB_VERSION "${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH}")
 
 # find Boost
-FIND_PACKAGE(Boost 1.61.0 REQUIRED)
+FIND_PACKAGE(Boost 1.65.0 REQUIRED)
 IF(Boost_FOUND)
         SET(BOOST_INCLUDEDIR ${Boost_INCLUDE_DIRS})
         SET(BOOST_LIBRARYDIR ${Boost_LIBRARY_DIRS})
@@ -35,11 +35,35 @@ IF(Boost_FOUND)
 ENDIF()
 
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
-SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/kernel)
-#SET(BLAZE_DIR /home/david/MyProjects/cubic_engine/chrono_lib/blaze-3.4/install/share/blaze/cmake)
-SET(BLAZE_INCL_DIR /home/david/MyProjects/cubic_engine/chrono_lib/blaze-3.4/install/include)
-SET(GTEST_INC_DIR /home/david/MySoftware/gtest/install/include)
-SET(GTEST_LIB_DIR /home/david/MySoftware/gtest/install/lib)
+SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/parframe)
+
+# Currently fail the build if the user does not supply the
+# variables.
+# TODO: How to do it better
+SET(BLAZE_INCL_DIR " ")
+
+if(${BLAZE_INCL_DIR} MATCHES " ")
+    MESSAGE(FATAL_ERROR " Blaze directory not set")
+else()
+    INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
+endif()
+
+SET(CHRONO_INCL_DIR " ")
+
+if(${CHRONO_INCL_DIR} MATCHES " ")
+    MESSAGE(FATAL_ERROR " Chrono directory not set")
+else()
+    INCLUDE_DIRECTORIES(${CHRONO_INCL_DIR})
+endif()
+
+SET(GTEST_INC_DIR " ")
+SET(GTEST_LIB_DIR " ")
+
+if(${GTEST_INC_DIR} MATCHES " " OR ${GTEST_LIB_DIR} MATCHES " ")
+    MESSAGE(FATAL_ERROR " GTest not configured")
+else()
+    INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
+endif()
 
 IF(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES " ")
         SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread")
@@ -60,25 +84,24 @@ ELSE()
 ENDIF()
 
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
-MESSAGE(STATUS "INSTALL DIR ${CMAKE_INSTALL_PREFIX}")
 
 # include dirs used by the project
 INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR}) 
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
-INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
-INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
 
 # use the Boost link directories
 LINK_DIRECTORIES(${BOOST_LIBRARYDIR})
 
+# add a shared library to link the app
+# TODO: do this better as this way is not scalable
 FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/executors/*.cpp
                  ${PROJECT_SRC_DIR}/utilities/*.cpp
                  ${PROJECT_SRC_DIR}/data_structs/*.cpp
                  ${PROJECT_SRC_DIR}/partitioners/*.cpp
                  ${PROJECT_SRC_DIR}/vehicles/*.cpp)
-
-ADD_LIBRARY(${LIB_NAME} SHARED ${SRCS})
+                 
+ADD_LIBRARY(${LIB_NAME} SHARED {SRCS})
 
 SET_TARGET_PROPERTIES(kernellib PROPERTIES LINKER_LANGUAGE CXX)
 INSTALL(TARGETS kernellib DESTINATION ${CMAKE_INSTALL_PREFIX})
