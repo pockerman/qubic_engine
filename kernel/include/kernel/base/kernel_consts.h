@@ -48,12 +48,10 @@ private:
        */
       kernel_consts();
 
-
-        /**
-            * @brief The tolerance constant
-            */
-        static real_t tol_;
-
+      /**
+          * @brief The tolerance constant
+          */
+      static real_t tol_;
 };
 
 

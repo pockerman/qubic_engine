@@ -5,6 +5,7 @@
 #include "kernel/base/kernel_consts.h"
 
 #include <boost/noncopyable.hpp>
+#include <string>
 
 namespace kernel
 {
@@ -44,6 +45,12 @@ public:
     /// \brief Set the id of the task
     void set_id(uint_t id){id_ = id;}
 
+    /// \brief Returns the name of the task
+    const std::string get_name()const{return name_;}
+
+    /// \brief Set the name of the task
+    void set_name(const std::string& name){name_ = name;}
+
 protected:
 
     /// \brief Constructor
@@ -59,6 +66,10 @@ protected:
 
     /// \brief The id of the task
     uint_t id_;
+
+    /// \brief The name of the task. This can act as another identifier
+    /// for the task
+    std::string name_;
 
 };
 

@@ -7,7 +7,8 @@ namespace kernel
 TaskBase::TaskBase(uint_t id)
     :
     state_(TaskBase::TaskState::PENDING),
-    id_(id)
+    id_(id),
+    name_(kernel_consts::dummy_string())
 {}
 
 TaskBase::~TaskBase()
@@ -34,7 +35,6 @@ TaskBase::operator()(){
         set_state(TaskBase::TaskState::INTERRUPTED);
     }
 }
-
 
 bool
 TaskBase::finished()const{
