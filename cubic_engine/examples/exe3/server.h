@@ -2,7 +2,7 @@
 #define SERVER_H
 
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "parframe/executors/thread_pool.h"
+#include "kernel/executors/thread_pool.h"
 #include <boost/asio.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <memory>
@@ -39,7 +39,7 @@ private:
     const uint_t PORT;
 
     /// \brief the thread pool that actually does the work
-    parframe::ThreadPool pool_;
+    kernel::ThreadPool pool_;
 
     /// \brief The task that handles the connections
     struct HandleConnectionsTask;

@@ -4,8 +4,8 @@
 
 
 #include "exe.h"
-#include "parframe/base/angle_calculator.h"
-#include "parframe/utilities/csv_file_writer.h"
+#include "kernel/base/angle_calculator.h"
+#include "kernel/utilities/csv_file_writer.h"
 
 #include <cmath>
 #include <iostream>

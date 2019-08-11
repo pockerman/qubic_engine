@@ -1,7 +1,7 @@
 #include "cubic_engine/integrators/fwd_euler.h"
 #include "cubic_engine/control/pid_controller.h"
-#include "parframe/base/physics_constants.h"
-#include "parframe/utilities/csv_file_writer.h"
+#include "kernel/base/physics_constants.h"
+#include "kernel/utilities/csv_file_writer.h"
 
 #include <iostream>
 #include <cmath>

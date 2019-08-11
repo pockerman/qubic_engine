@@ -1,6 +1,6 @@
 #include "server.h"
 #include "ekf_data.h"
-#include "parframe/executors/simple_task.h"
+#include "kernel/executors/simple_task.h"
 
 #include <iostream>
 #include <thread>
@@ -9,7 +9,7 @@
 namespace exe
 {
 
-struct Server::HandleConnectionsTask: public parframe::SimpleTaskBase
+struct Server::HandleConnectionsTask: public kernel::SimpleTaskBase
 {
 public:
 
