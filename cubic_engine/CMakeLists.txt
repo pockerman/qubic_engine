@@ -28,7 +28,7 @@ SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/cubic_engine)
 
 #find boost. How to make this user defined?
-find_package(Boost 1.58.0 REQUIRED)
+find_package(Boost 1.65.0 REQUIRED)
 
 IF(Boost_FOUND)
 SET(BOOST_INCLUDEDIR ${Boost_INCLUDE_DIRS})
@@ -39,12 +39,12 @@ ENDIF()
 # Currently fail the build if the user does not supply the
 # variables.
 # TODO: How to do it better
-SET(PARFRAMELIB_INCL_DIR " ")
+SET(KERNEL_INCL_DIR " ")
 
-if(${PARFRAMELIB_INCL_DIR} MATCHES " ")
+if(${KERNEL_INCL_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " Parframe directory not set")
 else()
-    INCLUDE_DIRECTORIES(${PARFRAMELIB_INCL_DIR})
+    INCLUDE_DIRECTORIES(${KERNEL_INCL_DIR})
 endif()
 
 SET(BLAZE_INCL_DIR " ")
@@ -71,18 +71,18 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
                  ${PROJECT_SRC_DIR}/systems/*.cpp)
 
 IF(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES " ")
-        SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread")
+        SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fPIC")
         SET(CMAKE_LINKER_FLAGS "-pthread")
         SET(CUBIC_ENGINE_DEBUG 1)
         SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)
 ELSEIF(CMAKE_BUILD_TYPE MATCHES "Release")
-        SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -pthread")
+        SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -pthread -fPIC")
         SET(CMAKE_LINKER_FLAGS "-pthread")
         SET(CUBIC_ENGINE_DEBUG 0)
         SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/opt)
 ELSE()
 
-        SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread")
+        SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fPIC")
         SET(CMAKE_LINKER_FLAGS "-pthread")
         SET(CUBIC_ENGINE_DEBUG 1)
         SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)
