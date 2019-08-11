@@ -9,6 +9,7 @@
 - <a href="https://github.com/pockerman/compute_engine/tree/master/kernel/examples/example_4">Example 4</a> Multithreaded Jacobi Iterator
 - <a href="https://github.com/pockerman/compute_engine/tree/master/kernel/examples/example_5">Example 5</a> Sum the elements of an array 
 - <a href="https://github.com/pockerman/compute_engine/tree/master/kernel/examples/example_6">Example 6</a> Multithreaded Conjugate Gradient solver
+- <a href="#">Example 7</a> Longitudinal Vehicle Model
 
 ## Dependencies
 
