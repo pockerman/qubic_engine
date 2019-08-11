@@ -1,5 +1,5 @@
-#include "cubic_engine/integrators/fwd_euler.h"
 #include "cubic_engine/control/pid_controller.h"
+#include "kernel/integrators/fwd_euler.h"
 #include "kernel/base/physics_constants.h"
 #include "kernel/utilities/csv_file_writer.h"
 
@@ -9,7 +9,7 @@ namespace exe
 {  
 
 using cengine::real_t;
-using cengine::FWDEulerInt;
+using kernel::FWDEulerInt;
 
 class VehicleDynamics
 {
@@ -36,7 +36,7 @@ private:
     };
 
     real_t velocity_;
-    cengine::FWDEulerInt<real_t, ComputeRhs> velocity_int_;
+    FWDEulerInt<real_t, ComputeRhs> velocity_int_;
 };
 
 real_t
