@@ -42,7 +42,7 @@ ENDIF()
 SET(KERNEL_INCL_DIR " ")
 
 if(${KERNEL_INCL_DIR} MATCHES " ")
-    MESSAGE(FATAL_ERROR " Parframe directory not set")
+    MESSAGE(FATAL_ERROR " kernel directory not set")
 else()
     INCLUDE_DIRECTORIES(${KERNEL_INCL_DIR})
 endif()
@@ -68,7 +68,8 @@ INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR})
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 
 FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
-                 ${PROJECT_SRC_DIR}/systems/*.cpp)
+                 ${PROJECT_SRC_DIR}/systems/*.cpp
+                 ${PROJECT_SRC_DIR}/control/*.cpp)
 
 IF(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES " ")
         SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fPIC")
