@@ -1,7 +1,7 @@
 #include "cubic_engine/search/a_star_search.h"
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "parframe/data_structs/boost_serial_graph.h"
-#include "parframe/maths/lp_metric.h"
+#include "kernel/data_structs/boost_serial_graph.h"
+#include "kernel/maths/lp_metric.h"
 
 #include <vector>
 #include <gtest/gtest.h>

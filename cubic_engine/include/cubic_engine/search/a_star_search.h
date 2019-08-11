@@ -2,8 +2,8 @@
 #define A_STAR_SEARCH_H
 
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "parframe/data_structs/searchable_priority_queue.h"
-#include "parframe/utilities/map_utilities.h"
+#include "kernel/data_structs/searchable_priority_queue.h"
+#include "kernel/utilities/map_utilities.h"
 
 #include <utility>
 #include <set>
