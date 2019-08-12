@@ -8,239 +8,129 @@
 #ifndef SYSTEM_BASE_H
 #define	SYSTEM_BASE_H
 
-#include "robosim/base/robosim.h"
-#include <armadillo>
+#include "cubic_engine/base/cubic_engine_types.h"
 
-#include <initializer_list>
 #include<boost/noncopyable.hpp>
+#include <string>
 
-namespace robosim
+
+namespace cengine
 {
     
     
 /**
- * @brief Base class for representing stochastic systems. Concrete classes
- * of this class are LinearSteadySys, LinearUnsteadySys, NonLinearSys.
- * 
- * $$\mathbf{x}_t = f(\mathbf{x}_{t-1},\mathbf{u}_{t-1},\mathbf{w}_{t-1})$$
- * $$\mathbf{z}_t = h(\mathbf{x}_t,\mathbf{v}_t)$$
+ * @brief class for modelling  state-space systems
  */
     
+template<typename Statetp, typename MotionTp, typename MeasurementTp, typename MatDescriptionTp>
 class SystemBase: private boost::noncopyable
 {
 public:
     
-    
-    
-    
-    /**
-     * @brief Expose the type of the matrix the system uses
-     */
-    typedef arma::Mat<real_type> mat_type;
-    
-    /**
-     * @brief Expose the type of the vector the system uses. This
-     * is a column vector
-     */
-    typedef arma::vec vec_type;
+    typedef Statetp state_type;
+    typedef MotionTp motion_type;
+    typedef MeasurementTp measurement_type;
+    typedef MatDescriptionTp matrix_description_type;
+    typedef typename  matrix_description_type::matrix_type matrix_type;
     
     /**
      * @brief Constructor
      */
-    SystemBase();
-    
+    SystemBase(const std::string& name);
     
     /**
      * @brief Destructor 
      */
     virtual ~SystemBase();
-    
+
     /**
-     * @brief Return a reference to the state transition matrix
+     * @brief set_state Set the state of the of the system
+     * @param state the state to set to
      */
-    mat_type& get_A_mat(){return At_;}
-    
+    void set_state(const state_type& state){state_ = state;}
+
     /**
-     * @brief Return a reference to the state transition matrix
+     * @brief set_state Set the state of the of the system. Uses move operation
+     * @param state
      */
-    const mat_type& get_A_mat()const{return At_;}
-    
-    
-    
+    void set_state(state_type&& state){state_ = std::move(state);}
+
     /**
-     * @brief Return a reference to the state covariance matrix 
+     * @brief get_state Returns write reference to the state of the system
      */
-    mat_type& get_P_mat(){return Pt_;}
-    
+    state_type& get_state(){return state_;}
+
     /**
-     * @brief Return a reference to the state covariance matrix 
+     * @brief get_state Returns read reference to the state of the system
      */
-    const mat_type& get_P_mat()const{return Pt_;}
-    
+    const state_type& get_state()const{return state_;}
+
     /**
-     * @brief Set the P matrix 
+     * @brief get_motion_model Returns read/write reference to the motion model
      */
-    void set_P_matrix(const std::initializer_list<real_type>& list){Pt_ = list;}
-    
+    motion_type& get_motion_model(){return motion_model_;}
+
     /**
-     * @brief Return the process noise covariance matrix Q.
+     * @brief get_motion_model Returns read reference to the motion model
      */
-    mat_type& get_Q_mat(){return Qt_;}
-    
+    const motion_type& get_motion_model()const{return motion_model_;}
+
     /**
-     * @brief Return the process noise covariance matrix Q.
+     * @brief get_measurement_model. Returns read/write reference to the measurement model
      */
-    const mat_type& get_Q_mat()const{return Qt_;}
-    
-    
+    measurement_type& get_measurement_model(){return meas_model_;}
+
     /**
-     * @brief Return the  
+     * @brief get_measurement_model. Returns read reference to the measurement model
      */
-    mat_type& get_W_mat(){return Wt_;}
-    
+    const measurement_type& get_measurement_model()const{return meas_model_;}
+
     /**
-     * @brief Return the  
+     * @brief get_matrix. Returns read reference to the matrix_name matrix
      */
-    const mat_type& get_W_mat()const{return Wt_;}
-    
-    
-    /**
-     * @brief Return a reference to the measurement noise covariance matrix
-     */
-    mat_type& get_R_mat(){return Rt_;}
-    
-    /**
-     * @brief Return a reference to the measurement noise covariance matrix
-     */
-    const mat_type& get_R_mat()const{return Rt_;}
-    
-    
-    /**
-     * @brief Return a reference to the measurement noise covariance matrix
-     */
-    mat_type& get_H_mat(){return Ht_;}
-    
-    /**
-     * @brief Return a reference to the measurement noise covariance matrix
-     */
-    const mat_type& get_H_mat()const{return Ht_;}
-    
-    
-    
-    /**
-     * @brief Return a reference to the current control vector
-     */
-    vec_type& get_u_vec(){return ut_;}
-    
-    /**
-     * @brief Return a reference to the current control vector
-     */
-    const vec_type& get_u_vec()const{return ut_;}
-    
-    /**
-     * @brief Return a reference to the current measurement vector
-     */
-    vec_type& get_z_vec(){return zt_;}
-    
-    /**
-     * @brief Return a reference to the current measurement vector
-     */
-    const vec_type& get_z_vec()const{return zt_;}
-    
-     /**
-     * @brief Return a reference to the current measurement vector
-     */
-    vec_type& get_x_vec(){return xt_;}
-    
-    /**
-     * @brief Return a reference to the current measurement vector
-     */
-    const vec_type& get_x_vec()const{return xt_;}
-    
-    /**
-     *@brief Set the x vector
-     */
-    void set_x_vector(const std::initializer_list<real_type>& list){xt_ = list;}
-    
-    
-    /**
-     * @brief Initialize the underlying data structure.
-     * @param n The dimension of the state vector
-     * @param m The dimension of the input vector
-     * @param k The dimension of the measurement vector
-     */
-    virtual void initialize(size_type n,size_type m,size_type p,size_type l);
-    
-    
+    const matrix_type& get_matrix(const std::string& matrix_name)const{return mat_descrp_.get_matrix(matrix_name);}
+
 protected:
-    
+
     /**
-     * @brief The state vector
+     * @brief name_ The name of the system
      */
-    vec_type xt_;
-    
+    const std::string name_;
+
     /**
-     * @brief The control vector
+     * @brief state_ Describes the state of the system
      */
-    vec_type ut_;
-    
+    state_type state_;
+
     /**
-     * @brief The measurement vector
+     * @brief motion_model_ Describes the motion model of the system
      */
-    vec_type zt_;
-    
+    motion_type motion_model_;
+
     /**
-     * @brief The error vector associated with the state vector
+     * @brief meas_model_ Describes the measurement model used by the system
      */
-    vec_type wt_;
-    
+    measurement_type meas_model_;
+
     /**
-     * @brief The error vector associated with the  measurement
+     * @brief mat_descrp_ The matrix description of the system
      */
-    vec_type vt_;
-    
-    /**
-      * @brief The state transition matrix. This a square  matrix of \f$n\times n\f$
-      * dimension where \f$n\f$ is the dimension of the state vector. This is actually
-      * a Jacobian matrix of partial derivatives defined as
-      * \f$ A_{i,j} = \frac{\partial f_i}{\partial x_j}\f$
-      */
-    mat_type At_;
-    
-    /**
-     * @brief This is an \f$ n \times nw \f$ Jacobian matrix of partial
-     * derivatives defined as
-     * 
-     * $$W_{[i,j]} = \frac{\partial f_{[i]}}{\partial w_{[j]}}$$
-     */
-    mat_type Wt_;
-    
-    /**
-     * @brief The process noise covariance matrix
-     */
-    mat_type Qt_;
-    
-    /**
-     * @brief The coefficients matrix for the measurement equation
-     */
-    mat_type Ht_;
-    
-    /**
-     * @brief
-     */
-    mat_type Vt_;
-    
-    /**
-     * @brief The measurement error covariance matrix
-     */
-    mat_type Rt_;
-    
-    /**
-     * @brief The error covariance matrix associated with the state vector
-     */
-    mat_type Pt_;
-        
-};    
+    matrix_description_type mat_descrp_;
+};
+
+template<typename Statetp, typename MotionTp, typename MeasurementTp, typename MatDescriptionTp>
+SystemBase<Statetp, MotionTp, MeasurementTp, MatDescriptionTp>::SystemBase(const std::string& name)
+    :
+   name_(name),
+   state_(),
+   motion_model_(),
+   meas_model_(),
+   mat_descrp_()
+{}
+
+template<typename Statetp, typename MotionTp, typename MeasurementTp, typename MatDescriptionTp>
+SystemBase<Statetp, MotionTp, MeasurementTp, MatDescriptionTp>:: ~SystemBase()
+{}
     
 }
 
