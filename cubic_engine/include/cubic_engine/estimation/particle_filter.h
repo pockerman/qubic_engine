@@ -46,10 +46,9 @@ inline
 void
 ParticleFilter::set_weights(const std::vector<real_t>& weights){
 
-    if(weights.size() != weights_.size())
+    if(weights.size() != weights_.size()){
         throw std::runtime_error("Invalid number of weights");
-
-    //assert(weights.size() == weights_.size() && "Invalid weights size given");
+    }
 
     weights_ = weights;
 }
