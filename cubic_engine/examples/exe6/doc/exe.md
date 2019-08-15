@@ -3,14 +3,12 @@
 ## Contents
 * [Acknowledgements](#ackw)
 * [Overview](#overview) 
-                * [Basics of RL](#basics_rl)
-                * [Dynamic Programming](#dynamic_programming)
-								* [Monte Carlo](#monte_carlo)
-                * [Temporal Difference](#temporal_difference)
+	* [Basics of RL](#basics_rl)
+	* [Dynamic Programming](#dynamic_programming)
+	* [Monte Carlo](#monte_carlo)
+	* [Temporal Difference](#temporal_difference)
 * [Include files](#include_files)
 * [Program structure](#prg_struct)
-				* [The Dynamics Class](#dynamics_class)
-				* [The PIDController class](#pid_control_struct)
 * [The main function](#m_func)
 * [Results](#results)
 
@@ -23,11 +21,11 @@ The code is primarily an adaptation of the Python code from <a href="https://tow
 
 ### <a name="basics_rl"></a> Basics of RL
 
-###<a name="dynamic_programming"></a> Dynamic Programming
+### <a name="dynamic_programming"></a> Dynamic Programming
 
-###<a name="monte_carlo"></a> Monte Carlo
+### <a name="monte_carlo"></a> Monte Carlo
 
-###<a name="temporal_difference"></a> Temporal Difference
+### <a name="temporal_difference"></a> Temporal Difference
 
 ## <a name="include_files"></a> Include files
 
