@@ -3,8 +3,8 @@
 ## Contents
 * [Acknowledgements](#ackw)
 * [Overview](#overview) 
-* [Basics of RL](#basics_rl)
-* [Dynamic Programming](#dynamic_programming)
+	* [Basics of RL](#basics_rl)
+	* [Dynamic Programming](#dynamic_programming)
 * [Monte Carlo](#monte_carlo)
 * [Temporal Difference](#temporal_difference)
 * [Include files](#include_files)
