@@ -1,9 +1,13 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/utilities/csv_file_writer.h"
+#include <boost/any.hpp>
+
 #include <cmath>
 #include <utility>
 #include <tuple>
 #include <iostream>
+#include <random>
+#include <algorithm>
 
 namespace exe
 {
@@ -28,6 +32,9 @@ struct State
   uint_t i;
   uint_t j;
 };
+
+static const State terminal_state_1={0, 0};
+static const State terminal_state_2={GRID_SIZE-1, GRID_SIZE-1};
 
 bool operator == (const State& s1, const State& s2 ){
 
@@ -69,8 +76,6 @@ PolicyIteration::PolicyIteration()
 std::pair<State, int>
 PolicyIteration::action_reward_function(const State& state, const Action& action){
 
-    static const State terminal_state_1={0, 0};
-    static const State terminal_state_2={GRID_SIZE-1, GRID_SIZE-1};
 
     if( state == terminal_state_1 || state == terminal_state_2){
         return std::make_pair(state, 0);
@@ -140,29 +145,159 @@ PolicyIteration::iterate(const std::vector<State>& states, const std::vector<Act
     }
 }
 
+class MonteCarlo
+{
+
+public:
+
+    MonteCarlo();
+
+    // iterate over the states and actions
+    void iterate(const std::vector<State>& states, const std::vector<Action>&  actions );
+
+    std::vector<std::vector<boost::any>> generate_episode(const std::vector<State>& states, const std::vector<Action>&  actions);
+
+private:
+
+    // 2D map
+    DynMat<real_t> value_map_;
+
+    // the gamma
+    real_t gamma_;
+
+    // number of iterations to perform
+    uint_t num_itrs_;
+
+    struct Returns
+    {
+
+        int i=-1;
+        int j=-1;
+        std::vector<real_t> vals;
+
+    };
+
+};
+
+std::vector<std::vector<boost::any> >
+MonteCarlo::generate_episode(const std::vector<State>& states, const std::vector<Action>&  actions){
+
+    //randomly choose a state
+    std::default_random_engine state_generator;
+    std::uniform_int_distribution<int> state_distribution(0, states.size()-1);
+    uint_t state_idx = state_distribution(state_generator);  // generates number in the range 1..6
+
+    State state = states[state_idx];
+    std::vector<std::vector<boost::any> > episode;
+
+    while(true){
+
+        if( state == terminal_state_1 || state == terminal_state_2){
+            return episode;
+        }
+
+        std::default_random_engine action_generator;
+        std::uniform_int_distribution<int> action_distribution(0, actions.size()-1);
+        uint_t action_idx = action_distribution(action_generator);
+        auto action = actions[action_idx];
+
+        State new_state = {state.i + action.i, state.j + action.j};
+
+        if((new_state.i == -1) || (new_state.j == -1) ||
+           (new_state.i == 4) || (new_state.j == 4))
+            new_state = state;
+
+        std::vector<boost::any> iteration;
+        iteration.push_back(state);
+        iteration.push_back(action);
+        iteration.push_back(REWARD_SIZE);
+        iteration.push_back(new_state);
+
+        episode.push_back(iteration);
+
+    }
+}
+
+void
+MonteCarlo::iterate(const std::vector<State>& states, const std::vector<Action>&  actions ){
+
+    std::vector<Returns> returns;
+
+    for(int i=0; i< GRID_SIZE; ++i){
+       for(int j=0; j< GRID_SIZE; ++j){
+           returns.push_back({i, j, std::vector<real_t>()});
+       }
+    }
+
+    std::vector<std::vector<real_t>> deltas(GRID_SIZE);
+
+    for(uint_t i=0; i<GRID_SIZE; ++i){
+        deltas[i].reserve(GRID_SIZE);
+
+        for(uint_t j=0; j<GRID_SIZE; ++i){
+            deltas[i].push_back(0.0);
+        }
+    }
+
+    for(uint_t itr=0; itr<num_itrs_; ++itr){
+        auto episode = generate_episode(states, actions);
+        auto G = 0;
+
+        for(uint_t e=0; e<episode.size(); ++e){
+
+            auto episode_vals = episode[e];
+            auto val = boost::any_cast<int>(episode_vals[2]);
+            G = gamma_*G + val;
+            State state = boost::any_cast<State>(episode_vals[0]);
+
+            if(state){
+
+                auto itr = std::find_if(returns.begin(), returns.end(),
+                                        [&state](const Returns& r){
+                    return (r.i == state.i && r.j == state.j);
+                });
+
+                if(itr != returns.end()){
+                    auto& return_val = *itr;
+                    return_val.vals.push_back(G);
+                    auto new_val = std::accumulate(return_val.vals.begin(), return_val.vals.end(), 0.0)/return_val.vals.size();
+                    deltas[return_val.i][return_val.j] = std::abs(value_map_(return_val.i, return_val.j) - new_val);
+                    value_map_(return_val.i, return_val.j) = new_val;
+                }
+            }
+        }
+    }
+}
+
 }
 
 int main(int argc, char** argv) {
 
    using namespace exe;
+   {
+        std::cout<<"Policy iteration..."<<std::endl;
+        PolicyIteration policy_itr;
 
-   PolicyIteration policy_itr;
+        std::vector<Action> actions;
+        actions.push_back({-1, 0});
+        actions.push_back({1,  0});
+        actions.push_back({0,  1});
+        actions.push_back({0, -1});
 
-   std::vector<Action> actions;
-   actions.push_back({-1, 0});
-   actions.push_back({1,  0});
-   actions.push_back({0,  1});
-   actions.push_back({0, -1});
+        std::vector<State> states;
 
-   std::vector<State> states;
+        for(uint_t i=0; i< GRID_SIZE; ++i){
+           for(uint_t j=0; j< GRID_SIZE; ++j){
+               states.push_back({i, j});
+           }
+        }
 
-   for(uint_t i=0; i< GRID_SIZE; ++i){
-      for(uint_t j=0; j< GRID_SIZE; ++j){
-          states.push_back({i, j});
-      }
+        policy_itr.iterate(states, actions);
    }
 
-   policy_itr.iterate(states, actions);
+   {
+        std::cout<<"Monte Carlo iteration..."<<std::endl;
+   }
     
    return 0;
 }
