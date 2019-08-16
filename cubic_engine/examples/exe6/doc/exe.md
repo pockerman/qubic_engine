@@ -35,6 +35,8 @@ The code is primarily an adaptation of the Python code from <a href="https://tow
 
 ## <a name="results"></a> Results
 
+![alt text](iteration_delta_values.png)
+
 
 
 

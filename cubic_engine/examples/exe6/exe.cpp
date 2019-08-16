@@ -1,6 +1,9 @@
 #include "cubic_engine/base/cubic_engine_types.h"
+#include "kernel/utilities/csv_file_writer.h"
 #include <cmath>
 #include <utility>
+#include <tuple>
+#include <iostream>
 
 namespace exe
 {
@@ -8,15 +11,16 @@ using cengine::uint_t;
 using cengine::real_t;
 using cengine::DynMat;
 
-const uint_t NUM_ITRS = 100;
+const uint_t NUM_ITRS = 1000;
 const uint_t GRID_SIZE = 4;
 const int REWARD_SIZE = -1;
+const real_t GAMMA = 1.0;
 
 
 struct Action
 {
-  uint_t i;
-  uint_t j;
+  int i;
+  int j;
 };
 
 struct State
@@ -36,10 +40,11 @@ bool operator == (const State& s1, const State& s2 ){
 
      PolicyIteration();
 
+     // iterate over the states and actions
      void iterate(const std::vector<State>& states, const std::vector<Action>&  actions );
 
      // calculate the reward given the state and the action
-     std::pair<State, uint_t> action_reward_function(const State& state, const Action& action);
+     std::pair<State, int> action_reward_function(const State& state, const Action& action);
 
  private:
 
@@ -56,10 +61,12 @@ bool operator == (const State& s1, const State& s2 ){
 
 PolicyIteration::PolicyIteration()
     :
-      value_map_()
+      value_map_(GRID_SIZE, GRID_SIZE, 0.0),
+      gamma_(GAMMA),
+      num_itrs_(NUM_ITRS)
 {}
 
-std::pair<State, uint_t>
+std::pair<State, int>
 PolicyIteration::action_reward_function(const State& state, const Action& action){
 
     static const State terminal_state_1={0, 0};
@@ -70,6 +77,13 @@ PolicyIteration::action_reward_function(const State& state, const Action& action
     }
 
     auto reward = REWARD_SIZE;
+    State new_state = {state.i + action.i, state.j + action.j};
+
+    if((new_state.i == -1) || (new_state.j == -1) ||
+       (new_state.i == 4) || (new_state.j == 4))
+        new_state = state;
+
+    return std::make_pair(new_state, reward);
 }
 
 void
@@ -77,6 +91,13 @@ PolicyIteration::iterate(const std::vector<State>& states, const std::vector<Act
 
     const uint_t ACTIONS_SIZE = actions.size();
     std::vector<std::vector<real_t>> deltas;
+
+    std::cout<<"Starting with value map: "<<std::endl;
+    std::cout<<value_map_<<std::endl;
+
+    kernel::CSVWriter writer("deltas", kernel::CSVWriter::default_delimiter(), true);
+    std::vector<std::string> names{"Iteration", "Delta"};
+    writer.write_column_names(names);
 
     for(uint_t itr=0; itr<num_itrs_; ++itr){
 
@@ -90,32 +111,59 @@ PolicyIteration::iterate(const std::vector<State>& states, const std::vector<Act
 
             for(uint_t  action_idx=0; action_idx < ACTIONS_SIZE; ++action_idx){
 
-                real_t final_pos = 0.0;
-                real_t reward = 0.0;
-
-                weighted_reward += (1.0/ACTIONS_SIZE)*(reward + (gamma_*value_map_(final_pos[0], final_pos[1])));
-
+                const Action& action = actions[action_idx];
+                State final_pos = State();
+                int reward;
+                std::tie(final_pos, reward) = action_reward_function(state, action);
+                weighted_reward += (1.0/ACTIONS_SIZE)*(reward + (gamma_*value_map_(final_pos.i, final_pos.j)));
             }
 
             delta_state.push_back(std::abs(copy_value_map(state.i, state.j) - weighted_reward));
             copy_value_map(state.i, state.j) = weighted_reward;
         }
 
-    value_map_ = copy_value_map;
-    deltas.push_back(delta_state);
+        value_map_ = copy_value_map;
+        deltas.push_back(delta_state);
+
+        std::vector<real_t> row(delta_state.size()+1);
+        row[0] = itr;
+        for(uint_t i=0; i<delta_state.size(); ++i){
+           row[i+1] = delta_state[i];
+        }
+
+        writer.write_row(row);
+
+        if( itr == 0 || itr == 1 || itr == 2 || itr == 99 || itr == num_itrs_-1){
+            std::cout<<"Iteration: "<<itr<<std::endl;
+            std::cout<<value_map_<<std::endl;
+        }
     }
 }
-
 
 }
 
 int main(int argc, char** argv) {
 
-    using namespace exe;
+   using namespace exe;
 
+   PolicyIteration policy_itr;
 
+   std::vector<Action> actions;
+   actions.push_back({-1, 0});
+   actions.push_back({1,  0});
+   actions.push_back({0,  1});
+   actions.push_back({0, -1});
+
+   std::vector<State> states;
+
+   for(uint_t i=0; i< GRID_SIZE; ++i){
+      for(uint_t j=0; j< GRID_SIZE; ++j){
+          states.push_back({i, j});
+      }
+   }
+
+   policy_itr.iterate(states, actions);
     
-   
-    return 0;
+   return 0;
 }
 
