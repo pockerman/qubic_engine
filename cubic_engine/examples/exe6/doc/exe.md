@@ -35,7 +35,9 @@ The code is primarily an adaptation of the Python code from <a href="https://tow
 
 ## <a name="results"></a> Results
 
-![alt text](iteration_delta_values.png)
+![Policy Iteration Simulation](iteration_delta_values.png)
+
+![Monte Carlo Simulation](monte_carlo_iteration_delta_values.png)
 
 
 
