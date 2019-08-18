@@ -43,8 +43,8 @@ struct Action
 
 struct State
 {
-  uint_t i;
-  uint_t j;
+  int i;
+  int j;
 };
 
 static const State terminal_state_1={0, 0};
@@ -275,7 +275,7 @@ MonteCarlo::iterate(const std::vector<State>& states, const std::vector<Action>&
 
     for(uint_t itr=0; itr<num_itrs_; ++itr){
 
-        std::cout<<"At iteration: "<<itr+1<<std::endl;
+        std::cout<<"At Monte Carlo iteration: "<<itr+1<<std::endl;
         auto episode = generate_episode(states, actions);
         auto G = 0;
 
@@ -320,12 +320,145 @@ MonteCarlo::iterate(const std::vector<State>& states, const std::vector<Action>&
     }
 }
 
+
+class TemporalDifference
+{
+
+public:
+
+    // constructor
+    TemporalDifference(real_t gamma, real_t alpha, uint_t n_itrs);
+
+    // iterate over the states and actions
+    void iterate(const std::vector<State>& states, const std::vector<Action>&  actions );
+
+private:
+
+    // 2D map
+    DynMat<real_t> value_map_;
+
+    // the gamma
+    real_t gamma_;
+
+    // number of iterations to perform
+    uint_t num_itrs_;
+
+    // alpha coeff
+    real_t alpha_;
+
+    // helpers
+    uint_t get_init_state_index_(uint_t state_size)const;
+    uint_t get_next_action_index_(uint_t action_size)const;
+    std::pair<State, int> take_action(const State& state, const Action& action)const;
+
+};
+
+TemporalDifference::TemporalDifference(real_t gamma, real_t alpha, uint_t n_itrs)
+    :
+      value_map_(GRID_SIZE, GRID_SIZE, 0.0),
+      gamma_(gamma),
+      num_itrs_(n_itrs),
+      alpha_(alpha)
+{}
+
+uint_t
+TemporalDifference::get_init_state_index_(uint_t state_size)const{
+
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<uint_t> state_distribution(1, state_size-2);
+    uint_t state_idx = state_distribution(gen);  // generates number in the range 0..states.size()
+    return state_idx;
+}
+
+uint_t
+TemporalDifference::get_next_action_index_(uint_t action_size)const{
+
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<uint_t> distribution(0, action_size-1);
+    uint_t idx = distribution(gen);  // generates number in the range 0..states.size()
+    return idx;
+}
+
+
+std::pair<State, int>
+TemporalDifference::take_action(const State& state, const Action& action)const{
+
+    State final_state = {-1, -1};
+
+    if( (state == terminal_state_1) || (state == terminal_state_2)){
+        return std::make_pair(final_state, 0);
+    }
+
+    final_state = {state.i + action.i, state.j + action.j};
+
+    // if robot crosses wall
+    if((final_state.i == -1) || (final_state.j == -1) ||
+       (final_state.i == 4) || (final_state.j == 4))
+        final_state = state;
+
+    return std::make_pair(final_state, REWARD_SIZE);
+}
+
+void
+TemporalDifference::iterate(const std::vector<State>& states, const std::vector<Action>&  actions ){
+
+    std::vector<std::vector<real_t>> deltas(GRID_SIZE);
+
+    for(uint_t i=0; i<GRID_SIZE; ++i){
+        deltas[i].reserve(GRID_SIZE);
+
+        for(uint_t j=0; j<GRID_SIZE; ++j){
+            deltas[i].push_back(0.0);
+        }
+    }
+
+
+    kernel::CSVWriter writer("td_deltas_gamma_0_1_alpha_0_1", kernel::CSVWriter::default_delimiter(), true);
+    std::vector<std::string> names{"Iteration", "Delta"};
+    writer.write_column_names(names);
+
+    for(uint_t itr =0; itr < num_itrs_; ++itr){
+
+        std::cout<<"At Temporal Difference iteration: "<<itr+1<<std::endl;
+
+        auto state = states[get_init_state_index_(states.size())];
+
+        while(true){
+
+            auto action = actions[get_next_action_index_(actions.size())];
+            auto reward = 0;
+            State final_state = {-1, -1};
+            std::tie(final_state, reward) = take_action(state, action);
+
+            if((final_state.i ==-1) && (final_state.j == -1)){
+                break;
+            }
+
+            // update Value function
+            auto before =  value_map_(state.i, state.j);
+            value_map_(state.i, state.j) += alpha_*(reward + gamma_*value_map_(final_state.i, final_state.j) - before);
+            deltas[state.i][ state.j] = std::abs(before - value_map_(state.i, state.j));
+            state = final_state;
+        }
+
+        std::vector<real_t> row(GRID_SIZE*GRID_SIZE+1);
+        auto flatten_values = flatten(deltas);
+        row[0] = itr;
+        for(uint_t i=0; i<flatten_values.size(); ++i){
+                row[i+1] = flatten_values[i];
+        }
+        writer.write_row(row);
+    }
+}
+
 }
 
 int main(int argc, char** argv) {
 
    using namespace exe;
-   uint_t method=1;
+   uint_t method=2;
 
    std::vector<Action> actions;
    actions.push_back({-1, 0});
@@ -337,7 +470,7 @@ int main(int argc, char** argv) {
 
    for(uint_t i=0; i< GRID_SIZE; ++i){
       for(uint_t j=0; j< GRID_SIZE; ++j){
-          states.push_back({i, j});
+          states.push_back({static_cast<int>(i), static_cast<int>(j)});
       }
    }
 
@@ -352,6 +485,14 @@ int main(int argc, char** argv) {
         std::cout<<"Monte Carlo iteration..."<<std::endl;
         MonteCarlo monte_carlo;
         monte_carlo.iterate(states, actions);
+   }
+
+   if(method == 2){
+        std::cout<<"Temporal Difference iteration..."<<std::endl;
+        auto gamma = 0.1;
+        auto alpha = 0.1;
+        TemporalDifference method(gamma, alpha, NUM_ITRS);
+        method.iterate(states, actions);
    }
     
    return 0;
