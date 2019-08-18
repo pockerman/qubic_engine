@@ -39,6 +39,9 @@ The code is primarily an adaptation of the Python code from <a href="https://tow
 
 ![Monte Carlo Simulation](monte_carlo_iteration_delta_values.png)
 
+![Temporal Difference gamma = 0.5 alpha = 0.5](td_iteration_gamma_05_alpha_05.png)
+![Temporal Difference gamma = 0.1 alpha = 0.1](td_iteration_gamma_01_alpha_01.png)
+
 
 
 
