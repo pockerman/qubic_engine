@@ -2,82 +2,51 @@
 
 namespace cengine
 {
-
-    KalmanFilter::KalmanFilter(DynVec<real_t>* x)
-        :
-         system_maps_(),
-         K_(),
-         x_(x)
-    {
-
-        std::string names[] = {"A", "B", "H", "P"};
-
-        for(auto name:names){
-            system_maps_[name] = nullptr;
-        }
-    }
-
-    KalmanFilter::~KalmanFilter()
-    {}
-
-    void
-    KalmanFilter::predict(const DynVec<real_t>& u){
-
-        if(!x_){
-            throw std::runtime_error("state vector has not been assigned");
-        }
-
-        auto& A = *system_maps_["A"];
-        auto& B = *system_maps_["B"];
-
-        //predict the state vector
-        *x_ = A*(*x_) + B*u;
-
-        //predict the covariance matrix
-        auto& P = *system_maps_["P"];
-        auto& Q = *system_maps_["Q"];
-        auto A_T = trans( A );
-
-        P = (A*(P*A_T)) + Q;
-
-    }
-
-    void
-    KalmanFilter::update(const DynVec<real_t>& z){
-
-        auto& H = *system_maps_["H"];
-        auto& P = *system_maps_["P"];
-        auto& R = *system_maps_["R"];
-        auto H_T = trans(H);
-
-        auto S = H*P*H_T + R;
-        auto S_inv = inv(S);
-
-        // compute gain matrix
-        auto& K = *system_maps_["K"];
-
-        K = P*H_T*S_inv;
-
-        auto& x = *x_;
-        auto innovation = z - H*x;
-
-        x += K*innovation;
-
-        IdentityMatrix<real_t> I(K.rows());
-
-        // update covariance matrix
-        P = (I - K*H)*P;
-    }
-
-    void
-    KalmanFilter::assert_matrix_name_(const std::string& name)const{
-
-        if( name != "Q" && name != "R" &&
-            name != "P" && name != "A" && name != "B" &&
-            name != "K" && name != "H" ){
-
-            throw  std::invalid_argument("Matrix name "+name+" not in []");
-        }
-    }
-
+	
+	KalmanFilterMatrixDescriptor::KalmanFilterMatrixDescriptor()
+	:
+	matrix_maps_()
+	{}
+	
+	const std::vector<std::string> 
+	KalmanFilterMatrixDescriptor::get_names()const{
+		
+		return {"A", "B", "H", "P", "Q", "R"};
+	}
+		
+	void 
+	KalmanFilterMatrixDescriptor::set_matrix(const std::string& name, matrix_type& matrix){
+		
+		auto names = get_names();
+		auto itr = std::find(names.cbegin(), cend(), name);
+		
+		if(itr == names.end()){
+			
+			throw  std::invalid_argument("Matrix name "+name+" not in [A, B, H, P, Q, R]");
+		}
+		
+		matrix_maps_[name] = &mat;
+		
+	}
+	
+	
+    const KalmanFilterMatrixDescriptor::matrix_type*
+    KalmanFilterMatrixDescriptor::get_matrix(const std::string& name)const{
+		
+		auto itr = matrix_maps_.find(name);
+		
+		if(itr == matrix_maps_.end()){
+			
+			throw  std::invalid_argument("Matrix name "+name+" not in [A, B, H, P, Q, R]");
+		}
+		
+		return itr->second; 	
+	}
+    
+    
+    KalmanFilterMatrixDescriptor::matrix_type* 
+    KalmanFilterMatrixDescriptor::get_matrix(const std::string& name){
+	
+		return const_cast<KalmanFilterMatrixDescriptor::matrix_type*>(static_cast<const KalmanFilterMatrixDescriptor&>(*this).get_matrix(name));
+	}	   
 }
