@@ -1,10 +1,3 @@
-/* 
- * File:   system_base.h
- * Author: david
- *
- * Created on November 9, 2016, 9:09 AM
- */
-
 #ifndef SYSTEM_BASE_H
 #define	SYSTEM_BASE_H
 
@@ -22,12 +15,12 @@ namespace cengine
  * @brief class for modelling  state-space systems
  */
     
-template<typename Statetp, typename MotionTp, typename MeasurementTp, typename MatDescriptionTp>
+template<typename StateTp, typename MotionTp, typename MeasurementTp, typename MatDescriptionTp>
 class SystemBase: private boost::noncopyable
 {
 public:
     
-    typedef Statetp state_type;
+    typedef StateTp state_type;
     typedef MotionTp motion_type;
     typedef MeasurementTp measurement_type;
     typedef MatDescriptionTp matrix_description_type;
