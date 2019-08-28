@@ -17,13 +17,20 @@ EKF_H_func::operator()(const DynVec<real_t>& x, const DynMat<real_t>& H)const{
 
 ExtendedKalmanFilter::ExtendedKalmanFilter(DynVec<real_t>* x)
     :
-    KalmanFilter (x),
     f_ptr_(nullptr),
-    h_ptr_(nullptr)
+    h_ptr_(nullptr),
+    x_(x)
 {}
 
 ExtendedKalmanFilter::~ExtendedKalmanFilter()
 {}
+
+void
+ExtendedKalmanFilter::iterate(const DynVec<real_t>& u, const DynVec<real_t>& z){
+
+    predict(u);
+    update(z);
+}
 
 void
 ExtendedKalmanFilter::predict(const DynVec<real_t>& u){

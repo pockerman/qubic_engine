@@ -212,7 +212,7 @@ void
 Robot::initialize(){
 
     state_  = DynVec<real_t>(4, 0.0);
-    state_estimator_.set_state_vector_ptr(state_);
+    state_estimator_.set_state_vector(state_);
 
     update_A_mat();
     update_F_mat();
@@ -225,16 +225,16 @@ Robot::initialize(){
     update_M_mat();
     update_R_mat();
 
-    state_estimator_.set_mat_ptr("A", A_);
-    state_estimator_.set_mat_ptr("F", F_);
-    state_estimator_.set_mat_ptr("B", B_);
-    state_estimator_.set_mat_ptr("P", P_);
-    state_estimator_.set_mat_ptr("Q", Q_);
-    state_estimator_.set_mat_ptr("L", L_);
-    state_estimator_.set_mat_ptr("H", H_);
-    state_estimator_.set_mat_ptr("M", M_);
-    state_estimator_.set_mat_ptr("R", R_);
-    state_estimator_.set_mat_ptr("Hjac", Hjac_);
+    state_estimator_.set_matrix("A", A_);
+    state_estimator_.set_matrix("F", F_);
+    state_estimator_.set_matrix("B", B_);
+    state_estimator_.set_matrix("P", P_);
+    state_estimator_.set_matrix("Q", Q_);
+    state_estimator_.set_matrix("L", L_);
+    state_estimator_.set_matrix("H", H_);
+    state_estimator_.set_matrix("M", M_);
+    state_estimator_.set_matrix("R", R_);
+    state_estimator_.set_matrix("Hjac", Hjac_);
 
     state_estimator_.set_motion_model(motion_model_);
     state_estimator_.set_observation_model(h_func_);

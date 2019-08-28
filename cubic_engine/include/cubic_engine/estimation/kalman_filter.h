@@ -29,7 +29,7 @@ public:
 
 	
 	/// \brief Destructor
-	virtual KalmanFilterMatrixDescriptor(){}
+    virtual ~KalmanFilterMatrixDescriptor(){}
 
 
 	/// \brief Return the names of the matrics involved
@@ -42,15 +42,15 @@ public:
 	
 	
     /// \brief get_matrix. Returns read reference to the matrix_name matrix
-    const matrix_type* get_matrix(const std::string& matrix_name)const{return mat_descrp_.get_matrix(matrix_name);}
+    const matrix_type* get_matrix(const std::string& matrix_name)const;
     
   
     /// \brief get_matrix. Returns read reference to the matrix_name matrix
-    matrix_type* get_matrix(const std::string& matrix_name){return mat_descrp_.get_matrix(matrix_name);}
+    matrix_type* get_matrix(const std::string& matrix_name);
 
 	
 	/// \brief Update the matrix descriptors
-	virtual void update_matrices(){}
+    virtual void update(){}
 	
 protected:
 
@@ -197,9 +197,9 @@ KalmanFilter<StateTp, InputTp, MatrixDescriptorTp>::predict(const typename Kalma
 
 }
 
-
+template<typename StateTp, typename InputTp, typename MatrixDescriptorTp>
 void
-KalmanFilter<StateTp, InputTp, MatrixDescriptorTp>::update(const const typename KalmanFilter<StateTp, InputTp, MatrixDescriptorTp>::measurement_type& z){
+KalmanFilter<StateTp, InputTp, MatrixDescriptorTp>::update(const typename KalmanFilter<StateTp, InputTp, MatrixDescriptorTp>::measurement_type& z){
 
     auto& H = *matrix_descriptor_.get_matrix("H");
     auto& P = *matrix_descriptor_.get_matrix("P");
@@ -215,12 +215,12 @@ KalmanFilter<StateTp, InputTp, MatrixDescriptorTp>::update(const const typename 
     auto& x = *x_;
     auto innovation = z - H*x;
 
-    x += K*innovation;
+    x += K_*innovation;
 
-    IdentityMatrix<real_t> I(K.rows());
+    IdentityMatrix<real_t> I(K_.rows());
 
     // update covariance matrix
-    P = (I - K*H)*P;
+    P = (I - K_*H)*P;
 }
 
 
@@ -228,8 +228,8 @@ template<typename StateTp, typename InputTp, typename MatrixDescriptorTp>
 void 
 KalmanFilter<StateTp, InputTp, MatrixDescriptorTp>::iterate(const InputTp& input){
 
-    predict(input.get_u());
-    update(input.get_z());
+    predict(input.get_control());
+    update(input.get_measurement());
     matrix_descriptor_.update();
 }
 

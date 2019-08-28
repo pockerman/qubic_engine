@@ -42,7 +42,7 @@ void update_F_mat(){
 }
 
 void update_P_mat(){
-    P = std::move(cengine::IdentityMatrix<real_t>(4));
+    P = cengine::IdentityMatrix<real_t>(4);
 }
 
 void update_Q_mat(){
@@ -54,7 +54,7 @@ void update_Q_mat(){
 }
 
 void update_L_mat(){
-    L = std::move(cengine::IdentityMatrix<real_t>(4));
+    L = cengine::IdentityMatrix<real_t>(4);
 }
 
 void update_H_mat(){
@@ -116,7 +116,7 @@ void initialize_ekf(){
     u[0] = 1.0;
     u[1] = 0.1;
 
-    state_estimator.set_state_vector_ptr(state);
+    state_estimator.set_state_vector(state);
 
     update_A_mat();
     update_F_mat();
@@ -129,16 +129,16 @@ void initialize_ekf(){
     update_M_mat();
     update_R_mat();
 
-    state_estimator.set_mat_ptr("A", A);
-    state_estimator.set_mat_ptr("F", F);
-    state_estimator.set_mat_ptr("B", B);
-    state_estimator.set_mat_ptr("P", P);
-    state_estimator.set_mat_ptr("Q", Q);
-    state_estimator.set_mat_ptr("L", L);
-    state_estimator.set_mat_ptr("H", H);
-    state_estimator.set_mat_ptr("M", M);
-    state_estimator.set_mat_ptr("R", R);
-    state_estimator.set_mat_ptr("Hjac", Hjac);
+    state_estimator.set_matrix("A", A);
+    state_estimator.set_matrix("F", F);
+    state_estimator.set_matrix("B", B);
+    state_estimator.set_matrix("P", P);
+    state_estimator.set_matrix("Q", Q);
+    state_estimator.set_matrix("L", L);
+    state_estimator.set_matrix("H", H);
+    state_estimator.set_matrix("M", M);
+    state_estimator.set_matrix("R", R);
+    state_estimator.set_matrix("Hjac", Hjac);
 
     state_estimator.set_motion_model(motion_model);
     state_estimator.set_observation_model(h_func);

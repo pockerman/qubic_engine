@@ -6,7 +6,13 @@
 #ifndef EXTENDED_KALMAN_FILTER_H
 #define	EXTENDED_KALMAN_FILTER_H
 
-#include "cubic_engine/estimation/kalman_filter.h"
+#include "cubic_engine/base/cubic_engine_types.h"
+#include <boost/noncopyable.hpp>
+
+#include <map>
+#include <string>
+#include <stdexcept> //for std::invalid_argument
+
 
 namespace cengine
 {
@@ -59,12 +65,15 @@ struct EKF_H_func
  */
 
 
-class ExtendedKalmanFilter: public KalmanFilter
+class ExtendedKalmanFilter: private boost::noncopyable
 {
 public:
 
+   typedef DynVec<real_t> state_type;
+   typedef DynMat<real_t> matrix_type;
+
    /// \brief Constructor
-   explicit ExtendedKalmanFilter(DynVec<real_t>* x=nullptr);
+   explicit ExtendedKalmanFilter(state_type* x=nullptr);
 
    /// \brief Destructor
    ~ExtendedKalmanFilter();
@@ -75,7 +84,7 @@ public:
    ///
    /// X_{k}^{-} = f(A_{k-1}, X_{k-1}, B_k,  U_k)
    /// P_{k}^{-} = A_{k-1}P_{k-1}A_{k-1}^T + L_{k-1}Q_{k-1}L_{k-1}^T
-   virtual void predict(const DynVec<real_t>& u)override final;
+   virtual void predict(const DynVec<real_t>& u);
 
    /// \brief Updates the gain matrix K, the  state vector x and covariance matrix P using the given measurement y_k
    /// according to the following update rules
@@ -83,13 +92,22 @@ public:
    /// K_k = P_{k}^{-} x H_{k}^T x (H_k x P_k{-} x H_{k}^T + M_k x R_k x M_k^T)^{-1}
    /// \hat{X}_k = X_{k}^{-} + K_k(y_k - h( X_{k}^{-}, 0)
    /// \hat{P}_k = (I - K_kH_k)P_{k}^{-}
-   virtual void update(const DynVec<real_t>& z)override final;
+   virtual void update(const DynVec<real_t>& z);
+
+   void iterate(const DynVec<real_t>& u, const DynVec<real_t>& z);
 
    /// \brief Set the motion model
    void set_motion_model(EKF_F_func& func){f_ptr_ = &func;}
 
    /// \brief Set the observation model
    void set_observation_model(EKF_H_func& func){h_ptr_ = &func;}
+
+   /// \brief Set the pointer to the state vector the filter manipulates
+   void set_state_vector(state_type& x ){x_ = &x;}
+
+
+   /// \brief Set the pointer matrix
+   void set_matrix(const std::string& name, matrix_type& mat){system_maps_[name] = &mat;}
            
 protected:
 
@@ -98,6 +116,14 @@ protected:
 
    /// \brief pointer to the function that computes h
    EKF_H_func* h_ptr_;
+
+
+   /// \brief The state vector
+   state_type* x_;
+
+   matrix_type K_;
+
+   std::map<std::string, matrix_type* > system_maps_;
 
    virtual void assert_matrix_name_(const std::string& name)const;
 };  

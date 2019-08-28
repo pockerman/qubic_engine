@@ -18,14 +18,14 @@ namespace cengine
 	KalmanFilterMatrixDescriptor::set_matrix(const std::string& name, matrix_type& matrix){
 		
 		auto names = get_names();
-		auto itr = std::find(names.cbegin(), cend(), name);
+        auto itr = std::find(names.cbegin(), names.cend(), name);
 		
 		if(itr == names.end()){
 			
 			throw  std::invalid_argument("Matrix name "+name+" not in [A, B, H, P, Q, R]");
 		}
 		
-		matrix_maps_[name] = &mat;
+        matrix_maps_[name] = &matrix;
 		
 	}
 	

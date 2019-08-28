@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
 
-PROJECT(CubicEngine CXX) 
+PROJECT(CubicEngine CXX)
 
 #-----------------------------------------------------------------------------
 # Prevent in-source builds.
@@ -39,7 +39,8 @@ ENDIF()
 # Currently fail the build if the user does not supply the
 # variables.
 # TODO: How to do it better
-SET(KERNEL_INCL_DIR " ")
+SET(KERNEL_INCL_DIR /home/david/CubicEngineering/cubic_engine/kernel/include)
+SET(KERNEL_LIB_DIR  /home/david/CubicEngineering/cubic_engine/kernel/install/lib/dbg)
 
 if(${KERNEL_INCL_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " kernel directory not set")
@@ -47,7 +48,7 @@ else()
     INCLUDE_DIRECTORIES(${KERNEL_INCL_DIR})
 endif()
 
-SET(BLAZE_INCL_DIR " ")
+SET(BLAZE_INCL_DIR /home/david/MyProjects/cubic_engine/chrono_lib/blaze-3.4/install/include)
 
 if(${BLAZE_INCL_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " Blaze directory not set")
@@ -55,8 +56,8 @@ else()
     INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
 endif()
 
-SET(GTEST_INC_DIR " ")
-SET(GTEST_LIB_DIR " ")
+SET(GTEST_INC_DIR /home/david/MySoftware/gtest/install/include)
+SET(GTEST_LIB_DIR /home/david/MySoftware/gtest/install/lib)
 
 if(${GTEST_INC_DIR} MATCHES " " OR ${GTEST_LIB_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " GTest not configured")
@@ -90,9 +91,9 @@ ELSE()
 ENDIF()
 
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
-ADD_LIBRARY(cubicengine SHARED ${SRCS}) 
-SET_TARGET_PROPERTIES(cubicengine PROPERTIES LINKER_LANGUAGE CXX) 
-INSTALL(TARGETS cubicengine DESTINATION ${CMAKE_INSTALL_PREFIX}) 
+ADD_LIBRARY(cubicengine SHARED ${SRCS})
+SET_TARGET_PROPERTIES(cubicengine PROPERTIES LINKER_LANGUAGE CXX)
+INSTALL(TARGETS cubicengine DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # Add the examples
 ADD_SUBDIRECTORY(examples)
