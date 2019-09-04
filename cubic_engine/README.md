@@ -17,19 +17,18 @@ sudo apt-get install libopenblas-dev
 
 ## Implementations
 
-### Integrators
-
-- Forward Euler
-- RungeKutta 4
-
 ### Filtering and Estimation
 
-- Kalman Filter
-- Extended Kalman Filter
+- <a href="#">Kalman Filter</a>
+- <a href="#">Extended Kalman Filter</a>
+- <a href="#">Unscented Kalman Filter</a>
+- <a href="#">Particle Filters</a>
+- <a href="#">Ordinary Least Squares</a>
 
 ### Control
 
 - PID Control
+- LQR Control
 
 ## Examples Map
 
@@ -37,8 +36,9 @@ sudo apt-get install libopenblas-dev
 - <a href="#">Example 2</a> Using the ```ExtendedKalmanFilter``` class
 - <a href="#">Example 3</a> Create a simple server to comminicate with ROS
 - <a href="#">Example 4</a> Using the ```PIDControl``` class
-- <a href="#">Example 5</a> Longitudinal Vehicle Model
+- <a href="#">Example 5</a> ?????
 - <a href="#">Example 6</a> Solving the State-Value Function Problem
+- <a href="#">Example 7</a> Ordinary Least Squares
 
 ## Installation
 
