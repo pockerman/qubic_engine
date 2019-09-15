@@ -2,13 +2,13 @@
   * Parallel Implementation of Jacobi Iteration
   *
   **/
-#include "kernel/executors/thread_pool.h"
-#include "kernel/executors/simple_task.h"
+#include "kernel/parallel/threading/thread_pool.h"
+#include "kernel/parallel/threading/simple_task.h"
 #include "kernel/base/algorithm_info.h"
 #include "kernel/base/iteration_control.h"
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
-#include "kernel/data_structs/range_1d.h"
+#include "kernel/utilities/range_1d.h"
 
 #include <blaze/Math.h>
 

@@ -1,9 +1,9 @@
-#include "kernel/models/linear_algebra/dot_product.h"
-#include "kernel/executors/thread_pool.h"
 #include "kernel/base/types.h"
-#include "kernel/data_structs/partitioned_object.h"
-#include "kernel/data_structs/range_1d.h"
-#include "kernel/partitioners/array_partitioner.h"
+#include "kernel/utilities/range_1d.h"
+#include "kernel/parallel/parallel_algos/linear_algebra/dot_product.h"
+#include "kernel/parallel/threading/thread_pool.h"
+#include "kernel/parallel/utilities/partitioned_type.h"
+#include "kernel/parallel/utilities/array_partitioner.h"
 
 #include <vector>
 #include <gtest/gtest.h>
