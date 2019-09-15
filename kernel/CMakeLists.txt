@@ -95,10 +95,9 @@ LINK_DIRECTORIES(${BOOST_LIBRARYDIR})
 # add a shared library to link the app
 # TODO: do this better as this way is not scalable
 FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
-                 ${PROJECT_SRC_DIR}/executors/*.cpp
+                 ${PROJECT_SRC_DIR}/parallel/threading/*.cpp
+                 ${PROJECT_SRC_DIR}/parallel/utilities/*.cpp
                  ${PROJECT_SRC_DIR}/utilities/*.cpp
-                 ${PROJECT_SRC_DIR}/data_structs/*.cpp
-                 ${PROJECT_SRC_DIR}/partitioners/*.cpp
                  ${PROJECT_SRC_DIR}/vehicles/*.cpp)
                  
 ADD_LIBRARY(${LIB_NAME} SHARED {SRCS})
