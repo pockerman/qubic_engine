@@ -1,4 +1,4 @@
-#include "kernel/executors/thread_pool.h"
+#include "kernel/parallel/threading/thread_pool.h"
 #include "kernel/base/types.h"
 #include <vector>
 #include <gtest/gtest.h>
@@ -11,7 +11,7 @@ TEST(TestThreadPool, InitializeThreadPoolWithZeroNumberOfThreads) {
 
     /***
      * Test Scenario:   The application attempts to launch a thread pool using n_threads = 0 
-		 * Expected Output:	ParFrameLib throws a std::invalid_argument exception
+     * Expected Output:	kernel throws a std::invalid_argument exception
      **/
 
 		/// TODO: Is there a better way to do this?

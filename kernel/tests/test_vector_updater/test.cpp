@@ -1,11 +1,11 @@
-#include "kernel/models/vector_updater.h"
-#include "kernel/executors/thread_pool.h"
 #include "kernel/base/types.h"
-#include "kernel/data_structs/partitioned_object.h"
-#include "kernel/data_structs/range_1d.h"
-#include "kernel/partitioners/array_partitioner.h"
-#include "kernel/models/scaled_ops.h"
-#include "kernel/utilities/result_holder.h"
+#include "kernel/utilities/range_1d.h"
+#include "kernel/utilities/scaled_ops.h"
+#include "kernel/parallel/parallel_algos/vector_updater.h"
+#include "kernel/parallel/threading/thread_pool.h"
+#include "kernel/parallel/utilities/partitioned_type.h"
+#include "kernel/parallel/utilities/array_partitioner.h"
+#include "kernel/parallel/utilities/result_holder.h"
 
 #include <vector>
 #include <gtest/gtest.h>

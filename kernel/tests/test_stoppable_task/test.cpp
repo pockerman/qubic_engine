@@ -1,4 +1,4 @@
-#include "kernel/executors/stoppable_task.h"
+#include "kernel/parallel/threading/stoppable_task.h"
 #include "kernel/base/types.h"
 #include <vector>
 #include <gtest/gtest.h>
