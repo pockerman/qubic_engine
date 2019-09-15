@@ -1,8 +1,9 @@
-#ifndef ROW_PARTITIONED_MATRIX_H
-#define ROW_PARTITIONED_MATRIX_H
+#ifndef PARTITIONED_TYPE_H
+#define PARTITIONED_TYPE_H
 
 #include "kernel/utilities/range_1d.h"
 #include <vector>
+#include <stdexcept> //std::invalid_argument 
 
 namespace kernel
 {

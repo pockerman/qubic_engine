@@ -9,9 +9,9 @@
   * The vectors x, y, z must all have the same length
   */
 #include "kernel/base/types.h"
-#include "kernel/executors/simple_task.h"
-#include "kernel/executors/task_uitilities.h"
-#include "kernel/utilities/result_holder.h"
+#include "kernel/parallel/threading/simple_task.h"
+#include "kernel/parallel/threading/task_uitilities.h"
+#include "kernel/parallel/utilities/result_holder.h"
 
 #include <boost/noncopyable.hpp>
 #include <stdexcept>

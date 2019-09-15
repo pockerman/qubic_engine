@@ -10,7 +10,7 @@
 #ifndef STOPPABLE_TASK_H
 #define STOPPABLE_TASK_H
 
-#include "kernel/parallel/executors/task_base.h"
+#include "kernel/parallel/threading/task_base.h"
 
 namespace kernel {
 

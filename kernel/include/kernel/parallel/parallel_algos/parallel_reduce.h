@@ -2,9 +2,9 @@
 #define PARALLEL_REDUCE_H
 
 #include "kernel/base/types.h"
-#include "kernel/executors/simple_task.h"
-#include "kernel/executors/task_uitilities.h"
-#include "kernel/data_structs/range_1d.h"
+#include "kernel/parallel/threading/simple_task.h"
+#include "kernel/parallel/threading/task_uitilities.h"
+#include "kernel/utilities/range_1d.h"
 #include "kernel/utilities/iterator_helpers.h"
 
 #include <vector>

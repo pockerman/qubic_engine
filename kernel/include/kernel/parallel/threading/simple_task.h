@@ -1,7 +1,7 @@
 #ifndef SIMPLE_TASK_H
 #define SIMPLE_TASK_H
 
-#include "kernel/executors/task_base.h"
+#include "kernel/parallel/threading/task_base.h"
 #include "kernel/base/kernel_consts.h"
 
 namespace kernel

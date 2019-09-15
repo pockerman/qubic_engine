@@ -3,7 +3,7 @@
 
 #include "kernel/base/config.h"
 #include "kernel/base/types.h"
-#include "kernel/data_structs/range_1d.h"
+#include "kernel/utilities/range_1d.h"
 
 #ifdef PARFRAME_LOG
 #include <chrono>
