@@ -1,4 +1,4 @@
-#include "kernel/data_structs/range_1d.h"
+#include "kernel/utilities/range_1d.h"
 #include <stdexcept>
 namespace kernel
 {

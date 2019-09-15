@@ -1,4 +1,4 @@
-#include "kernel/utilities/read_write_lock.h"
+#include "kernel/parallel/threading/read_write_lock.h"
 
 namespace kernel
 {

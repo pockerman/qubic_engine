@@ -1,4 +1,4 @@
-#include "kernel/partitioners/array_partitioner.h"
+#include "kernel/parallel/utilities/array_partitioner.h"
 
 namespace kernel
 {
@@ -8,7 +8,7 @@ void partition_range(uint_t begin, uint_t end,
 
     uint_t total_work = end - begin;
 
-#ifdef PARFRAME_DEBUG
+#ifdef KERNEL_DEBUG
 
     if(n_parts == 0){
         throw std::invalid_argument("Cannot partition range into zero parts");
@@ -20,7 +20,7 @@ void partition_range(uint_t begin, uint_t end,
 
 #endif
 
-#ifdef PARFRAME_LOG
+#ifdef KERNEL_LOG
     std::chrono::time_point<std::chrono::system_clock> start_timing = std::chrono::system_clock::now();
 #endif
 
@@ -53,7 +53,7 @@ void partition_range(uint_t begin, uint_t end,
 
     partitions.push_back(range1d<uint_t>(start, end));
 
-#ifdef PARFRAME_LOG
+#ifdef KERNEL_LOG
     std::chrono::time_point<std::chrono::system_clock> end_timing = std::chrono::system_clock::now();
     std::chrono::duration<real_t> dur = end_timing-start_timing;
     std::ostringstream message;

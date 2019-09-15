@@ -1,5 +1,5 @@
-#include "kernel/executors/thread_pool.h"
-#include "kernel/executors/kernel_thread.h"
+#include "kernel/parallel/threading/thread_pool.h"
+#include "kernel/parallel/threading/kernel_thread.h"
 
 #include <stdexcept> // for std::invalid_argument
 namespace kernel

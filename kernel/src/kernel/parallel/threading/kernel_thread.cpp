@@ -1,5 +1,5 @@
-#include "kernel/executors/kernel_thread.h"
-#include "kernel/executors/task_base.h"
+#include "kernel/parallel/threading/kernel_thread.h"
+#include "kernel/parallel/threading/task_base.h"
 
 namespace kernel
 {
