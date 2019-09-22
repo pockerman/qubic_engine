@@ -214,7 +214,7 @@ int main(){
     ThreadPool pool(4);
 
     // create the control
-    ItrCtrl control(100, pool.get_n_threads(), kernel::kernel_consts::tolerance());
+    ItrCtrl control(100, pool.get_n_threads(), kernel::KernelConsts::tolerance());
 
     // the object responsible for Jacobi iteration
     JacobiIterator iterator(control);
