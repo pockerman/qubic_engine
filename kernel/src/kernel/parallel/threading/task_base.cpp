@@ -8,7 +8,7 @@ TaskBase::TaskBase(uint_t id)
     :
     state_(TaskBase::TaskState::PENDING),
     id_(id),
-    name_(kernel_consts::dummy_string())
+    name_(KernelConsts::dummy_string())
 {}
 
 TaskBase::~TaskBase()

@@ -41,7 +41,7 @@ ThreadPool::start()
 void
 ThreadPool::add_task(TaskBase& task){
 
-    if(next_thread_available_ == kernel::kernel_consts::invalid_size_type() ||
+    if(next_thread_available_ == kernel::KernelConsts::invalid_size_type() ||
        next_thread_available_ >= pool_.size()){
         next_thread_available_=0;
     }

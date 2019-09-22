@@ -192,7 +192,7 @@ int main(){
         x.set_partitions(partitions);
         b.set_partitions(partitions);
 
-        CGSolver solver(1, kernel::kernel_consts::tolerance());
+        CGSolver solver(1, kernel::KernelConsts::tolerance());
         auto info = solver.solve(A, x, b, pool);
 
         // print useful information
