@@ -59,7 +59,7 @@ namespace kernel
 		   */
 		  AlgInfo()
 		          :
-		         niterations(kernel_consts::invalid_size_type()),
+		         niterations(KernelConsts::invalid_size_type()),
                  residual(std::numeric_limits<real_t>::max()),
 		         converged(false),
 		         runtime(),
