@@ -1,5 +1,5 @@
-#include "kernel/executors/thread_pool.h"
-#include "kernel/executors/simple_task.h"
+#include "kernel/parallel/threading/thread_pool.h"
+#include "kernel/parallel/threading/simple_task.h"
 #include "kernel/base/types.h"
 
 #include <vector>

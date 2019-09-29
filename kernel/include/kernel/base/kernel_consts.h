@@ -11,7 +11,7 @@ namespace kernel
 	 * @brief Class that handles common quantities used around
 	 * the library.
 	 */
-class kernel_consts: private boost::noncopyable
+class KernelConsts: private boost::noncopyable
 {
 
 public:
@@ -46,7 +46,7 @@ private:
       /**
        * @brief Constructor
        */
-      kernel_consts();
+      KernelConsts();
 
       /**
           * @brief The tolerance constant
