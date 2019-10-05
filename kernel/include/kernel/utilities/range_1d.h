@@ -16,6 +16,7 @@ public:
 
     typedef T value_type;
 
+
     /// \brief Default constructor
     range1d()
     :
@@ -23,6 +24,7 @@ public:
     second_(),
     grain_size_(static_cast<uint_t>(1))
     {}
+
 
     /// \brief Constructor. Create an object by passing the
     /// the [start,end) paramters. Optionally we can pass the
@@ -34,6 +36,7 @@ public:
     grain_size_(g)
     {}
 
+
     /// \breif copy constructor. Construct a range from another range
     range1d(const range1d<T>& o)
      :
@@ -42,34 +45,48 @@ public:
      grain_size_(o.grain_size_)
      {}
 
+
      /// \brief Set the start/end for this range
      void set_range(T b,T e, uint_t grain_size = 1);
+
 
      /// \brief copy assignement operator
      range1d<T>& operator=(const range1d<T>& o);
 
+
      /// \brief Return the grain size for the 1d  range
      uint_t grain_size()const{return grain_size_;}
+
 
      /// \brief Return the size (this->second_ - this->first_) of the range
      uint_t size()const{return second_ - first_;}
 
+
+     /// \brief Returns true if the range is empty
+     bool empty()const{return size() == 0;}
+
+
      /// \brief Return true if the range can be further divided
      bool is_divisible()const{return size()>grain_size();}
+
 
      /// \brief Returns the inclusive beginning of the range
      T begin()const{return first_;}
 
+
      /// \breif Return the exclusive end of the range
      T end()const{return second_;}
+
 
      /// \brief Split the range into two.
      /// If the range is not splitable meaning when is_divisible() returns false then it returns silently
      range1d<T> split();
 
+
      /// \brief serialize the object into the given archive
      template<typename Archive>
      void serialize(Archive& arch, uint_t fileversion);
+
 
      /// \brief Overload operator(). Compatible for when using boost.mpi
      /// to transmit this type over the processes.
