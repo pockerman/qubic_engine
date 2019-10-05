@@ -51,6 +51,9 @@ public:
     /// \brief Returns the number of threads the pool is using
     uint_t get_n_threads()const{return pool_.size();}
 
+
+    /// \brief Returns the number of threads
+    uint_t n_processing_elements()const{return get_n_threads();}
 private:
 
     typedef detail::kernel_thread thread_type;
