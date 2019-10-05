@@ -23,7 +23,7 @@ void partition_range(IteratorTp begin, const IteratorTp end,
 
     uint_t total_work = std::distance(begin, end);
 
-#ifdef PARFRAME_DEBUG
+#ifdef KERNEL_DEBUG
 
     if(n_parts == 0){
         throw std::invalid_argument("Cannot partition range into zero parts");
@@ -35,7 +35,7 @@ void partition_range(IteratorTp begin, const IteratorTp end,
 
 #endif
 
-#ifdef PARFRAME_LOG
+#ifdef KERNEL_LOG
     std::chrono::time_point<std::chrono::system_clock> start_timing = std::chrono::system_clock::now();
 #endif
 
@@ -68,7 +68,7 @@ void partition_range(IteratorTp begin, const IteratorTp end,
 
     partitions.push_back(range1d<IteratorTp>(start, end));
 
-#ifdef PARFRAME_LOG
+#ifdef KERNEL_LOG
     std::chrono::time_point<std::chrono::system_clock> end_timing = std::chrono::system_clock::now();
     std::chrono::duration<real_t> dur = end_timing-start_timing;
     std::ostringstream message;
