@@ -11,6 +11,7 @@
 - <a href="https://github.com/pockerman/compute_engine/tree/master/kernel/examples/example_6">Example 6</a> Multithreaded Conjugate Gradient solver
 - <a href="#">Example 7</a> Longitudinal Vehicle Model
 - <a href="https://github.com/pockerman/compute_engine/blob/master/kernel/examples/example_8">Example 8</a> Serial Monte Carlo Integration
+- <a href="kernel/examples/example_9">Example 9</a> Calculate the area of a circle using Monte Carlo integration
 
 ## Dependencies
 
