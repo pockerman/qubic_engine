@@ -5,12 +5,12 @@
 #include "kernel/base/types.h"
 #include "kernel/utilities/range_1d.h"
 
-#ifdef PARFRAME_LOG
+#ifdef KERNEL_LOG
 #include <chrono>
 #include <sstream>
 #endif
 
-#ifdef PARFRAME_DEBUG
+#ifdef KERNEL_DEBUG
 #include <stdexcept> //for std::invalid_argument
 #endif
 
