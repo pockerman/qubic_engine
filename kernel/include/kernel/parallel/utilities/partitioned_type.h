@@ -22,20 +22,30 @@ public:
     /// \brief The type of the object that is partitioned
     typedef Type object_type;
 
+
+    /// \brief The type of the object that holds the sub-partition
+    typedef range1d<uint_t> partition_type;
+
+
     /// \brief Allow using the constructors of Type
     using Type::Type;
+
 
     /// \brief how many partitions the patrix has
     uint_t n_partitions()const{return partitions_.size();}
 
+
     /// \brief Returns true if this object has partitions assigned to it
     bool has_partitions()const{return !partitions_.empty();}
+
 
     /// \brief Set the partitions
     void set_partitions(const std::vector<range1d<uint_t>>& parts){partitions_ = parts;}
 
+
     /// \brief Returns the partitions
     const auto& get_partitions()const{return partitions_;}
+
 
     /// \brief Return the t-th partiton. Throws std::invalid_argument if t
     /// is out of  bounds
