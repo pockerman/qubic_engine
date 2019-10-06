@@ -12,6 +12,7 @@
 - <a href="#">Example 7</a> Longitudinal Vehicle Model
 - <a href="examples/example_8">Example 8</a> Serial Monte Carlo Integration
 - <a href="examples/example_9">Example 9</a> Using ```parallel_for``` pattern 
+- <a href="examples/example_10">Example 10</a> Calculate the area of a circle using Monte Carlo integration
 
 ## Dependencies
 

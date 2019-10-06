@@ -5,8 +5,9 @@
 
 #include <vector>
 #include <array>
-#include<cmath>
-#include<ostream>
+#include <cmath>
+#include <ostream>
+#include <algorithm>
 
 namespace kernel
 {
@@ -150,8 +151,10 @@ template<int spacedim,typename T>
 inline
 GeomPoint<spacedim,T>::GeomPoint(T val)
 :
-data_(val)
-{}
+data_()
+{
+    std::for_each(data_.begin(), data_.end(),  [=](T& item){item = val;});
+}
 
 template<int spacedim,typename T>
 template<typename Container>

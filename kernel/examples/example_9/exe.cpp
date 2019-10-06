@@ -12,9 +12,7 @@
 #include <vector>
 
 
-
 int main(){
-
 
     using kernel::uint_t;
     using kernel::ThreadPool;
@@ -55,9 +53,6 @@ int main(){
     else{
         std::cout<<"Example FAILED\n";
     }
-
-
-
 
     return 0;
 }
