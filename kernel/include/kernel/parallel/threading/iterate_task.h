@@ -43,6 +43,7 @@ private:
     /// Ope
     range_type range_;
 
+
     /// \brief The operation to apply on the elements
     /// in the range above
     body_type op_;
@@ -57,7 +58,7 @@ template<typename RangeType, typename BodyType, typename ValueType>
 IterateTask<RangeType, BodyType, ValueType>::IterateTask(uint_t id, const range_type& range, const body_type& body, value_type& values)
     :
    TaskBase(id),
-   range_(),
+   range_(range),
    op_(body),
    values_(values)
 {}
