@@ -2,6 +2,7 @@
 #define ITERATE_TASK_H
 
 #include "kernel/utilities/range_1d.h"
+#include "kernel/parallel/threading/task_base.h"
 #include <algorithm>
 
 namespace kernel
@@ -10,75 +11,72 @@ namespace kernel
 /// forward declartions
 template<typename IteratorTp, typename OpTp> class IterateTaskWithResult;
 
-template<typename IteratorTp, typename OpTp>
-class IterateTask
+
+/**
+ * Helper class to be used when an iteration over a range is required.
+ * The overriden run() of this class applies BodyType on every item of ValueType
+ * that is in the given RangeType
+ */
+template<typename RangeType, typename BodyType, typename ValueType>
+class IterateTask: public TaskBase
 {
    public:
 
-        typedef IteratorTp iterator_t;
-        typedef OpTp operation_t;
+        typedef RangeType range_type;
+        typedef BodyType body_type;
+        typedef ValueType value_type;
 
-        /// \brief Default constructor. No work is done
-        /// if  a task is created via this function and
-        /// not manipulated appropriately by the public API
-        /// of this clas
-        IterateTask();
 
-        /// \brief Constructor. Initialize with the range
-        /// the task is meant to work on and any arguments the
-        /// operation requires to execute
-        template<typename...Args>
-        IterateTask(const kernel::range1d<iterator_t>& range, Args&... args);
+        /// \brief Constructor.
+        IterateTask(uint_t id, const range_type& range, const body_type& body, value_type& values);
 
-        /// \brief Execute the task
-        void operator()();
+protected:
 
-        /// \brief Set the range to work on
-        void set_range(const kernel::range1d<iterator_t>& range){ range_ = range;}
 
-        /// \brief Set the operation data
-        void set_op(const operation_t& op){ op_ = op;}
+        /// \brief Function to overrided by defived classes.
+        /// It actually executes the compuational task
+        virtual void run()override;
 
 private:
 
-    /// \brief The range that the task is meant to
-    /// do work on
-    kernel::range1d<iterator_t> range_;
+    /// \brief The range that the task is meant to do work on
+    /// Ope
+    range_type range_;
 
     /// \brief The operation to apply on the elements
     /// in the range above
-    operation_t op_;
+    body_type op_;
 
-    /// make friends with IterateTaskWithResult
-    friend class IterateTaskWithResult<iterator_t, operation_t>;
+
+    /// \brief The values container to apply the Body
+    value_type& values_;
+
 };
 
-template<typename IteratorTp, typename OpTp>
-IterateTask<IteratorTp, OpTp>::IterateTask()
+template<typename RangeType, typename BodyType, typename ValueType>
+IterateTask<RangeType, BodyType, ValueType>::IterateTask(uint_t id, const range_type& range, const body_type& body, value_type& values)
     :
+   TaskBase(id),
    range_(),
-   op_()
+   op_(body),
+   values_(values)
 {}
 
-template<typename IteratorTp, typename OpTp>
-template<typename... Args>
-IterateTask<IteratorTp, OpTp>::IterateTask(const kernel::range1d<iterator_t>& range, Args&... args)
-    :
-  range_(range),
-  op_(args...)
-{}
-
-template<typename IteratorTp, typename OpTp>
+template<typename RangeType, typename BodyType, typename ValueType>
 void
-IterateTask<IteratorTp, OpTp>::operator()(){
+IterateTask<RangeType, BodyType, ValueType>::run(){
 
     auto begin = range_.begin();
     auto end   = range_.end();
+
     while(begin != end){
-        op_(*begin++);
+        op_(values_[begin]);
+        begin++;
     }
 }
 
+
+/*
 template<typename IteratorTp, typename OpTp>
 class IterateTaskWithResult
 {
@@ -132,6 +130,8 @@ IterateTaskWithResult<IteratorTp, OpTp>::IterateTaskWithResult(const kernel::ran
     :
  task_(range, args...)
 {}
+
+*/
 
 }
 

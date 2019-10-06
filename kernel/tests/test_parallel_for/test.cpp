@@ -3,6 +3,7 @@
 #include "kernel/utilities/range_1d.h"
 #include "kernel/parallel/utilities/partitioned_type.h"
 #include "kernel/parallel/utilities/array_partitioner.h"
+#include "kernel/parallel/utilities/result_holder.h"
 #include "kernel/base/types.h"
 #include "kernel/base/exceptions.h"
 #include <vector>
@@ -10,10 +11,13 @@
 
 namespace{
 
-
-
 }
 
+
+/***
+ * Test Scenario:   The application attempts to execute parallel_for with a  Range that is not partitioned
+ * Expected Output:	parallel_for throws InvalidPartitionedObject
+ **/
 
 TEST(TestParallelFor, RunWithNoPartitions) {
 
@@ -23,11 +27,6 @@ TEST(TestParallelFor, RunWithNoPartitions) {
     using kernel::PartitionedType;
 
 
-    /***
-     * Test Scenario:   The application attempts to execute parallel_for with a  Range that is not partitioned
-     * Expected Output:	parallel_for throws InvalidPartitionedObject
-     **/
-
     /// TODO: Is there a better way to do this?
     try{
 
@@ -35,7 +34,7 @@ TEST(TestParallelFor, RunWithNoPartitions) {
         ThreadPool pool(4);
 
         // a dummy partitoned ranges
-        PartitionedType<range1d<uint_t>> range;
+        PartitionedType<std::vector<uint_t>> range;
 
         // dummy body
         auto body = [](int){return false;};
@@ -53,18 +52,17 @@ TEST(TestParallelFor, RunWithNoPartitions) {
 }
 
 
+/***
+ * Test Scenario:   The application attempts to execute parallel_for with a  Range that is not correctly partitioned
+ * Expected Output:	parallel_for throws InvalidPartitionedObject
+ **/
+
 TEST(TestParallelFor, RunWithInvalidNumPartitions) {
 
     using kernel::uint_t;
     using kernel::ThreadPool;
     using kernel::range1d;
     using kernel::PartitionedType;
-
-
-    /***
-     * Test Scenario:   The application attempts to execute parallel_for with a  Range that is not correctly partitioned
-     * Expected Output:	parallel_for throws InvalidPartitionedObject
-     **/
 
     /// TODO: Is there a better way to do this?
     std::string expected;
@@ -74,7 +72,7 @@ TEST(TestParallelFor, RunWithInvalidNumPartitions) {
         ThreadPool pool(4);
 
         // a dummy partitoned ranges
-        PartitionedType<range1d<uint_t>> range;
+        PartitionedType<std::vector<uint_t>> range;
         std::vector<range1d<uint_t>> partitions(1, range1d<uint_t>());
         range.set_partitions(partitions);
 
@@ -96,6 +94,11 @@ TEST(TestParallelFor, RunWithInvalidNumPartitions) {
     }
 }
 
+/***
+ * Test Scenario:   The application attempts to execute parallel_for with a  Range and a Body
+ * Expected Output:	parallel_for should execute corrctly
+ **/
+
 
 TEST(TestParallelFor, RunWithIdentityBody) {
 
@@ -103,12 +106,7 @@ TEST(TestParallelFor, RunWithIdentityBody) {
     using kernel::ThreadPool;
     using kernel::range1d;
     using kernel::PartitionedType;
-
-
-    /***
-     * Test Scenario:   The application attempts to execute parallel_for with a  Range and a Body
-     * Expected Output:	parallel_for should execute corrctly
-     **/
+    using kernel::ResultHolder;
 
     /// TODO: Is there a better way to do this?
     try{
@@ -120,16 +118,13 @@ TEST(TestParallelFor, RunWithIdentityBody) {
         kernel::partition_range(0, 100, partitions, pool.get_n_threads());
 
         // a dummy partitoned ranges
-        PartitionedType<range1d<uint_t>> range;
-        range.set_partitions(partitions);
-
-        // create the range
+        PartitionedType<std::vector<uint_t>> vector(100, 0);
+        vector.set_partitions(partitions);
 
         // dummy body
         auto body = [](uint_t item){return item;};
-        kernel::parallel_for(range, body, pool);
-
-
+        ResultHolder<void> result = kernel::parallel_for(vector, body, pool);
+        ASSERT_TRUE(result.get().second);
 
     }
     catch(kernel::InvalidPartitionedObject& e){

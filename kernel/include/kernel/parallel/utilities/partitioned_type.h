@@ -22,6 +22,11 @@ public:
     /// \brief The type of the object that is partitioned
     typedef Type object_type;
 
+
+    /// \brief The type of the object that holds the sub-partition
+    typedef range1d<uint_t> partition_type;
+
+
     /// \brief Allow using the constructors of Type
     using Type::Type;
 
