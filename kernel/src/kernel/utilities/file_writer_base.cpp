@@ -1,5 +1,6 @@
 #include "kernel/utilities/file_writer_base.h"
 
+#include <boost/algorithm/string.hpp>
 #include <chrono>
 #include <ctime>
 #include <stdexcept>
@@ -34,9 +35,30 @@ void
 FileWriterBase::open(std::ios_base::openmode mode){
 
     std::string suffix = FileFormats::type_to_string(t_);
-    std::string filename = file_name_+"."+suffix;
-    //file_.open(filename, std::ios_base::app);
-    file_.open(filename, mode);
+
+    //attempt to split the file name and check if a suffix has been given
+    //if yes check if this is the same with the file type
+    std::vector<std::string> cont;
+    boost::split(cont, file_name_, boost::is_any_of("."));
+
+    if(cont.size() == 2){
+
+        if( cont[1] != suffix){
+            throw std::logic_error("File already has a suffix but this does not match with what was given "+cont[1]+" != "+suffix);
+        }
+        else{
+
+            file_.open(file_name_, mode);
+        }
+    }
+    else if(cont.size() > 2){
+        throw std::logic_error("More than one suffixes found in the file name");
+    }
+    else{
+
+        std::string filename = file_name_+"."+suffix;
+        file_.open(filename, mode);
+    }
 }
 
 void FileWriterBase::write_header(){
