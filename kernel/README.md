@@ -7,6 +7,7 @@
 - <a href="examples/example_2">Example 2</a> Create  ```StoppableTask```s
 - <a href="examples/example_5">Example 5</a> Sum the elements of an array 
 - <a href="examples/example_9">Example 9</a> Using ```parallel_for``` pattern 
+- <a href="examples/example_12">Example 12</a> Producer-Consumer pattern
 
 ### Linear Algebra
 
