@@ -6,7 +6,9 @@ namespace kernel
 SimpleTaskBase::SimpleTaskBase(uint_t id)
     :
    TaskBase(id)
-{}
+{
+    this->set_name("SimpleTaskBase");
+}
 
 SimpleTaskBase::~SimpleTaskBase()
 {}

@@ -1,5 +1,5 @@
-#ifndef TASK_QUEUE_H
-#define TASK_QUEUE_H
+#ifndef LOCKABLE_QUEUE_H
+#define LOCKABLE_QUEUE_H
 
 #include "kernel/base/types.h"
 #include <boost/core/noncopyable.hpp>
@@ -21,7 +21,7 @@ namespace kernel
  **/
 
 template<typename T>
-class TaskQueue: private boost::noncopyable
+class LockableQueue: private boost::noncopyable
 {
 
  public:
@@ -29,10 +29,10 @@ class TaskQueue: private boost::noncopyable
     typedef T value_type;
 
     /// \brief Default ctor. Construct an empty queue
-    TaskQueue();
+    LockableQueue();
 
     /// \brief Destructor
-    ~TaskQueue()
+    ~LockableQueue()
     {}
 
     //pop an element from the queue. The thread
@@ -54,21 +54,21 @@ class TaskQueue: private boost::noncopyable
     bool pop(value_type*& element);
 
     //push an element to the queue
-    void push_task(value_type& element);
+    void push_item(value_type& element);
 
     //push an element to the queue
-    void push_task(value_type* element);
+    void push_item(value_type* element);
 
     //push the given list of tasks into the thread private
     //task pool
     template<typename C>
-    void push_tasks(const C& tasks);
+    void push_items(const C& tasks);
 
     //assign tasks to the private thread task pool.
     //std::iterator_traits<Iterator>::value_type
     //should resolve to T*
     template<typename Iterator>
-    void push_tasks(Iterator begin,Iterator end);
+    void push_items(Iterator begin,Iterator end);
 
     //get the size of the queue
     uint_t size()const;
@@ -128,7 +128,7 @@ class TaskQueue: private boost::noncopyable
 };
 
 template<typename T>
-TaskQueue<T>::TaskQueue()
+LockableQueue<T>::LockableQueue()
 :
 task_queue_()
 {}
@@ -136,23 +136,23 @@ task_queue_()
 template<typename T>
 inline
 uint_t
-TaskQueue<T>::size()const{
+LockableQueue<T>::size()const{
     return static_cast<uint_t>(task_queue_.size());
 }
 
 template<typename T>
 inline
 bool
-TaskQueue<T>::empty()const{
+LockableQueue<T>::empty()const{
     return task_queue_.empty();
 }
 
 template<typename T>
 inline
 T* 
-TaskQueue<T>::pop_wait(){
+LockableQueue<T>::pop_wait(){
 
-    typedef typename TaskQueue<T>::Node node;
+    typedef typename LockableQueue<T>::Node node;
     std::unique_lock<std::mutex> lk(mutex_);
 
     //tell the thread to wait until the queue has at least one element
@@ -166,9 +166,9 @@ TaskQueue<T>::pop_wait(){
 template<typename T>
 inline
 bool
-TaskQueue<T>::pop_wait(T*& ele){
+LockableQueue<T>::pop_wait(T*& ele){
 
-    typedef typename TaskQueue<T>::Node node;
+    typedef typename LockableQueue<T>::Node node;
     std::unique_lock<std::mutex> lk(mutex_);
 
     //tell the thread to wait until the queue has at least one element
@@ -183,9 +183,9 @@ TaskQueue<T>::pop_wait(T*& ele){
 template<typename T>
 inline
 T* 
-TaskQueue<T>::pop(){
+LockableQueue<T>::pop(){
 
-    typedef typename TaskQueue<T>::Node node;
+    typedef typename LockableQueue<T>::Node node;
     std::lock_guard<std::mutex> lk(mutex_);
 
     if(task_queue_.empty()) return nullptr;
@@ -198,9 +198,9 @@ TaskQueue<T>::pop(){
 template<typename T>
 inline
 bool
-TaskQueue<T>::pop(T*& ele){
+LockableQueue<T>::pop(T*& ele){
 
-    typedef typename TaskQueue<T>::Node node;
+    typedef typename LockableQueue<T>::Node node;
     std::lock_guard<std::mutex> lk(mutex_);
 
     if(task_queue_.empty()) return false;
@@ -214,9 +214,9 @@ TaskQueue<T>::pop(T*& ele){
 template<typename T>
 inline
 void 
-TaskQueue<T>::push_task(T& element){
+LockableQueue<T>::push_item(T& element){
 
-    typedef typename TaskQueue<T>::Node node;
+    typedef typename LockableQueue<T>::Node node;
     std::lock_guard<std::mutex> lk(mutex_);
 
     task_queue_.push(node(&element));
@@ -226,9 +226,9 @@ TaskQueue<T>::push_task(T& element){
 template<typename T>
 inline
 void 
-TaskQueue<T>::push_task(T* element){
+LockableQueue<T>::push_item(T* element){
     
-    typedef typename TaskQueue<T>::Node node;
+    typedef typename LockableQueue<T>::Node node;
     std::lock_guard<std::mutex> lk(mutex_);
 
     //node n(element);
@@ -240,13 +240,13 @@ TaskQueue<T>::push_task(T* element){
 template<typename T>
 template<typename C>
 void 
-TaskQueue<T>::push_tasks(const C& tasks){
+LockableQueue<T>::push_items(const C& tasks){
 
     if(tasks.empty()){
         return;
     }
 
-    typedef typename TaskQueue<T>::Node node;
+    typedef typename LockableQueue<T>::Node node;
     std::lock_guard<std::mutex> lk(mutex_);
 
     typedef typename C::const_iterator iterator;
@@ -266,14 +266,14 @@ TaskQueue<T>::push_tasks(const C& tasks){
 template<typename T>
 template<typename Iterator>
 void 
-TaskQueue<T>::push_tasks(Iterator begin,Iterator end){
+LockableQueue<T>::push_items(Iterator begin,Iterator end){
 
     //quick return
     if(std::distance(begin,end)==static_cast<uint_t>(0)){
         return;
     }
   
-    typedef typename TaskQueue<T>::Node node;
+    typedef typename LockableQueue<T>::Node node;
     std::lock_guard<std::mutex> lk(mutex_);
 
     while(begin != end){

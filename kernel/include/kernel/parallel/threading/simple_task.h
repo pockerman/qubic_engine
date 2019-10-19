@@ -22,6 +22,7 @@ protected:
 
     /// \brief Constructor
     SimpleTaskBase(uint_t id = kernel::KernelConsts::invalid_size_type());
+
 };
 
 
