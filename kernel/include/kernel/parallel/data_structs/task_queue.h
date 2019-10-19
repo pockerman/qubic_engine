@@ -31,7 +31,7 @@ class TaskQueue: private boost::noncopyable
     /// \brief Default ctor. Construct an empty queue
     TaskQueue();
 
-    /// \breif Destructor
+    /// \brief Destructor
     ~TaskQueue()
     {}
 
