@@ -2,10 +2,14 @@
 #define PARALLEL_REDUCE_H
 
 #include "kernel/base/types.h"
-#include "kernel/parallel/threading/simple_task.h"
-#include "kernel/parallel/threading/task_uitilities.h"
+#include "kernel/base/config.h"
+#include "kernel/base/exceptions.h"
 #include "kernel/utilities/range_1d.h"
 #include "kernel/utilities/iterator_helpers.h"
+#include "kernel/parallel/threading/simple_task.h"
+#include "kernel/parallel/threading/task_uitilities.h"
+#include "kernel/parallel/utilities/result_holder.h"
+
 
 #include <vector>
 #include <memory>
@@ -117,6 +121,19 @@ void reduce_array(const std::vector<range1d<IteratorTp>>& partitions, ReductionO
 
     detail::reduce_1d_array reduce;
     reduce.execute(partitions, op, executor);
+}
+
+template<typename RangeTp, typename ReduceOpTp, typename ExecutorTp>
+ResultHolder<typename ReduceOpTp::result_type>
+parallel_reduce(const RangeTp& range, const ReduceOpTp& reduction_op, ExecutorTp& executor){
+
+    if(!range.has_partitions()){
+        throw InvalidPartitionedObject("The given range does not have partitions");
+    }
+
+    if(range.n_partitions() != executor.n_processing_elements()){
+        throw InvalidPartitionedObject("Invalid number of partitions: "+std::to_string(range.n_partitions())+" should be: "+std::to_string(executor.n_processing_elements()));
+    }
 }
 
 
