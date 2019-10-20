@@ -6,13 +6,13 @@
 #include "kernel/base/algorithm_info.h"
 #include "kernel/parallel/threading/thread_pool.h"
 #include "kernel/parallel/parallel_algos/parallel_reduce.h"
-#include "kernel/parallel/parallel_algos/reduction_operations.h"
+#include "kernel/parallel/utilities/reduction_operations.h"
 #include "kernel/parallel/utilities/array_partitioner.h"
 #include "kernel/parallel/utilities/partitioned_type.h"
 #include "kernel/parallel/threading/simple_task.h"
 #include "kernel/parallel/parallel_algos/linear_algebra/dot_product.h"
 #include "kernel/parallel/parallel_algos/linear_algebra/matrix_vector_product.h"
-#include "kernel/parallel/parallel_algos/vector_updater.h"
+#include "kernel/parallel/parallel_algos/linear_algebra/vector_updater.h"
 #include "kernel/utilities/scaled_ops.h"
 
 

@@ -1,7 +1,7 @@
 #include "kernel/base/types.h"
 #include "kernel/utilities/range_1d.h"
 #include "kernel/utilities/scaled_ops.h"
-#include "kernel/parallel/parallel_algos/vector_updater.h"
+#include "kernel/parallel/parallel_algos/linear_algebra/vector_updater.h"
 #include "kernel/parallel/threading/thread_pool.h"
 #include "kernel/parallel/utilities/partitioned_type.h"
 #include "kernel/parallel/utilities/array_partitioner.h"
