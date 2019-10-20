@@ -5,7 +5,7 @@
 #include "kernel/base/types.h"
 #include "kernel/parallel/threading/thread_pool.h"
 #include "kernel/parallel/parallel_algos/parallel_reduce.h"
-#include "kernel/parallel/parallel_algos/reduction_operations.h"
+#include "kernel/parallel/utilities/reduction_operations.h"
 #include "kernel/parallel/utilities/array_partitioner.h"
 
 #include <thread>
