@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
 
-PROJECT(test_astar CXX)
+PROJECT(test_array_stats CXX)
 SET(SOURCE test.cpp)
 SET(EXECUTABLE  test_array_stats)
+
 
 INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR}) 
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})

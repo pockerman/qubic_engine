@@ -5,8 +5,9 @@
 
 #include <stdexcept>
 #include <cmath>
-#include <thread>
 #include <future>
+#include <thread>
+#include <iostream>
 
 /**
  * \brief Useful statistical computations on arrays
@@ -33,7 +34,8 @@ auto sum(const ArrayType& c){
   * Compute the sum of squares the array elements
   **/
 template<typename ArrayType>
-auto sum_sqr(const ArrayType& c){
+typename ArrayType::value_type
+sum_sqr(const ArrayType& c){
 
     auto rslt = c[0]*c[0];
 
@@ -58,7 +60,8 @@ real_t mean(const ArrayType& c){
   * Compute the dot produce the two arrays
   **/
 template<typename ArrayType>
-auto dot_product(const ArrayType& c1, const ArrayType& c2){
+typename ArrayType::value_type
+dot_product(const ArrayType& c1, const ArrayType& c2){
 
     if(c1.size() != c2.size()){
         throw std::invalid_argument("Invalid arrays sizes: "+std::to_string(c1.size())+" not equal to: "+std::to_string(c2.size()));
@@ -85,20 +88,18 @@ real_t pearson_corr(const ArrayType& c1, const ArrayType& c2){
         throw std::invalid_argument("Invalid arrays sizes: "+std::to_string(c1.size())+" not equal to: "+std::to_string(c2.size()));
     }
 
-    auto mc1 = std::async(std::launch::async, mean, c1);
-    auto mc2 = std::async(std::launch::async, mean, c2);
-    auto sqr_sum1 = std::async(std::launch::async, sum_sqr, c1);
-    auto sqr_sum2 = std::async(std::launch::async, sum_sqr, c2);
-    auto dot_product_op = std::async(std::launch::async, dot_product, c1, c2);
+    auto mc1 = std::async(std::launch::async, cengine::mean<ArrayType>, c1);
+    auto mc2 = std::async(std::launch::async, cengine::mean<ArrayType>, c2);
+    auto sqr_sum1 = std::async(std::launch::async, cengine::sum_sqr<ArrayType>, c1);
+    auto sqr_sum2 = std::async(std::launch::async, cengine::sum_sqr<ArrayType>, c2);
+    auto dot_product_op = std::async(std::launch::async, cengine::dot_product<ArrayType>, c1, c2);
 
     auto mu1_rslt = mc1.get();
     auto mu2_rslt = mc2.get();
     auto dot_product_rslt = dot_product_op.get();
     auto sqr_sum1_rslt = sqr_sum1.get();
     auto sqr_sum2_rslt = sqr_sum2.get();
-
-    return (dot_product_rslt - c1.size()*mu1_rslt*mu2_rslt)/(std::sqrt(sqr_sum1_rslt - c1.size()*mu1_rslt)*std::sqrt(sqr_sum2_rslt - c1.size()*mu2_rslt));
-
+    return (dot_product_rslt - c1.size()*mu1_rslt*mu2_rslt)/(std::sqrt(sqr_sum1_rslt - c1.size()*mu1_rslt*mu1_rslt)*std::sqrt(sqr_sum2_rslt - c1.size()*mu2_rslt*mu2_rslt));
 }
 
 }
