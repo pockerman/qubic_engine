@@ -2,7 +2,7 @@
 #define SERVER_H
 
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "kernel/executors/thread_pool.h"
+#include "kernel/parallel/threading/thread_pool.h"
 #include <boost/asio.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <memory>
