@@ -8,10 +8,11 @@
 #ifndef KNN_CLASSIFICATION_POLICY_H
 #define	KNN_CLASSIFICATION_POLICY_H
 
-#include "parml/instance_learning/knn_policy_base.h"
+#include "cubic_engine/base/cubic_engine_types.h"
+#include "cubic_engine/ml/instance_learning/knn_policy_base.h"
 #include <boost/scoped_array.hpp>
 
-namespace parml
+namespace cengine
 {
     
    
@@ -19,7 +20,7 @@ namespace parml
  * @brief Class that performs classification using
  * K-nearest neighbors algorithm
  */
-class knn_classify_policy: public knn_policy_base<false>
+class KnnClassificationPolicy: public knn_policy_base<false>
 {
     
 public:
@@ -52,12 +53,12 @@ public:
      /**
      * @brief Expose the type of the object needed for communication when using MPI
      */
-     typedef base_type::comm_chunk comm_chunk;
+     //typedef base_type::comm_chunk comm_chunk;
     
     /**
      * @brief Constructor
      */
-    knn_classify_policy(size_type k);
+    KnnClassificationPolicy(uint_t k);
     
     /**
      * @brief Return the result of the classification 
@@ -68,7 +69,7 @@ public:
      * @brief Return the result of regression based on the given
      * class index,class counter pairs
      */
-    return_type get_result(const boost::scoped_array<comm_chunk>& results,size_type nelems)const;
+    //return_type get_result(const boost::scoped_array<comm_chunk>& results,size_type nelems)const;
     
 };
  

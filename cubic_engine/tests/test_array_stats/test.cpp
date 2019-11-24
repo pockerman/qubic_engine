@@ -19,9 +19,10 @@ TEST(TestArrayStats, PearsonCorrelationSuccess) {
 
     using namespace cengine;
 
-    std::vector<real_t> data(20, 1.0);
+    std::vector<real_t> data1(20, 1.0);
+    std::vector<real_t> data2(20, 2.0);
 
-    auto rslt = pearson_corr(data, data);
+    auto rslt = pearson_corr(data1, data2);
 
     ASSERT_EQ(rslt, 1.0)<<"TestArrayStats::PearsonCorrelationSuccess failed\n";
 

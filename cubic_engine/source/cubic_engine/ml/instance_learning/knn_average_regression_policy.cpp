@@ -1,23 +1,19 @@
-#include "parml/instance_learning/knn_average_regression_policy.h"
-
-#ifdef PARML_DEBUG
-#include "utilities/exceptions.h"
-#include <string>
-#endif
+#include "cubic_engine/ml/instance_learning/knn_average_regression_policy.h"
+#include <algorithm>
 
 
-namespace parml
+namespace cengine
 {
     
  
-knn_avg_regression_policy::knn_avg_regression_policy(size_type k)
+KnnAvgRegressionPolicy::KnnAvgRegressionPolicy(uint_t k)
 :
 knn_policy_base<true>(k)
 {}
 
 
-knn_avg_regression_policy::return_type 
-knn_avg_regression_policy::get_result()const{
+KnnAvgRegressionPolicy::return_type
+KnnAvgRegressionPolicy::get_result()const{
     
 #ifdef PARML_DEBUG
     using utilities::ExeLogicError;
@@ -30,13 +26,13 @@ knn_avg_regression_policy::get_result()const{
     
     //std::cout<<"In knn_avg_regression_policy::get_result(). majority_vote size: "<<this->data_handler_.majority_vote.size()<<std::endl;
     
-    real_type avg = 0.0;
+    real_t avg = 0.0;
     avg = std::accumulate(this->data_handler_.majority_vote.begin(),
                     this->data_handler_.majority_vote.end(),avg);
     return avg/this->data_handler_.k;
 }
 
-knn_avg_regression_policy::return_type
+/*knn_avg_regression_policy::return_type
 knn_avg_regression_policy::get_result(const boost::scoped_array<knn_avg_regression_policy::comm_chunk>& results,
                                       size_type nelems)const{
     
@@ -64,7 +60,7 @@ knn_avg_regression_policy::get_result(const boost::scoped_array<knn_avg_regressi
     }
     
     return rslt/this->data_handler_.k;   
-}
+}*/
     
     
     

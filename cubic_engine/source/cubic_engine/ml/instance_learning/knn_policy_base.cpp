@@ -1,13 +1,14 @@
-#include "parml/instance_learning/knn_policy_base.h"
+#include "cubic_engine/ml/instance_learning/knn_policy_base.h"
+#include "kernel/base/kernel_consts.h"
 #include <limits>
 
-namespace parml
+namespace cengine
 {
     
 knn_policy_base_data_handler<true>::return_type knn_policy_base_data_handler<true>::invalid_result_value = 
                 std::numeric_limits<knn_policy_base_data_handler<true>::return_type>::max();   
      
-knn_policy_base_data_handler<true>::knn_policy_base_data_handler(size_type k_)
+knn_policy_base_data_handler<true>::knn_policy_base_data_handler(uint_t k_)
 :
 k(k_),
 k_distances(),
@@ -15,7 +16,7 @@ majority_vote()
 {}
 
 
-void 
+/*void
 knn_policy_base_data_handler<true>::get_top_k_results(boost::scoped_array<knn_policy_base_data_handler<true>::comm_chunk>& arr )const{
     
 #ifdef PARML_DEBUG
@@ -35,12 +36,11 @@ knn_policy_base_data_handler<true>::get_top_k_results(boost::scoped_array<knn_po
         
         arr[r] = parframepp::serializable_pair<real_type,real_type>(k_distances[r].second,majority_vote[r]);
     }   
-}
+}*/
 
-knn_policy_base_data_handler<false>::return_type knn_policy_base_data_handler<false>::invalid_result_value = 
-                ParML::iuint();
+knn_policy_base_data_handler<false>::return_type knn_policy_base_data_handler<false>::invalid_result_value = kernel::KernelConsts::invalid_size_type();
 
-knn_policy_base_data_handler<false>::knn_policy_base_data_handler(size_type k_)
+knn_policy_base_data_handler<false>::knn_policy_base_data_handler(uint_t k_)
 :
 k(k_),
 k_distances(),
@@ -48,7 +48,7 @@ majority_vote()
 {}
 
 
-void 
+/*void
 knn_policy_base_data_handler<false>::get_top_k_results(boost::scoped_array<knn_policy_base_data_handler<false>::comm_chunk>& arr)const{
     
     
@@ -71,17 +71,17 @@ knn_policy_base_data_handler<false>::get_top_k_results(boost::scoped_array<knn_p
         start_++;
     }
    
-}
+}*/
 
 template<bool is_regressor>
-knn_policy_base<is_regressor>::knn_policy_base(size_type k)
+knn_policy_base<is_regressor>::knn_policy_base(uint_t k)
 :
 data_handler_(k)
 {}
 
 template<bool is_regressor>
 void 
-knn_policy_base<is_regressor>::resume(size_type k){
+knn_policy_base<is_regressor>::resume(uint_t k){
        
 #ifdef PARML_DEBUG
     
