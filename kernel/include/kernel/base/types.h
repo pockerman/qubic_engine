@@ -22,7 +22,7 @@ namespace kernel
 
     /// \brief General matrix type
     template<typename T>
-    using DynMat = blaze::DynamicMatrix<T>;
+    using DynMat = blaze::DynamicMatrix<T, rowMajor>;
 
     /// \brief General vector type
     template<typename T>

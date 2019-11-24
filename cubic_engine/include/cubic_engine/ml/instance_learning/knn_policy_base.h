@@ -8,25 +8,16 @@
 #ifndef KNN_POLICY_BASE_H
 #define	KNN_POLICY_BASE_H
 
-#include "parml/base/parml_config.h"
-#include "parml/base/parml.h"
-#include "utilities/range1d.h"
-#include "utilities/data_input.h"
-#include "utilities/map_utilities.h"
-#include "parframepp/parallel_utils/serializable_pair.h"
-
-#ifdef PARML_DEBUG
-#include "utilities/exceptions.h"
-#include <string>
-#endif
-
+#include "cubic_engine/base/cubic_engine_types.h"
+#include "kernel/utilities/range_1d.h"
+#include "kernel/utilities/map_utilities.h"
 #include <boost/scoped_array.hpp>
 
 #include <vector>
 #include <utility>
 #include <map>
 
-namespace parml
+namespace cengine
 {
     
     
@@ -48,26 +39,20 @@ struct knn_policy_base_data_handler<true>
    /**
      * @brief Expose the return type of the policy
      */
-    typedef real_type return_type;
+    typedef real_t return_type;
     
     /**
      * @brief The type of the container that holds
      * the majority vote
      */
-    typedef std::vector<real_type> majority_vote_container_type;
+    typedef std::vector<real_t> majority_vote_container_type;
     
     /**
      * @brief The type of the pair used for storing row-distance values
      */
-    typedef std::pair<size_type,real_type> Pair;
+    typedef std::pair<uint_t, real_t> Pair;
     
-    /**
-     * @brief The type of the object to communicate when working with MPI.
-     * The first type is the distance and the second is the value
-     */
-    typedef parframepp::serializable_pair<real_type,real_type> comm_chunk;
-    
-    
+
     /**
      * @brief The value that indicates that the policy has returned an invalid result.
      * By default this is numeric_limits<return_type>::max()
@@ -88,7 +73,7 @@ struct knn_policy_base_data_handler<true>
     /**
      * @brief Number of neighbors
      */
-    size_type k;
+    uint_t k;
     
     
     /**
@@ -103,12 +88,12 @@ struct knn_policy_base_data_handler<true>
       * @brief The vector that holds the values of the labels
       * vector for the k-top neighbors
       */
-    std::vector<real_type> majority_vote;
+    std::vector<real_t> majority_vote;
      
      /**
       * @brief Constructor
       */
-    knn_policy_base_data_handler(size_type k_);
+    knn_policy_base_data_handler(uint_t k_);
      
      
      /**
@@ -128,7 +113,7 @@ struct knn_policy_base_data_handler<true>
      * of such pairs as k in general will not be large. Note that
      * passed array is reseted to a new pointer. 
      */
-    void get_top_k_results(boost::scoped_array<comm_chunk>& arr)const;
+    //void get_top_k_results(boost::scoped_array<comm_chunk>& arr)const;
            
 };
 
@@ -149,10 +134,10 @@ knn_policy_base_data_handler<true>::fillin_majority_vote(const DataVec& labels){
     
     //we loop ove all the k-distances as we want
     //the average
-    for(size_type d=0; d<k; ++d){
+    for(uint_t d=0; d<k; ++d){
         
-        size_type row_idx = k_distances[d].first;
-        real_type value = labels[row_idx];
+        uint_t row_idx = k_distances[d].first;
+        real_t value = labels[row_idx];
         majority_vote.push_back(value);
     }
 }
@@ -169,25 +154,20 @@ struct knn_policy_base_data_handler<false>
    /**
      * @brief Expose the return type of the policy
      */
-    typedef size_type return_type;
+    typedef uint_t return_type;
     
     /**
      * @brief The type of the container that holds
      * the majority vote
      */
-    typedef std::map<size_type,size_type> majority_vote_container_type;
+    typedef std::map<uint_t, uint_t> majority_vote_container_type;
     
     /**
      * @brief The type of the pair used for storing row-distance values
      */
-    typedef std::pair<size_type,real_type> Pair;
+    typedef std::pair<uint_t, real_t> Pair;
     
-    /**
-     * @brief The type of the object to communicate when working with MPI.
-     * The first index is the class index and the second the number of occurrences
-     */
-    typedef parframepp::serializable_pair<size_type,size_type> comm_chunk;
-    
+
      /**
      * @brief The value that indicates that the policy has returned an invalid result.
      * By default this is numeric_limits<return_type>::max()
@@ -207,7 +187,7 @@ struct knn_policy_base_data_handler<false>
     /**
      * @brief Number of neighbors
      */
-    size_type k;
+    uint_t k;
     
     
     /**
@@ -222,13 +202,13 @@ struct knn_policy_base_data_handler<false>
       * @brief The vector that holds the values of the labels
       * vector for the k-top neighbors
       */
-    std::map<size_type,size_type> majority_vote;
+    std::map<uint_t, uint_t> majority_vote;
     
      
      /**
       * @brief Constructor
       */
-    knn_policy_base_data_handler(size_type k_);
+    knn_policy_base_data_handler(uint_t k_);
      
      
      /**
@@ -248,7 +228,7 @@ struct knn_policy_base_data_handler<false>
      * of such pairs as k in general will not be large. Note that
      * passed array is reseted to a new pointer. 
      */
-    void get_top_k_results(boost::scoped_array<comm_chunk>& arr)const;
+    //void get_top_k_results(boost::scoped_array<comm_chunk>& arr)const;
         
 };
 
@@ -269,21 +249,19 @@ knn_policy_base_data_handler<false>::fillin_majority_vote(const DataVec& labels)
 #endif
     
     
-   typedef std::map<size_type,size_type>::iterator iterator;
+   typedef std::map<uint_t, uint_t>::iterator iterator;
     
-   for(size_type i=0; i<k; ++i){
+   for(uint_t i=0; i<k; ++i){
         
-       size_type idx = k_distances[i].first;
-       size_type cls = labels[idx];
+       uint_t idx = k_distances[i].first;
+       uint_t cls = labels[idx];
 
-       utilities::add_or_update_map(majority_vote,cls,
-                                    utilities::scalar_value_traits<size_type>::one(),
-                                    [](iterator itr){itr->second += 1;});   
-       }   
+       kernel::add_or_update_map(majority_vote,cls, static_cast<uint_t>(1),
+                                [](iterator itr){itr->second += 1;});
+   }
 }
     
-    
-    
+
 /**
  * @brief Base class that holds common
  * functionality for classification and regression
@@ -319,7 +297,7 @@ public:
     /**
      * @brief Expose the type of the object needed for communication when using MPI
      */
-    typedef typename knn_policy_base_data_handler<is_regressor>::comm_chunk comm_chunk;
+    //typedef typename knn_policy_base_data_handler<is_regressor>::comm_chunk comm_chunk;
     
      
     /**
@@ -330,19 +308,18 @@ public:
     /**
      * @brief Set the value for the policy that indicates an invalid result
      */
-    static void set_invalid_result_value(return_type val){
-        knn_policy_base_data_handler<is_regressor>::set_invalid_result_value(val);}
+    static void set_invalid_result_value(return_type val){knn_policy_base_data_handler<is_regressor>::set_invalid_result_value(val);}
     
     /**
      * @brief Constructor
      */
-    knn_policy_base(size_type k);
+    knn_policy_base(uint_t k);
     
     
     /**
      * @brief Return the number of neighbors used for the classification
      */
-    size_type n_neighbors()const{return data_handler_.k;}
+    uint_t n_neighbors()const{return data_handler_.k;}
     
     
     /**
@@ -361,10 +338,9 @@ public:
      * In any case this function expects that the indices have been set up correctly
      * by the client code.
      */
-    template<typename DataMat,typename DataVec,typename Similarity>
-    void operator()(const utilities::DataInput<DataMat,DataVec>& data, 
-                    const DataVec& input, const Similarity& sim,
-                    const utilities::range1d<size_type>& range);
+    template<typename DataMat, typename LabelType, typename DataVec,typename Similarity>
+    void operator()(const DataMat& data, const LabelType& labels, const DataVec& input,
+                    const Similarity& sim, const kernel::range1d<uint_t>& range);
     
     
     /**
@@ -384,7 +360,7 @@ public:
      */
     template<typename DataVec>
     void fillin_majority_vote(const DataVec& labels, 
-                              std::vector<std::pair<size_type,real_type> >&& distances);
+                              std::vector<std::pair<uint_t,real_t> >&& distances);
     
     
     /**
@@ -401,7 +377,7 @@ public:
     /**
      * @brief Resume the object to a state just like when calling the constructor
      */
-    void resume(size_type k);
+    void resume(uint_t k);
     
     /**
      * @brief Resume the object to a state just like when calling the constructor but
@@ -420,7 +396,7 @@ public:
      * of such pairs as k in general will not be large. Note that
      * passed array is reseted to a new pointer. 
      */
-    void get_top_k_results(boost::scoped_array<comm_chunk>& arr)const{return data_handler_.get_top_k_results(arr);}
+    //void get_top_k_results(boost::scoped_array<comm_chunk>& arr)const{return data_handler_.get_top_k_results(arr);}
     
 protected:
     
@@ -433,12 +409,10 @@ protected:
 };
 
 template<bool is_regressor>
-template<typename DataMat, typename DataVec,typename Similarity>
+template<typename DataMat, typename LabelType, typename DataVec,typename Similarity>
 void 
-knn_policy_base<is_regressor>::operator()(const utilities::DataInput<DataMat,DataVec>& data, 
-                                          const DataVec& point, 
-                                          const Similarity& sim,
-                                          const utilities::range1d<size_type>& range){
+knn_policy_base<is_regressor>::operator()(const DataMat& data,  const LabelType& labels, const DataVec& point,
+                                          const Similarity& sim, const kernel::range1d<uint_t>& range){
     
     typedef typename knn_policy_base<is_regressor>::Pair Pair;
      
@@ -447,14 +421,14 @@ knn_policy_base<is_regressor>::operator()(const utilities::DataInput<DataMat,Dat
     std::vector<Pair> distances;
     distances.reserve(range.size());
     
-    for(size_type r=range.begin(); r<range.end(); ++r){
+    for(uint_t r=range.begin(); r<range.end(); ++r){
         
         //access the r-th row of the matrix
-        const DataVec& data_point = data.t1.row(r);
+        const DataVec& data_point = data.row(r);
         
         //compute the distance between the data point and the 
         //input point
-        real_type dis = sim(data_point,point);
+        real_t dis = sim(data_point, point);
         
         //compute the similarity and append it to distances
         distances.push_back(std::make_pair(r,dis));  
@@ -462,8 +436,7 @@ knn_policy_base<is_regressor>::operator()(const utilities::DataInput<DataMat,Dat
     
     //sort the computed pairs based on the distances
     std::sort(distances.begin(),distances.end(),
-             [](const Pair& p1,const Pair& p2){
-               return p1.second < p2.second;});
+             [](const Pair& p1,const Pair& p2){return p1.second < p2.second;});
     
     {
         //empty what has been already computed 
@@ -473,31 +446,19 @@ knn_policy_base<is_regressor>::operator()(const utilities::DataInput<DataMat,Dat
                
     data_handler_.k_distances.reserve(data_handler_.k);
     
-    
-/*    
-#ifdef PARML_DEBUG
-    
-    using utilities::ExeLogicError;
-    const std::string msg = "In knn_class_policy::operator(). Number of neighbors: "+
-                            std::to_string(data_handler_.k)+" not compatible with: "+
-                            std::to_string(distances.size());
-    
-    Assert(data_handler_.k < distances.size(),ExeLogicError(msg));
-#endif
-*/
-        
-    for(size_type i=0; i<data_handler_.k; ++i){
+
+    for(uint_t i=0; i<data_handler_.k; ++i){
        data_handler_.k_distances.push_back(distances[i]);
     }   
     
     //fill in the majority vote
-    fillin_majority_vote(data.t2);
+    fillin_majority_vote(labels);
     
     /*if(compute_majority_vote_){
         auto y = DataInput::type_2(this->data_in_);
     
         kmeans_detail::fillin_majority_vote(majority_vote_,*y,distances,k_);
-    }*/    
+    }*/
 }
 
 template<bool is_regressor>
@@ -512,7 +473,7 @@ template<bool is_regressor>
 template<typename DataVec>
 void 
 knn_policy_base<is_regressor>::fillin_majority_vote(const DataVec& labels, 
-                                                    std::vector<std::pair<size_type,real_type> >&& distances){
+                                                    std::vector<std::pair<uint_t,real_t> >&& distances){
     
     data_handler_.k_distances = std::move(distances);
     distances.clear();

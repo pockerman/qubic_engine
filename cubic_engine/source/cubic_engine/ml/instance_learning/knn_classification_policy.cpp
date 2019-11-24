@@ -1,50 +1,51 @@
-#include "parml/instance_learning/knn_classification_policy.h"
+#include "cubic_engine/ml/instance_learning/knn_classification_policy.h"
+#include "kernel/base/kernel_consts.h"
 
 
-namespace parml
+namespace cengine
 {
     
-   knn_classify_policy::knn_classify_policy(size_type k)
+   KnnClassificationPolicy::KnnClassificationPolicy(uint_t k)
    :
    knn_policy_base<false>(k)
    {}
     
-   knn_classify_policy::return_type 
-   knn_classify_policy::get_result()const{
+   KnnClassificationPolicy::return_type
+   KnnClassificationPolicy::get_result()const{
        
        if(this->data_handler_.majority_vote.empty()){
-           ParML::iuint();   
+           return kernel::KernelConsts::invalid_size_type();
        }
        
        auto voteitr  = this->data_handler_.majority_vote.begin();
        auto voteitre = this->data_handler_.majority_vote.end();
        
        //the class index
-       size_type rslt = voteitr->first;
+       uint_t rslt = voteitr->first;
        
        //the class counter
-       size_type ctr  = voteitr->second;
+       uint_t ctr  = voteitr->second;
     
        while(voteitr != voteitre){
         
-                size_type rslttmp = voteitr->first;
-                size_type ctrtmp  = voteitr->second;
+         uint_t rslttmp = voteitr->first;
+         uint_t ctrtmp  = voteitr->second;
         
-                if(ctrtmp > ctr){
-                    ctr = ctrtmp;
-                    rslt = rslttmp;
-                }
+         if(ctrtmp > ctr){
+             ctr = ctrtmp;
+             rslt = rslttmp;
+         }
 
-                voteitr++;
-        }
+         voteitr++;
+       }
 
         return rslt;      
    }
    
    
-   knn_classify_policy::return_type 
-   knn_classify_policy::get_result(const boost::scoped_array<knn_classify_policy::comm_chunk>& results,
-                                   size_type nelems)const{
+   /*KnnClassificationPolicy::return_type
+   KnnClassificationPolicy::get_result(const boost::scoped_array<knn_classify_policy::comm_chunk>& results,
+                                         uint_t nelems)const{
        
        
         size_type rslt = ParML::iuint();
@@ -67,5 +68,5 @@ namespace parml
         }
     
         return rslt;    
-   }
+   }*/
 }

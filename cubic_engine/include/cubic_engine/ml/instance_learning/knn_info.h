@@ -8,13 +8,12 @@
 #ifndef KNN_INFO_H
 #define	KNN_INFO_H
 
-#include "parml/base/parml.h"
-#include "parml/instance_learning/knn_type.h"
+#include "cubic_engine/base/cubic_engine_types.h"
 
 #include <chrono>
 #include <ostream>
 
-namespace parml
+namespace cengine
 {
     
     
@@ -25,37 +24,30 @@ namespace parml
 struct KnnInfo
 {
     
-    
- 
     /**
      * @brief How many threads the algorithm used
      */
-    size_type nthreads;
+    uint_t nthreads;
     
     /**
      * @brief How many processors the algorithm used
      */
-    size_type nprocs; 
-    
-    /**
-     * @brief The type of the knn algorithm
-     */
-    knn_type::Type type;
+    uint_t nprocs;
     
     /**
      * @brief The total time duration of the algorithm
      */
-    std::chrono::duration<real_type> runtime;
+    std::chrono::duration<real_t> runtime;
     
     /**
      * @brief how many points it predicted
      */
-    size_type n_pts_predicted;
+    uint_t n_pts_predicted;
     
     /**
      * @brief The number of neighbors used
      */
-    size_type n_neighbors;
+    uint_t n_neighbors;
     
     
     /**
