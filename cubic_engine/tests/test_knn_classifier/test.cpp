@@ -11,9 +11,10 @@ namespace test_data
 using uint_t = cengine::uint_t;
 using real_t = cengine::real_t;
 using Mat = cengine::DynMat<real_t>;
-using Vec = cengine::DynVec<uint_t>;
+using VecInt = cengine::DynVec<uint_t>;
+using VecDouble = cengine::DynVec<real_t>;
 
-void create_data_set(Mat& mat, Vec& vec ){
+void create_data_set(Mat& mat, VecInt& vec ){
 
     mat(0,0) = 1.0;
     mat(0,1) = 3.0;
@@ -56,22 +57,20 @@ TEST(TestKnnClassifier, TestCorrectClass) {
 
     using namespace test_data;
     Mat matrix(12, 2, 0.0);
-    Vec labels(12, 0);
+    VecInt labels(12, 0);
 
     create_data_set(matrix, labels);
 
     cengine::KnnInput input;
     input.k = 2;
 
-    cengine::Knn<Mat, Vec, kernel::LpMetric<2>, cengine::KnnClassificationPolicy> classifier(input);
+    cengine::Knn<Mat, VecInt, kernel::LpMetric<2>, cengine::KnnClassificationPolicy> classifier(input);
 
-    Vec point(2);
+    VecDouble point(2);
     point[0] = 3.1;
-    point[1] = 1.0;
+    point[1] = 2.0;
     auto reslt = classifier.predict(point);
 
-    //auto rslt = pearson_corr(data1, data2);
-
-    ///ASSERT_EQ(rslt, 1.0)<<"TestArrayStats::PearsonCorrelationSuccess failed\n";
+    ASSERT_EQ(reslt, 0)<<"TestKnnClassifier::TestCorrectClass failed with incorrect class\n";
 
 }
