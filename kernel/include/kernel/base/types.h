@@ -22,11 +22,12 @@ namespace kernel
 
     /// \brief General matrix type
     template<typename T>
-    using DynMat = blaze::DynamicMatrix<T, rowMajor>;
+    using DynMat = blaze::DynamicMatrix<T, blaze::rowMajor>;
 
-    /// \brief General vector type
+    /// \brief General vector type. By default this is
+    /// a column vector
     template<typename T>
-    using DynVec = blaze::DynamicVector<T>;
+    using DynVec = blaze::DynamicVector<T, blaze::columnVector>;
 
 }
 
