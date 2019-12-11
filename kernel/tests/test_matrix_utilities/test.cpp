@@ -48,7 +48,28 @@ TEST(TestMatrixUtilities, TestShuffleRows) {
     matrix = data;
     auto set = kernel::shuffle_matrix_rows(matrix);
 
-    ASSERT_FALSE(set.empty())<<"No rows were shuffled\n";
+    ASSERT_EQ(set.empty(), false)<<"No rows were shuffled\n";
+}
+
+
+/***
+   * Test Scenario:    The application attempts to shuffle the rows of a given matrix
+   * Expected Output:  Rows should be shuffled successfully
+ **/
+TEST(TestMatrixUtilities, TestGetRow) {
+
+    using uint_t = kernel::uint_t;
+    using real_t = kernel::real_t;
+    using DynMat = kernel::DynMat<real_t>;
+    using DynVec = kernel::DynVec<real_t>;
+
+    uint_t data[3][3] = {{1, 1, 1}, {2, 2, 2}, {3, 3, 3}};
+    DynMat matrix(3, 3);
+
+    matrix = data;
+    auto set = kernel::get_row(matrix, static_cast<uint_t>(0));
+
+    ASSERT_EQ(set.size(), 3)<<"Invalid row size\n";
 }
 
 
