@@ -11,6 +11,7 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/utilities/range_1d.h"
 #include "kernel/utilities/map_utilities.h"
+#include "kernel/maths/matrix_utilities.h"
 #include <boost/scoped_array.hpp>
 
 #include <vector>
@@ -424,7 +425,7 @@ knn_policy_base<is_regressor>::operator()(const DataMat& data,  const LabelType&
     for(uint_t r=range.begin(); r<range.end(); ++r){
         
         //access the r-th row of the matrix
-        const DataVec& data_point = data.row(r);
+        const DataVec& data_point = kernel::get_row(data, r); //data.row(r);
         
         //compute the distance between the data point and the 
         //input point

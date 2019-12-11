@@ -65,12 +65,13 @@ TEST(TestKnnClassifier, TestCorrectClass) {
     input.k = 2;
 
     cengine::Knn<Mat, VecInt, kernel::LpMetric<2>, cengine::KnnClassificationPolicy> classifier(input);
+    classifier.train(matrix, labels);
 
     VecDouble point(2);
     point[0] = 3.1;
     point[1] = 2.0;
     auto reslt = classifier.predict(point);
 
-    ASSERT_EQ(reslt, 0)<<"TestKnnClassifier::TestCorrectClass failed with incorrect class\n";
+    ASSERT_EQ(reslt.first, 0)<<"TestKnnClassifier::TestCorrectClass failed with incorrect class\n";
 
 }

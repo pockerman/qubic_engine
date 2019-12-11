@@ -46,17 +46,17 @@ public:
 
 private:
 
+      const KnnInput input_;
       const DataSetType* data_ptr_;
       const LabelType* labels_ptr_;
-      const KnnInput input_;
-
-    
 };
 
 template<typename DataSetType, typename LabelType, typename Similarity, typename Actor>
 Knn<DataSetType, LabelType, Similarity, Actor>::Knn(const KnnInput& input)
     :
-   input_(input)
+   input_(input),
+   data_ptr_(nullptr),
+   labels_ptr_(nullptr)
 {}
 
 
