@@ -21,7 +21,6 @@ void exchange_rows(MatType& mat, uint_t r1, uint_t r2){
         mat(r1, col) = mat(r2, col);
         mat(r2, col) = tmp;
     }
-
 }
 
 /**
@@ -58,6 +57,42 @@ std::set<uint_t> shuffle_matrix_rows(MatType& mat){
     }
 
     return touched;
+}
+
+/*template<typename MatType, typename RowType>
+RowType get_row(const MatType& matrix, uint_t row_idx){
+
+    RowType row(matrix.columns());
+
+    typename MatType::ConstIterator it = matrix.begin(row_idx);
+    typename MatType::ConstIterator it_end = matrix.begin(row_idx);
+
+    uint_t col_counter = 0;
+    for(; it != it_end; ++it){
+
+        row[col_counter++] = it->value();
+    }
+
+    return row;
+}*/
+
+
+DynVec<real_t>
+get_row(const DynMat<real_t>& matrix, uint_t row_idx){
+
+    DynVec<real_t> row(matrix.columns());
+
+    auto row_it = row.begin();
+    auto it = matrix.begin(row_idx);
+    auto it_end = matrix.begin(row_idx);
+
+    uint_t col_counter = 0;
+    for(; it != it_end; ++it, ++row_it){
+        auto val = *it;
+        row[col_counter++] =  val;
+    }
+
+    return row;
 }
 
 }
