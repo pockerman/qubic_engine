@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
+
 ADD_SUBDIRECTORY(test_stoppable_task)
 ADD_SUBDIRECTORY(test_thread_pool)
 ADD_SUBDIRECTORY(test_dot_product)
@@ -7,6 +8,7 @@ ADD_SUBDIRECTORY(test_parallel_for)
 ADD_SUBDIRECTORY(test_parallel_reduce)
 ADD_SUBDIRECTORY(test_file_writer_base)
 ADD_SUBDIRECTORY(test_matrix_utilities)
+ADD_SUBDIRECTORY(test_real_vector_polynomial)
+
 INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR})
-#INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
 LINK_DIRECTORIES(${PROJECT_LIB_DIR})
