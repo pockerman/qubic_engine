@@ -20,20 +20,7 @@ public:
     * Returns true if the iterations of the algorithm should be continued
     */
 
-    bool continue_iterations(){
-
-       if(this.currentIterationIdx >= this.maxIterations){
-           return false;
-       }
-       else if(this.currentRes < this.exitTolerance){
-
-           this.currentIterationIdx++;
-           return false;
-       }
-
-       this.currentIterationIdx++;
-       return true;
-   }
+    bool continue_iterations();
 
     /**
       * Returns the current iteration index
