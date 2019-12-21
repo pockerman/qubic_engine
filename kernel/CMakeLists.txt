@@ -36,9 +36,10 @@ ENDIF()
 
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/kernel)
-SET(BLAZE_INCL_DIR "")
-SET(GTEST_INC_DIR "")
-SET(GTEST_LIB_DIR "")
+SET(BLAZE_INCL_DIR /home/david/MyProjects/cubic_engine/chrono_lib/blaze-3.4/install/include)
+SET(GTEST_INC_DIR /home/david/MySoftware/gtest/install/include)
+SET(GTEST_LIB_DIR /home/david/MySoftware/gtest/install/lib)
+
 
 IF(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES " ")
         SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fopenmp")
@@ -71,7 +72,9 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/parallel/threading/*.cpp
                  ${PROJECT_SRC_DIR}/parallel/utilities/*.cpp
                  ${PROJECT_SRC_DIR}/utilities/*.cpp
-                 ${PROJECT_SRC_DIR}/vehicles/*.cpp)
+                 ${PROJECT_SRC_DIR}/vehicles/*.cpp
+                 ${PROJECT_SRC_DIR}/maths/functions/*.cpp)
+
 
 ADD_LIBRARY(${LIB_NAME} SHARED ${SRCS})
 
