@@ -1,3 +1,4 @@
+#include "kernel/base/config.h"
 #include "kernel/parallel/parallel_algos/parallel_for.h"
 #include "kernel/parallel/threading/thread_pool.h"
 #include "kernel/utilities/range_1d.h"
@@ -6,6 +7,9 @@
 #include "kernel/parallel/utilities/result_holder.h"
 #include "kernel/base/types.h"
 #include "kernel/base/exceptions.h"
+
+
+
 #include <vector>
 #include <gtest/gtest.h>
 
@@ -136,6 +140,7 @@ TEST(TestParallelFor, RunWithIdentityBody) {
         ASSERT_FALSE("A non expected exception was thrown");
     }
 }
+
 
 
 

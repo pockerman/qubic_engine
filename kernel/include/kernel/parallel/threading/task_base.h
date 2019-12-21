@@ -33,6 +33,9 @@ public:
     /// \brief Execute the task
     virtual void operator()();
 
+    /// \brief Execute the task
+    void execute();
+
     /// \brief Returns true if the task has completed
     bool finished()const;
 
@@ -72,6 +75,12 @@ protected:
     std::string name_;
 
 };
+
+inline
+void
+TaskBase::execute(){
+    (*this)();
+}
 
 }
 
