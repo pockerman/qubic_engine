@@ -1,6 +1,10 @@
 #include "kernel/base/config.h"
+
+#ifdef USE_OPENMP
+
+#include "kernel/parallel/threading/task_base.h"
 #include "kernel/parallel/parallel_algos/parallel_for.h"
-#include "kernel/parallel/threading/thread_pool.h"
+#include "kernel/parallel/threading/openmp_executor.h"
 #include "kernel/utilities/range_1d.h"
 #include "kernel/parallel/utilities/partitioned_type.h"
 #include "kernel/parallel/utilities/array_partitioner.h"
@@ -8,12 +12,28 @@
 #include "kernel/base/types.h"
 #include "kernel/base/exceptions.h"
 
-
-
 #include <vector>
 #include <gtest/gtest.h>
 
 namespace{
+
+struct DummyTestTask: public kernel::TaskBase
+{
+
+public:
+
+    DummyTestTask()
+        :
+          kernel::TaskBase()
+    {}
+
+protected:
+
+    /// \brief Function to overrided by defived classes.
+    /// It actually executes the compuational task
+    void run(){}
+
+};
 
 }
 
@@ -26,7 +46,7 @@ namespace{
 TEST(TestParallelFor, RunWithNoPartitions) {
 
     using kernel::uint_t;
-    using kernel::ThreadPool;
+    using kernel::OMPExecutor;
     using kernel::range1d;
     using kernel::PartitionedType;
 
@@ -35,7 +55,7 @@ TEST(TestParallelFor, RunWithNoPartitions) {
     try{
 
         // this is the executor
-        ThreadPool pool(4);
+        OMPExecutor pool(4);
 
         // a dummy partitoned ranges
         PartitionedType<std::vector<uint_t>> range;
@@ -64,7 +84,7 @@ TEST(TestParallelFor, RunWithNoPartitions) {
 TEST(TestParallelFor, RunWithInvalidNumPartitions) {
 
     using kernel::uint_t;
-    using kernel::ThreadPool;
+    using kernel::OMPExecutor;
     using kernel::range1d;
     using kernel::PartitionedType;
 
@@ -73,7 +93,7 @@ TEST(TestParallelFor, RunWithInvalidNumPartitions) {
     try{
 
         // this is the executor
-        ThreadPool pool(4);
+        OMPExecutor pool(4);
 
         // a dummy partitoned ranges
         PartitionedType<std::vector<uint_t>> range;
@@ -107,7 +127,7 @@ TEST(TestParallelFor, RunWithInvalidNumPartitions) {
 TEST(TestParallelFor, RunWithIdentityBody) {
 
     using kernel::uint_t;
-    using kernel::ThreadPool;
+    using kernel::OMPExecutor;
     using kernel::range1d;
     using kernel::PartitionedType;
     using kernel::ResultHolder;
@@ -116,13 +136,14 @@ TEST(TestParallelFor, RunWithIdentityBody) {
     try{
 
         // this is the executor
-        ThreadPool pool(4);
+        OMPExecutor pool(4);
 
         std::vector<range1d<uint_t>> partitions;
-        kernel::partition_range(0, 100, partitions, pool.get_n_threads());
+        uint_t n_threads = pool.get_n_threads();
+        kernel::partition_range(0, 100, partitions, n_threads);
 
         // a dummy partitoned ranges
-        PartitionedType<std::vector<uint_t>> vector(100, 0);
+        PartitionedType<std::vector<uint_t>> vector(100, 1);
         vector.set_partitions(partitions);
 
         // dummy body
@@ -141,6 +162,8 @@ TEST(TestParallelFor, RunWithIdentityBody) {
     }
 }
 
+
+#endif
 
 
 

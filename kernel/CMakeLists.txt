@@ -23,7 +23,7 @@ SET(LIB_NAME "kernellib")
 SET(KERNELLIB_VERSION_MAJOR 0)
 SET(KERNELLIB_VERSION_MINOR 1)
 SET(KERNELLIB_VERSION_PATCH 0)
-PROJECT(ParallelFrameLib VERSION ${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH})
+PROJECT(KernelLib VERSION ${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH})
 SET(KERNELLIB_VERSION "${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH}")
 
 # find Boost
@@ -35,72 +35,45 @@ IF(Boost_FOUND)
 ENDIF()
 
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
-SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/parframe)
-
-# Currently fail the build if the user does not supply the
-# variables.
-# TODO: How to do it better
-SET(BLAZE_INCL_DIR " ")
-
-if(${BLAZE_INCL_DIR} MATCHES " ")
-    MESSAGE(FATAL_ERROR " Blaze directory not set")
-else()
-    INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
-endif()
-
-SET(CHRONO_INCL_DIR " ")
-
-if(${CHRONO_INCL_DIR} MATCHES " ")
-    MESSAGE(FATAL_ERROR " Chrono directory not set")
-else()
-    INCLUDE_DIRECTORIES(${CHRONO_INCL_DIR})
-endif()
-
-SET(GTEST_INC_DIR " ")
-SET(GTEST_LIB_DIR " ")
-
-if(${GTEST_INC_DIR} MATCHES " " OR ${GTEST_LIB_DIR} MATCHES " ")
-    MESSAGE(FATAL_ERROR " GTest not configured")
-else()
-    INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
-endif()
+SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/kernel)
+SET(BLAZE_INCL_DIR "")
+SET(GTEST_INC_DIR "")
+SET(GTEST_LIB_DIR "")
 
 IF(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES " ")
-        SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread")
+        SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fopenmp")
         SET(CMAKE_LINKER_FLAGS "-pthread")
-        SET(CUBIC_ENGINE_DEBUG 1)
         SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)
 ELSEIF(CMAKE_BUILD_TYPE MATCHES "Release")
         SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -pthread")
         SET(CMAKE_LINKER_FLAGS "-pthread")
-        SET(CUBIC_ENGINE_DEBUG 0)
         SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/opt)
 ELSE()
 
-     SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread")
+     SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fopenmp")
      SET(CMAKE_LINKER_FLAGS "-pthread")
-     SET(CUBIC_ENGINE_DEBUG 1)
      SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)
 ENDIF()
 
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
+MESSAGE(STATUS "INSTALL DIR ${CMAKE_INSTALL_PREFIX}")
 
 # include dirs used by the project
 INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR}) 
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
+INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
+INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
 
 # use the Boost link directories
 LINK_DIRECTORIES(${BOOST_LIBRARYDIR})
 
-# add a shared library to link the app
-# TODO: do this better as this way is not scalable
 FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/parallel/threading/*.cpp
                  ${PROJECT_SRC_DIR}/parallel/utilities/*.cpp
                  ${PROJECT_SRC_DIR}/utilities/*.cpp
                  ${PROJECT_SRC_DIR}/vehicles/*.cpp)
-                 
-ADD_LIBRARY(${LIB_NAME} SHARED {SRCS})
+
+ADD_LIBRARY(${LIB_NAME} SHARED ${SRCS})
 
 SET_TARGET_PROPERTIES(kernellib PROPERTIES LINKER_LANGUAGE CXX)
 INSTALL(TARGETS kernellib DESTINATION ${CMAKE_INSTALL_PREFIX})
