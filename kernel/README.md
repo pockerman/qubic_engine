@@ -23,6 +23,7 @@
 - <a href="examples/example_8">Example 8</a> Serial Monte Carlo Integration
 - <a href="examples/example_10">Example 10</a> Calculate the area of a circle using Monte Carlo integration
 - <a href="examples/example_11">Example 11</a> Radio active deacay simulation
+- <a href="examples/example_14">Example 14</a> Monte Carlo Integration with ```OMPExecutor``` class
 
 
 ### Physics Simulation
