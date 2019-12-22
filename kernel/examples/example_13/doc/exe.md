@@ -1,4 +1,4 @@
-# Example: Using ```parallel_for``` pattern
+# Example: Using ```parallel_for``` pattern with OpenMP
 
 ## Contents
 * [Acknowledgements](#ackw)
