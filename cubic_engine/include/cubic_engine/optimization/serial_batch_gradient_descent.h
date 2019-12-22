@@ -137,27 +137,21 @@ Gd::solve(const MatType& mat,const VecType& v,
                      <<" exit tolerance: "<<input_.get_exit_tolerance()<<std::endl;
         }
         
-        if(error < data_.tolerance){
-            
-            info.niterations = itr;
-            info.residual = error;
-            info.converged = true;
-            break;
-        }
-        
         Jold = Jcur;
         
         //zero the gradients
         for(uint_t c=0; c<Jgrads.size(); ++c){
-            
+
             Jgrads[c] = 0.0;
         }
            
     }//itrs
     
-    if(!info.converged){
+    /*if(!info.converged){
         info.niterations = input_.get_max_iterations();
-    }
+    }*/
+
+    auto state = input_.get_state();
     
     end = std::chrono::system_clock::now();
     info.runtime = end-start;
