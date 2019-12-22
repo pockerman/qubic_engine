@@ -30,6 +30,7 @@ struct GDControl: public kernel::IterativeAlgorithmController
     /// \brief Flag indicating if iteration infor should be printed
     bool show_iterations;
 
+    /// \brief Constructor
     GDControl( uint_t max_num_itrs, real_t tolerance=kernel::KernelConsts::tolerance(), real_t eta=GDControl::DEFAULT_LEARNING_RATE );
 
 };
@@ -89,7 +90,7 @@ Gd::Gd(const GDControl& input)
 
 template<typename MatType,typename VecType,typename ErrorFuncType,typename HypothesisFuncType>
 GDInfo 
-Gd::solve(const MatType& mat,const VecType& v,
+Gd::solve(const MatType& data,const VecType& y,
                         const ErrorFuncType& error_fun,HypothesisFuncType& h){
     
     std::chrono::time_point<std::chrono::system_clock> start, end;
@@ -99,57 +100,49 @@ Gd::solve(const MatType& mat,const VecType& v,
     GDInfo info;
     info.learning_rate = input_.learning_rate;
 
-    
     //this should be scaled
-    real_t Jold = error_fun.value(h);
-    real_t Jcur = 0.0;
+    real_t j_old = error_fun.value(data, y);
+    real_t j_current = 0.0;
     
     const size_t ncoeffs = h.n_coeffs();
     
-    //the gradients of the error function.
-    std::vector<real_t> Jgrads(ncoeffs, 0.0);
-    
-    //uint_t niterations = data_.max_n_iterations;
-
     while(input_.continue_iterations()){
 
-        //calculate the gradients
-        error_fun.gradients(Jgrads,h);
-        
+        // get the gradients with respect to the coefficients
+        auto j_grads = error_fun.coeff_grads(data, y);
+
+
         //update the coefficients
         std::vector<real_t>& coeffs = h.coeffs();
         
         for(uint_t c=0; c<ncoeffs; ++c){
-            coeffs[c] -= input_.learning_rate*Jgrads[c];
+            coeffs[c] -= input_.learning_rate*j_grads[c];
         }
         
-        //recalculate...this is already scaled
-        Jcur = error_fun.value(h);
-        real_t error = std::fabs(Jcur-Jold);
+        //recalculate...
+        j_current = error_fun.value(data, y);
+        real_t error = std::fabs(j_current - j_old);
 
+        input_.update_residual(error);
         uint_t itr = input_.get_current_tteration();
         
         if(input_.show_iterations){
             
             std::cout<<"BatchGD: iteration: "<<itr<<std::endl;
-            std::cout<<"\tJold: "<<Jold<<" Jcur: "<<Jcur
+            std::cout<<"\tJold: "<<j_old<<" Jcur: "<<j_current
                      <<" error std::fabs(Jcur-Jold): "<<error
                      <<" exit tolerance: "<<input_.get_exit_tolerance()<<std::endl;
         }
         
-        Jold = Jcur;
+        j_old = j_current;
         
         //zero the gradients
-        for(uint_t c=0; c<Jgrads.size(); ++c){
-
-            Jgrads[c] = 0.0;
+        for(uint_t c=0; c<j_grads.size(); ++c){
+            j_grads[c] = 0.0;
         }
            
     }//itrs
     
-    /*if(!info.converged){
-        info.niterations = input_.get_max_iterations();
-    }*/
 
     auto state = input_.get_state();
     
