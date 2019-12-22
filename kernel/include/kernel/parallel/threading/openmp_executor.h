@@ -41,6 +41,9 @@ public:
     template<typename TaskTypePtr>
     void parallel_for_nowait(const std::vector<TaskTypePtr>& tasks, ScheduleType type=ScheduleType::DEFAULT)const;
 
+    template<typename TaskType, typename OpType>
+    void parallel_for_reduce(uint_t iterations, OpType& operation, ScheduleType type=ScheduleType::DEFAULT)const;
+
     /// \brief Has dynamic teams enabled or not
     bool has_dynamic_teams()const{return has_disabled_dyn_teams_;}
 
@@ -103,6 +106,42 @@ OMPExecutor::parallel_for_nowait(const std::vector<TaskTypePtr>& tasks, Schedule
     else{
         throw std::invalid_argument("Invalid scheduling type");
     }
+}
+
+
+template<typename TaskType, typename OpType>
+void
+OMPExecutor::parallel_for_reduce(uint_t iterations, OpType& operation, ScheduleType type)const{
+
+    if(type == ScheduleType::DEFAULT){
+
+        #pragma omp parallel default(none) shared(operation, iterations)
+        {
+                    // a task for each thread in the region
+                    TaskType task;
+
+                    #pragma omp for nowait
+                        for(uint_t t=0; t<iterations; ++t){
+
+                            // execute the task for the number of iterations
+                            // tha the thread has been allocated
+                            task.execute();
+
+                            // reschedule the task after one execution
+                            task.reschedule();
+                        }
+
+                     // once the thread is finished join the results
+                     #pragma omp critical
+                        operation.join(task.get_result());
+        }
+
+        operation.validate_result();
+    }
+    else{
+        throw std::invalid_argument("Invalid scheduling type");
+    }
+
 }
 
 
