@@ -36,27 +36,53 @@ ENDIF()
 
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/kernel)
-SET(BLAZE_INCL_DIR /home/david/MyProjects/cubic_engine/chrono_lib/blaze-3.4/install/include)
-SET(GTEST_INC_DIR /home/david/MySoftware/gtest/install/include)
-SET(GTEST_LIB_DIR /home/david/MySoftware/gtest/install/lib)
 
-IF(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES " ")
-        SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fopenmp")
-        SET(CMAKE_LINKER_FLAGS "-pthread")
-        SET(CUBIC_ENGINE_DEBUG 1)
+SET(BLAZE_INCL_DIR " ")
+
+IF( BLAZE_INCL_DIR MATCHES " " )
+    MESSAGE( FATAL_ERROR  "Blaze include directory has not been specified")
+ENDIF()
+
+SET(ENABLE_TESTING ON)
+
+IF( ENABLE_TESTING MATCHES "ON")
+    SET(GTEST_INC_DIR " ")
+    SET(GTEST_LIB_DIR " ")
+ENDIF()
+
+IF( ENABLE_TESTING MATCHES "ON" AND GTEST_INC_DIR MATCHES " " )
+    MESSAGE( FATAL_ERROR  "Testing is enabled but GTest include directory has not been specified")
+ENDIF()
+
+IF( ENABLE_TESTING MATCHES "ON" AND GTEST_LIB_DIR MATCHES " " )
+    MESSAGE( FATAL_ERROR  "Testing is enabled but GTest lib directory has not been specified")
+ENDIF()
+
+SET(USE_OPENMP ON)
+SET(CMAKE_BUILD_TYPE "Debug")
+
+IF(USE_OPENMP MATCHES "ON")
+
+    IF(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES " ")
+        SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fopenmp -fPIC")
         SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)
-ELSEIF(CMAKE_BUILD_TYPE MATCHES "Release")
-        SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -pthread")
-        SET(CMAKE_LINKER_FLAGS "-pthread")
-        SET(CUBIC_ENGINE_DEBUG 0)
+    ELSE()
+        SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -pthread -fopenmp -fPIC")
         SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/opt)
+    ENDIF()
 ELSE()
 
-     SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fopenmp")
-     SET(CMAKE_LINKER_FLAGS "-pthread")
-     SET(CUBIC_ENGINE_DEBUG 1)
-     SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)
+    IF(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES " ")
+        SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fPIC")
+        SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)
+    ELSE()
+        SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -pthread -fPIC")
+        SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/opt)
+    ENDIF()
 ENDIF()
+
+SET(CMAKE_LINKER_FLAGS "-pthread")
+
 
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
 MESSAGE(STATUS "INSTALL DIR ${CMAKE_INSTALL_PREFIX}")
@@ -74,7 +100,9 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/parallel/threading/*.cpp
                  ${PROJECT_SRC_DIR}/parallel/utilities/*.cpp
                  ${PROJECT_SRC_DIR}/utilities/*.cpp
-                 ${PROJECT_SRC_DIR}/vehicles/*.cpp)
+                 ${PROJECT_SRC_DIR}/vehicles/*.cpp
+                 ${PROJECT_SRC_DIR}/maths/functions/*.cpp)
+
 
 ADD_LIBRARY(${LIB_NAME} SHARED ${SRCS})
 
@@ -84,5 +112,7 @@ INSTALL(TARGETS kernellib DESTINATION ${CMAKE_INSTALL_PREFIX})
 # Add the examples
 ADD_SUBDIRECTORY(examples)
 
+IF( ENABLE_TESTING MATCHES "ON")
 ENABLE_TESTING()
 ADD_SUBDIRECTORY(tests)
+ENDIF()
