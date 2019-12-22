@@ -46,7 +46,7 @@ public:
     /**
      * Update the residual
      */
-    void updateResidual(real_t res){
+    void update_residual(real_t res){
 
       current_res_ = res;
     }

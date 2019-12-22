@@ -15,7 +15,7 @@ class Monomial: public FunctionBase<real_t, real_t>
 
 public:
 
-    typedef FunctionBase<real_t, real_t>::input_t input_t;
+    typedef real_t input_t;
     typedef FunctionBase<real_t, real_t>::output_t output_t;
 
     /**
@@ -31,7 +31,17 @@ public:
     /**
      * Returns the value of the function
      */
-    virtual output_t value(const input_t& input) final;
+    virtual output_t value(const input_t& input)const override final;
+
+    /**
+      * Returns the gradients of the function
+      */
+    virtual DynVec<real_t> gradients(const input_t&  input)const override final{return DynVec<real_t>(1, coeff_*order_*std::pow(input, order_-1));}
+
+    /**
+      * Returns the gradient with respect to the coefficient
+      */
+    real_t coeff_grad(const input_t& input)const{ return std::pow(input, order_);}
 
      /**
        * Returns the number of coefficients
@@ -74,7 +84,7 @@ Monomial::Monomial(real_t coeff, int order)
 
 inline
 Monomial::output_t
-Monomial::value(const Monomial::input_t& input){
+Monomial::value(const Monomial::input_t& input)const{
     return coeff_*std::pow(input, order_);
 }
 
