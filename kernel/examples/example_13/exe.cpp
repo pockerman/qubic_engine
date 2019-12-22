@@ -1,3 +1,7 @@
+#include "kernel/base/config.h"
+
+#ifdef USE_OPENMP
+
 #include "kernel/base/types.h"
 #include "kernel/utilities/range_1d.h"
 #include "kernel/parallel/parallel_algos/parallel_for.h"
@@ -56,6 +60,15 @@ int main(){
 
     return 0;
 }
+#else
+#include <iostream>
+int main(){
+    std::cout<<"You need OpenMP to run this example. Reconfigure kernel with OpenMP support"<<std::endl;
+}
+#endif
+
+
+
 
 
 
