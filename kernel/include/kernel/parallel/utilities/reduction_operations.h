@@ -15,8 +15,6 @@ class Sum: public ResultHolder<T>
 
 public:
 
-    //typedef T value_type;
-    //typedef std::pair<value_type, bool> result_type;
     using value_type  = typename ResultHolder<T>::value_type;
     using result_type = typename ResultHolder<T>::result_type;
     using ResultHolder<T>::ResultHolder;
