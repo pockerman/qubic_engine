@@ -172,9 +172,9 @@ parallel_for<RangeTp, BodyTp, OMPExecutor>::execute(OMPExecutor& executor){
 
     // if the tasks have not finished yet
     // then the calling thread waits here
-    while(!tasks_finished()){
+    /*while(!tasks_finished()){
        std::this_thread::yield();
-    }
+    }*/
 
     result_.validate_result();
     for(uint_t t=0; t < tasks_.size(); ++t){

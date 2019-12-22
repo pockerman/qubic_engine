@@ -1,9 +1,9 @@
-# Example: Using ```parallel_for``` pattern
+# Example: Serial Monte Carlo Integration
 
 ## Contents
 * [Acknowledgements](#ackw)
 * [Overview](#overview) 
-	* [parallel_for](#parallel_for)
+	* [Monte Carlo Integration](#monte_carlo_integration)
 * [Include files](#include_files)
 * [Program structure](#prg_struct)
 * [The main function](#m_func)
@@ -13,7 +13,7 @@
 
 ## <a name="overview"></a> Overview
 
-### <a name="parallel_for"></a> ```parallel_for```
+### <a name="monte_carlo_integration"></a> Monte Carlo Integration
 
 ## <a name="include_files"></a> Include files
 

@@ -33,6 +33,11 @@ public:
     /// \brief Execute the task
     virtual void operator()();
 
+    /// \brief Reschedule the task. If called after this->operator()
+    /// will override any TaskState has been set. By default it sets the
+    /// task state to TaskState::PENDING
+    virtual void reschedule(){set_state(TaskBase::TaskState::PENDING);}
+
     /// \brief Execute the task
     void execute();
 
