@@ -1,11 +1,14 @@
 #ifndef OPENMP_EXECUTOR_H
 #define OPENMP_EXECUTOR_H
+
 #include "kernel/base/config.h"
 
 #ifdef USE_OPENMP
 
 #include "kernel/base/types.h"
-#include "omp.h"
+#include <omp.h>
+
+#include <exception>
 
 namespace kernel {
 
@@ -14,6 +17,9 @@ class OMPExecutor
 {
 
 public:
+
+    /// \brief An enumeration describing the scheduling for parallel for
+    enum class ScheduleType{STATIC, DYNAMIC, GUIDED, AUTO, RUNTIME, DEFAULT};
 
     /// \brief Constructor. Set the number of threads
     /// to be used by calling omp_set_num_threads
@@ -28,8 +34,12 @@ public:
     uint_t n_processing_elements()const{return get_n_threads();}
 
     /// \brief Execute the given task list in parallel
-    template<typename TaskType>
-    void parallel_for(std::vector<TaskType>& tasks);
+    template<typename TaskTypePtr>
+    void parallel_for(const std::vector<TaskTypePtr>& tasks, ScheduleType type=ScheduleType::DEFAULT)const;
+
+    /// \brief Execute the given task list in parallel but do not wait
+    template<typename TaskTypePtr>
+    void parallel_for_nowait(const std::vector<TaskTypePtr>& tasks, ScheduleType type=ScheduleType::DEFAULT)const;
 
     /// \brief Has dynamic teams enabled or not
     bool has_dynamic_teams()const{return has_disabled_dyn_teams_;}
@@ -62,17 +72,37 @@ OMPExecutor::OMPExecutor(uint_t n_threads, bool disable_dynamic_teams)
 }
 
 
-template<typename TaskType>
+template<typename TaskTypePtr>
 void
-OMPExecutor::parallel_for(std::vector<TaskType>& tasks){
+OMPExecutor::parallel_for(const std::vector<TaskTypePtr>& tasks, ScheduleType type)const{
 
-#pragma omp parallel shared(tasks)
-{
-
-    for(uint_t t=0; t<tasks.size(); ++t){
-        tasks[t]->execute();
+    if(type == ScheduleType::DEFAULT){
+    #pragma omp parallel for shared(tasks)
+        for(uint_t t=0; t<tasks.size(); ++t){
+                tasks[t]->execute();
+        }
+    }
+    else{
+        throw std::invalid_argument("Invalid scheduling type");
     }
 }
+
+
+template<typename TaskTypePtr>
+void
+OMPExecutor::parallel_for_nowait(const std::vector<TaskTypePtr>& tasks, ScheduleType type)const{
+
+    if(type == ScheduleType::DEFAULT){
+
+        #pragma omp parallel shared(tasks)
+            #pragma omp for nowait
+                for(uint_t t=0; t<tasks.size(); ++t){
+                    tasks[t]->execute();
+                }
+        }
+    else{
+        throw std::invalid_argument("Invalid scheduling type");
+    }
 }
 
 
