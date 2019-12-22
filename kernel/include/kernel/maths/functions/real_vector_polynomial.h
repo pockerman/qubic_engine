@@ -34,30 +34,35 @@ public:
       */
     void create_from(const DynVec<real_t>& coeffs, const std::vector<int>& order);
 
-
     /**
      * Returns the value of the function
      */
-    virtual output_t value(const input_t& input)final;
-
+    virtual output_t value(const input_t& input)const override final;
 
     /**
       * Returns the number of coefficients
       */
     virtual uint_t n_coeffs()const final{return monomials_.size();}
 
+    /**
+      * Returns the gradient of the function for the i-th coefficient
+      */
+    virtual real_t coeff_grad(uint_t i, const DynVec<real_t>& point)const override final;
 
     /**
       * Returns the gradient of the function for the i-th coefficient
       */
-    virtual real_t coeff_grad(uint_t i, const DynVec<real_t>& point)const{return 0.0;};
-
+    DynVec<real_t> coeff_grads(const DynVec<real_t>& point)const;
 
     /**
       * Returns the gradient of the function for the i-th variable
       */
-    virtual real_t grad(uint_t i, const DynVec<real_t>& point)const{return 0.0;}
+    virtual real_t grad(uint_t i, const DynVec<real_t>& point)const override final;
 
+    /**
+      * Returns the gradients of the function
+      */
+    virtual DynVec<real_t> gradients(const DynVec<real_t>& point)const override final;
 
 private:
 

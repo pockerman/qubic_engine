@@ -7,14 +7,13 @@
 namespace kernel
 {
 
-template<typename InputTp, typename OutputTp>
+template<typename OutputTp, typename... InputTp>
 class FunctionBase
 {
 
 
 public:
 
-    typedef InputTp input_t;
     typedef OutputTp output_t;
 
     /**
@@ -26,7 +25,12 @@ public:
     /**
      * Returns the value of the function
      */
-    virtual output_t value(const input_t& input)=0;
+    virtual output_t value(const InputTp&...  input)const=0;
+
+    /**
+      * Returns the gradients of the function
+      */
+    virtual DynVec<real_t> gradients(const InputTp&...  input)const=0;
 
     /**
       * Returns the number of coefficients
@@ -43,9 +47,9 @@ protected:
 };
 
 
-template<typename InputTp, typename OutputTp>
+template<typename OutputTp, typename... InputTp>
 inline
-FunctionBase<InputTp, OutputTp>::FunctionBase()
+FunctionBase<OutputTp, InputTp...>::FunctionBase()
 {}
 
 }
