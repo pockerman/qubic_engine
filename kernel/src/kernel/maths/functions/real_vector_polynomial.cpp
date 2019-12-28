@@ -42,7 +42,7 @@ RealVectorPolynomialFunction::create_from(const DynVec<real_t>& coeffs, const st
 
 
 RealVectorPolynomialFunction::output_t
-RealVectorPolynomialFunction::value(const RealVectorPolynomialFunction::input_t& input){
+RealVectorPolynomialFunction::value(const RealVectorPolynomialFunction::input_t& input)const{
 
     if(input.size() != monomials_.size()){
         throw std::invalid_argument("input size: " + std::to_string(input.size())+
@@ -60,5 +60,51 @@ RealVectorPolynomialFunction::value(const RealVectorPolynomialFunction::input_t&
 
     return result;
 
+}
+
+
+real_t
+RealVectorPolynomialFunction::coeff_grad(uint_t i, const DynVec<real_t>& point)const{
+
+    if(i == 0){
+        return 1.0;
+    }
+
+    return monomials_[i].coeff_grad(point[i]);
+}
+
+DynVec<real_t>
+RealVectorPolynomialFunction::coeff_grads(const DynVec<real_t>& point)const{
+
+    DynVec<real_t> result(monomials_.size(), 0.0);
+
+    for(uint_t c=0; c<result.size(); ++c){
+        result[c] = coeff_grad(c, point);
+    }
+
+    return result;
+
+}
+
+real_t
+RealVectorPolynomialFunction::grad(uint_t i, const DynVec<real_t>& point)const{
+
+    if(i == 0){
+        return 0.0;
+    }
+
+    return monomials_[i].gradients(point[i])[0];
+}
+
+DynVec<real_t>
+RealVectorPolynomialFunction::gradients(const DynVec<real_t>& point)const{
+
+    DynVec<real_t> result(monomials_.size(), 0.0);
+
+    for(uint_t c=0; c<result.size(); ++c){
+        result[c] = grad(c, point);
+    }
+
+    return result;
 }
 }

@@ -11,13 +11,13 @@ namespace kernel
   *Base class for modelling real vector valued functions
   */
 
-class RealVectorValuedFunctionBase: public FunctionBase<DynVec<real_t>, real_t>
+class RealVectorValuedFunctionBase: public FunctionBase<real_t, DynVec<real_t> >
 {
 
 public:
 
-    typedef FunctionBase<DynVec<real_t>, real_t>::input_t input_t;
-    typedef FunctionBase<DynVec<real_t>, real_t>::output_t output_t;
+    typedef DynVec<real_t> input_t;
+    typedef FunctionBase<real_t, DynVec<real_t>>::output_t output_t;
 
 
     /**
@@ -50,7 +50,7 @@ protected:
 inline
 RealVectorValuedFunctionBase::RealVectorValuedFunctionBase()
     :
-    FunctionBase<DynVec<real_t>, real_t>()
+    FunctionBase<real_t, DynVec<real_t> >()
 {}
 
 }
