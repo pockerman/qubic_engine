@@ -12,16 +12,26 @@ RealVectorPolynomialFunction::RealVectorPolynomialFunction()
 {}
 
 
+RealVectorPolynomialFunction::RealVectorPolynomialFunction(const std::vector<real_t>& coeffs)
+    :
+      RealVectorValuedFunctionBase(),
+      monomials_()
+{
+    create_from(coeffs);
+}
+
+
 RealVectorPolynomialFunction::RealVectorPolynomialFunction(const DynVec<real_t>& coeffs, const std::vector<int>& order)
     :
   RealVectorPolynomialFunction()
 {
-    this->create_from(coeffs, order);
+    create_from(coeffs, order);
 }
 
 
 void
 RealVectorPolynomialFunction::create_from(const DynVec<real_t>& coeffs, const std::vector<int>& order){
+
 
     if(coeffs.size() != order.size()){
         throw std::invalid_argument("Coeffs size: " + std::to_string(coeffs.size())+
@@ -36,6 +46,18 @@ RealVectorPolynomialFunction::create_from(const DynVec<real_t>& coeffs, const st
         monomial.create_from(*coeff_itr, *order_itr);
         coeff_itr++;
         order_itr++;
+    }
+}
+
+void
+RealVectorPolynomialFunction::create_from(const std::vector<real_t>& coeffs){
+
+    monomials_.resize((coeffs.size()));
+    auto coeff_itr = coeffs.begin();
+
+    for(auto& monomial : monomials_){
+        monomial.create_from(*coeff_itr, 1);
+        coeff_itr++;
     }
 }
 
