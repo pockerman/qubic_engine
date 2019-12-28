@@ -65,12 +65,11 @@ get_row(const DynMat<T>& matrix, uint_t row_idx){
 
     DynVec<T> row(matrix.columns());
 
-    auto row_it = row.begin();
     auto it = matrix.begin(row_idx);
-    auto it_end = matrix.begin(row_idx);
+    auto it_end = matrix.end(row_idx);
 
     uint_t col_counter = 0;
-    for(; it != it_end; ++it, ++row_it){
+    for(; it != it_end; ++it){
         auto val = *it;
         row[col_counter++] =  val;
     }
