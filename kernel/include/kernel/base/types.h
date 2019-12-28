@@ -29,6 +29,9 @@ namespace kernel
     template<typename T>
     using DynVec = blaze::DynamicVector<T, blaze::columnVector>;
 
+    /// \brief Null type. Simple placeholder
+    struct Null{};
+
 }
 
 #endif

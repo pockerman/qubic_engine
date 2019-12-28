@@ -24,6 +24,13 @@ public:
       */
     RealVectorPolynomialFunction();
 
+
+    /**
+      * Constructor. Create a polynomial where each variable has order 1
+      */
+    RealVectorPolynomialFunction(const std::vector<real_t>& coeffs);
+
+
     /**
       * Constructor
       */
@@ -33,6 +40,12 @@ public:
       * Build the function from the given coeffs and orders
       */
     void create_from(const DynVec<real_t>& coeffs, const std::vector<int>& order);
+
+
+    /**
+      * Create a polynomial where each variable has order 1
+      */
+    void create_from(const std::vector<real_t>& coeffs);
 
     /**
      * Returns the value of the function
