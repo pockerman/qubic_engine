@@ -62,7 +62,7 @@ TEST(TestParallelFor, RunWithNoPartitions) {
 
         // dummy body
         auto body = [](int){return false;};
-        kernel::parallel_for(range, body, pool);
+        kernel::parallel_for(range, body, pool, kernel::OMPOptions());
 
     }
     catch(kernel::InvalidPartitionedObject& e){
@@ -104,7 +104,7 @@ TEST(TestParallelFor, RunWithInvalidNumPartitions) {
 
         // dummy body
         auto body = [](int){return false;};
-        kernel::parallel_for(range, body, pool);
+        kernel::parallel_for(range, body, pool, kernel::OMPOptions());
 
     }
     catch(kernel::InvalidPartitionedObject& e){
@@ -148,7 +148,7 @@ TEST(TestParallelFor, RunWithIdentityBody) {
 
         // dummy body
         auto body = [](uint_t item){return item;};
-        ResultHolder<void> result = kernel::parallel_for(vector, body, pool);
+        ResultHolder<void> result = kernel::parallel_for(vector, body, pool, kernel::OMPOptions());
         ASSERT_TRUE(result.get().second);
 
     }
