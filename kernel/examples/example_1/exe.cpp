@@ -9,13 +9,13 @@ namespace  {
 
 using kernel::uint_t;
 
-class Task: public kernel::SimpleTaskBase
+class Task: public kernel::SimpleTaskBase<kernel::Null>
 {
 public:
 
     Task()
         :
-    kernel::SimpleTaskBase()
+    kernel::SimpleTaskBase<kernel::Null>()
     {}
 
 protected:
