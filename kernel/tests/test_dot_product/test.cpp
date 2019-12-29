@@ -28,7 +28,7 @@ TEST(TestDotProduct, TestDotProductInvalidVectorSizes) {
         kernel::ThreadPool pool(1);
 
         kernel::DotProduct<Vector, kernel::real_t> product(v1, v2);
-        product.execute(pool);
+        product.execute(pool, kernel::Null());
     }
     catch(std::runtime_error& e){
         std::string except_msg(e.what());
@@ -58,7 +58,7 @@ TEST(TestDotProduct, TestDotProductReturnedResult) {
         v2.set_partitions(partitions);
 
         kernel::DotProduct<Vector, kernel::real_t> product(v1, v2);
-        product.execute(pool);
+        product.execute(pool, kernel::Null());
 
         auto& rslt = product.get();
         EXPECT_EQ(rslt.is_result_valid(), true);

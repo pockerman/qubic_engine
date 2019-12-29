@@ -19,6 +19,9 @@ public:
      */
     virtual output_t value(const InputType&...  /*input*/)const override final {}
 
+    template<typename Executor, typename Options>
+    output_t value(Executor&, const Options&, const InputType&... )const{}
+
     /**
       * Returns the gradients of the function
       */

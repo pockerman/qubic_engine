@@ -99,7 +99,7 @@ CGSolver::solve(const Matrix& mat, Vector& x, const Vector& b, ThreadPool& execu
         kernel::MatVecProduct<Matrix, Vector> A_times_x(mat, x_rsult.get_resource());
 
         // compute A*x_0
-        A_times_x.execute(executor);
+        A_times_x.execute(executor, kernel::Null());
         auto& tmp = A_times_x.get_or_wait();
 
         // compute r_0 = b - A*x_0
@@ -115,13 +115,13 @@ CGSolver::solve(const Matrix& mat, Vector& x, const Vector& b, ThreadPool& execu
         info.niterations = itr +1 ;
 
         // w = compute A*g
-        A_times_g.reexecute(executor);
+        A_times_g.reexecute(executor, kernel::Null());
         A_times_g.get_or_wait_copy(w_rsult);
 
-        gw_dotproduct.reexecute(executor);
+        gw_dotproduct.reexecute(executor, kernel::Null());
         auto& gw_dot = gw_dotproduct.get_or_wait();
 
-        rr_dotproduct.reexecute(executor);
+        rr_dotproduct.reexecute(executor, kernel::Null());
         auto& result_2 = rr_dotproduct.get_or_wait();
 
         // hold a copy of the just computed gTg product
@@ -137,7 +137,7 @@ CGSolver::solve(const Matrix& mat, Vector& x, const Vector& b, ThreadPool& execu
         update_r.reexecute(executor);
 
         // check whether we converged... compute L2 norm of residual
-        rr_dotproduct.reexecute(executor);
+        rr_dotproduct.reexecute(executor, kernel::Null());
         auto& result_rr_dot_product = rr_dotproduct.get_or_wait();
         auto res = std::sqrt( *result_rr_dot_product.get().first );
         std::cout<<"Residual computed: "<<res<<" needed for convergence: "<<res_<<std::endl;

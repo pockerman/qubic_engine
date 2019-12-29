@@ -45,14 +45,14 @@ public:
     /// \brief Execute the dot product of the given two vectors
     /// using the given executor. This function will delete any tasks that have been
     /// allocated and create new tasks every time is called.
-    template<typename ExecutorTp>
-    void execute(ExecutorTp& executor);
+    template<typename ExecutorTp, typename Options>
+    void execute(ExecutorTp& executor, const Options& options=Null());
 
     /// \brief Execute the dot product of the given two vectors
     /// using the given executor. This function will not delete any tasks that have been
     /// allocated. Instead it will recompute these tasks.
-    template<typename ExecutorTp>
-    void reexecute(ExecutorTp& executor);
+    template<typename ExecutorTp, typename Options>
+    void reexecute(ExecutorTp& executor, const Options& options=Null());
 
     /// \brief Returns true if the spawned tasks have finished
     bool tasks_finished()const{return taskutils::tasks_finished(tasks_);}
@@ -85,17 +85,11 @@ private:
     /// \brief Deallocate the memory for the tasks
     void clear_tasks_memory_();
 
-    struct dot_product: public kernel::SimpleTaskBase
+    struct dot_product: public SimpleTaskBase<ResultTp>
     {
 
         /// \brief Constructor
         dot_product(uint_t t, const VectorTp& v1, const VectorTp& v2);
-
-        /// \brief Returns the local task result
-        const result_type& get_result()const{return result;}
-
-        /// \brief Invalidate the result
-        void invalidate_result(){result.invalidate_result(true);}
 
     protected:
 
@@ -104,7 +98,6 @@ private:
 
         const VectorTp* v1_ptr;
         const VectorTp* v2_ptr;
-        result_type result;
     };
 };
 
@@ -163,9 +156,9 @@ DotProduct<VectorTp, ResultTp>::set_vectors(const VectorTp& v1, const VectorTp& 
 }
 
 template<typename VectorTp, typename ResultTp>
-template<typename ExecutorTp>
+template<typename ExecutorTp, typename Options>
 void
-DotProduct<VectorTp, ResultTp>::execute(ExecutorTp& executor){
+DotProduct<VectorTp, ResultTp>::execute(ExecutorTp& executor, const Options& options){
 
 
     if(!v1_ptr_ || !v2_ptr_){
@@ -191,14 +184,17 @@ DotProduct<VectorTp, ResultTp>::execute(ExecutorTp& executor){
 
     for(uint_t t=0; t<executor.get_n_threads(); ++t){
         tasks_.push_back(std::make_unique<task_type>(t, *v1_ptr_, *v2_ptr_));
-        executor.add_task(*(tasks_[t].get()));
+        //executor.add_task(*(tasks_[t].get()));
     }
+
+    // this should block
+    executor.execute(tasks_, options);
 
     // if the tasks have not finished yet
     // then the calling thread waits here
-    while(!tasks_finished()){
+    /*while(!tasks_finished()){
        std::this_thread::yield();
-    }
+    }*/
 
     //validate the result
     result_.validate_result();
@@ -211,19 +207,19 @@ DotProduct<VectorTp, ResultTp>::execute(ExecutorTp& executor){
            result_.invalidate_result(false);
        }
        else{
-           result_.join(static_cast<task_type*>(tasks_[t].get())->get_result());
+           result_.join(static_cast<task_type*>(tasks_[t].get())->get_result().get_resource());
        }
     }
 }
 
 template<typename VectorTp, typename ResultTp>
-template<typename ExecutorTp>
+template<typename ExecutorTp, typename Options>
 void
-DotProduct<VectorTp, ResultTp>::reexecute(ExecutorTp& executor){
+DotProduct<VectorTp, ResultTp>::reexecute(ExecutorTp& executor, const Options& options){
 
     if(tasks_.empty()){
 
-        execute(executor);
+        execute(executor, options);
     }
     else{
 
@@ -234,16 +230,20 @@ DotProduct<VectorTp, ResultTp>::reexecute(ExecutorTp& executor){
 
         for(uint_t t=0; t<executor.get_n_threads(); ++t){
 
-            tasks_[t]->invalidate_result();
-            tasks_[t]->set_state(kernel::TaskBase::TaskState::PENDING);
-            executor.add_task(*(tasks_[t].get()));
+            tasks_[t]->reschedule();
+            //invalidate_result();
+            //tasks_[t]->set_state(kernel::TaskBase::TaskState::PENDING);
+            //executor.add_task(*(tasks_[t].get()));
         }
+
+        //this should block
+        executor.execute(tasks_, options);
 
         // if the tasks have not finished yet
         // then the calling thread waits here
-        while(!tasks_finished()){
+        /*while(!tasks_finished()){
            std::this_thread::yield();
-        }
+        }*/
 
         //validate the result
         result_.validate_result();
@@ -256,7 +256,7 @@ DotProduct<VectorTp, ResultTp>::reexecute(ExecutorTp& executor){
                result_.invalidate_result(false);
            }
            else{
-               result_.join(static_cast<task_type*>(tasks_[t].get())->get_result());
+               result_.join(static_cast<task_type*>(tasks_[t].get())->get_result().get_resource());
            }
         }
     }
@@ -288,10 +288,10 @@ DotProduct<VectorTp, ResultTp>::clear_tasks_memory_(){
 template<typename VectorTp, typename ResultTp>
 DotProduct<VectorTp,ResultTp>::dot_product::dot_product(uint_t t, const VectorTp& v1, const VectorTp& v2)
     :
-      SimpleTaskBase(t),
+      SimpleTaskBase<ResultTp>(t),
       v1_ptr(&v1),
-      v2_ptr(&v2),
-      result()
+      v2_ptr(&v2)
+      //result()
 {}
 
 
@@ -305,12 +305,14 @@ DotProduct<VectorTp, ResultTp>::dot_product::run(){
     auto begin = parts.begin();
     auto end   = parts.end();
 
+    ResultTp& result = this->result_.get_resource();
+
     for(uint_t r  = begin; r < end; ++r){
-        result.join((*v1_ptr)[r]*(*v2_ptr)[r]);
+        result += (*v1_ptr)[r]*(*v2_ptr)[r];
     }
 
     // this is a valid result
-    result.validate_result();
+    this->result_.validate_result();
 }
 
 }

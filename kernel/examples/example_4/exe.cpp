@@ -46,7 +46,7 @@ public:
 private:
 
     /// Inner struct that describes the Jacobi task
-    struct JacobiTask: public SimpleTaskBase
+    struct JacobiTask: public SimpleTaskBase<kernel::Null>
     {
         public:
 
@@ -56,7 +56,7 @@ private:
             JacobiTask(const Vector& b, Vector& old_x, Vector& x,
                        const Matrix& mat, const range1d<uint_t>& range)
                 :
-                  SimpleTaskBase (),
+                  SimpleTaskBase<kernel::Null>(),
                   b_(b),
                   old_x_(old_x),
                   x_(x),
@@ -66,7 +66,7 @@ private:
 
         protected:
 
-            void run()override;
+            void run()override final;
 
         private:
 

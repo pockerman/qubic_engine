@@ -37,7 +37,7 @@ int main(){
     auto body = [](uint_t& item){item += 1;};
 
     // parallel_for blocks until all tasks finish
-    ResultHolder<void> result = kernel::parallel_for(data, body, pool);
+    ResultHolder<void> result = kernel::parallel_for(data, body, pool, kernel::Null());
 
     if(result.is_result_valid()){
 
