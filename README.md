@@ -12,18 +12,4 @@ This is my C++ playground
 
 ## Installation
 
-Currently you need to tweak the supplied ```CMakeLists.txt``` supplied
-
-## Some Issues
-
-```
-undefined reference to `dgetri_'
-```
-
-This means that you need to link your executable to BLAS for example adding something like
-the following should resolve the issue
-
-```
-TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
-
-``` 
+Checkout the README files for ```kernellib``` and ```CubicEngine```
