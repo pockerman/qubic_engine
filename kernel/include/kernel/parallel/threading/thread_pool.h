@@ -3,11 +3,13 @@
 
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/parallel/threading/task_uitilities.h"
 
 #include <boost/core/noncopyable.hpp>
 
 #include <memory>
 #include <vector>
+#include <thread>
 
 namespace kernel
 {
@@ -48,6 +50,11 @@ public:
     /// \brief Allocate the given tasks for execution
     void add_tasks(const std::vector<std::unique_ptr<TaskBase>>& tasks);
 
+
+    /// \brief Execute the tasks with the given options
+    template<typename TaskTypePtr, typename Options>
+    void execute(const std::vector<std::unique_ptr<TaskTypePtr>>& tasks, const Options& options = Null() );
+
     /// \brief Returns the number of threads the pool is using
     uint_t get_n_threads()const{return pool_.size();}
 
@@ -64,6 +71,26 @@ private:
     uint_t n_threads_;
     uint_t next_thread_available_ {kernel::KernelConsts::invalid_size_type()};
 };
+
+
+template<typename TaskTypePtr, typename Options>
+void
+ThreadPool::execute(const std::vector<std::unique_ptr<TaskTypePtr>>& tasks, const Options& options ){
+
+    if(tasks.empty()){
+        return;
+    }
+
+    for(uint_t t=0; t<tasks.size(); ++t){
+        add_task(*(tasks[t].get()));
+    }
+
+    // if the tasks have not finished yet
+    // then the calling thread waits here
+    while(!taskutils::tasks_finished(tasks)){
+       std::this_thread::yield();
+    }
+}
 
 }
 

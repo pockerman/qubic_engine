@@ -21,6 +21,7 @@ namespace kernel
 namespace detail
 {
 
+    template<typename IteratorTp, typename ReductionOpTp>
     class reduce_1d_array
     {
 
@@ -28,24 +29,25 @@ namespace detail
 
         /// \brief Execute the reduction operation using the given partitions of the
         /// data and the given executor
-        template<typename IteratorTp, typename ReductionOpTp, typename ExecutorTp>
-        void execute(const std::vector<range1d<IteratorTp>>& , ReductionOpTp& op, ExecutorTp& executor);
+        template<typename ExecutorTp, typename Options>
+        void execute(const std::vector<range1d<IteratorTp>>& , ReductionOpTp& op,
+                     ExecutorTp& executor, const Options& options = Null());
 
         /// \brief Returns true if the spawned tasks have finished
         bool tasks_finished()const{return kernel::taskutils::tasks_finished(tasks_);}
 
     private:
 
-        template<typename IteratorTp, typename ReductionOpTp>
-        struct reduce_task: public SimpleTaskBase
+        /// \brief Struct describing the reduction task
+        struct reduce_task: public SimpleTaskBase<typename ReductionOpTp::value_type>
         {
             typedef typename ReductionOpTp::value_type result_type;
 
             /// \brief Constructor
             reduce_task(const range1d<IteratorTp>& range);
 
-            result_type get_result()const{return local_rslt_;}
-            result_type local_rslt_;
+            //result_type get_result()const{return local_rslt_;}
+            //result_type local_rslt_;
             range1d<IteratorTp> range_;
 
         protected:
@@ -55,49 +57,55 @@ namespace detail
         };
 
         /// \brief The tasks to be scheduled
-        std::vector<std::unique_ptr<SimpleTaskBase>> tasks_;
+        std::vector<std::unique_ptr<reduce_task>> tasks_;
     };
 
     template<typename IteratorTp, typename ReductionOpTp>
-    reduce_1d_array::reduce_task<IteratorTp,ReductionOpTp>::reduce_task(const range1d<IteratorTp>& range)
+    reduce_1d_array<IteratorTp,ReductionOpTp>::reduce_task::reduce_task(const range1d<IteratorTp>& range)
         :
-      local_rslt_(),
+      SimpleTaskBase<typename ReductionOpTp::value_type>(),
       range_(range)
     {}
 
     template<typename IteratorTp, typename ReductionOpTp>
     void
-    reduce_1d_array::reduce_task<IteratorTp,ReductionOpTp>::run(){
+    reduce_1d_array<IteratorTp, ReductionOpTp>::reduce_task::run(){
 
         for(const auto& item : range_){
-            ReductionOpTp::local_join(iterator_value_accessor<IteratorTp>::get(item), local_rslt_);
+
+            ReductionOpTp::local_join(iterator_value_accessor<IteratorTp>::get(item),
+                                      this->result_.get_resource());
         }
     }
 
-    template<typename IteratorTp, typename ReductionOpTp, typename ExecutorTp>
+    template<typename IteratorTp, typename ReductionOpTp>
+    template<typename ExecutorTp, typename Options>
     void
-    reduce_1d_array::execute(const std::vector<range1d<IteratorTp>>& partitions , ReductionOpTp& op, ExecutorTp& executor){
+    reduce_1d_array<IteratorTp, ReductionOpTp>::execute(const std::vector<range1d<IteratorTp>>& partitions , ReductionOpTp& op,
+                                                        ExecutorTp& executor, const Options& options){
 
         // Currently don't try to do anything smart if the
         // there is  mismatch
         if( partitions.size() != executor.get_n_threads()){
-            throw std::runtime_error("Incompatibel number of partitions with number of threads");
+            throw std::runtime_error("Incompatible number of partitions with number of threads");
         }
 
-        typedef reduce_1d_array::reduce_task<IteratorTp, ReductionOpTp> task_type;
+        typedef reduce_1d_array<IteratorTp, ReductionOpTp>::reduce_task task_type;
         tasks_.reserve(executor.get_n_threads());
 
         //spawn the tasks
         for(uint_t t = 0; t < executor.get_n_threads(); ++t){
-            tasks_.push_back(std::make_unique<task_type>(partitions[t]));
-            executor.add_task(*(tasks_[t].get()));
+            tasks_.push_back(std::make_unique<task_type>(partitions[t]));    
         }
+
+        // this should block
+        executor.execute(tasks_, options); //add_task(*(tasks_[t].get()));
 
         // if the tasks have not finished yet
         // then the calling thread waits here
-        while(!tasks_finished()){
+        /*while(!tasks_finished()){
            std::this_thread::yield();
-        }
+        }*/
 
         //validate the result
         op.validate_result();
@@ -110,7 +118,7 @@ namespace detail
                op.invalidate_result(false);
            }
            else{
-               op.join(static_cast<task_type*>(tasks_[t].get())->get_result());
+               op.join(static_cast<task_type*>(tasks_[t].get())->get_result().get_resource());
            }
         }
     }
@@ -119,8 +127,8 @@ namespace detail
 template<typename IteratorTp, typename ReductionOpTp, typename ExecutorTp>
 void reduce_array(const std::vector<range1d<IteratorTp>>& partitions, ReductionOpTp& op, ExecutorTp& executor){
 
-    detail::reduce_1d_array reduce;
-    reduce.execute(partitions, op, executor);
+    detail::reduce_1d_array<IteratorTp, ReductionOpTp> reduce;
+    reduce.execute(partitions, op, executor, Null());
 }
 
 template<typename RangeTp, typename ReduceOpTp, typename ExecutorTp>
@@ -132,7 +140,9 @@ parallel_reduce(const RangeTp& range, const ReduceOpTp& reduction_op, ExecutorTp
     }
 
     if(range.n_partitions() != executor.n_processing_elements()){
-        throw InvalidPartitionedObject("Invalid number of partitions: "+std::to_string(range.n_partitions())+" should be: "+std::to_string(executor.n_processing_elements()));
+        throw InvalidPartitionedObject("Invalid number of partitions: "+
+                                       std::to_string(range.n_partitions())+" should be: "+
+                                       std::to_string(executor.n_processing_elements()));
     }
 }
 

@@ -17,7 +17,7 @@ namespace kernel
 {
 
 template<typename T>
-class ResultHolder: private boost::noncopyable
+class ResultHolder/*: private boost::noncopyable*/
 {
 
 public:
@@ -30,6 +30,22 @@ public:
 
     /// \brief Constructor
     explicit ResultHolder(value_type&& init, bool valid=false);
+
+    /// \brief Add factor to the result
+    template<typename U>
+    ResultHolder<T>& operator += (const U& factor);
+
+    /// \brief subtract factor from the result
+    template<typename U>
+    ResultHolder<T>& operator -= (const U& factor);
+
+    /// \brief multiply by factor the result
+    template<typename U>
+    ResultHolder<T>& operator *= (const U& factor);
+
+    /// \brief Divid by factor the result
+    template<typename U>
+    ResultHolder<T>& operator /= ( const U& factor);
 
     /// \brief Query whether the held result is valid
     bool is_result_valid()const{return valid_result_;}
@@ -85,6 +101,43 @@ ResultHolder<T>::ResultHolder(T&& init, bool valid)
    valid_result_(valid)
 {
     item_ = std::move(init);
+}
+
+
+template<typename T>
+template<typename U>
+ResultHolder<T>&
+ResultHolder<T>::operator += (const U& factor){
+
+   get_resource() += factor;
+   return *this;
+}
+
+template<typename T>
+template<typename U>
+ResultHolder<T>&
+ResultHolder<T>::operator -= (const U& factor){
+
+   get_resource() -= factor;
+   return *this;
+}
+
+template<typename T>
+template<typename U>
+ResultHolder<T>&
+ResultHolder<T>::operator *= (const U& factor){
+
+   get_resource() *= factor;
+   return *this;
+}
+
+template<typename T>
+template<typename U>
+ResultHolder<T>&
+ResultHolder<T>::operator /= (const U& factor){
+
+    get_resource() /= factor;
+    return *this;
 }
 
 template<typename T>
