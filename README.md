@@ -1,6 +1,6 @@
 # Compute Engine
 
-This is my C++ playground
+This is my C++ playground.
 
 ## Dependencies
 
@@ -13,3 +13,4 @@ This is my C++ playground
 ## Installation
 
 Checkout the README files for ```kernellib``` and ```CubicEngine```
+
