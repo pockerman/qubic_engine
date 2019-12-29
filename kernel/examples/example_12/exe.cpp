@@ -14,13 +14,13 @@ namespace  {
 using kernel::uint_t;
 using kernel::LockableQueue;
 
-class ProducerTask: public kernel::SimpleTaskBase
+class ProducerTask: public kernel::SimpleTaskBase<kernel::Null>
 {
 public:
 
     ProducerTask(LockableQueue<uint_t>& queue, uint_t msg_count, std::mutex& m)
         :
-    kernel::SimpleTaskBase(),
+    kernel::SimpleTaskBase<kernel::Null>(),
     queue_(queue),
     msg_count_(msg_count),
     m_(m)
@@ -64,13 +64,13 @@ ProducerTask::run(){
     }
 }
 
-class ConsumerTask: public kernel::SimpleTaskBase
+class ConsumerTask: public kernel::SimpleTaskBase<kernel::Null>
 {
 public:
 
     ConsumerTask(LockableQueue<uint_t>& queue, uint_t msg_count, std::mutex& m)
         :
-      kernel::SimpleTaskBase(),
+      kernel::SimpleTaskBase<kernel::Null>(),
       queue_(queue),
       msg_count_(msg_count),
       m_(m)

@@ -84,7 +84,7 @@ private:
     /// \brief Deallocate the memory for the tasks
     void clear_tasks_memory_();
 
-    struct update_vector: public kernel::SimpleTaskBase
+    struct update_vector: public kernel::SimpleTaskBase<Null>
     {
 
         /// \brief Constructor
@@ -233,7 +233,7 @@ template<typename VectorTp, typename OpTp, typename FactorTp>
 VectorUpdater<VectorTp, OpTp, FactorTp>::update_vector::update_vector(uint_t t, VectorTp& x, const VectorTp& y, const VectorTp& z,
                                                                       const FactorTp& a, const FactorTp& b)
     :
-SimpleTaskBase(t),
+SimpleTaskBase<Null>(t),
 x_(&x),
 y_(&y),
 z_(&z),

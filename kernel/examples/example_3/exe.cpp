@@ -20,13 +20,13 @@ using kernel::RWLock;
 
 RWLock rw_lock;
 
-class Task1: public kernel::SimpleTaskBase
+class Task1: public kernel::SimpleTaskBase<kernel::Null>
 {
 public:
 
     Task1()
         :
-    kernel::SimpleTaskBase()
+    kernel::SimpleTaskBase<kernel::Null>()
     {}
 
 protected:
@@ -48,13 +48,13 @@ Task1::run(){
     }
 }
 
-class Task2: public kernel::SimpleTaskBase
+class Task2: public kernel::SimpleTaskBase<kernel::Null>
 {
 public:
 
     Task2()
         :
-    kernel::SimpleTaskBase()
+    kernel::SimpleTaskBase<kernel::Null>()
     {}
 
 protected:

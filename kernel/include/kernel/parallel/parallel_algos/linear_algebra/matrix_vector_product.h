@@ -31,14 +31,14 @@ public:
 
     /// \brief Execute the matrix-vector product using the given executor.
     /// This function will delete any tasks that have been allocated and create new tasks every time is called.
-    template<typename ExecutorTp>
-    void execute(ExecutorTp& executor);
+    template<typename ExecutorTp, typename Options>
+    void execute(ExecutorTp& executor, const Options& options=Null());
 
     /// \brief Execute the dot product of the given two vectors
     /// using the given executor. This function will not delete any tasks that have been
     /// allocated. Instead it will recompute these tasks.
-    template<typename ExecutorTp>
-    void reexecute(ExecutorTp& executor);
+    template<typename ExecutorTp, typename Options>
+    void reexecute(ExecutorTp& executor, const Options& options=Null());
 
     /// \brief Returns true if the spawned tasks have finished
     bool tasks_finished()const{return taskutils::tasks_finished(tasks_);}
@@ -81,19 +81,22 @@ private:
 };
 
 template<typename MatTp, typename VecTp>
-struct MatVecProduct<MatTp, VecTp>::mat_vec_product:  public kernel::SimpleTaskBase
+struct MatVecProduct<MatTp, VecTp>::mat_vec_product:  public kernel::SimpleTaskBase<Null>
 {
    mat_vec_product(uint_t id, const MatTp& mat, const VecTp& x, VecTp& rslt)
        :
-   kernel::SimpleTaskBase(id),
+   kernel::SimpleTaskBase<Null>(id),
    mat_ptr(&mat),
    x_ptr(&x),
    rslt_ptr(&rslt)
    {}
 
+protected:
+
    const MatTp* mat_ptr;
    const VecTp* x_ptr;
    VecTp* rslt_ptr;
+
 
    // execute the matrix-vector product
    virtual void run()override final;
@@ -108,9 +111,9 @@ MatVecProduct<MatTp, VecTp>::MatVecProduct(const matrix_type& mat, const vector_
 {}
 
 template<typename MatTp, typename VecTp>
-template<typename ExecutorTp>
+template<typename ExecutorTp, typename Options>
 void
-MatVecProduct<MatTp, VecTp>::execute(ExecutorTp& executor){
+MatVecProduct<MatTp, VecTp>::execute(ExecutorTp& executor, const Options& options){
 
 
     if(!M_ || !x_ ){
@@ -132,14 +135,16 @@ MatVecProduct<MatTp, VecTp>::execute(ExecutorTp& executor){
     for(uint_t t=0; t<executor.get_n_threads(); ++t){
 
         tasks_.push_back(std::make_unique<task_type>(t, *M_, *x_, result_.get_resource()));
-        executor.add_task(*(tasks_[t].get()));
+        //executor.add_task(*(tasks_[t].get()));
     }
+
+    executor.execute(tasks_, options);
 
     // if the tasks have not finished yet
     // then the calling thread waits here
-    while(!tasks_finished()){
+    /*while(!tasks_finished()){
        std::this_thread::yield();
-    }
+    }*/
 
     //validate the result
     result_.validate_result();
@@ -155,26 +160,27 @@ MatVecProduct<MatTp, VecTp>::execute(ExecutorTp& executor){
 }
 
 template<typename MatTp, typename VecTp>
-template<typename ExecutorTp>
+template<typename ExecutorTp, typename Options>
 void
-MatVecProduct<MatTp, VecTp>::reexecute(ExecutorTp& executor){
+MatVecProduct<MatTp, VecTp>::reexecute(ExecutorTp& executor, const Options& options){
 
     if(tasks_.empty()){
-        execute(executor);
+        execute(executor, options);
     }
     else{
 
         for(uint_t t=0; t<executor.get_n_threads(); ++t){
 
             tasks_[t]->set_state(kernel::TaskBase::TaskState::PENDING);
-            executor.add_task(*(tasks_[t].get()));
+            //executor.add_task(*(tasks_[t].get()));
         }
 
+        executor.execute(tasks_, options);
         // if the tasks have not finished yet
         // then the calling thread waits here
-        while(!tasks_finished()){
+        /*while(!tasks_finished()){
            std::this_thread::yield();
-        }
+        }*/
 
         //validate the result
         result_.validate_result();

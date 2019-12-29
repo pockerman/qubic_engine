@@ -32,11 +32,9 @@ public:
     /// \brief Constructor
     parallel_for(range_type& range, const BodyTp& body);
 
-
     /// \brief Execute the parallel_for algorithm using the given executor
-    //template<typename ExecutorTp>
-    ResultHolder<void> execute(ExecutorTp& executor);
-
+    template<typename Options>
+    ResultHolder<void> execute(ExecutorTp& executor, const Options& options);
 
     /// \brief Returns true if the spawned tasks have finished
     bool tasks_finished()const{return kernel::taskutils::tasks_finished(tasks_);}
@@ -46,14 +44,11 @@ private:
     /// \brief The range over which the algorithm works
     range_type& range_;
 
-
     /// \brief The operation applied on the range elements
     const body_type& body_;
 
-
     /// \brief The tasks to be submitted to the executor
     std::vector<std::unique_ptr<task_type>> tasks_;
-
 
     /// \brief The result of the computation
     ResultHolder<void> result_;
@@ -72,8 +67,9 @@ body_(body)
 /// \brief Execute the parallel_for algorithm using the given executor
 
 template<typename RangeTp, typename BodyTp, typename ExecutorTp>
+template<typename Options>
 ResultHolder<void>
-parallel_for<RangeTp, BodyTp, ExecutorTp>::execute(ExecutorTp& executor){
+parallel_for<RangeTp, BodyTp, ExecutorTp>::execute(ExecutorTp& executor, const Options& options){
 
 
     typedef typename  parallel_for<RangeTp, BodyTp, ExecutorTp>::task_type task_type;
@@ -82,14 +78,15 @@ parallel_for<RangeTp, BodyTp, ExecutorTp>::execute(ExecutorTp& executor){
     //spawn the tasks
     for(uint_t t = 0; t < executor.get_n_threads(); ++t){
         tasks_.push_back(std::make_unique<task_type>(t, range_.get_partition(t), body_, range_));
-        executor.add_task(*(tasks_[t].get()));
+        //executor.add_task(*(tasks_[t].get()));
     }
 
+    executor.execute(tasks_, options);
     // if the tasks have not finished yet
     // then the calling thread waits here
-    while(!tasks_finished()){
+    /*while(!tasks_finished()){
        std::this_thread::yield();
-    }
+    }*/
 
 
     result_.validate_result();
@@ -122,7 +119,7 @@ public:
 
 
     /// \brief Execute the parallel_for algorithm using the given executor
-    ResultHolder<void> execute(OMPExecutor& executor);
+    ResultHolder<void> execute(OMPExecutor& executor, const OMPOptions& options=OMPOptions());
 
 
     /// \brief Returns true if the spawned tasks have finished
@@ -156,8 +153,7 @@ body_(body)
 
 template<typename RangeTp, typename BodyTp>
 ResultHolder<void>
-parallel_for<RangeTp, BodyTp, OMPExecutor>::execute(OMPExecutor& executor){
-
+parallel_for<RangeTp, BodyTp, OMPExecutor>::execute(OMPExecutor& executor, const OMPOptions& options){
 
     typedef typename  parallel_for<RangeTp, BodyTp, OMPExecutor>::task_type task_type;
     tasks_.reserve(executor.get_n_threads());
@@ -168,13 +164,7 @@ parallel_for<RangeTp, BodyTp, OMPExecutor>::execute(OMPExecutor& executor){
     }
 
     //this will block
-    executor.parallel_for(tasks_);
-
-    // if the tasks have not finished yet
-    // then the calling thread waits here
-    /*while(!tasks_finished()){
-       std::this_thread::yield();
-    }*/
+    executor.execute(tasks_, options);
 
     result_.validate_result();
     for(uint_t t=0; t < tasks_.size(); ++t){
@@ -197,20 +187,22 @@ parallel_for<RangeTp, BodyTp, OMPExecutor>::execute(OMPExecutor& executor){
 /// \brief Apply Body on the elements of Range
 /// The application of the Body on Range in handled by the Executor type
 /// If this operation blocks or not depends on????
-template<typename Range, typename Body, typename Executor>
+template<typename Range, typename Body, typename Executor, typename Options>
 ResultHolder<void>
-parallel_for(Range& range, const Body& op, Executor& executor){
+parallel_for(Range& range, const Body& op, Executor& executor, const Options& options){
 
     if(!range.has_partitions()){
         throw InvalidPartitionedObject("The given range does not have partitions");
     }
 
     if(range.n_partitions() != executor.n_processing_elements()){
-        throw InvalidPartitionedObject("Invalid number of partitions: "+std::to_string(range.n_partitions())+" should be: "+std::to_string(executor.n_processing_elements()));
+        throw InvalidPartitionedObject("Invalid number of partitions: "+
+                                       std::to_string(range.n_partitions())+" should be: "+
+                                       std::to_string(executor.n_processing_elements()));
     }
 
     detail::parallel_for<Range, Body, Executor> algo(range, op);
-    ResultHolder<void> result = algo.execute(executor);
+    ResultHolder<void> result = algo.execute(executor, options);
     return result;
 }
 
