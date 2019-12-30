@@ -6,13 +6,18 @@
 #ifdef USE_OPENMP
 
 #include "kernel/base/types.h"
+
 #include <omp.h>
+#include <boost/core/noncopyable.hpp>
 
 #include <exception>
 
 namespace kernel {
 
-
+/**
+ * @brief The OMPOptions struct. Options to be passed
+ * when executing taks with OMPExecutor
+ */
 struct OMPOptions
 {
     /// \brief An enumeration describing the scheduling for parallel for
@@ -25,20 +30,29 @@ struct OMPOptions
         :
           schedule(schedule_)
     {}
-
 };
 
-
-class OMPExecutor
+/**
+ * @brief The OMPExecutor class. Executes task using OpenMP threading
+ */
+class OMPExecutor: private boost::noncopyable
 {
 
 public:
 
 
-
     /// \brief Constructor. Set the number of threads
     /// to be used by calling omp_set_num_threads
     OMPExecutor(uint_t n_threads, bool disable_dynamic_teams=false);
+
+    /// \brief Start the thread pool. No effect here simply
+    /// to respect contract with ThreadPool
+    void start(){}
+
+    /// \brief Terminates the threads in the pool.
+    /// For every thread stop() and join() is called.
+    /// No effect here simply to respect th contract with ThreadPool
+    void close(){}
 
     /// \brief Returns the number of threads the executor is using
     /// As per the OpenMP standard this returns 1 outside a
