@@ -53,6 +53,16 @@ public:
        */
     void create_from(const real_t coeffs, const int order);
 
+    /**
+      * Returns the coefficient
+      */
+    real_t coeff()const{return coeff_;}
+
+    /**
+      * Set the coefficient
+      */
+    void set_coeff(real_t coeff){coeff_ = coeff;}
+
 private:
 
      /**

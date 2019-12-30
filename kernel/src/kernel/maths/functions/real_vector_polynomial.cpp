@@ -62,6 +62,29 @@ RealVectorPolynomialFunction::create_from(const std::vector<real_t>& coeffs){
 }
 
 
+std::vector<real_t>
+RealVectorPolynomialFunction::coeffs()const{
+
+    std::vector<real_t> coeffs;
+    coeffs.reserve(monomials_.size());
+
+    for(const auto& monomial : monomials_){
+        coeffs.push_back(monomial.coeff());
+    }
+
+    return coeffs;
+}
+
+void
+RealVectorPolynomialFunction::set_coeffs(const std::vector<real_t>& coeffs){
+
+    auto itr = coeffs.cbegin();
+
+    for(auto& monomial : monomials_){
+        monomial.set_coeff(*itr);
+        itr++;
+    }
+}
 
 RealVectorPolynomialFunction::output_t
 RealVectorPolynomialFunction::value(const RealVectorPolynomialFunction::input_t& input)const{
@@ -69,19 +92,15 @@ RealVectorPolynomialFunction::value(const RealVectorPolynomialFunction::input_t&
     if(input.size() != monomials_.size()){
         throw std::invalid_argument("input size: " + std::to_string(input.size())+
                                     " not equal to monomials size: " + std::to_string(monomials_.size()) );
-
     }
 
     RealVectorPolynomialFunction::output_t result = 0.0;
-
     uint_t i=0;
     for(auto item : input){
 
         result += monomials_[i++].value(item);
     }
-
     return result;
-
 }
 
 
@@ -105,7 +124,6 @@ RealVectorPolynomialFunction::coeff_grads(const DynVec<real_t>& point)const{
     }
 
     return result;
-
 }
 
 real_t
