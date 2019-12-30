@@ -22,6 +22,9 @@ class kernel_thread;
 
 }
 
+/**
+ * @brief The ThreadPool class. Executes tasks using C++11 threading
+ */
 class ThreadPool: private boost::noncopyable
 {
 public:
@@ -50,17 +53,17 @@ public:
     /// \brief Allocate the given tasks for execution
     void add_tasks(const std::vector<std::unique_ptr<TaskBase>>& tasks);
 
-
     /// \brief Execute the tasks with the given options
+    /// Options aregument currently has no effect
     template<typename TaskTypePtr, typename Options>
     void execute(const std::vector<std::unique_ptr<TaskTypePtr>>& tasks, const Options& options = Null() );
 
     /// \brief Returns the number of threads the pool is using
     uint_t get_n_threads()const{return pool_.size();}
 
-
     /// \brief Returns the number of threads
     uint_t n_processing_elements()const{return get_n_threads();}
+
 private:
 
     typedef detail::kernel_thread thread_type;
@@ -75,7 +78,7 @@ private:
 
 template<typename TaskTypePtr, typename Options>
 void
-ThreadPool::execute(const std::vector<std::unique_ptr<TaskTypePtr>>& tasks, const Options& options ){
+ThreadPool::execute(const std::vector<std::unique_ptr<TaskTypePtr>>& tasks, const Options& /*options*/ ){
 
     if(tasks.empty()){
         return;

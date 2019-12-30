@@ -29,7 +29,7 @@ public:
     /// \brief Constructor
     explicit ResultHolder(bool valid=false);
 
-    /// \brief Constructor
+    /// \brief Constructor. Initialize the result
     explicit ResultHolder(value_type&& init, bool valid=false);
 
     /// \brief Add factor to the result
@@ -114,11 +114,9 @@ ResultHolder<T>::ResultHolder(bool valid)
 template<typename T>
 ResultHolder<T>::ResultHolder(T&& init, bool valid)
     :
-   item_(),
+   item_(init),
    valid_result_(valid)
-{
-    item_ = std::move(init);
-}
+{}
 
 
 template<typename T>
@@ -308,15 +306,13 @@ private:
 
 ResultHolder<void>::ResultHolder(bool valid)
     :
-   item_(),
+   item_(nullptr),
    valid_result_(valid)
 {}
 
 
 void
-ResultHolder<void>::get_copy(ResultHolder<void>& other)const
-{
-
+ResultHolder<void>::get_copy(ResultHolder<void>& other)const{
     other.valid_result_ = valid_result_;
     other.item_ = item_;
 }
