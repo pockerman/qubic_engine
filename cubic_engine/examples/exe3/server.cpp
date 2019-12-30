@@ -1,6 +1,7 @@
 #include "server.h"
 #include "ekf_data.h"
 #include "kernel/parallel/threading/simple_task.h"
+#include "kernel/base/types.h"
 
 #include <iostream>
 #include <thread>
@@ -9,13 +10,13 @@
 namespace exe
 {
 
-struct Server::HandleConnectionsTask: public kernel::SimpleTaskBase
+struct Server::HandleConnectionsTask: public kernel::SimpleTaskBase<kernel::Null>
 {
 public:
 
     HandleConnectionsTask(uint_t PORT, boost::asio::io_service& con)
         :
-    SimpleTaskBase(0),
+    kernel::SimpleTaskBase<kernel::Null>(0),
     port_(PORT),
     con_(con)
     {}

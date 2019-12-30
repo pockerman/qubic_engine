@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
 
-PROJECT(CubicEngine CXX) 
+PROJECT(CubicEngine CXX)
 
 #-----------------------------------------------------------------------------
 # Prevent in-source builds.
@@ -24,6 +24,9 @@ PROJECT(CubicEngine VERSION ${CUBIC_ENGINE_VERSION_MAJOR}.${CUBIC_ENGINE_VERSION
 SET(CUBIC_ENGINE_VERSION "${CUBIC_ENGINE_VERSION_MAJOR}.${CUBIC_ENGINE_VERSION_MINOR}.${CUBIC_ENGINE_VERSION_PATCH}")
 
 SET(BUILD_SHARED_LIBS ON)
+SET(CMAKE_BUILD_TYPE "Debug")
+SET(ENABLE_TESTING "ON")
+
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/cubic_engine)
 
@@ -40,6 +43,7 @@ ENDIF()
 # variables.
 # TODO: How to do it better
 SET(KERNEL_INCL_DIR " ")
+SET(KERNEL_LIB_DIR  " ")
 
 if(${KERNEL_INCL_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " kernel directory not set")
@@ -55,47 +59,63 @@ else()
     INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
 endif()
 
-SET(GTEST_INC_DIR " ")
-SET(GTEST_LIB_DIR " ")
+SET(ENABLE_TESTING "ON")
 
-if(${GTEST_INC_DIR} MATCHES " " OR ${GTEST_LIB_DIR} MATCHES " ")
-    MESSAGE(FATAL_ERROR " GTest not configured")
-else()
-    INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
-endif()
+IF( ENABLE_TESTING MATCHES "ON")
+    SET(GTEST_INC_DIR " ")
+    SET(GTEST_LIB_DIR " ")
+ENDIF()
+
+IF( ENABLE_TESTING MATCHES "ON" AND GTEST_INC_DIR MATCHES " " )
+    MESSAGE( FATAL_ERROR  "Testing is enabled but GTest include directory has not been specified")
+ENDIF()
+
+IF( ENABLE_TESTING MATCHES "ON" AND GTEST_LIB_DIR MATCHES " " )
+    MESSAGE( FATAL_ERROR  "Testing is enabled but GTest lib directory has not been specified")
+ENDIF()
+
+SET(USE_OPENMP "ON")
+SET(CMAKE_BUILD_TYPE "Debug")
+
+IF(USE_OPENMP MATCHES "ON")
+
+    IF(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES " ")
+        SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fopenmp -fPIC")
+        SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)
+    ELSE()
+        SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -pthread -fopenmp -fPIC")
+        SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/opt)
+    ENDIF()
+ELSE()
+
+    IF(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES " ")
+        SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fPIC")
+        SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)
+    ELSE()
+        SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -pthread -fPIC")
+        SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/opt)
+    ENDIF()
+ENDIF()
+
+SET(CMAKE_LINKER_FLAGS "-pthread")
 
 INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR})
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 
 FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
                  ${PROJECT_SRC_DIR}/systems/*.cpp
-                 ${PROJECT_SRC_DIR}/control/*.cpp)
-
-IF(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES " ")
-        SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fPIC")
-        SET(CMAKE_LINKER_FLAGS "-pthread")
-        SET(CUBIC_ENGINE_DEBUG 1)
-        SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)
-ELSEIF(CMAKE_BUILD_TYPE MATCHES "Release")
-        SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -pthread -fPIC")
-        SET(CMAKE_LINKER_FLAGS "-pthread")
-        SET(CUBIC_ENGINE_DEBUG 0)
-        SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/opt)
-ELSE()
-
-        SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fPIC")
-        SET(CMAKE_LINKER_FLAGS "-pthread")
-        SET(CUBIC_ENGINE_DEBUG 1)
-        SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)
-ENDIF()
+                 ${PROJECT_SRC_DIR}/control/*.cpp
+                 ${PROJECT_SRC_DIR}/ml/instance_learning/*.cpp)
 
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
-ADD_LIBRARY(cubicengine SHARED ${SRCS}) 
-SET_TARGET_PROPERTIES(cubicengine PROPERTIES LINKER_LANGUAGE CXX) 
-INSTALL(TARGETS cubicengine DESTINATION ${CMAKE_INSTALL_PREFIX}) 
+ADD_LIBRARY(cubicengine SHARED ${SRCS})
+SET_TARGET_PROPERTIES(cubicengine PROPERTIES LINKER_LANGUAGE CXX)
+INSTALL(TARGETS cubicengine DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # Add the examples
 ADD_SUBDIRECTORY(examples)
 
-ENABLE_TESTING()
-ADD_SUBDIRECTORY(tests)
+IF (ENABLE_TESTING MATCHES "ON")
+    ENABLE_TESTING()
+    ADD_SUBDIRECTORY(tests)
+ENDIF()

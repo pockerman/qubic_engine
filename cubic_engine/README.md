@@ -1,47 +1,87 @@
-# CubicEngine
+# ```CubicEngine```
 
-## Dependencies
+* [Dependencies](#dependencies)
+* [Installation](#nstallation)
+* [How to use ](#how_to_use)
+* [Some Issues](#some_issues)
+* [Examples Map](#examples_map)
+    * [Filtering and Estimation](#filtering_and_esitmation)
+    * [Control](#control)
+    * [Machine Learning](#machine_learning)
+    * [Reinforcement Learning](#reinforcement_learning)
+    * [Using ROS](#using_ros)
 
-- C++17 compatible compiler
-- CMake
-- Blaze Linear Algebra library
-- OpenBLAS
-- GTest
-- Boost
+## <a name="dependencies"></a> Dependencies
 
-You can install OpenBLAS on Ubuntu by
+- A C++17 compatible compiler
+- <a href="https://www.boost.org/">Boost C++</a> libraries
+- <a href="https://bitbucket.org/blaze-lib/blaze/wiki/browse/">Blaze</a> library for linear algebra
+- <a href="https://github.com/google/googletest">GTest</a> if testing is enabled
+- <a herf="https://github.com/pockerman/compute_engine/tree/master/kernel">kernel</a>
+
+## <a name="nstallation"></a> Installation
+
+Currently you need to tweak the supplied ```CMakeLists.txt``` supplied. Concretely, you will have to
+specify the following:
+
+- The ```BLAZE_INCL_DIR``` variable
+- ```ENABLE_TESTING``` by default is set to ```ON``` and in this case you need to specify
+    - ```GTEST_INC_DIR```
+    - ```GTEST_LIB_DIR```
+- The compilation mode ```Debug``` or ```Release```. Default is ```Debug```
+- ```USE_OPENMP``` by default is ```ON``` meaning use OpenMP specification
 
 ```
-sudo apt-get install libopenblas-dev
-``` 
+mkdir build
+cd build
+cmake ..
+make
+make install
+make tests
+```
 
-## Implementations
+## <a name="dependencies"></a> How to use
 
-### Filtering and Estimation
+Checkout the [Examples Map](#examples_map). Documentation is well...underway.
 
-- <a href="#">Kalman Filter</a>
-- <a href="#">Extended Kalman Filter</a>
+## <a name="some_issues"></a> Some Issues
+
+```
+undefined reference to `dgetri_'
+```
+
+This means that you need to link your executable to BLAS for example adding something like
+the following should resolve the issue
+
+```
+TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
+```
+
+## <a name="examples_map"></a> Examples Map
+
+### <a name="filtering_and_esitmation"></a> Filtering and Estimation
+
+- <a href="#">Example 1</a> Using the ```KalmanFilter``` class
+- <a href="#">Example 2</a> Using the ```ExtendedKalmanFilter``` class
 - <a href="#">Unscented Kalman Filter</a>
 - <a href="#">Particle Filters</a>
 - <a href="#">Ordinary Least Squares</a>
 
-### Control
+### <a name="control"></a> Control
 
-- PID Control
+- <a href="#">Example 4</a> Using the ```PIDControl``` class
 - LQR Control
 
-## Examples Map
+### <a name="machine_learning"></a> Control
 
-- <a href="#">Example 1</a> Using the ```KalmanFilter``` class
-- <a href="#">Example 2</a> Using the ```ExtendedKalmanFilter``` class
-- <a href="#">Example 3</a> Create a simple server to comminicate with ROS
-- <a href="#">Example 4</a> Using the ```PIDControl``` class
-- <a href="#">Example 5</a> ?????
+- <a href="exampls/exe7/doc/exe.md">Example 7</a> Multithreaded batch gradient descent
+
+### <a name="reinforcement_learning"></a> Reinforcement Learning
+
 - <a href="#">Example 6</a> Solving the State-Value Function Problem
-- <a href="#">Example 7</a> Ordinary Least Squares
 
-## Installation
+### <a name="reinforcement_learning"></a> Reinforcement Learning
 
-
+- <a href="#">Example 3</a> Create a simple server to comminicate with ROS
 
 
