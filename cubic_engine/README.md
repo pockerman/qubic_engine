@@ -17,7 +17,7 @@
 - <a href="https://www.boost.org/">Boost C++</a> libraries
 - <a href="https://bitbucket.org/blaze-lib/blaze/wiki/browse/">Blaze</a> library for linear algebra
 - <a href="https://github.com/google/googletest">GTest</a> if testing is enabled
-- <a herf="https://github.com/pockerman/compute_engine/tree/master/kernel">kernel</a>
+- <a href="https://github.com/pockerman/compute_engine/tree/master/kernel">```kernel```</a>
 
 ## <a name="nstallation"></a> Installation
 
@@ -74,7 +74,7 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 
 ### <a name="machine_learning"></a> Control
 
-- <a href="exampls/exe7/doc/exe.md">Example 7</a> Multithreaded batch gradient descent
+- <a href="examples/exe7/doc/exe.md">Example 7</a> Multithreaded batch gradient descent
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
