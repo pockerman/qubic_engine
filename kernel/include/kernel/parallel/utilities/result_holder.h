@@ -7,6 +7,7 @@
   * the result is valid or not
   */
 
+#include "kernel/base/config.h"
 #include "kernel/base/types.h"
 #include <boost/noncopyable.hpp>
 
@@ -17,7 +18,7 @@ namespace kernel
 {
 
 template<typename T>
-class ResultHolder/*: private boost::noncopyable*/
+class ResultHolder
 {
 
 public:
@@ -28,24 +29,40 @@ public:
     /// \brief Constructor
     explicit ResultHolder(bool valid=false);
 
-    /// \brief Constructor
+    /// \brief Constructor. Initialize the result
     explicit ResultHolder(value_type&& init, bool valid=false);
 
     /// \brief Add factor to the result
     template<typename U>
     ResultHolder<T>& operator += (const U& factor);
 
-    /// \brief subtract factor from the result
+    /// \brief Add the other result to this result
+    /// if other is invalid the throws exception
+    ResultHolder<T>& operator += (const ResultHolder<T>& other);
+
+    /// \brief Subtract factor from the result
     template<typename U>
     ResultHolder<T>& operator -= (const U& factor);
+
+    /// \brief Subract the other result from this result
+    /// if other is invalid the throws exception
+    ResultHolder<T>& operator -= (const ResultHolder<T>& other);
 
     /// \brief multiply by factor the result
     template<typename U>
     ResultHolder<T>& operator *= (const U& factor);
 
-    /// \brief Divid by factor the result
+    /// \brief Multiply the other result to this result
+    /// if other is invalid the throws exception
+    ResultHolder<T>& operator *= (const ResultHolder<T>& other);
+
+    /// \brief Divide by factor the result
     template<typename U>
     ResultHolder<T>& operator /= ( const U& factor);
+
+    /// \brief Divide this result byt the other result
+    /// if other is invalid it throws exception
+    ResultHolder<T>& operator /= (const ResultHolder<T>& other);
 
     /// \brief Query whether the held result is valid
     bool is_result_valid()const{return valid_result_;}
@@ -97,11 +114,9 @@ ResultHolder<T>::ResultHolder(bool valid)
 template<typename T>
 ResultHolder<T>::ResultHolder(T&& init, bool valid)
     :
-   item_(),
+   item_(init),
    valid_result_(valid)
-{
-    item_ = std::move(init);
-}
+{}
 
 
 template<typename T>
@@ -114,12 +129,36 @@ ResultHolder<T>::operator += (const U& factor){
 }
 
 template<typename T>
+ResultHolder<T>&
+ResultHolder<T>::operator += (const ResultHolder<T>& other){
+
+    if(!other.is_result_valid()){
+        throw std::invalid_argument("Other result is not valid");
+    }
+
+    get_resource() += other.get_resource();
+    return *this;
+}
+
+template<typename T>
 template<typename U>
 ResultHolder<T>&
 ResultHolder<T>::operator -= (const U& factor){
 
    get_resource() -= factor;
    return *this;
+}
+
+template<typename T>
+ResultHolder<T>&
+ResultHolder<T>::operator -= (const ResultHolder<T>& other){
+
+    if(!other.is_result_valid()){
+        throw std::invalid_argument("Other result is not valid");
+    }
+
+    get_resource() -= other.get_resource();
+    return *this;
 }
 
 template<typename T>
@@ -132,11 +171,35 @@ ResultHolder<T>::operator *= (const U& factor){
 }
 
 template<typename T>
+ResultHolder<T>&
+ResultHolder<T>::operator *= (const ResultHolder<T>& other){
+
+    if(!other.is_result_valid()){
+        throw std::invalid_argument("Other result is not valid");
+    }
+
+    get_resource() *= other.get_resource();
+    return *this;
+}
+
+template<typename T>
 template<typename U>
 ResultHolder<T>&
 ResultHolder<T>::operator /= (const U& factor){
 
     get_resource() /= factor;
+    return *this;
+}
+
+template<typename T>
+ResultHolder<T>&
+ResultHolder<T>::operator /= (const ResultHolder<T>& other){
+
+    if(!other.is_result_valid()){
+        throw std::invalid_argument("Other result is not valid");
+    }
+
+    get_resource() /= other.get_resource();
     return *this;
 }
 
@@ -206,38 +269,30 @@ public:
     /// \brief Constructor
     explicit ResultHolder(bool valid=false);
 
-
     /// \brief Query whether the held result is valid
     bool is_result_valid()const{return valid_result_;}
 
-
     /// \brief Validate the result
     void validate_result(){valid_result_ = true;}
-
 
     /// \brief Invalidate the result. If reinit is true
     /// the underlying item is reinitialized using the default constructor
     void invalidate_result(){valid_result_ = false;}
 
-
     /// \brief Get a copy of the internals
     void get_copy(ResultHolder<void>& other)const;
-
 
     /// \brief busy wait for the thread that calls it until the
     /// result becomes valid
     result_type get()const;
 
-
     /// \brief Attempt to get the result only if it is valid. It yields the calling thread
     /// as long as  the result is not valid
     result_type get_or_wait()const;
 
-
     /// \brief Attempt to get the result. If the result is not valid is waits for the
     /// specified time in milliseconds. It then returns the result regardless of its validity
     result_type get_or_wait_for(uint_t milliseconds)const;
-
 
 private:
 
@@ -251,15 +306,13 @@ private:
 
 ResultHolder<void>::ResultHolder(bool valid)
     :
-   item_(),
+   item_(nullptr),
    valid_result_(valid)
 {}
 
 
 void
-ResultHolder<void>::get_copy(ResultHolder<void>& other)const
-{
-
+ResultHolder<void>::get_copy(ResultHolder<void>& other)const{
     other.valid_result_ = valid_result_;
     other.item_ = item_;
 }
@@ -291,6 +344,17 @@ ResultHolder<void>::get_or_wait_for(uint_t mills)const{
 
     return std::make_pair(&(const_cast<ResultHolder<void>&>(*this).item_), valid_result_);
 }
+
+/**
+ * With Null type is the same as with void type
+ */
+template<>
+class ResultHolder<Null>: public ResultHolder<void>
+{
+
+};
+
+
 
 }
 

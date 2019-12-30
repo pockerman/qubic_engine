@@ -279,6 +279,10 @@ MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
        if(value_tasks_[t]->get_state() != kernel::TaskBase::TaskState::FINISHED){
            result.invalidate_result(false);
        }
+       else{
+
+           result += value_tasks_[t]->get_result();
+       }
     }
 
     if(!result.is_result_valid()){
