@@ -101,4 +101,6 @@ int main(){
 
 ## <a name="results"></a> Results
 
-## <a name="source_code"></a> <a href=:../exe.cpp>exe.cpp</a>
+## <a name="source_code"></a> Source Code
+
+<a href="../exe.cpp">exe.cpp</a>
