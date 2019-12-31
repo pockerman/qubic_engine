@@ -412,7 +412,7 @@ MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
 
     // in any case now we have tasks that should have finished
     // by default we assume the result is valid
-    ResultHolder<DynVec<real_t>> result;
+    ResultHolder<DynVec<real_t>> result(DynVec<real_t>(this->h_ptr_->n_coeffs(), 0.0), true);
 
     for(uint_t t=0; t < gradient_tasks_.size(); ++t){
 
@@ -420,6 +420,7 @@ MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
         // task has not finished properly invalidate the result
        if(gradient_tasks_[t]->get_state() != kernel::TaskBase::TaskState::FINISHED){
            result.invalidate_result(false);
+           break;
        }
        else{
 
@@ -456,8 +457,6 @@ MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
     }
 
     executor.execute(value_tasks_, options);
-
-    //is the result valid
 }
 
 template<typename HypothesisFn, typename DataSetType,
@@ -479,9 +478,8 @@ MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
         gradient_tasks_.push_back(std::make_unique<task_type>(t, dataset, labels, *h_ptr_));
     }
 
-    executor.execute(value_tasks_, options);
+    executor.execute(gradient_tasks_, options);
 
-    //is the result valid
 }
 
 }
