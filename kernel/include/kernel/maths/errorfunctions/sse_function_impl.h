@@ -462,7 +462,7 @@ SSEFunction<HypothesisFn, PartitionedType<DataSetType>,
                                                                                              Executor& executor, const Options& options){
 
     // create the dot product tasks
-    value_tasks_.reserve(executor.get_n_threads());
+    gradient_tasks_.reserve(executor.get_n_threads());
 
     typedef SSEFunction<HypothesisFn, PartitionedType<DataSetType>,
             PartitionedType<LabelsType>, RegularizerFn>::task_gradient_type task_type;
@@ -471,7 +471,7 @@ SSEFunction<HypothesisFn, PartitionedType<DataSetType>,
         gradient_tasks_.push_back(std::make_unique<task_type>(t, dataset, labels, *h_ptr_));
     }
 
-    executor.execute(value_tasks_, options);
+    executor.execute(gradient_tasks_, options);
 }
 
 

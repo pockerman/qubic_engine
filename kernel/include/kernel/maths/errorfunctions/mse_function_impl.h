@@ -469,7 +469,7 @@ MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
                                                                                              Executor& executor, const Options& options){
 
     // create the dot product tasks
-    value_tasks_.reserve(executor.get_n_threads());
+    gradient_tasks_.reserve(executor.get_n_threads());
 
     typedef MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
             PartitionedType<LabelsType>, RegularizerFn>::task_gradient_type task_type;
