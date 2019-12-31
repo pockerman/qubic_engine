@@ -41,12 +41,12 @@
 ## <a name="m_func"></a> The main function
 
 ```
-nt main(){
+innt main(){
 
     using kernel::real_t;
     using kernel::uint_t;
     using kernel::RealVectorPolynomialFunction;
-    using kernel::MSEFunction;
+    using kernel::SSEFunction;
     using DynMat = kernel::DynMat<real_t>;
     using DynVec = kernel::DynVec<real_t>;
 
@@ -55,13 +55,13 @@ nt main(){
         RealVectorPolynomialFunction function({0.409, 0.499});
 
         // the Mean Squared Error calculation
-        MSEFunction<RealVectorPolynomialFunction, DynMat, DynVec> mse(function);
+        SSEFunction<RealVectorPolynomialFunction, DynMat, DynVec> sse(function);
 
         // load the data set
         std::pair<DynMat, DynVec> data_set = kernel::load_car_plant_dataset();
 
-        auto value = mse.value(data_set.first, data_set.second);
-        std::cout<<"MSE error is: "<<value.get_resource()<<std::endl;
+        auto value = sse.value(data_set.first, data_set.second);
+        std::cout<<"SSE error is: "<<value.get_resource()<<std::endl;
     }
 
 #ifdef USE_OPENMP
@@ -74,18 +74,21 @@ nt main(){
         RealVectorPolynomialFunction function({0.409, 0.499});
 
         // the Mean Squared Error calculation
-        MSEFunction<RealVectorPolynomialFunction,
+        SSEFunction<RealVectorPolynomialFunction,
                     kernel::PartitionedType<DynMat>,
-                    kernel::PartitionedType<DynVec> > mse(function);
+                    kernel::PartitionedType<DynVec> > sse(function);
 
         // load the data set
         auto data_set = kernel::load_car_plant_dataset_with_partitions(executor.get_n_threads());
 
-        auto value = mse.value(data_set.first, data_set.second, executor, kernel::OMPOptions());
-        std::cout<<"MSE error is: "<<value.get_resource()<<std::endl;
+        auto value = sse.value(data_set.first, data_set.second, executor, kernel::OMPOptions());
+        std::cout<<"SSE error is: "<<value.get_resource()<<std::endl;
     }
 
 #endif
+    return 0;
+
+}
 ```
 
 ## <a name="results"></a> Results
