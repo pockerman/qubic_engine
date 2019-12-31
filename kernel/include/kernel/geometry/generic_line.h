@@ -31,7 +31,7 @@ namespace kernel
       generic_line_base(const NodeTp& p1,const NodeTp& p2, uint_t id);
 
       /// \brief Returns true iff id_ != kernel_consts::invalid_size_type()
-      bool has_valid_id()const noexcept{return (id_ != kernel_consts::invalid_size_type());}
+      bool has_valid_id()const noexcept{return (id_ != KernelConsts::invalid_size_type());}
 
       /// \brief Returns the id of the line
       uint_t get_id()const noexcept{return id_;}
@@ -58,7 +58,7 @@ namespace kernel
   :
   start_(),
   end_(),
-  id_(kernel_consts::invalid_size_type())
+  id_(KernelConsts::invalid_size_type())
   {}
 
   template<typename NodeTp>
