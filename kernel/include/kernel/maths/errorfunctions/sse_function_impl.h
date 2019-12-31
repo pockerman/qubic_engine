@@ -240,7 +240,7 @@ SSEFunction<HypothesisFn, PartitionedType<DataSetType>,
     this->result_.get_resource() = DynVec<real_t>(this->h_ptr_->n_coeffs(), 0.0);
 
     // tmp result
-    DynVec<real_t> result(this->h_ptr_->n_coeffs(), 0.0);
+    DynVec<real_t>& result = this->result_.get_resource();
 
     auto begin = parts.begin();
     auto end   = parts.end();
@@ -254,10 +254,7 @@ SSEFunction<HypothesisFn, PartitionedType<DataSetType>,
         for(uint_t c=0; c < this->h_ptr_->n_coeffs(); ++c){
             result[c] += -2.0*diff*hypothesis_grads[c];
         }
-    }
-
-    this->result_ += result;
-
+    }    
     // this is a valid result
     this->result_.validate_result();
 }

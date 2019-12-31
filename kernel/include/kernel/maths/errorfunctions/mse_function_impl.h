@@ -1,6 +1,7 @@
 #ifndef MSE_FUNCTION_IMPL_H
 #define MSE_FUNCTION_IMPL_H
 
+#include <iostream>
 namespace kernel
 {
 
@@ -241,8 +242,7 @@ MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
 
     this->result_.get_resource() = DynVec<real_t>(this->h_ptr_->n_coeffs(), 0.0);
 
-    // tmp result
-    DynVec<real_t> result(this->h_ptr_->n_coeffs(), 0.0);
+    DynVec<real_t>& result = this->result_.get_resource();
 
     auto begin = parts.begin();
     auto end   = parts.end();
@@ -257,8 +257,6 @@ MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
             result[c] += (-2.0/this->data_set_ptr_->rows())*diff*hypothesis_grads[c];
         }
     }
-
-    this->result_ += result;
 
     // this is a valid result
     this->result_.validate_result();
