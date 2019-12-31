@@ -81,8 +81,8 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 - <a href="examples/example_10">Example 10</a> Calculate the area of a circle using Monte Carlo integration
 - <a href="examples/example_11">Example 11</a> Radio active deacay simulation
 - <a href="examples/example_14">Example 14</a> Monte Carlo Integration with ```OMPExecutor``` class
-- <a href="examples/example_15">Example 15</a> Calculate MSE error with ```MSEFunction``` class
-- <a href="#">Example 16</a> Calculate SSE error with ```SSEFunction``` class
+- <a href="examples/example_15/doc/exe.md">Example 15</a> Calculate MSE error with ```MSEFunction``` class
+- <a href="examples/example_16/doc/exe.md">Example 16</a> Calculate SSE error with ```SSEFunction``` class
 
 
 ### <a name="physics_simulation"></a> Physics Simulation

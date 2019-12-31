@@ -12,23 +12,17 @@
 #include "kernel/parallel/utilities/partitioned_type.h"
 #endif
 
-#include <random>
 #include <iostream>
 
-namespace exe
-{
-using kernel::real_t;
-using kernel::uint_t;
-using kernel::RealVectorPolynomialFunction;
-using kernel::MSEFunction;
-using DynMat = kernel::DynMat<real_t>;
-using DynVec = kernel::DynVec<real_t>;
-
-}
 
 int main(){
 
-    using namespace exe;
+    using kernel::real_t;
+    using kernel::uint_t;
+    using kernel::RealVectorPolynomialFunction;
+    using kernel::MSEFunction;
+    using DynMat = kernel::DynMat<real_t>;
+    using DynVec = kernel::DynVec<real_t>;
 
     {
         // the hypothesis function y = w_0 + w_1*x
