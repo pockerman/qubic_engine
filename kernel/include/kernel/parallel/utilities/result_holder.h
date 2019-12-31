@@ -32,6 +32,18 @@ public:
     /// \brief Constructor. Initialize the result
     explicit ResultHolder(value_type&& init, bool valid=false);
 
+    /// \brief Copy constructor
+    ResultHolder(const ResultHolder<T>& other);
+
+    /// \brief  Copy assignement
+    ResultHolder<T>& operator=(const ResultHolder<T>& other);
+
+    /// \brief Move Copy constructor
+    ResultHolder(ResultHolder<T>&& other)noexcept;
+
+    /// \brief Move Copy assignement
+    ResultHolder<T>& operator=(ResultHolder<T>&& other)noexcept;
+
     /// \brief Add factor to the result
     template<typename U>
     ResultHolder<T>& operator += (const U& factor);
@@ -117,6 +129,50 @@ ResultHolder<T>::ResultHolder(T&& init, bool valid)
    item_(init),
    valid_result_(valid)
 {}
+
+template<typename T>
+ResultHolder<T>::ResultHolder(const ResultHolder<T>& other)
+    :
+      item_(other.item_),
+      valid_result_(other.valid_result_)
+{}
+
+template<typename T>
+ResultHolder<T>&
+ResultHolder<T>::operator=(const ResultHolder<T>& other){
+
+    if(this == &other){
+        return *this;
+    }
+
+    item_ = other.item_;
+    valid_result_ = other.valid_result_;
+    other.invalidate_result(true);
+    return *this;
+}
+
+template<typename T>
+ResultHolder<T>::ResultHolder(ResultHolder<T>&& other)noexcept
+    :
+      item_(other.item_),
+      valid_result_(other.valid_result_)
+{
+    other.invalidate_result(true);
+}
+
+template<typename T>
+ResultHolder<T>&
+ResultHolder<T>::operator=(ResultHolder<T>&& other)noexcept{
+
+    if(this == &other){
+        return *this;
+    }
+
+    item_ = other.item_;
+    valid_result_ = other.valid_result_;
+    other.invalidate_result(true);
+    return *this;
+}
 
 
 template<typename T>

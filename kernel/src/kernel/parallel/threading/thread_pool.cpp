@@ -8,7 +8,8 @@ namespace kernel
 ThreadPool::ThreadPool(uint_t n_threads, bool start_)
     :
 pool_(),
-n_threads_(n_threads)
+n_threads_(n_threads),
+next_thread_available_ (kernel::KernelConsts::invalid_size_type())
 {
     // TODO: perhaps we could request the system
     // using std::thread::hardware_concurrency()

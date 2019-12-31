@@ -6,6 +6,7 @@
 #include "kernel/base/types.h"
 #include "kernel/parallel/utilities/result_holder.h"
 
+#include <iostream>
 namespace kernel
 {
 

@@ -24,12 +24,10 @@ public:
       */
     RealVectorPolynomialFunction();
 
-
     /**
       * Constructor. Create a polynomial where each variable has order 1
       */
     RealVectorPolynomialFunction(const std::vector<real_t>& coeffs);
-
 
     /**
       * Constructor
@@ -40,7 +38,6 @@ public:
       * Build the function from the given coeffs and orders
       */
     void create_from(const DynVec<real_t>& coeffs, const std::vector<int>& order);
-
 
     /**
       * Create a polynomial where each variable has order 1
@@ -76,6 +73,16 @@ public:
       * Returns the gradients of the function
       */
     virtual DynVec<real_t> gradients(const DynVec<real_t>& point)const override final;
+
+    /**
+      * Returns the coefficients of the underlying monomials
+      */
+    std::vector<real_t> coeffs()const;
+
+    /**
+      * Returns the coefficients of the underlying monomials
+      */
+    void set_coeffs(const std::vector<real_t>& coeffs);
 
 private:
 
