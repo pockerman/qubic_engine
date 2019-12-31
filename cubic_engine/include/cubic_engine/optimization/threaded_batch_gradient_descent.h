@@ -85,9 +85,8 @@ ThreadedGd::solve(const MatType& mat,const VecType& v,
     while(input_.continue_iterations()){
 
         // get the gradients with respect to the coefficients
-        auto j_grads_result = error_fun.coeff_grads(mat, v, executor, options);
-
-        auto j_grads = *(j_grads_result.get_or_wait().first);
+        auto j_grads_result = error_fun.gradients(mat, v, executor, options);
+        auto j_grads = *(j_grads_result.get().first);
 
         //update the coefficients
         auto coeffs = h.coeffs();
@@ -106,7 +105,7 @@ ThreadedGd::solve(const MatType& mat,const VecType& v,
 
         real_t error = std::fabs(j_current - j_old);
 
-        input_.update_residual(error);
+        //input_.update_residual(error);
         uint_t itr = input_.get_current_tteration();
 
         if(input_.show_iterations){
@@ -121,9 +120,7 @@ ThreadedGd::solve(const MatType& mat,const VecType& v,
 
     }//itrs
 
-
     auto state = input_.get_state();
-
     end = std::chrono::system_clock::now();
     info.runtime = end-start;
     return info;
