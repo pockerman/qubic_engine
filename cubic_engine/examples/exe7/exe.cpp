@@ -14,10 +14,9 @@
 #include "cubic_engine/optimization/threaded_batch_gradient_descent.h"
 #include "cubic_engine/optimization/utils/gd_control.h"
 
-
 #include <iostream>
 
-        
+
 int main(){
 
     using cengine::uint_t;
@@ -32,12 +31,11 @@ int main(){
 
     const uint_t NUM_THREADS = 2;
 
-    auto dataset = kernel::load_car_plant_dataset_with_partitions(2);
+    auto dataset = kernel::load_car_plant_dataset_with_partitions(NUM_THREADS);
 
-    GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
-    control.show_iterations = true;
 
-    ThreadedGd gd(control);
+
+
 
 #ifdef USE_OPENMP
     {
@@ -53,7 +51,14 @@ int main(){
                 PartitionedType<DynMat<real_t>>,
                 PartitionedType<DynVec<real_t>>> mse(hypothesis);
 
+        GDControl control(10000, kernel::KernelConsts::tolerance(), 0.01);
+        control.show_iterations = false;
+        ThreadedGd gd(control);
+
         gd.solve(dataset.first, dataset.second, mse, hypothesis, executor, kernel::OMPOptions());
+
+        auto coeffs = hypothesis.coeffs();
+        std::cout<<"interception: "<<coeffs[0]<<" slope: "<<coeffs[1]<<std::endl;
     }
 #endif
     {
@@ -68,7 +73,14 @@ int main(){
                 PartitionedType<DynMat<real_t>>,
                 PartitionedType<DynVec<real_t>>> mse(hypothesis);
 
+        GDControl control(10000, kernel::KernelConsts::tolerance(), 0.01);
+        control.show_iterations = false;
+        ThreadedGd gd(control);
+
         gd.solve(dataset.first, dataset.second, mse, hypothesis, executor, kernel::Null());
+
+        auto coeffs = hypothesis.coeffs();
+        std::cout<<"interception: "<<coeffs[0]<<" slope: "<<coeffs[1]<<std::endl;
 
     }
         
