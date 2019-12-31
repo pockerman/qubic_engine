@@ -1,9 +1,9 @@
-# Example: Calculating the Mean Squared Error
+# Example: Calculating the Sum Squared Error
 
 ## Contents
 * [Acknowledgements](#ackw)
 * [Overview](#overview) 
-	* [Mean Squared Error](#mean_squared_error)
+	* [Sum Squared Error](#sum_squared_error)
 * [Include files](#include_files)
 * [Program structure](#prg_struct)
 * [The main function](#m_func)
@@ -14,7 +14,7 @@
 
 ## <a name="overview"></a> Overview
 
-### <a name="mean_squared_error"></a> Mean Squared Error
+### <a name="sum_squared_error"></a> Sum Squared Error
 
 ## <a name="include_files"></a> Include files
 
