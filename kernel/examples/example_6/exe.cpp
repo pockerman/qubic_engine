@@ -3,7 +3,7 @@
   *
   **/
 #include "kernel/base/types.h"
-#include "kernel/base/algorithm_info.h"
+#include "kernel/utilities/algorithm_info.h"
 #include "kernel/parallel/threading/thread_pool.h"
 #include "kernel/parallel/parallel_algos/parallel_reduce.h"
 #include "kernel/parallel/utilities/reduction_operations.h"
