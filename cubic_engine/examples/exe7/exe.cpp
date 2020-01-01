@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-
+       
 int main(){
 
     using cengine::uint_t;
@@ -33,10 +33,6 @@ int main(){
 
     auto dataset = kernel::load_car_plant_dataset_with_partitions(NUM_THREADS);
 
-
-
-
-
 #ifdef USE_OPENMP
     {
 
@@ -51,14 +47,15 @@ int main(){
                 PartitionedType<DynMat<real_t>>,
                 PartitionedType<DynVec<real_t>>> mse(hypothesis);
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(), 0.01);
+        GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
         control.show_iterations = false;
+
         ThreadedGd gd(control);
 
-        gd.solve(dataset.first, dataset.second, mse, hypothesis, executor, kernel::OMPOptions());
-
-        auto coeffs = hypothesis.coeffs();
-        std::cout<<"interception: "<<coeffs[0]<<" slope: "<<coeffs[1]<<std::endl;
+        auto result = gd.solve(dataset.first, dataset.second, mse, hypothesis, executor, kernel::OMPOptions());
+        std::cout<<result<<std::endl;
+        std::cout<<"Intercept: "<<hypothesis.coeff(0)<<", slope: "<<hypothesis.coeff(1)<<std::endl;
+        std::cout<<std::endl;
     }
 #endif
     {
@@ -73,15 +70,14 @@ int main(){
                 PartitionedType<DynMat<real_t>>,
                 PartitionedType<DynVec<real_t>>> mse(hypothesis);
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(), 0.01);
+        GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
         control.show_iterations = false;
+
         ThreadedGd gd(control);
 
-        gd.solve(dataset.first, dataset.second, mse, hypothesis, executor, kernel::Null());
-
-        auto coeffs = hypothesis.coeffs();
-        std::cout<<"interception: "<<coeffs[0]<<" slope: "<<coeffs[1]<<std::endl;
-
+        auto result = gd.solve(dataset.first, dataset.second, mse, hypothesis, executor, kernel::Null());
+        std::cout<<result<<std::endl;
+        std::cout<<"Intercept: "<<hypothesis.coeff(0)<<", slope: "<<hypothesis.coeff(1)<<std::endl;
     }
         
     return 0;

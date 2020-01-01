@@ -5,6 +5,7 @@
 #include "cubic_engine/optimization/utils/gd_control.h"
 #include "cubic_engine/optimization/utils/gd_info.h"
 
+#include <boost/noncopyable.hpp>
 #include <chrono>
 #include <iostream>
 #include <vector>
@@ -17,7 +18,7 @@ namespace cengine
  * for solving optimization problems.
  */
 
-class ThreadedGd
+class ThreadedGd: private boost::noncopyable
 {
 
 public:
@@ -43,6 +44,9 @@ public:
     GDInfo solve(const MatType& mat,const VecType& v,
                  ErrorFuncType& error_fun, HypothesisFuncType& h,
                  Executor& executor, const Options& options);
+
+    /// \brief Reset the control
+    void reset_control(const GDControl& control){input_ = control;}
 
 private:
 
@@ -105,7 +109,7 @@ ThreadedGd::solve(const MatType& mat,const VecType& v,
 
         real_t error = std::fabs(j_current - j_old);
 
-        //input_.update_residual(error);
+        input_.update_residual(error);
         uint_t itr = input_.get_current_tteration();
 
         if(input_.show_iterations){
@@ -123,6 +127,12 @@ ThreadedGd::solve(const MatType& mat,const VecType& v,
     auto state = input_.get_state();
     end = std::chrono::system_clock::now();
     info.runtime = end-start;
+    info.nprocs = 1;
+    info.nthreads = executor.get_n_threads();
+    info.converged = state.converged;
+    info.residual = state.residual;
+    info.tolerance = state.tolerance;
+    info.niterations = state.num_iterations;
     return info;
 }
 }
