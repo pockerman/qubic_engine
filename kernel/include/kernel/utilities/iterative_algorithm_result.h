@@ -10,7 +10,8 @@ struct IterativeAlgorithmResult  {
 
     bool converged=false;
     real_t tolerance;
-    uint_t num_tterations;
+    real_t residual;
+    uint_t num_iterations;
 };
 }
 #endif // ITERATIVE_ALGORITHM_RESULT_H

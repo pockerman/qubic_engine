@@ -24,39 +24,42 @@ namespace kernel
 	 */
 	struct AlgInfo
 	{
-		  /**
-		   *@brief How many iterations the algorithm performed
-		   */ 
-		  uint_t niterations;
-		  
-		  /**
-		   * @brief The residual after the algorithm terminated
-		   */
-          real_t residual;
-		  
-		  /**
-		   * @brief Flag indicating if the algorithm converged
-		   */
-		  bool converged;
-		  
-		  /**
-		   * @brief The total time duration of the algorithm
-		   */
-          std::chrono::duration<real_t> runtime;
-		  
-		  /**
-		   * @brief How many threads the algorithm used
-		   */
-		  uint_t nthreads;
-		  
-		  /**
-		   * @brief How many processors the algorithm used
-		   */
-		  uint_t nprocs; 
-		  
-		  /**
-		   * @brief Constructor
-		   */
+        /**
+         *@brief How many iterations the algorithm performed
+         */
+        uint_t niterations;
+
+        /**
+         * @brief The residual after the algorithm terminated
+         */
+        real_t residual;
+
+        /**
+         * @brief Flag indicating if the algorithm converged
+         */
+        bool converged;
+
+        /// \brief The exit tolerace used
+        real_t tolerance;
+
+        /**
+         * @brief The total time duration of the algorithm
+         */
+        std::chrono::duration<real_t> runtime;
+
+         /**
+          * @brief How many threads the algorithm used
+          */
+         uint_t nthreads;
+
+         /**
+          * @brief How many processors the algorithm used
+          */
+         uint_t nprocs;
+
+         /**
+          * @brief Constructor
+          */
 		  AlgInfo()
 		          :
 		         niterations(KernelConsts::invalid_size_type()),
