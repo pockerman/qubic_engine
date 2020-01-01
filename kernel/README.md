@@ -20,7 +20,7 @@
 
 ## <a name="nstallation"></a> Installation
 
-Currently you need to tweak the supplied ```CMakeLists.txt``` supplied. Concretely, you will have to
+Currently you need to tweak the supplied ```CMakeLists.txt```. Concretely, you will have to
 specify the following:
 
 - The ```BLAZE_INCL_DIR``` variable
@@ -29,6 +29,7 @@ specify the following:
     - ```GTEST_LIB_DIR```
 - The compilation mode ```Debug``` or ```Release```. Default is ```Debug```
 - ```USE_OPENMP``` by default is ```ON``` meaning use OpenMP specification
+- ```USE_LOG``` by default is ```ON``` meaning use logging
 
 ```
 mkdir build
