@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 #define KERNEL_DEBUG 1
-#define KERNEL_LOG 1
+#define USE_LOG 1
 #define USE_OPENMP 1
 
 
