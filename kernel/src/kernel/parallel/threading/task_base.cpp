@@ -1,5 +1,12 @@
 #include "kernel/parallel/threading/task_base.h"
 
+#include "kernel/base/config.h"
+
+#ifdef USE_LOG
+#include "kernel/utilities/logger.h"
+#include <sstream>
+#endif
+
 
 namespace kernel
 {
@@ -28,10 +35,21 @@ TaskBase::operator()(){
         set_state(TaskBase::TaskState::STARTED);
         run();
         set_state(TaskBase::TaskState::FINISHED);
+
+#ifdef USE_LOG
+        std::ostringstream message;
+        message<<"Task: "<<get_name()<<" finished successfully";
+        Logger::log_info(message.str());
+#endif
     }
     catch (...) {
 
         //whatever caused this, we assume that the task was interrupted
+#ifdef USE_LOG
+        std::ostringstream message;
+        message<<"Task: "<<get_name()<<" was interrupted";
+        Logger::log_error(message.str());
+#endif
         set_state(TaskBase::TaskState::INTERRUPTED);
     }
 }
