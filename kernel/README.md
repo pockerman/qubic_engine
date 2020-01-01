@@ -29,6 +29,7 @@ specify the following:
     - ```GTEST_LIB_DIR```
 - The compilation mode ```Debug``` or ```Release```. Default is ```Debug```
 - ```USE_OPENMP``` by default is ```ON``` meaning use OpenMP specification
+- ```USE_LOG``` by default is ```ON``` meaning use logging
 
 ```
 mkdir build
