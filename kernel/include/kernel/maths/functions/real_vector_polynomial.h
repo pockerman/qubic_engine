@@ -19,24 +19,16 @@ public:
     typedef RealVectorValuedFunctionBase::input_t input_t;
     typedef RealVectorValuedFunctionBase::output_t output_t;
 
-    /**
-      * Constructor
-      */
+    /// \brief Constructor
     RealVectorPolynomialFunction();
 
-    /**
-      * Constructor. Create a polynomial where each variable has order 1
-      */
+    /// \brief Constructor Create a polynomial where each variable has order 1
     RealVectorPolynomialFunction(const std::vector<real_t>& coeffs);
 
-    /**
-      * Constructor
-      */
+    /// \brief Constructor
     RealVectorPolynomialFunction(const DynVec<real_t>& coeffs, const std::vector<int>& order);
 
-    /**
-      * Build the function from the given coeffs and orders
-      */
+    /// \brief Build the function from the given coeffs and orders
     void create_from(const DynVec<real_t>& coeffs, const std::vector<int>& order);
 
     /**
@@ -83,6 +75,10 @@ public:
       * Returns the coefficients of the underlying monomials
       */
     void set_coeffs(const std::vector<real_t>& coeffs);
+
+    /// \brief Returns the i-th coefficient
+    real_t coeff(uint_t c)const{return monomials_[c].coeff();}
+
 
 private:
 
