@@ -1,0 +1,14 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+/*DEBUG*/
+#cmakedefine01 KERNEL_DEBUG
+
+/*Use log */
+#cmakedefine01 USE_LOG
+
+/*Use OpenMP */
+#cmakedefine01 USE_OPENMP
+
+#endif
+
