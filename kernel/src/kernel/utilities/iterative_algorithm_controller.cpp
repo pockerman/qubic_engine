@@ -8,8 +8,9 @@ IterativeAlgorithmController::get_state()const{
 
         IterativeAlgorithmResult result;
         result.converged = current_res_ <= exit_tolerance_ ? true:false;
-        result.num_tterations = current_iteration_idx_;
-        result.tolerance = current_res_;
+        result.num_iterations = current_iteration_idx_;
+        result.tolerance = exit_tolerance_;
+        result.residual = current_res_;
         return result;
 }
 
