@@ -4,7 +4,7 @@
   **/
 #include "kernel/parallel/threading/thread_pool.h"
 #include "kernel/parallel/threading/simple_task.h"
-#include "kernel/base/algorithm_info.h"
+#include "kernel/utilities/algorithm_info.h"
 #include "kernel/base/iteration_control.h"
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"

@@ -21,7 +21,6 @@ public:
    /**
     * Returns true if the iterations of the algorithm should be continued
     */
-
     bool continue_iterations();
 
     /**
