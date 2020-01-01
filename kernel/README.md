@@ -20,7 +20,7 @@
 
 ## <a name="nstallation"></a> Installation
 
-Currently you need to tweak the supplied ```CMakeLists.txt``` supplied. Concretely, you will have to
+Currently you need to tweak the supplied ```CMakeLists.txt```. Concretely, you will have to
 specify the following:
 
 - The ```BLAZE_INCL_DIR``` variable
