@@ -17,11 +17,12 @@
 - <a href="https://www.boost.org/">Boost C++</a> libraries
 - <a href="https://bitbucket.org/blaze-lib/blaze/wiki/browse/">Blaze</a> library for linear algebra
 - <a href="https://github.com/google/googletest">GTest</a> if testing is enabled
+- <a href="https://pytorch.org/">PyTorch</a> if PyTorch is enabled
 - <a href="https://github.com/pockerman/compute_engine/tree/master/kernel">```kernel```</a>
 
 ## <a name="nstallation"></a> Installation
 
-Currently you need to tweak the supplied ```CMakeLists.txt``` supplied. Concretely, you will have to
+Currently you need to tweak the supplied ```CMakeLists.txt```. Concretely, you will have to
 specify the following:
 
 - The ```BLAZE_INCL_DIR``` variable
@@ -30,6 +31,10 @@ specify the following:
     - ```GTEST_LIB_DIR```
 - The compilation mode ```Debug``` or ```Release```. Default is ```Debug```
 - ```USE_OPENMP``` by default is ```ON``` meaning use OpenMP specification
+- ```USE_PYTORCH``` by default is ```OFF``` meaning do no use PyTorch C++ front end 
+		- If you choose to set ```USE_PYTORCH``` to ON you also need to set properly the flag ```CMAKE_PREFIX_PATH```; by default is set to ```${PWD}../libtorch``` 
+
+- ```CMAKE_INSTALL_PREFIX``` by default is set to ```${PWD}/install```
 
 ```
 mkdir build
@@ -75,12 +80,13 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 ### <a name="machine_learning"></a> Control
 
 - <a href="examples/exe7/doc/exe.md">Example 7</a> Multithreaded batch gradient descent
+- <a href="examples/exe11/doc/exe.md">Example 11</a> Neural Network with PyTorch
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
 - <a href="#">Example 6</a> Solving the State-Value Function Problem
 
-### <a name="reinforcement_learning"></a> Reinforcement Learning
+### <a name="using_ros"></a> Using ROS
 
 - <a href="#">Example 3</a> Create a simple server to comminicate with ROS
 
