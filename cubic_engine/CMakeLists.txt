@@ -26,9 +26,23 @@ SET(CUBIC_ENGINE_VERSION "${CUBIC_ENGINE_VERSION_MAJOR}.${CUBIC_ENGINE_VERSION_M
 SET(BUILD_SHARED_LIBS ON)
 SET(CMAKE_BUILD_TYPE "Debug")
 SET(ENABLE_TESTING "ON")
+SET(USE_OPENMP "ON")
+SET(USE_LOG "ON")
+SET(USE_PYTORCH "OFF")
 
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/cubic_engine)
+SET(CMAKE_INSTALL_PREFIX ${PWD}/install)
+
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+    SET(CENGINE_DEBUG "ON")
+ENDIF()
+
+configure_file(config.h.in include/cubic_engine/base/config.h @ONLY)
+
+# TODO: Fix this
+# add this because config.h ends up in the build directory
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
 #find boost. How to make this user defined?
 find_package(Boost 1.65.0 REQUIRED)
@@ -59,11 +73,10 @@ else()
     INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
 endif()
 
-SET(ENABLE_TESTING "ON")
-
 IF( ENABLE_TESTING MATCHES "ON")
     SET(GTEST_INC_DIR " ")
     SET(GTEST_LIB_DIR " ")
+    INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
 ENDIF()
 
 IF( ENABLE_TESTING MATCHES "ON" AND GTEST_INC_DIR MATCHES " " )
@@ -74,8 +87,11 @@ IF( ENABLE_TESTING MATCHES "ON" AND GTEST_LIB_DIR MATCHES " " )
     MESSAGE( FATAL_ERROR  "Testing is enabled but GTest lib directory has not been specified")
 ENDIF()
 
-SET(USE_OPENMP "ON")
-SET(CMAKE_BUILD_TYPE "Debug")
+IF(USE_PYTORCH MATCHES "ON")
+	SET(CMAKE_PREFIX_PATH ${PWD}../libtorch)
+	find_package(Torch REQUIRED)
+	INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})
+ENDIF()
 
 IF(USE_OPENMP MATCHES "ON")
 
@@ -105,7 +121,8 @@ INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
                  ${PROJECT_SRC_DIR}/systems/*.cpp
                  ${PROJECT_SRC_DIR}/control/*.cpp
-                 ${PROJECT_SRC_DIR}/ml/instance_learning/*.cpp)
+                 ${PROJECT_SRC_DIR}/ml/instance_learning/*.cpp
+                 ${PROJECT_SRC_DIR}/optimization/utils/*.cpp)
 
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
 ADD_LIBRARY(cubicengine SHARED ${SRCS})
