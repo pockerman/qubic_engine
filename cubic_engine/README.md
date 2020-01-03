@@ -35,6 +35,7 @@ specify the following:
 		- If you choose to set ```USE_PYTORCH``` to ON you also need to set properly the flag ```CMAKE_PREFIX_PATH```; by default is set to ```${PWD}../libtorch``` 
 
 - ```CMAKE_INSTALL_PREFIX``` by default is set to ```${PWD}/install```
+- ```KERNEL_INCL_DIR``` and ```KERNEL_LIB_DIR``` by default these point to ```${PWD}../kernel/include``` and  ```${PWD}../kernel/install/lib``` respectively
 
 ```
 mkdir build

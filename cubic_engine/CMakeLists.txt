@@ -56,8 +56,13 @@ ENDIF()
 # Currently fail the build if the user does not supply the
 # variables.
 # TODO: How to do it better
-SET(KERNEL_INCL_DIR " ")
-SET(KERNEL_LIB_DIR  " ")
+SET(KERNEL_INCL_DIR ${PWD}../kernel/include)
+
+IF(CENGINE_DEBUG MATCHES "ON")
+	SET(KERNEL_LIB_DIR  ${PWD}../kernel/install/lib/dbg)
+ELSE()
+	SET(KERNEL_LIB_DIR ${PWD}../kernel/install/lib/opt)
+ENDIF()
 
 if(${KERNEL_INCL_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " kernel directory not set")
