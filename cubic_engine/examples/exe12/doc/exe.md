@@ -52,16 +52,15 @@ For more information, see the wikipedia entry <a href="https://en.wikipedia.org/
 
 #### <a name="recall_or_Sensitivity"></a> Recall or Sensitivity
 
-
-
 #### <a name="precision"></a> Precision
-
-
 
 #### <a name="specificity"></a> Specificity
 
 
 #### <a name="f1_score"></a> F1-score
+
+
+![Sigmoid Function](sigmoid_func.png)
 
 ## <a name="include_files"></a> Include files
 
