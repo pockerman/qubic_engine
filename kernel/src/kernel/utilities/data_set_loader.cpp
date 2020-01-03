@@ -1,7 +1,10 @@
 #include "kernel/utilities/data_set_loaders.h"
 #include "kernel/parallel/utilities/array_partitioner.h"
+#include "kernel/utilities/csv_file_reader.h"
+#include "kernel/base/config.h"
 
 #include <exception>
+#include <cstdlib> //std::atof
 namespace kernel
 {
 
@@ -282,5 +285,46 @@ std::pair<PartitionedType<DynMat<real_t>>,
 
 }
 
+
+std::pair<DynMat<real_t>, DynVec<uint_t>> load_reduced_iris_data_set(bool add_ones_column){
+
+    CSVFileReader reader(DATA_SET_FOLDER);
+
+    uint_t cols = add_ones_column?5:4;
+    DynMat<real_t> matrix(100, cols, 0.0);
+    DynVec<uint_t> labels(100);
+
+    uint_t r = 0;
+    while(!reader.eof()){
+
+        auto line = reader.read_line();
+
+        if(r != 0){
+
+            std::vector<real_t> row(4, 0.0);
+
+            for(uint_t i = 0; i<line.size()-1; ++i){
+               row[i] = std::atof(line[i].c_str());
+            }
+
+            uint c = add_ones_column?1:0;
+            for(; c<cols; ++c){
+                matrix(r, c) = row[c];
+            }
+
+            if(line[4] == "Iris-setosa"){
+                labels[r-1] = 0;
+            }
+            else if(line[4] == "Iris-versicolor"){
+                labels[r-1] = 1;
+            }
+        }
+
+        r++;
+    }
+
+    return std::make_pair(matrix, labels);
+
+}
 
 }

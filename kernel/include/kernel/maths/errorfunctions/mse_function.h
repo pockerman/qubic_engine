@@ -16,58 +16,89 @@
 namespace kernel
 {
 
-/**
- * @brief The MSEFunction class. Models the Mean Squred Error
- */
+///forward declarations
+template<typename HypothesisFn> class SigmoidFunction;
+
+namespace detail
+{
+
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn=DummyFunction<real_t, DataSetType, LabelsType>>
-class MSEFunction: public FunctionBase<ResultHolder<real_t>, DataSetType, LabelsType>
+class mse_detail: public FunctionBase<ResultHolder<real_t>, DataSetType, LabelsType>
 {
 public:
 
     typedef typename FunctionBase<ResultHolder<real_t>, DataSetType, LabelsType>::output_t output_t;
+    typedef std::pair<DataSetType, LabelsType> input_t;
     typedef HypothesisFn hypothesis_t;
     typedef RegularizerFn regularizer_t;
 
     /// \brief Constructor
-    MSEFunction(const hypothesis_t& h);
+    mse_detail(const hypothesis_t& h);
 
     /// \brief Constructor
-    MSEFunction(const hypothesis_t& h, const regularizer_t& r);
+    mse_detail(const hypothesis_t& h, const regularizer_t& r);
+
+    /// \brief Destructor
+    virtual ~ mse_detail(){}
 
     /// \brief Returns the value of the function
-    virtual output_t value(const DataSetType& dataset, const LabelsType& labels)const override final;
+    virtual output_t value(const DataSetType& dataset, const LabelsType& labels)const override;
 
     /// \brief Returns the gradients of the function
-    virtual DynVec<real_t> gradients(const DataSetType& dataset, const LabelsType& labels)const override final;
+    virtual DynVec<real_t> gradients(const DataSetType& dataset, const LabelsType& labels)const override;
 
     /// \brief Returns the number of coefficients
     virtual uint_t n_coeffs()const override final{return 1;}
 
-private:
+protected:
 
     const hypothesis_t* h_ptr_;
     const regularizer_t* r_ptr_;
 
 };
 
+}
 
-/**
- * @brief The MSEFunction class. Models the Mean Squred Error
- */
+/// \brief brief The MSEFunction class. Models the Mean Squred Error
 template<typename HypothesisFn, typename DataSetType,
-         typename LabelsType, typename RegularizerFn>
-class MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
-                  PartitionedType<LabelsType>, RegularizerFn>: public FunctionBase<ResultHolder<real_t>,
-                                                                                   DataSetType,
-                                                                                   LabelsType>
+         typename LabelsType, typename RegularizerFn=DummyFunction<real_t, DataSetType, LabelsType>>
+class MSEFunction: public detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>
 {
 public:
 
-    typedef typename FunctionBase<ResultHolder<real_t>, DataSetType, LabelsType>::output_t output_t;
+    typedef typename detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::output_t output_t;
+    typedef std::pair<DataSetType, LabelsType> input_t;
+    typedef typename detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::hypothesis_t hypothesis_t;
+    typedef typename detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::regularizer_t regularizer_t;
 
-    typedef HypothesisFn hypothesis_t;
-    typedef RegularizerFn regularizer_t;
+    /// \brief Constructor
+    MSEFunction(const hypothesis_t& h);
+
+    /// \brief Constructor
+    MSEFunction(const hypothesis_t& h, const regularizer_t& r);
+};
+
+/// \brief MSE function when using sigmoid transformation
+template<typename HypothesisFn, typename DataSetType,
+         typename LabelsType, typename RegularizerFn>
+class MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
+                  LabelsType, RegularizerFn>  : public detail::mse_detail<SigmoidFunction<HypothesisFn>,
+                                                                          DataSetType,
+                                                                          LabelsType,
+                                                                         RegularizerFn>
+{
+public:
+
+    typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>,
+                                        DataSetType,
+                                        LabelsType,
+                                        RegularizerFn>::output_t output_t;
+
+    typedef std::pair<DataSetType, LabelsType> input_t;
+
+    typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>::hypothesis_t hypothesis_t;
+    typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>::regularizer_t regularizer_t;
 
     /// \brief Constructor
     MSEFunction(const hypothesis_t& h);
@@ -78,13 +109,39 @@ public:
     /// \brief Returns the value of the function
     virtual output_t value(const DataSetType& dataset, const LabelsType& labels)const override final;
 
+    /// \brief Returns the gradients of the function
+    virtual DynVec<real_t> gradients(const DataSetType& dataset, const LabelsType& labels)const override final;
+
+};
+
+
+/// \brief he MSEFunction class. Models the Mean Squred Error
+/// This is a partial specialization to account for partitioned datasets
+///  in this case we also allow parallel execution if an executor is given
+template<typename HypothesisFn, typename DataSetType,
+         typename LabelsType, typename RegularizerFn>
+class MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
+                  PartitionedType<LabelsType>, RegularizerFn>: public detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>
+
+{
+public:
+
+    typedef typename detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::output_t output_t;
+    typedef std::pair<DataSetType, LabelsType> input_t;
+    typedef typename detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::hypothesis_t hypothesis_t;
+    typedef typename detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::regularizer_t regularizer_t;
+
+    /// \brief Constructor
+    MSEFunction(const hypothesis_t& h);
+
+    /// \brief Constructor
+    MSEFunction(const hypothesis_t& h, const regularizer_t& r);
+
+
     /// \brief Returns the value of the function using the provided executor
     template<typename Executor, typename Options>
     output_t value(const PartitionedType<DataSetType>& dataset, const PartitionedType<LabelsType>& labels,
                    Executor& executor, const Options& options);
-
-    /// \brief Returns the gradients of the function
-    virtual DynVec<real_t> gradients(const DataSetType& dataset, const LabelsType& labels)const override final;
 
     /// \brief Returns the gradients of the function with respect to the
     /// coefficients of the hypothesis function
@@ -93,13 +150,91 @@ public:
                                            const PartitionedType<LabelsType>& labels,
                                             Executor& executor, const Options& options);
 
-    /// \brief Returns the number of coefficients
-    virtual uint_t n_coeffs()const override final{return 1;}
-
 private:
 
-    const hypothesis_t* h_ptr_;
-    const regularizer_t* r_ptr_;
+
+    template<typename Executor, typename Options>
+    void execute_value_tasks_(const PartitionedType<DataSetType>& dataset,
+                              const PartitionedType<LabelsType>& labels,
+                               Executor& executor, const Options& options);
+
+    template<typename Executor, typename Options>
+    void execute_gardient_value_tasks_(const PartitionedType<DataSetType>& dataset,
+                                       const PartitionedType<LabelsType>& labels,
+                                       Executor& executor, const Options& options);
+
+    /// \brief Struct describing the task
+    /// of evaluating the MSE function
+    struct task_value_description;
+    typedef task_value_description task_value_type;
+
+    struct task_gradient_value_description;
+    typedef task_gradient_value_description task_gradient_type;
+
+    /// \list of value tasks
+    std::vector<std::unique_ptr<task_value_type>> value_tasks_;
+
+    /// \list of gradient tasks
+    std::vector<std::unique_ptr<task_gradient_type>> gradient_tasks_;
+
+};
+
+
+
+/// \brief he MSEFunction class. Models the Mean Squred Error
+/// This is a partial specialization to account for partitioned datasets
+/// in this case we also allow parallel execution if an executor is given
+/// Furthermore this accounts for SigmoidFunction transformation
+template<typename HypothesisFn, typename DataSetType,
+         typename LabelsType, typename RegularizerFn>
+class MSEFunction<SigmoidFunction<HypothesisFn>,
+                  PartitionedType<DataSetType>,
+                  PartitionedType<LabelsType>,
+                  RegularizerFn>: public detail::mse_detail<SigmoidFunction<HypothesisFn>,
+                                                            DataSetType,
+                                                            LabelsType,
+                                                            RegularizerFn>
+
+{
+public:
+
+    typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>,
+                                        DataSetType,
+                                        LabelsType,
+                                        RegularizerFn>::output_t output_t;
+
+    typedef std::pair<DataSetType, LabelsType> input_t;
+    typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>,
+                                        DataSetType,
+                                        LabelsType,
+                                        RegularizerFn>::hypothesis_t hypothesis_t;
+
+    typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>,
+                                        DataSetType,
+                                        LabelsType,
+                                        RegularizerFn>::regularizer_t regularizer_t;
+
+    /// \brief Constructor
+    MSEFunction(const hypothesis_t& h);
+
+    /// \brief Constructor
+    MSEFunction(const hypothesis_t& h, const regularizer_t& r);
+
+
+    /// \brief Returns the value of the function using the provided executor
+    template<typename Executor, typename Options>
+    output_t value(const PartitionedType<DataSetType>& dataset,
+                   const PartitionedType<LabelsType>& labels,
+                   Executor& executor, const Options& options);
+
+    /// \brief Returns the gradients of the function with respect to the
+    /// coefficients of the hypothesis function
+    template<typename Executor, typename Options>
+    ResultHolder<DynVec<real_t>> gradients(const PartitionedType<DataSetType>& dataset,
+                                           const PartitionedType<LabelsType>& labels,
+                                           Executor& executor, const Options& options);
+private:
+
 
     template<typename Executor, typename Options>
     void execute_value_tasks_(const PartitionedType<DataSetType>& dataset,

@@ -27,7 +27,13 @@ std::pair<PartitionedType<DynMat<real_t>>,
 /// \brief The car plant data set is a simple dataset with two columns
 /// of real type and 12 observations
 std::pair<PartitionedType<DynMat<real_t>>,
-          PartitionedType<DynVec<real_t>>> load_car_plant_dataset_with_partitions(uint nparts, uint_t label_idx=1, bool add_ones_column=true);
+          PartitionedType<DynVec<real_t>>> load_car_plant_dataset_with_partitions(uint nparts,
+                                                                                  uint_t label_idx=1,
+                                                                                  bool add_ones_column=true);
+
+
+/// \brief Load the reduced iris data set
+std::pair<DynMat<real_t>, DynVec<uint_t>> load_reduced_iris_data_set(bool add_ones_column=true);
 
 
 

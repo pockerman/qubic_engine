@@ -39,8 +39,10 @@ SET(CMAKE_BUILD_TYPE "Debug")
 SET(ENABLE_TESTING "ON")
 SET(USE_OPENMP "ON")
 SET(USE_LOG "ON")
+SET(CMAKE_INSTALL_PREFIX ${PWD}/install)
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/kernel)
+SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(KERNEL_DEBUG "ON")
@@ -48,7 +50,11 @@ ENDIF()
 
 configure_file(config.h.in include/kernel/base/config.h @ONLY)
 
-SET(BLAZE_INCL_DIR " ")
+# TODO: Fix this
+# add this because config.h ends up in the build directory
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
+
+SET(BLAZE_INCL_DIR "")
 
 IF( BLAZE_INCL_DIR MATCHES " " )
     MESSAGE( FATAL_ERROR  "Blaze include directory has not been specified")
