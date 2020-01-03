@@ -10,5 +10,8 @@
 /*Use OpenMP */
 #cmakedefine01 USE_OPENMP
 
+/*Path to the datasets*/
+#cmakedefine DATA_SET_FOLDER "@DATA_SET_FOLDER@"
+
 #endif
 
