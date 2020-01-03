@@ -1,0 +1,17 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+/*DEBUG*/
+#cmakedefine01 CENGINE_DEBUG
+
+/*Use log */
+#cmakedefine01 USE_LOG
+
+/*Use OpenMP */
+#cmakedefine01 USE_OPENMP
+
+/*Use PyTorch */
+#cmakedefine01 USE_PYTORCH
+
+#endif
+
