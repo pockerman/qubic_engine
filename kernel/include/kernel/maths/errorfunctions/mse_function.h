@@ -82,15 +82,21 @@ public:
 /// \brief MSE function when using sigmoid transformation
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
-class MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>  : public detail::mse_detail<SigmoidFunction<HypothesisFn>,
-                                                                                                                      DataSetType,
-                                                                                                                      LabelsType,
-                                                                                                                      RegularizerFn>
+class MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
+                  LabelsType, RegularizerFn>  : public detail::mse_detail<SigmoidFunction<HypothesisFn>,
+                                                                          DataSetType,
+                                                                          LabelsType,
+                                                                         RegularizerFn>
 {
 public:
 
-    typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>::output_t output_t;
+    typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>,
+                                        DataSetType,
+                                        LabelsType,
+                                        RegularizerFn>::output_t output_t;
+
     typedef std::pair<DataSetType, LabelsType> input_t;
+
     typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>::hypothesis_t hypothesis_t;
     typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>::regularizer_t regularizer_t;
 
@@ -144,9 +150,6 @@ public:
                                            const PartitionedType<LabelsType>& labels,
                                             Executor& executor, const Options& options);
 
-    /// \brief Returns the number of coefficients
-    virtual uint_t n_coeffs()const override final{return 1;}
-
 private:
 
 
@@ -184,16 +187,32 @@ private:
 /// Furthermore this accounts for SigmoidFunction transformation
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
-class MSEFunction<SigmoidFunction<HypothesisFn>, PartitionedType<DataSetType>,
-                  PartitionedType<LabelsType>, RegularizerFn>: public detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>
+class MSEFunction<SigmoidFunction<HypothesisFn>,
+                  PartitionedType<DataSetType>,
+                  PartitionedType<LabelsType>,
+                  RegularizerFn>: public detail::mse_detail<SigmoidFunction<HypothesisFn>,
+                                                            DataSetType,
+                                                            LabelsType,
+                                                            RegularizerFn>
 
 {
 public:
 
-    typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>::output_t output_t;
+    typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>,
+                                        DataSetType,
+                                        LabelsType,
+                                        RegularizerFn>::output_t output_t;
+
     typedef std::pair<DataSetType, LabelsType> input_t;
-    typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>::hypothesis_t hypothesis_t;
-    typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>::regularizer_t regularizer_t;
+    typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>,
+                                        DataSetType,
+                                        LabelsType,
+                                        RegularizerFn>::hypothesis_t hypothesis_t;
+
+    typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>,
+                                        DataSetType,
+                                        LabelsType,
+                                        RegularizerFn>::regularizer_t regularizer_t;
 
     /// \brief Constructor
     MSEFunction(const hypothesis_t& h);
@@ -204,7 +223,8 @@ public:
 
     /// \brief Returns the value of the function using the provided executor
     template<typename Executor, typename Options>
-    output_t value(const PartitionedType<DataSetType>& dataset, const PartitionedType<LabelsType>& labels,
+    output_t value(const PartitionedType<DataSetType>& dataset,
+                   const PartitionedType<LabelsType>& labels,
                    Executor& executor, const Options& options);
 
     /// \brief Returns the gradients of the function with respect to the
@@ -212,11 +232,7 @@ public:
     template<typename Executor, typename Options>
     ResultHolder<DynVec<real_t>> gradients(const PartitionedType<DataSetType>& dataset,
                                            const PartitionedType<LabelsType>& labels,
-                                            Executor& executor, const Options& options);
-
-    /// \brief Returns the number of coefficients
-    virtual uint_t n_coeffs()const override final{return 1;}
-
+                                           Executor& executor, const Options& options);
 private:
 
 

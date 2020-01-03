@@ -111,9 +111,8 @@ MSEFunction<HypothesisFn, DataSetType,
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
-            LabelsType, RegularizerFn>::MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
-                                                    LabelsType, RegularizerFn>(const typename MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
-                                                                                                          LabelsType, RegularizerFn>::hypothesis_t& h)
+            LabelsType, RegularizerFn>::MSEFunction(const typename MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
+                                                                                 LabelsType, RegularizerFn>::hypothesis_t& h)
     :
  detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>(h)
 {}
@@ -122,11 +121,10 @@ MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
-            LabelsType, RegularizerFn>::MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
-                                                    LabelsType, RegularizerFn>(const typename MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
-                                                                                                          LabelsType, RegularizerFn>::hypothesis_t& h,
-                                                                               const typename MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
-                                                                                                          LabelsType, RegularizerFn>::regularizer_t& r)
+            LabelsType, RegularizerFn>::MSEFunction(const typename MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
+                                                                               LabelsType, RegularizerFn>::hypothesis_t& h,
+                                                    const typename MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
+                                                                               LabelsType, RegularizerFn>::regularizer_t& r)
     :
  detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>(h, r)
 {}
@@ -139,7 +137,7 @@ MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
             LabelsType, RegularizerFn>::value(const DataSetType& dataset, const LabelsType& labels)const{
 
 
-    if(data.row() != labels.size()){
+    if(dataset.rows() != labels.size()){
         throw std::invalid_argument("Invalid number of data points and labels vector size");
     }
 
@@ -147,9 +145,9 @@ MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
                                  DataSetType, LabelsType, RegularizerFn>::output_t output_t;
     output_t result = output_t(0);
 
-    for(uint_t row_idx=0; row_idx<data.rows(); ++row_idx){
+    for(uint_t row_idx=0; row_idx<dataset.rows(); ++row_idx){
 
-        auto row = get_row(data, row_idx);
+        auto row = get_row(dataset, row_idx);
         auto y = labels[row_idx];
         auto hypothesis_value = this->h_ptr_->raw_value(row);
 
@@ -178,7 +176,7 @@ MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
             result += y*log_h +(1.-y)*log_one_minus_h;
         }
     }
-    return -result/data.m();
+    return -result/dataset.m();
 }
 
 
@@ -215,8 +213,9 @@ struct task_description_base: public SimpleTaskBase<ResultType>
 };
 
 template<typename HypothesisFn, typename DataSetType, typename LabelsType, typename ResultType>
-task_description_base<HypothesisFn, DataSetType, LabelsType, ResultType>::task_description_base(uint_t id, const PartitionedType<DataSetType>& data_set,
-                                                                                    const PartitionedType<LabelsType>& labels, const HypothesisFn& h)
+task_description_base<HypothesisFn, DataSetType,
+                      LabelsType, ResultType>::task_description_base(uint_t id, const PartitionedType<DataSetType>& data_set,
+                                                                     const PartitionedType<LabelsType>& labels, const HypothesisFn& h)
     :
       SimpleTaskBase<ResultType>(id),
       data_set_ptr_(&data_set),
@@ -559,15 +558,18 @@ MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
 /// of evaluating the MSE function
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
-struct MSEFunction<SigmoidFunction<HypothesisFn>, PartitionedType<DataSetType>,
-                  PartitionedType<LabelsType>, RegularizerFn>::task_value_description: public detail::task_description_base<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, real_t>
+struct MSEFunction<SigmoidFunction<HypothesisFn>,
+                  PartitionedType<DataSetType>,
+                  PartitionedType<LabelsType>,
+                  RegularizerFn>::task_value_description: public detail::task_description_base<SigmoidFunction<HypothesisFn>,
+                                                                                               DataSetType, LabelsType, real_t>
 {
 
 public:
 
     /// \brief Constructor
     task_value_description(uint_t id, const PartitionedType<DataSetType>& data_set,
-                         const PartitionedType<LabelsType>& labels, const HypothesisFn& h);
+                         const PartitionedType<LabelsType>& labels, const SigmoidFunction<HypothesisFn>& h);
 
 protected:
 
@@ -580,10 +582,11 @@ template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 MSEFunction<SigmoidFunction<HypothesisFn>,
             PartitionedType<DataSetType>,
-            PartitionedType<LabelsType>, RegularizerFn>::task_value_description::task_value_description(uint_t id,
-                                                                                                        const PartitionedType<DataSetType>& data_set,
-                                                                                                        const PartitionedType<LabelsType>& labels,
-                                                                                                        const SigmoidFunction<HypothesisFn>& h)
+            PartitionedType<LabelsType>,
+            RegularizerFn>::task_value_description::task_value_description(uint_t id,
+                                                                           const PartitionedType<DataSetType>& data_set,
+                                                                           const PartitionedType<LabelsType>& labels,
+                                                                           const SigmoidFunction<HypothesisFn>& h)
     :
       detail::task_description_base<SigmoidFunction<HypothesisFn>,
                                     DataSetType,
@@ -607,8 +610,8 @@ MSEFunction<SigmoidFunction<HypothesisFn>, PartitionedType<DataSetType>,
 
     for(uint_t r  = begin; r < end; ++r){
 
-        auto row = get_row(data, row_idx);
-        auto y = labels[row_idx];
+        auto row = get_row(*this->data_set_ptr_, r);
+        auto y = (*this->labels_ptr_)[r];
         auto hypothesis_value = this->h_ptr_->raw_value(row);
 
         //h is close to one
@@ -660,8 +663,10 @@ struct MSEFunction<SigmoidFunction<HypothesisFn>,
 public:
 
     /// \brief Constructor
-    task_gradient_value_description(uint_t id, const PartitionedType<DataSetType>& data_set,
-                                    const PartitionedType<LabelsType>& labels, const HypothesisFn& h);
+    task_gradient_value_description(uint_t id,
+                                    const PartitionedType<DataSetType>& data_set,
+                                    const PartitionedType<LabelsType>& labels,
+                                    const SigmoidFunction<HypothesisFn>& h);
 
 protected:
 
@@ -674,10 +679,11 @@ template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 MSEFunction<SigmoidFunction<HypothesisFn>,
             PartitionedType<DataSetType>,
-            PartitionedType<LabelsType>, RegularizerFn>::task_gradient_value_description::task_gradient_value_description(uint_t id,
-                                                                                                        const PartitionedType<DataSetType>& data_set,
-                                                                                                        const PartitionedType<LabelsType>& labels,
-                                                                                                        const SigmoidFunction<HypothesisFn>& h)
+            PartitionedType<LabelsType>,
+            RegularizerFn>::task_gradient_value_description::task_gradient_value_description(uint_t id,
+                                                                                             const PartitionedType<DataSetType>& data_set,
+                                                                                             const PartitionedType<LabelsType>& labels,
+                                                                                             const SigmoidFunction<HypothesisFn>& h)
     :
    detail::task_description_base<SigmoidFunction<HypothesisFn>,
                                  DataSetType,
@@ -689,8 +695,10 @@ MSEFunction<SigmoidFunction<HypothesisFn>,
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 void
-MSEFunction<SigmoidFunction<HypothesisFn>, PartitionedType<DataSetType>,
-            PartitionedType<LabelsType>, RegularizerFn>::task_gradient_value_description::run(){
+MSEFunction<SigmoidFunction<HypothesisFn>,
+            PartitionedType<DataSetType>,
+            PartitionedType<LabelsType>,
+            RegularizerFn>::task_gradient_value_description::run(){
 
     // get the rows partiton indeces corresponding to this task
     const auto parts = this->data_set_ptr_->get_partition(this->get_id());
@@ -726,7 +734,8 @@ MSEFunction<SigmoidFunction<HypothesisFn>, PartitionedType<DataSetType>,
                                                                                                 PartitionedType<LabelsType>,
                                                                                                 RegularizerFn>::hypothesis_t& h)
     :
-   detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>(h),
+   detail::mse_detail<SigmoidFunction<HypothesisFn>,
+                      DataSetType, LabelsType, RegularizerFn>(h),
    value_tasks_(),
    gradient_tasks_()
 {}
