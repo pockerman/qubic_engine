@@ -53,10 +53,11 @@ Gd::Gd(const GDControl& input)
       input_(input)
 {}
 
-template<typename MatType,typename VecType,typename ErrorFuncType,typename HypothesisFuncType>
+template<typename MatType, typename VecType,
+         typename ErrorFuncType,typename HypothesisFuncType>
 GDInfo 
-Gd::solve(const MatType& data,const VecType& y,
-                        const ErrorFuncType& error_fun,HypothesisFuncType& h){
+Gd::solve(const MatType& data, const VecType& y,
+          const ErrorFuncType& error_fun, HypothesisFuncType& h){
     
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
@@ -65,7 +66,7 @@ Gd::solve(const MatType& data,const VecType& y,
     GDInfo info;
     info.learning_rate = input_.learning_rate;
 
-    real_t j_old = error_fun.value(data, y);
+    real_t j_old = error_fun.value(data, y).get_resource();
     real_t j_current = 0.0;
     
     const size_t ncoeffs = h.n_coeffs();
@@ -86,7 +87,7 @@ Gd::solve(const MatType& data,const VecType& y,
         h.set_coeffs(coeffs);
         
         //recalculate...
-        j_current = error_fun.value(data, y);
+        j_current = error_fun.value(data, y).get_resource();
 
         real_t error = std::fabs(j_current - j_old);
         input_.update_residual(error);

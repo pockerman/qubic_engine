@@ -34,6 +34,9 @@ public:
     typedef RegularizerFn regularizer_t;
 
     /// \brief Constructor
+    mse_detail();
+
+    /// \brief Constructor
     mse_detail(const hypothesis_t& h);
 
     /// \brief Constructor
@@ -50,6 +53,12 @@ public:
 
     /// \brief Returns the number of coefficients
     virtual uint_t n_coeffs()const override final{return 1;}
+
+    /// \brief Set the hypothesis pointer
+    void set_hypothesis_function(const hypothesis_t& h){h_ptr_ = &h;}
+
+    /// \brief Set the regularization pointer
+    void set_regularizer_function(const regularizer_t& r){r_ptr_ = &r;}
 
 protected:
 
@@ -71,6 +80,9 @@ public:
     typedef std::pair<DataSetType, LabelsType> input_t;
     typedef typename detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::hypothesis_t hypothesis_t;
     typedef typename detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::regularizer_t regularizer_t;
+
+    /// \brief Constructor
+    MSEFunction();
 
     /// \brief Constructor
     MSEFunction(const hypothesis_t& h);
@@ -101,6 +113,9 @@ public:
     typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>::regularizer_t regularizer_t;
 
     /// \brief Constructor
+    MSEFunction();
+
+    /// \brief Constructor
     MSEFunction(const hypothesis_t& h);
 
     /// \brief Constructor
@@ -108,9 +123,6 @@ public:
 
     /// \brief Returns the value of the function
     virtual output_t value(const DataSetType& dataset, const LabelsType& labels)const override final;
-
-    /// \brief Returns the gradients of the function
-    virtual DynVec<real_t> gradients(const DataSetType& dataset, const LabelsType& labels)const override final;
 
 };
 
@@ -130,6 +142,9 @@ public:
     typedef std::pair<DataSetType, LabelsType> input_t;
     typedef typename detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::hypothesis_t hypothesis_t;
     typedef typename detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::regularizer_t regularizer_t;
+
+    /// \brief Constructor
+    MSEFunction();
 
     /// \brief Constructor
     MSEFunction(const hypothesis_t& h);
@@ -213,6 +228,9 @@ public:
                                         DataSetType,
                                         LabelsType,
                                         RegularizerFn>::regularizer_t regularizer_t;
+
+    /// \brief Constructor
+    MSEFunction();
 
     /// \brief Constructor
     MSEFunction(const hypothesis_t& h);

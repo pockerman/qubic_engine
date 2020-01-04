@@ -65,24 +65,17 @@ For more information, see the wikipedia entry <a href="https://en.wikipedia.org/
 ## <a name="include_files"></a> Include files
 
 ```
-#include "kernel/base/config.h"
-
-#ifdef USE_OPENMP
-#include "kernel/parallel/threading/openmp_executor.h"
-#endif
-
-#include "kernel/base/kernel_consts.h"
-#include "kernel/parallel/threading/thread_pool.h"
-#include "kernel/maths/functions/real_vector_polynomial.h"
-#include "kernel/maths/errorfunctions/mse_function.h"
-#include "kernel/utilities/data_set_loaders.h"
-
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/optimization/threaded_batch_gradient_descent.h"
+#include "cubic_engine/ml/supervised_learning/logistic_regression.h"
+#include "cubic_engine/optimization/serial_batch_gradient_descent.h"
 #include "cubic_engine/optimization/utils/gd_control.h"
 
-#include <iostream>
+#include "kernel/maths/functions/real_vector_polynomial.h"
+#include "kernel/maths/errorfunctions/mse_function.h"
+#include "kernel/maths/functions/sigmoid_function.h"
+#include "kernel/utilities/data_set_loaders.h"
 
+#include <iostream>
 ```
 ## <a name="prg_struct"></a> Program structure
 
@@ -95,54 +88,51 @@ int main(){
     using cengine::real_t;
     using cengine::DynMat;
     using cengine::DynVec;
-    using cengine::ThreadedGd;
     using cengine::GDControl;
+    using cengine::Gd;
+    using cengine::LogisticRegression;
     using kernel::RealVectorPolynomialFunction;
     using kernel::MSEFunction;
-    using kernel::PartitionedType;
+    using kernel::SigmoidFunction;
 
-    const uint_t NUM_THREADS = 2;
+    try{
 
-    auto dataset = kernel::load_car_plant_dataset_with_partitions(2);
+        auto dataset = kernel::load_reduced_iris_data_set();
 
-    GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
-    control.show_iterations = true;
+        // the classifier to use. use a hypothesis of the form
+        // f = w_0 + w_1*x_1 + w_2*x_2 + w_3*x_3 + w_4*x_4;
+        // set initial weights to 0
+        LogisticRegression<RealVectorPolynomialFunction,
+                          SigmoidFunction<RealVectorPolynomialFunction>> classifier({0.0, 0.0, 0.0, 0.0, 0.0});
 
-    ThreadedGd gd(control);
+        SigmoidFunction<RealVectorPolynomialFunction> sigmoid_h(classifier.get_model());
 
-#ifdef USE_OPENMP
-    {
+        // the error function to to use for measuring the error
+        MSEFunction<SigmoidFunction<RealVectorPolynomialFunction>,
+                    DynMat<real_t>,
+                    DynVec<uint_t>> mse(sigmoid_h);
 
-        kernel::OMPExecutor executor(NUM_THREADS);
+        GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
+        control.show_iterations = false;
+        Gd gd(control);
 
-        //hypothesis of the form f = w_0 + w_1*x
-        // where w_0 = w_1 = 0.0
-        RealVectorPolynomialFunction hypothesis({0.0, 0.0});
+        auto result = classifier.train(dataset.first, dataset.second, gd, mse);
+        std::cout<<result<<std::endl;
 
-        // the error functionto to use for measuring the error
-        MSEFunction<RealVectorPolynomialFunction,
-                PartitionedType<DynMat<real_t>>,
-                PartitionedType<DynVec<real_t>>> mse(hypothesis);
+        DynVec<real_t> point{1.0, 5.7, 2.8, 4.1, 1.3};
+        auto class_idx = classifier.predict(point);
 
-        gd.solve(dataset.first, dataset.second, mse, hypothesis, executor, kernel::OMPOptions());
+        std::cout<<"Class index: "<<class_idx<<std::endl;
     }
-#endif
-    {
-        kernel::ThreadPool executor(NUM_THREADS);
+    catch(std::exception& e){
 
-        //hypothesis of the form f = w_0 + w_1*x
-        // where w_0 = w_1 = 0.0
-        RealVectorPolynomialFunction hypothesis({0.0, 0.0});
-
-        // the error functionto to use for measuring the error
-        MSEFunction<RealVectorPolynomialFunction,
-                PartitionedType<DynMat<real_t>>,
-                PartitionedType<DynVec<real_t>>> mse(hypothesis);
-
-        gd.solve(dataset.first, dataset.second, mse, hypothesis, executor, kernel::Null());
-
+        std::cerr<<e.what()<<std::endl;
     }
-        
+    catch(...){
+
+        std::cerr<<"Unknown exception occured"<<std::endl;
+    }
+
     return 0;
 }
 

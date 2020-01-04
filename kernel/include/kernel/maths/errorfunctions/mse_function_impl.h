@@ -16,6 +16,16 @@ namespace detail
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 mse_detail<HypothesisFn, DataSetType,
+            LabelsType, RegularizerFn>::mse_detail()
+    :
+   FunctionBase<ResultHolder<real_t>, DataSetType, LabelsType>(),
+   h_ptr_(nullptr),
+   r_ptr_(nullptr)
+{}
+
+template<typename HypothesisFn, typename DataSetType,
+         typename LabelsType, typename RegularizerFn>
+mse_detail<HypothesisFn, DataSetType,
             LabelsType, RegularizerFn>::mse_detail(const typename mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::hypothesis_t& h)
     :
    FunctionBase<ResultHolder<real_t>, DataSetType, LabelsType>(),
@@ -89,6 +99,15 @@ mse_detail<HypothesisFn, DataSetType,
 
 }//detail
 
+
+template<typename HypothesisFn, typename DataSetType,
+         typename LabelsType, typename RegularizerFn>
+MSEFunction<HypothesisFn, DataSetType,
+            LabelsType, RegularizerFn>::MSEFunction()
+    :
+   detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>()
+{}
+
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 MSEFunction<HypothesisFn, DataSetType,
@@ -106,6 +125,13 @@ MSEFunction<HypothesisFn, DataSetType,
    detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>(h, r)
 {}
 
+template<typename HypothesisFn, typename DataSetType,
+         typename LabelsType, typename RegularizerFn>
+MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
+            LabelsType, RegularizerFn>::MSEFunction()
+    :
+ detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>()
+{}
 
 
 template<typename HypothesisFn, typename DataSetType,
@@ -143,7 +169,7 @@ MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
 
     typedef typename MSEFunction<SigmoidFunction<HypothesisFn>,
                                  DataSetType, LabelsType, RegularizerFn>::output_t output_t;
-    output_t result = output_t(0);
+    output_t result = output_t();
 
     for(uint_t row_idx=0; row_idx<dataset.rows(); ++row_idx){
 
@@ -176,7 +202,11 @@ MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
             result += y*log_h +(1.-y)*log_one_minus_h;
         }
     }
-    return -result/dataset.m();
+
+    result *= -1;
+    result /= dataset.rows();
+
+    return result;
 }
 
 
@@ -366,6 +396,15 @@ MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
     this->result_.validate_result();
 }
 
+template<typename HypothesisFn, typename DataSetType,
+         typename LabelsType, typename RegularizerFn>
+MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
+                  PartitionedType<LabelsType>, RegularizerFn>::MSEFunction()
+    :
+   detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>(),
+   value_tasks_(),
+   gradient_tasks_()
+{}
 
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
@@ -725,6 +764,16 @@ MSEFunction<SigmoidFunction<HypothesisFn>,
     this->result_.validate_result();
 }
 
+template<typename HypothesisFn, typename DataSetType,
+         typename LabelsType, typename RegularizerFn>
+MSEFunction<SigmoidFunction<HypothesisFn>, PartitionedType<DataSetType>,
+            PartitionedType<LabelsType>, RegularizerFn>::MSEFunction()
+    :
+   detail::mse_detail<SigmoidFunction<HypothesisFn>,
+                      DataSetType, LabelsType, RegularizerFn>(),
+   value_tasks_(),
+   gradient_tasks_()
+{}
 
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
