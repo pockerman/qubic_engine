@@ -1,2 +1,4 @@
 examples/exe2/doc/html/
 examples/exe2/doc/latex/
+cubic_engine/include/cubic_engine/base/config.h
+config.h
