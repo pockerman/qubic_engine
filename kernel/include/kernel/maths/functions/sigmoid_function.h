@@ -58,7 +58,7 @@ template<typename FunctionType>
 DynVec<real_t>
 SigmoidFunction<FunctionType>::gradients(const input_t&  input)const{
 
-    return value(input)*(1.0 - value(input));
+    return DynVec<real_t>(1, value(input)*(1.0 - value(input)));
 }
 
 }

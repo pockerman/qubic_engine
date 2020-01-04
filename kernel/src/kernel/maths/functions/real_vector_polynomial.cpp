@@ -78,6 +78,11 @@ RealVectorPolynomialFunction::coeffs()const{
 void
 RealVectorPolynomialFunction::set_coeffs(const std::vector<real_t>& coeffs){
 
+    if(monomials_.size() != coeffs.size()){
+        throw std::invalid_argument("Monomials size "+std::to_string(monomials_.size()) +
+                                    " does not match the coeffs: "+std::to_string(coeffs.size()));
+    }
+
     auto itr = coeffs.cbegin();
 
     for(auto& monomial : monomials_){
