@@ -2,13 +2,13 @@
 #define CONFIG_H
 
 /*DEBUG*/
-#cmakedefine01 KERNEL_DEBUG
+#cmakedefine KERNEL_DEBUG
 
 /*Use log */
-#cmakedefine01 USE_LOG
+#cmakedefine USE_LOG
 
 /*Use OpenMP */
-#cmakedefine01 USE_OPENMP
+#cmakedefine USE_OPENMP
 
 /*Path to the datasets*/
 #cmakedefine DATA_SET_FOLDER "@DATA_SET_FOLDER@"
