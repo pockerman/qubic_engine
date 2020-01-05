@@ -1,4 +1,4 @@
-# Example 12: Logistic Regression With ```BatchGradientDescentWrapper```
+# Example 14: Logistic Regression With ```BatchGradientDescentWrapper```
 
 ## Contents
 * [Acknowledgements](#ackw)
