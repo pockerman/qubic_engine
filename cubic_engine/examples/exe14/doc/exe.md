@@ -1,10 +1,8 @@
 # Example 14: Logistic Regression With ```BatchGradientDescentWrapper```
 
 ## Contents
-* [Acknowledgements](#ackw)
 * [Overview](#overview) 
 * [Include files](#include_files)
-* [Program structure](#prg_struct)
 * [The main function](#m_func)
 * [Results](#results)
 * [Source Code](#source_code)
@@ -33,7 +31,6 @@ This may be useful when we want to compare the two implementations.
 
 #include <iostream>
 ```
-## <a name="prg_struct"></a> Program structure
 
 ## <a name="m_func"></a> The main function
 
@@ -139,6 +136,37 @@ int main(){
 ```
 
 ## <a name="results"></a> Results
+
+Execution of the code driver should show
+
+```
+Serial GD...
+
+# iterations:..2
+# processors:..1
+# threads:.....1
+Residual:......0
+Tolerance:.....1e-08
+Convergence:...Yes
+Total time:....0.000571512
+Learning rate:..0.01
+
+Class index: 1
+
+Threaded GD...
+
+# iterations:..2
+# processors:..1
+# threads:.....4
+Residual:......0
+Tolerance:.....1e-08
+Convergence:...Yes
+Total time:....0.000418419
+Learning rate:..0.01
+
+Class index: 1
+
+```
 
 ## <a name="source_code"></a> Source Code
 
