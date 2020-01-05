@@ -37,7 +37,7 @@ public:
               typename Trainer,typename ErrorFuncType>
      typename Trainer::output_type
      train(const DataSetType& dataset, const LabelsType& labels,
-           Trainer& trainer,const ErrorFuncType& func);
+           Trainer& trainer, ErrorFuncType& func);
 
      /// \brief Predict the class for the given data point
      template<typename DataPoint>
@@ -71,7 +71,7 @@ template<typename DataSetType, typename LabelsType,
          typename Trainer,typename ErrorFuncType>
 typename Trainer::output_type
 Regressor<HypothesisType>::train(const DataSetType& dataset, const LabelsType& labels,
-                                 Trainer& trainer, const ErrorFuncType& func){
+                                 Trainer& trainer,  ErrorFuncType& func){
     
     return trainer.solve(dataset, labels, func, hypothesis_);
 }
