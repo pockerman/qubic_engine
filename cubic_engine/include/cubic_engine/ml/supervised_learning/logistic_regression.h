@@ -51,6 +51,9 @@ class LogisticRegression: private boost::noncopyable
     /// \brief Returns the raw model
     const hypothesis_t& get_model()const{return hypothesis_;}
 
+    /// \brief Return the i-th parameter
+    real_t coeff(uint_t i)const{return hypothesis_.coeff(i);}
+
 private:
 
     hypothesis_t hypothesis_;
