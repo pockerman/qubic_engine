@@ -31,9 +31,13 @@ std::pair<PartitionedType<DynMat<real_t>>,
                                                                                   uint_t label_idx=1,
                                                                                   bool add_ones_column=true);
 
-
 /// \brief Load the reduced iris data set
 std::pair<DynMat<real_t>, DynVec<uint_t>> load_reduced_iris_data_set(bool add_ones_column=true);
+
+/// \brief Load the reduced iris data set and assigned partitions
+std::pair<PartitionedType<DynMat<real_t>>,
+          PartitionedType<DynVec<uint_t>>> load_reduced_iris_data_set_with_partitions(uint nparts,
+                                                                                      bool add_ones_column=true);
 
 
 
