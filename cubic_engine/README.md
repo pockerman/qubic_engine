@@ -78,7 +78,7 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 - <a href="#">Example 4</a> Using the ```PIDControl``` class
 - LQR Control
 
-### <a name="machine_learning"></a> Control
+### <a name="machine_learning"></a> Machine Learning
 
 - <a href="examples/exe7/doc/exe.md">Example 7</a> Multithreaded batch gradient descent
 - <a href="examples/exe11/doc/exe.md">Example 11</a> Neural Network with PyTorch
