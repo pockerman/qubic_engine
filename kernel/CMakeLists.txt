@@ -48,13 +48,13 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(KERNEL_DEBUG "ON")
 ENDIF()
 
-configure_file(config.h.in include/kernel/base/config.h @ONLY)
+configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/kernel/base/config.h @ONLY)
 
 # TODO: Fix this
 # add this because config.h ends up in the build directory
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
-SET(BLAZE_INCL_DIR "")
+SET(BLAZE_INCL_DIR " ")
 
 IF( BLAZE_INCL_DIR MATCHES " " )
     MESSAGE( FATAL_ERROR  "Blaze include directory has not been specified")
@@ -115,7 +115,8 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/parallel/utilities/*.cpp
                  ${PROJECT_SRC_DIR}/utilities/*.cpp
                  ${PROJECT_SRC_DIR}/vehicles/*.cpp
-                 ${PROJECT_SRC_DIR}/maths/functions/*.cpp)
+                 ${PROJECT_SRC_DIR}/maths/functions/*.cpp
+                 ${PROJECT_SRC_DIR}/dynamics/*.cpp)
 
 
 ADD_LIBRARY(${LIB_NAME} SHARED ${SRCS})
