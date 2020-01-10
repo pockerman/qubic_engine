@@ -3,6 +3,7 @@
 #include "cubic_engine/ml/supervised_learning/logistic_regression.h"
 #include "cubic_engine/optimization/serial_batch_gradient_descent.h"
 #include "cubic_engine/optimization/utils/gd_control.h"
+#include "cubic_engine/maths/confusion_matrix.h"
 
 #include "kernel/maths/functions/real_vector_polynomial.h"
 #include "kernel/maths/errorfunctions/mse_function.h"
@@ -20,6 +21,7 @@ int main(){
     using cengine::GDControl;
     using cengine::Gd;
     using cengine::LogisticRegression;
+    using cengine::ConfusionMatrix;
     using kernel::RealVectorPolynomialFunction;
     using kernel::MSEFunction;
     using kernel::SigmoidFunction;
@@ -52,6 +54,14 @@ int main(){
         auto class_idx = classifier.predict(point);
 
         std::cout<<"Class index: "<<class_idx<<std::endl;
+
+        // predictions on the training set
+        DynVec<uint_t> predictions;
+        classifier.predict(dataset.first, predictions);
+
+        ConfusionMatrix cmatrix(dataset.second, predictions, 2);
+
+        // let's do some calculations
     }
     catch(std::exception& e){
 

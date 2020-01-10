@@ -48,6 +48,10 @@ class LogisticRegression: private boost::noncopyable
     template<typename DataPoint>
     output_t predict(const DataPoint& point)const;
 
+    /// \brief Predict on the data set
+    template<typename DataSet, typename OutputType>
+    void predict(const DataSet& point, OutputType& out)const;
+
     /// \brief Returns the raw model
     const hypothesis_t& get_model()const{return hypothesis_;}
 
@@ -102,6 +106,14 @@ LogisticRegression<HypothesisType, TransformerType>::predict(const DataPoint& po
     }
 
     return 0;
+}
+
+template<typename HypothesisType, typename TransformerType>
+template<typename DataSet, typename OutputType>
+void
+LogisticRegression<HypothesisType, TransformerType>::predict(const DataSet& point, OutputType& out)const{
+
+    //for(uint_t r = 0; r<)
 }
     
 }

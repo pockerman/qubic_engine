@@ -50,11 +50,24 @@ For more information, see the wikipedia entry <a href="https://en.wikipedia.org/
 
 #### <a name="accuracy"></a> Accuracy
 
+Accuracy answers the following question: Overall how often is the classifier correct? It is defined as
+as the sum of the diagonal terms over the total number of examples
+
+
+The opossite of accuracy is the misclassification rate which answers the question: Overall how often is the classifier
+wrong? It is defined as the sum of off diagonal terms over the total number of points. Being however the opposite of accuracy we can also
+calculate it as one minus accuracy.
+
 #### <a name="recall_or_Sensitivity"></a> Recall or Sensitivity
 
 #### <a name="precision"></a> Precision
 
+Precision answers the following question. When it predicts Yes how often is it correct?
+
 #### <a name="specificity"></a> Specificity
+
+Specificity or True Negative Rate answers the following question: When it is actually No how often the classifier predicts No?
+Specificity is one minus the false Positive Rate
 
 
 #### <a name="f1_score"></a> F1-score
