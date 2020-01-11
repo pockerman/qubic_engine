@@ -3,14 +3,14 @@
 ## Contents
 * [Acknowledgements](#ackw)
 * [Overview](#overview) 
-		* [Logistic Regression](#logistic_regression)
-		* [Error Metrics](#error_metrics)
-			*[Confusion Matrix](#confusion_matrix)
-			*[Accuracy](#accuracy)
-			*[Recall or Sensitivity](#recall_or_Sensitivity)
-			*[Precision](#precision)
-			*[Specificity](#specificity)
-			*[F1-score](#f1_score)
+	* [Logistic Regression](#logistic_regression)
+	* [Error Metrics](#error_metrics)
+		* [Confusion Matrix](#confusion_matrix)
+		* [Accuracy](#accuracy)
+		* [Recall or Sensitivity](#recall_or_Sensitivity)
+		* [Precision](#precision)
+		* [Specificity](#specificity)
+		* [F1-score](#f1_score)
 * [Include files](#include_files)
 * [Program structure](#prg_struct)
 * [The main function](#m_func)
@@ -50,11 +50,24 @@ For more information, see the wikipedia entry <a href="https://en.wikipedia.org/
 
 #### <a name="accuracy"></a> Accuracy
 
+Accuracy answers the following question: Overall how often is the classifier correct? It is defined as
+as the sum of the diagonal terms over the total number of examples
+
+
+The opossite of accuracy is the misclassification rate which answers the question: Overall how often is the classifier
+wrong? It is defined as the sum of off diagonal terms over the total number of points. Being however the opposite of accuracy we can also
+calculate it as one minus accuracy.
+
 #### <a name="recall_or_Sensitivity"></a> Recall or Sensitivity
 
 #### <a name="precision"></a> Precision
 
+Precision answers the following question. When it predicts Yes how often is it correct?
+
 #### <a name="specificity"></a> Specificity
+
+Specificity or True Negative Rate answers the following question: When it is actually No how often the classifier predicts No?
+Specificity is one minus the false Positive Rate
 
 
 #### <a name="f1_score"></a> F1-score
@@ -69,6 +82,7 @@ For more information, see the wikipedia entry <a href="https://en.wikipedia.org/
 #include "cubic_engine/ml/supervised_learning/logistic_regression.h"
 #include "cubic_engine/optimization/serial_batch_gradient_descent.h"
 #include "cubic_engine/optimization/utils/gd_control.h"
+#include "cubic_engine/maths/confusion_matrix.h"
 
 #include "kernel/maths/functions/real_vector_polynomial.h"
 #include "kernel/maths/errorfunctions/mse_function.h"
@@ -91,6 +105,7 @@ int main(){
     using cengine::GDControl;
     using cengine::Gd;
     using cengine::LogisticRegression;
+    using cengine::ConfusionMatrix;
     using kernel::RealVectorPolynomialFunction;
     using kernel::MSEFunction;
     using kernel::SigmoidFunction;
@@ -123,6 +138,14 @@ int main(){
         auto class_idx = classifier.predict(point);
 
         std::cout<<"Class index: "<<class_idx<<std::endl;
+
+        // predictions on the training set
+        DynVec<uint_t> predictions;
+        classifier.predict(dataset.first, predictions);
+
+        ConfusionMatrix cmatrix(dataset.second, predictions, 2);
+
+        // let's do some calculations
     }
     catch(std::exception& e){
 
