@@ -32,13 +32,15 @@ SET(USE_PYTORCH "OFF")
 
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/cubic_engine)
+SET(PWD ${PROJECT_SOURCE_DIR})
 SET(CMAKE_INSTALL_PREFIX ${PWD}/install)
+
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(CENGINE_DEBUG "ON")
 ENDIF()
 
-configure_file(config.h.in include/cubic_engine/base/config.h @ONLY)
+configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/cubic_engine/base/config.h @ONLY)
 
 # TODO: Fix this
 # add this because config.h ends up in the build directory
@@ -56,10 +58,10 @@ ENDIF()
 # Currently fail the build if the user does not supply the
 # variables.
 # TODO: How to do it better
-SET(KERNEL_INCL_DIR ${PWD}../kernel/include)
+SET(KERNEL_INCL_DIR ${PWD}/../kernel/include)
 
 IF(CENGINE_DEBUG MATCHES "ON")
-	SET(KERNEL_LIB_DIR  ${PWD}../kernel/install/lib/dbg)
+    SET(KERNEL_LIB_DIR  ${PWD}../kernel/install/lib/dbg)
 ELSE()
 	SET(KERNEL_LIB_DIR ${PWD}../kernel/install/lib/opt)
 ENDIF()
@@ -127,7 +129,8 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
                  ${PROJECT_SRC_DIR}/systems/*.cpp
                  ${PROJECT_SRC_DIR}/control/*.cpp
                  ${PROJECT_SRC_DIR}/ml/instance_learning/*.cpp
-                 ${PROJECT_SRC_DIR}/optimization/utils/*.cpp)
+                 ${PROJECT_SRC_DIR}/optimization/utils/*.cpp
+                 ${PROJECT_SRC_DIR}/maths/*.cpp)
 
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
 ADD_LIBRARY(cubicengine SHARED ${SRCS})
