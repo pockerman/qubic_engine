@@ -3,9 +3,9 @@
 ## Contents
 * [Overview](#overview) 
 * [Common Regularizers](#common_regularizers)
-		* [Lasso Regularization](#lasso_regularization)
-		* [Ridge Regularization](#ridge_regularization)
-		* [ElasticNet Regularization](#elasticnet_regularization)
+	* [Lasso Regularization](#lasso_regularization)
+	* [Ridge Regularization](#ridge_regularization)
+	* [ElasticNet Regularization](#elasticnet_regularization)
 * [Include files](#include_files)
 * [The main function](#m_func)
 * [Results](#results)
