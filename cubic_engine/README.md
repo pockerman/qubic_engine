@@ -85,6 +85,7 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 - <a href="examples/exe12/doc/exe.md">Example 12</a> Linear Regression
 - <a href="examples/exe13/doc/exe.md">Example 13</a> Logistic Regression
 - <a href="examples/exe14/doc/exe.md">Example 14</a> Logistic Regression With ```BatchGradientDescentWrapper```
+- <a href="examples/exe15/doc/exe.md">Example 15</a> Linear Regression With ```PYLinearRegressor```
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
