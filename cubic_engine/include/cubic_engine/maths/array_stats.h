@@ -30,9 +30,9 @@ auto sum(const ArrayType& c){
     return rslt;
 }
 
-/**
-  * Compute the sum of squares the array elements
-  **/
+
+
+/// \brief  Compute the sum of squares the array elements
 template<typename ArrayType>
 typename ArrayType::value_type
 sum_sqr(const ArrayType& c){
@@ -44,6 +44,14 @@ sum_sqr(const ArrayType& c){
     }
 
     return rslt;
+}
+
+/// \brief Compute the variance of the array
+template<typename ArrayType>
+real_t variance(const ArrayType& c, real_t mu){
+
+    auto sumsqr = sum_sqr(c);
+    return sumsqr/c.size() - mu*mu;
 }
 
 
@@ -64,7 +72,10 @@ typename ArrayType::value_type
 dot_product(const ArrayType& c1, const ArrayType& c2){
 
     if(c1.size() != c2.size()){
-        throw std::invalid_argument("Invalid arrays sizes: "+std::to_string(c1.size())+" not equal to: "+std::to_string(c2.size()));
+        throw std::invalid_argument("Invalid arrays sizes: " +
+                                    std::to_string(c1.size()) +
+                                    " not equal to: " +
+                                    std::to_string(c2.size()));
     }
 
     auto rslt = c1[0]*c2[0];

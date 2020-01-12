@@ -80,6 +80,7 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 
 ### <a name="machine_learning"></a> Machine Learning
 
+- <a href="examples/exe5/doc/exe.md">Example 5</a> Simulate Standard Error For The Mean
 - <a href="examples/exe7/doc/exe.md">Example 7</a> Multithreaded batch gradient descent
 - <a href="examples/exe11/doc/exe.md">Example 11</a> Neural Network with PyTorch
 - <a href="examples/exe12/doc/exe.md">Example 12</a> Linear Regression

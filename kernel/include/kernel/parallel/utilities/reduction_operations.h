@@ -15,8 +15,8 @@ class Sum: public ResultHolder<T>
 
 public:
 
-    using value_type  = typename ResultHolder<T>::value_type;
-    using result_type = typename ResultHolder<T>::result_type;
+    typedef typename ResultHolder<T>::value_type value_type;
+    typedef typename ResultHolder<T>::result_type result_type;
     using ResultHolder<T>::ResultHolder;
 
     /// \brief Join the given value to the given result
@@ -24,6 +24,9 @@ public:
 
     /// \brief Join the value with the result held
     void join(const value_type& value){ this->get_resource() += value;}
+
+    /// \brief Join the value with the result held
+    void join(value_type& value){ this->get_resource() += value;}
 
     /// \brief Joint the value of the other Sum operation
     void join(const Sum<T>& other);
