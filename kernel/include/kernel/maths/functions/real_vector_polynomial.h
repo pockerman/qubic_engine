@@ -66,9 +66,7 @@ public:
       */
     virtual DynVec<real_t> gradients(const DynVec<real_t>& point)const override final;
 
-    /**
-      * Returns the coefficients of the underlying monomials
-      */
+    /// \brief Returns the coefficients of the underlying monomials
     std::vector<real_t> coeffs()const;
 
     /**
