@@ -2,7 +2,7 @@
 
 ## Contents
 * [Overview](#overview) 
-		* [Standard Error For The Mean](#standard_error_for_mean)
+	* [Standard Error For The Mean](#standard_error_for_mean)
 * [Include files](#include_files)
 * [The main function](#m_func)
 * [Results](#results)
