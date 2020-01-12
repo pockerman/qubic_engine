@@ -143,7 +143,7 @@ int main(){
 
     auto variance_of_means = cengine::variance(means, op.get_resource()/means.size());
     std::cout<<"Standard error for mean is: "<<std::sqrt(variance_of_means)<<", STD/sqrt(N): "<<STD/std::sqrt(N)<<std::endl;
-    return 0;
+    return 0
 }
 
 
