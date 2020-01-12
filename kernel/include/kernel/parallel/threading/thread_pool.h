@@ -10,6 +10,7 @@
 #include <memory>
 #include <vector>
 #include <thread>
+#include <exception>
 
 namespace kernel
 {
@@ -85,6 +86,11 @@ ThreadPool::execute(const std::vector<std::unique_ptr<TaskTypePtr>>& tasks, cons
     }
 
     for(uint_t t=0; t<tasks.size(); ++t){
+
+        if(!tasks[t]){
+            throw std::invalid_argument("Null Task Pointer in ThreadPool");
+        }
+
         add_task(*(tasks[t].get()));
     }
 
