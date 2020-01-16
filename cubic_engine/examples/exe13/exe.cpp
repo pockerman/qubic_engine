@@ -26,6 +26,9 @@ int main(){
     using kernel::MSEFunction;
     using kernel::SigmoidFunction;
 
+    typedef RealVectorPolynomialFunction hypothesis_t;
+    typedef SigmoidFunction<RealVectorPolynomialFunction> transformer_t;
+
     try{
 
         auto dataset = kernel::load_reduced_iris_data_set();
@@ -33,18 +36,15 @@ int main(){
         // the classifier to use. use a hypothesis of the form
         // f = w_0 + w_1*x_1 + w_2*x_2 + w_3*x_3 + w_4*x_4;
         // set initial weights to 0
-        LogisticRegression<RealVectorPolynomialFunction,
-                          SigmoidFunction<RealVectorPolynomialFunction>> classifier({0.0, 0.0, 0.0, 0.0, 0.0});
+        LogisticRegression<hypothesis_t, transformer_t> classifier({0.0, 0.0, 0.0, 0.0, 0.0});
 
-        SigmoidFunction<RealVectorPolynomialFunction> sigmoid_h(classifier.get_model());
+        transformer_t sigmoid_h(classifier.get_model());
 
         // the error function to to use for measuring the error
-        MSEFunction<SigmoidFunction<RealVectorPolynomialFunction>,
-                    DynMat<real_t>,
-                    DynVec<uint_t>> mse(sigmoid_h);
+        MSEFunction<transformer_t, DynMat<real_t>, DynVec<uint_t>> mse(sigmoid_h);
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
-        control.show_iterations = false;
+        GDControl control(20000, 1.0e-4, 0.005); //GDControl::DEFAULT_LEARNING_RATE);
+        control.show_iterations = true;
         Gd gd(control);
 
         auto result = classifier.train(dataset.first, dataset.second, gd, mse);
