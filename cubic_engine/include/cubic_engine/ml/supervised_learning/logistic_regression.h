@@ -35,11 +35,9 @@ class LogisticRegression: private boost::noncopyable
     void set_model_parameters(const std::vector<real_t>& coeffs);
 
     /// \brief Train the model
-    template<typename DataSetType, typename LabelsType,
-             typename Trainer, typename ErrorFuncType>
+    template<typename DataSetType, typename LabelsType, typename Trainer>
     typename Trainer::output_type
-    train(const DataSetType& dataset, const LabelsType& labels,
-          Trainer& trainer, ErrorFuncType& func);
+    train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer);
 
     /// \brief Predict the class for the given data point
     template<typename DataPoint>
@@ -76,14 +74,11 @@ LogisticRegression<HypothesisType, TransformerType>::LogisticRegression(const st
 {}
 
 template<typename HypothesisType, typename TransformerType>
-template<typename DataSetType, typename LabelsType,
-         typename Trainer, typename ErrorFuncType>
+template<typename DataSetType, typename LabelsType, typename Trainer>
 typename Trainer::output_type
-LogisticRegression<HypothesisType, TransformerType>::train(const DataSetType& dataset, const LabelsType& labels,
-                                                           Trainer& trainer, ErrorFuncType& func){
+LogisticRegression<HypothesisType, TransformerType>::train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer ){
     
-    return trainer.solve(dataset, labels, func, hypothesis_);
-    
+    return trainer.solve(dataset, labels, hypothesis_);
 }
 
 template<typename HypothesisType, typename TransformerType>

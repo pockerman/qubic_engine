@@ -17,7 +17,7 @@ namespace cengine
  * @brief Implementation of the gradient descent (GC) algorithm
  * for solving optimization problems.
  */
-
+template<typename ErrorFunction>
 class ThreadedGd: private boost::noncopyable
 {
 
@@ -32,44 +32,39 @@ public:
     /**
      * @brief Constructor
      */
-    ThreadedGd(const GDControl& input);
+    ThreadedGd(const GDControl<ErrorFunction>& input);
 
     /**
      * @brief Solves the optimization problem. Returns information
      * about the performance of the solver.
      */
-    template<typename MatType, typename VecType,
-             typename ErrorFuncType, typename HypothesisFuncType,
+    template<typename MatType, typename VecType, typename HypothesisFuncType,
              typename Executor, typename Options>
-    GDInfo solve(const MatType& mat,const VecType& v,
-                 ErrorFuncType& error_fun, HypothesisFuncType& h,
+    GDInfo solve(const MatType& mat,const VecType& v, HypothesisFuncType& h,
                  Executor& executor, const Options& options);
 
     /// \brief Reset the control
-    void reset_control(const GDControl& control){input_ = control;}
+    void reset_control(const GDControl<ErrorFunction>& control){input_ = control;}
 
 private:
 
-    /**
-     * @brief The data the GD solver is using
-     */
-    GDControl input_;
+    /// \brief The data the GD solver is using
+    GDControl<ErrorFunction> input_;
 
 };
-
+template<typename ErrorFunction>
 inline
-ThreadedGd::ThreadedGd(const GDControl& input)
+ThreadedGd<ErrorFunction>::ThreadedGd(const GDControl<ErrorFunction>& input)
     :
       input_(input)
 {}
 
-template<typename MatType, typename VecType,
-         typename ErrorFuncType, typename HypothesisFuncType,
+template<typename ErrorFunction>
+template<typename MatType, typename VecType, typename HypothesisFuncType,
          typename Executor, typename Options>
 GDInfo
-ThreadedGd::solve(const MatType& mat,const VecType& v,
-                  ErrorFuncType& error_fun, HypothesisFuncType& h,
-                  Executor& executor, const Options& options){
+ThreadedGd<ErrorFunction>::solve(const MatType& mat,const VecType& v, HypothesisFuncType& h,
+                                 Executor& executor, const Options& options){
 
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
@@ -79,7 +74,7 @@ ThreadedGd::solve(const MatType& mat,const VecType& v,
     info.learning_rate = input_.learning_rate;
 
     // this should block
-    auto result = error_fun.value(mat, v, executor, options);
+    auto result = input_.err_function.value(mat, v, executor, options);
 
     real_t j_old = *result.get_or_wait().first;
     real_t j_current = 0.0;
@@ -89,7 +84,7 @@ ThreadedGd::solve(const MatType& mat,const VecType& v,
     while(input_.continue_iterations()){
 
         // get the gradients with respect to the coefficients
-        auto j_grads_result = error_fun.gradients(mat, v, executor, options);
+        auto j_grads_result = input_.err_function.gradients(mat, v, executor, options);
         auto j_grads = *(j_grads_result.get().first);
 
         //update the coefficients
@@ -103,7 +98,7 @@ ThreadedGd::solve(const MatType& mat,const VecType& v,
         h.set_coeffs(coeffs);
 
         //recalculate...
-        result = error_fun.value(mat, v, executor, options);
+        result = input_.err_function.value(mat, v, executor, options);
 
         j_current = *result.get_or_wait().first;
 

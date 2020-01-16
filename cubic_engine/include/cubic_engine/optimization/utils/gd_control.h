@@ -8,6 +8,7 @@
 namespace cengine
 {
 
+template<typename ErrorFunction>
 struct GDControl: public kernel::IterativeAlgorithmController
 {
     constexpr static real_t DEFAULT_LEARNING_RATE = 0.01;
@@ -18,6 +19,9 @@ struct GDControl: public kernel::IterativeAlgorithmController
     /// \brief Flag indicating if iteration infor should be printed
     bool show_iterations;
 
+    /// \brief The error function to use
+    ErrorFunction err_function;
+
     /// \brief Constructor
     GDControl( uint_t max_num_itrs,
                real_t tolerance=kernel::KernelConsts::tolerance(),
@@ -25,12 +29,14 @@ struct GDControl: public kernel::IterativeAlgorithmController
 
 };
 
+template<typename ErrorFunction>
 inline
-GDControl::GDControl( uint_t max_num_itrs, real_t tolerance, real_t eta_ )
+GDControl<ErrorFunction>::GDControl( uint_t max_num_itrs, real_t tolerance, real_t eta_ )
     :
 kernel::IterativeAlgorithmController(max_num_itrs,  tolerance),
 learning_rate(eta_),
-show_iterations(false)
+show_iterations(false),
+err_function()
 {}
 
 }
