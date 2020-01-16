@@ -28,6 +28,7 @@ int main(){
 
     typedef RealVectorPolynomialFunction hypothesis_t;
     typedef SigmoidFunction<RealVectorPolynomialFunction> transformer_t;
+    typedef MSEFunction<transformer_t, DynMat<real_t>, DynVec<uint_t>> error_t;
 
     try{
 
@@ -40,14 +41,12 @@ int main(){
 
         transformer_t sigmoid_h(classifier.get_model());
 
-        // the error function to to use for measuring the error
-        MSEFunction<transformer_t, DynMat<real_t>, DynVec<uint_t>> mse(sigmoid_h);
-
-        GDControl control(20000, 1.0e-4, 0.005); //GDControl::DEFAULT_LEARNING_RATE);
+        GDControl<error_t> control(20000, 1.0e-4, 0.005);
         control.show_iterations = true;
-        Gd gd(control);
+        control.err_function.set_hypothesis_function(sigmoid_h);
+        Gd<error_t> gd(control);
 
-        auto result = classifier.train(dataset.first, dataset.second, gd, mse);
+        auto result = classifier.train(dataset.first, dataset.second, gd);
         std::cout<<result<<std::endl;
         std::cout<<classifier<<std::endl;
 
