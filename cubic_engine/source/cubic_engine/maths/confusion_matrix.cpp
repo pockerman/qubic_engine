@@ -35,7 +35,7 @@ ConfusionMatrix::recall_class(uint_t c)const{
     // how many times we missed it overall
     uint class_incorrect_counts = get_class_incorrect_counts(c);
 
-    return class_counts/ (class_incorrect_counts + class_incorrect_counts);
+    return class_counts/ (class_incorrect_counts + class_counts);
 }
 
 uint_t
