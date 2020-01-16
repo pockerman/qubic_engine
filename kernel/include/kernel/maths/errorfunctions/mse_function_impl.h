@@ -181,7 +181,7 @@ MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
         if(std::fabs(hypothesis_value - 1.0) < KernelConsts::tolerance()){
 
             //we plug a large error contribution if y is anything than one
-            if( y != 1.){
+            if( y != 1){
                 result += 1.0;
             }
         }
@@ -197,15 +197,17 @@ MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
             //do it normally
             //calculate the logarithms and check if they are
             //infinite or nana
-            auto log_one_minus_h = std::log(1. - hypothesis_value);
+            auto log_one_minus_h = std::log(1 - hypothesis_value);
             auto log_h = std::log(hypothesis_value);
-            result += y*log_h +(1.-y)*log_one_minus_h;
+            result += y*log_h +(1 - y)*log_one_minus_h;
         }
     }
 
     result *= -1;
     result /= dataset.rows();
 
+    // this is a valid result
+    result.validate_result();
     return result;
 }
 
