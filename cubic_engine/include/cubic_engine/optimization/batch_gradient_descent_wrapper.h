@@ -12,7 +12,7 @@
 namespace cengine
 {
 
-template<typename ExecutorType, typename OptionsType>
+template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
 class BatchGradientDescentWrapper: private boost::noncopyable
 {
 public:
@@ -25,22 +25,20 @@ public:
     typedef GDInfo output_type;
 
     /// \brief Constructor
-    BatchGradientDescentWrapper(const GDControl& input,
+    BatchGradientDescentWrapper(const GDControl<ErrorFunction>& input,
                                 executor_type& executor,
                                 const options_type& options);
 
-    template<typename MatType, typename VecType,
-             typename ErrorFuncType, typename HypothesisFuncType>
-    GDInfo solve(const MatType& mat, const VecType& v,
-                 ErrorFuncType& error_fun, HypothesisFuncType& h);
+    template<typename MatType, typename VecType, typename HypothesisFuncType>
+    GDInfo solve(const MatType& mat, const VecType& v, HypothesisFuncType& h);
 
     /// \brief Reset the control
-    void reset_control(const GDControl& control){input_ = control;}
+    void reset_control(const GDControl<ErrorFunction>& control){input_ = control;}
 
 private:
 
     /// \brief The control data the GD solver is using
-    GDControl input_;
+    GDControl<ErrorFunction> input_;
 
     /// \brief The executor used
     executor_type& executor_;
@@ -49,14 +47,11 @@ private:
     const options_type& options_;
 };
 
-template<typename ExecutorType,
-         typename OptionsType>
-BatchGradientDescentWrapper<ExecutorType,
-                            OptionsType>::BatchGradientDescentWrapper(const GDControl& input,
-                                                                     typename BatchGradientDescentWrapper<ExecutorType,
-                                                                                                       OptionsType>::executor_type& executor,
-                                                                      const  typename BatchGradientDescentWrapper<ExecutorType,
-                                                                                                       OptionsType>::options_type& options)
+template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
+BatchGradientDescentWrapper<ErrorFunction, ExecutorType,
+                            OptionsType>::BatchGradientDescentWrapper(const GDControl<ErrorFunction>& input,
+                                                                      typename BatchGradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::executor_type& executor,
+                                                                      const  typename BatchGradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::options_type& options)
     :
       input_(input),
       executor_(executor),
@@ -64,27 +59,70 @@ BatchGradientDescentWrapper<ExecutorType,
 {}
 
 
-template<typename ExecutorType,
-         typename OptionsType>
-template<typename MatType, typename VecType,
-         typename ErrorFuncType, typename HypothesisFuncType>
+template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
+template<typename MatType, typename VecType, typename HypothesisFuncType>
 GDInfo
-BatchGradientDescentWrapper<ExecutorType, OptionsType>::solve(const MatType& mat,const VecType& v,
-                                                              ErrorFuncType& error_fun, HypothesisFuncType& h){
+BatchGradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::solve(const MatType& mat,const VecType& v, HypothesisFuncType& h){
 
-    ThreadedGd gd(input_);
-    return gd.solve(mat, v, error_fun, h, executor_, options_);
+    ThreadedGd<ErrorFunction> gd(input_);
+    return gd.solve(mat, v, h, executor_, options_);
 }
 
-template<>
-template<typename MatType, typename VecType,
-         typename ErrorFuncType, typename HypothesisFuncType>
-GDInfo
-BatchGradientDescentWrapper<Null, Null>::solve(const MatType& mat,const VecType& v,
-                                         ErrorFuncType& error_fun, HypothesisFuncType& h){
 
-    Gd gd(input_);
-    return gd.solve(mat, v, error_fun, h);
+/// \brief Specialization for serial. Do I really need this?
+template<typename ErrorFunction>
+class BatchGradientDescentWrapper<ErrorFunction, Null, Null>: private boost::noncopyable
+{
+public:
+
+    typedef Null executor_type;
+    typedef Null options_type;
+
+    /// \brief Expose the type that is returned by this object
+    /// when calling its solve functions
+    typedef GDInfo output_type;
+
+    /// \brief Constructor
+    BatchGradientDescentWrapper(const GDControl<ErrorFunction>& input,
+                                executor_type& executor,
+                                const options_type& options);
+
+    template<typename MatType, typename VecType, typename HypothesisFuncType>
+    GDInfo solve(const MatType& mat, const VecType& v, HypothesisFuncType& h);
+
+    /// \brief Reset the control
+    void reset_control(const GDControl<ErrorFunction>& control){input_ = control;}
+
+private:
+
+    /// \brief The control data the GD solver is using
+    GDControl<ErrorFunction> input_;
+
+    /// \brief The executor used
+    executor_type& executor_;
+
+    /// \brief options for the executor
+    const options_type& options_;
+};
+
+template<typename ErrorFunction>
+BatchGradientDescentWrapper<ErrorFunction, Null, Null>::BatchGradientDescentWrapper(const GDControl<ErrorFunction>& input,
+                                                                      typename BatchGradientDescentWrapper<ErrorFunction, Null, Null>::executor_type& executor,
+                                                                      const  typename BatchGradientDescentWrapper<ErrorFunction, Null, Null>::options_type& options)
+    :
+      input_(input),
+      executor_(executor),
+      options_(options)
+{}
+
+
+template<typename ErrorFunction>
+template<typename MatType, typename VecType, typename HypothesisFuncType>
+GDInfo
+BatchGradientDescentWrapper<ErrorFunction, Null, Null>::solve(const MatType& mat,const VecType& v, HypothesisFuncType& h){
+
+    Gd<ErrorFunction> gd(input_);
+    return gd.solve(mat, v, h);
 }
 
 }

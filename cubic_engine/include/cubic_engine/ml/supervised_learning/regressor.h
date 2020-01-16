@@ -33,11 +33,9 @@ public:
      void set_model_parameters(const std::vector<real_t>& params);
 
      /// \brief Train the  model
-     template<typename DataSetType, typename LabelsType,
-              typename Trainer,typename ErrorFuncType>
+     template<typename DataSetType, typename LabelsType, typename Trainer>
      typename Trainer::output_type
-     train(const DataSetType& dataset, const LabelsType& labels,
-           Trainer& trainer, ErrorFuncType& func);
+     train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer);
 
      /// \brief Predict the class for the given data point
      template<typename DataPoint>
@@ -67,13 +65,11 @@ Regressor<HypothesisType>::Regressor(const std::vector<real_t>& params)
 {}
 
 template<typename HypothesisType>
-template<typename DataSetType, typename LabelsType,
-         typename Trainer,typename ErrorFuncType>
+template<typename DataSetType, typename LabelsType, typename Trainer>
 typename Trainer::output_type
-Regressor<HypothesisType>::train(const DataSetType& dataset, const LabelsType& labels,
-                                 Trainer& trainer,  ErrorFuncType& func){
+Regressor<HypothesisType>::train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer){
     
-    return trainer.solve(dataset, labels, func, hypothesis_);
+    return trainer.solve(dataset, labels, hypothesis_);
 }
 
 template<typename HypothesisType>

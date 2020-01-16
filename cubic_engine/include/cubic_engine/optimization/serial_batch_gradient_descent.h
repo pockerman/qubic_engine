@@ -18,7 +18,7 @@ namespace cengine
  * @brief Implementation of the gradient descent (GC) algorithm
  * for solving optimization problems.
  */
-
+template<typename ErrorFunction>
 class Gd: private boost::noncopyable
 {
     
@@ -29,35 +29,34 @@ public:
     typedef GDInfo output_type;
     
     /// \brief Constructor
-    Gd(const GDControl& input);
+    Gd(const GDControl<ErrorFunction>& input);
     
     /// \brief Solves the optimization problem. Returns information
     /// about the performance of the solver.
-    template<typename MatType, typename VecType, typename ErrorFuncType, typename HypothesisFuncType>
-    GDInfo solve(const MatType& mat,const VecType& v, 
-                 const ErrorFuncType& fun, HypothesisFuncType& h);
+    template<typename MatType, typename VecType, typename HypothesisFuncType>
+    GDInfo solve(const MatType& mat,const VecType& v, HypothesisFuncType& h);
 
     /// \brief Reset the control
-    void reset_control(const GDControl& control){input_ = control;}
+    void reset_control(const GDControl<ErrorFunction>& control){input_ = control;}
       
 private:
     
     /// \brief The control data the GD solver is using
-    GDControl input_;
+    GDControl<ErrorFunction> input_;
     
 };
 
+template<typename ErrorFunction>
 inline
-Gd::Gd(const GDControl& input)
+Gd<ErrorFunction>::Gd(const GDControl<ErrorFunction>& input)
     :
       input_(input)
 {}
 
-template<typename MatType, typename VecType,
-         typename ErrorFuncType,typename HypothesisFuncType>
+template<typename ErrorFunction>
+template<typename MatType, typename VecType, typename HypothesisFuncType>
 GDInfo 
-Gd::solve(const MatType& data, const VecType& y,
-          const ErrorFuncType& error_fun, HypothesisFuncType& h){
+Gd<ErrorFunction>::solve(const MatType& data, const VecType& y, HypothesisFuncType& h){
     
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
@@ -66,7 +65,7 @@ Gd::solve(const MatType& data, const VecType& y,
     GDInfo info;
     info.learning_rate = input_.learning_rate;
 
-    real_t j_old = error_fun.value(data, y).get_resource();
+    real_t j_old = input_.err_function.value(data, y).get_resource();
     real_t j_current = 0.0;
     
     const size_t ncoeffs = h.n_coeffs();
@@ -74,7 +73,7 @@ Gd::solve(const MatType& data, const VecType& y,
     while(input_.continue_iterations()){
 
         // get the gradients with respect to the coefficients
-        auto j_grads = error_fun.gradients(data, y);
+        auto j_grads = input_.err_function.gradients(data, y);
 
         //update the coefficients
         auto coeffs = h.coeffs();
@@ -87,7 +86,7 @@ Gd::solve(const MatType& data, const VecType& y,
         h.set_coeffs(coeffs);
         
         //recalculate...
-        j_current = error_fun.value(data, y).get_resource();
+        j_current = input_.err_function.value(data, y).get_resource();
 
         real_t error = std::fabs(j_current - j_old);
         input_.update_residual(error);
