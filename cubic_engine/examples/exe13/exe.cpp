@@ -49,6 +49,7 @@ int main(){
 
         auto result = classifier.train(dataset.first, dataset.second, gd, mse);
         std::cout<<result<<std::endl;
+        std::cout<<classifier<<std::endl;
 
         DynVec<real_t> point{1.0, 5.7, 2.8, 4.1, 1.3};
         auto class_idx = classifier.predict(point);
@@ -56,12 +57,20 @@ int main(){
         std::cout<<"Class index: "<<class_idx<<std::endl;
 
         // predictions on the training set
-        DynVec<uint_t> predictions;
+        DynVec<uint_t> predictions(dataset.first.rows(), 0);
         classifier.predict(dataset.first, predictions);
 
         ConfusionMatrix cmatrix(dataset.second, predictions, 2);
 
         // let's do some calculations
+        std::cout<<"\nConsfusion Matrix...."<<std::endl;
+        std::cout<<cmatrix<<std::endl;
+
+        std::cout<<"Accuracy.........."<<cmatrix.accuracy()<<std::endl;
+        std::cout<<"True positives...."<<cmatrix.true_positives()<<std::endl;
+        std::cout<<"Recall class 0...."<<cmatrix.recall_class(0)<<std::endl;
+        std::cout<<"Recall class 1...."<<cmatrix.recall_class(1)<<std::endl;
+
     }
     catch(std::exception& e){
 
