@@ -175,10 +175,10 @@ MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
 
         auto row = get_row(dataset, row_idx);
         auto y = labels[row_idx];
-        auto hypothesis_value = this->h_ptr_->raw_value(row);
+        auto hypothesis_value = this->h_ptr_->value(row);
 
         //h is close to one
-        if(std::fabs(hypothesis_value - 1.0) < KernelConsts::tolerance()){
+        if(std::fabs(1 - hypothesis_value) < KernelConsts::tolerance()){
 
             //we plug a large error contribution if y is anything than one
             if( y != 1){
@@ -341,8 +341,10 @@ struct MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
 public:
 
     /// \brief Constructor
-    task_gradient_value_description(uint_t id, const PartitionedType<DataSetType>& data_set,
-                                    const PartitionedType<LabelsType>& labels, const HypothesisFn& h);
+    task_gradient_value_description(uint_t id,
+                                    const PartitionedType<DataSetType>& data_set,
+                                    const PartitionedType<LabelsType>& labels,
+                                    const HypothesisFn& h);
 
 protected:
 
@@ -653,13 +655,13 @@ MSEFunction<SigmoidFunction<HypothesisFn>, PartitionedType<DataSetType>,
 
         auto row = get_row(*this->data_set_ptr_, r);
         auto y = (*this->labels_ptr_)[r];
-        auto hypothesis_value = this->h_ptr_->raw_value(row);
+        auto hypothesis_value = this->h_ptr_->value(row);
 
         //h is close to one
-        if(std::fabs(hypothesis_value - 1.0) < KernelConsts::tolerance()){
+        if(std::fabs(1 - hypothesis_value) < KernelConsts::tolerance()){
 
             //we plug a large error contribution if y is anything than one
-            if( y != 1.){
+            if( y != 1){
                 result += 1.0;
             }
         }
@@ -675,9 +677,9 @@ MSEFunction<SigmoidFunction<HypothesisFn>, PartitionedType<DataSetType>,
             //do it normally
             //calculate the logarithms and check if they are
             //infinite or nana
-            auto log_one_minus_h = std::log(1. - hypothesis_value);
+            auto log_one_minus_h = std::log(1 - hypothesis_value);
             auto log_h = std::log(hypothesis_value);
-            result += y*log_h +(1.-y)*log_one_minus_h;
+            result += y*log_h +(1 - y)*log_one_minus_h;
         }
     }
 
