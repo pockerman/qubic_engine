@@ -21,7 +21,7 @@ public:
     typedef HypothesisType hypothesis_t;
 
     /// \brief The output of predict
-    typedef real_t output_type;
+    typedef real_t output_t;
 
      /// \brief Constructor
      Regressor();
@@ -34,12 +34,12 @@ public:
 
      /// \brief Train the  model
      template<typename DataSetType, typename LabelsType, typename Trainer>
-     typename Trainer::output_type
+     typename Trainer::output_t
      train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer);
 
      /// \brief Predict the class for the given data point
      template<typename DataPoint>
-     output_type predict(const DataPoint& point)const;
+     output_t predict(const DataPoint& point)const;
 
      /// \brief Returns the raw model
      const hypothesis_t& get_model()const{return hypothesis_;}
@@ -66,7 +66,7 @@ Regressor<HypothesisType>::Regressor(const std::vector<real_t>& params)
 
 template<typename HypothesisType>
 template<typename DataSetType, typename LabelsType, typename Trainer>
-typename Trainer::output_type
+typename Trainer::output_t
 Regressor<HypothesisType>::train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer){
     
     return trainer.solve(dataset, labels, hypothesis_);
@@ -81,7 +81,7 @@ Regressor<HypothesisType>::set_model_parameters(const std::vector<real_t>& param
 
 template<typename HypothesisType>
 template<typename DataPoint>
-typename Regressor<HypothesisType>::output_type
+typename Regressor<HypothesisType>::output_t
 Regressor<HypothesisType>::predict(const DataPoint& point)const{
     
    return hypothesis_.value(point);

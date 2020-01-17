@@ -13,10 +13,23 @@ class IterativeAlgorithmController
 {
 public:
 
-   /**
-    * Constructor
-    */
+   /// \brief Constructor
    IterativeAlgorithmController(uint_t maxIterations, real_t exitTolerance);
+
+   /// \brief Copy constructor
+   IterativeAlgorithmController(const IterativeAlgorithmController&)=default;
+
+   /// \brief Move copy constructor
+   IterativeAlgorithmController(IterativeAlgorithmController&&)=default;
+
+   /// \brief copy assignement
+   IterativeAlgorithmController& operator=(const IterativeAlgorithmController&)=default;
+
+   /// \brief move copy assignement
+   IterativeAlgorithmController& operator=(IterativeAlgorithmController&&)=default;
+
+   /// \brief Destructor
+   virtual ~IterativeAlgorithmController()=default;
 
    /**
     * Returns true if the iterations of the algorithm should be continued
@@ -26,7 +39,7 @@ public:
     /**
       * Returns the current iteration index
     */
-    uint_t get_current_tteration()const{
+    uint_t get_current_iteration()const{
            return current_iteration_idx_;
     }
 
@@ -50,6 +63,8 @@ public:
       current_res_ = res;
     }
 
+    /// \brief reset
+    virtual void reset(const IterativeAlgorithmController& control);
 private:
 
 
@@ -67,6 +82,8 @@ IterativeAlgorithmController::IterativeAlgorithmController(uint_t max_iterations
   current_iteration_idx_(0),
   current_res_(std::numeric_limits<real_t>::max())
 {}
+
+
 
 }
 
