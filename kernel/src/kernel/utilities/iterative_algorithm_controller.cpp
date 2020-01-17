@@ -29,4 +29,14 @@ IterativeAlgorithmController::continue_iterations(){
   current_iteration_idx_++;
   return true;
 }
+
+
+void
+IterativeAlgorithmController::reset(const IterativeAlgorithmController& control){
+    max_iterations_ = control.max_iterations_;
+    exit_tolerance_ = control.exit_tolerance_;
+    current_iteration_idx_ = control.current_iteration_idx_;
+    current_res_ = control.current_res_;
+}
+
 }
