@@ -45,9 +45,9 @@ int main(){
         // where w_0 = w_1 = 0.0
         hypothesis_t hypothesis({0.0, 0.0});
 
-        GDControl<error_t> control(10000, kernel::KernelConsts::tolerance(), GDControl<error_t>::DEFAULT_LEARNING_RATE);
+        GDControl control(10000, kernel::KernelConsts::tolerance(),
+                                   GDControl::DEFAULT_LEARNING_RATE);
         control.show_iterations = false;
-        control.err_function.set_hypothesis_function(hypothesis);
 
         ThreadedGd<error_t> gd(control);
 
@@ -64,9 +64,10 @@ int main(){
         // where w_0 = w_1 = 0.0
         hypothesis_t hypothesis({0.0, 0.0});
 
-        GDControl<error_t> control(10000, kernel::KernelConsts::tolerance(), GDControl<error_t>::DEFAULT_LEARNING_RATE);
+        GDControl control(10000, kernel::KernelConsts::tolerance(),
+                                   GDControl::DEFAULT_LEARNING_RATE);
+
         control.show_iterations = false;
-        control.err_function.set_hypothesis_function(hypothesis);
 
         ThreadedGd<error_t> gd(control);
 

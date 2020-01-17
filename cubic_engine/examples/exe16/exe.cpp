@@ -47,18 +47,19 @@ int main(){
             LassoFunction<RealVectorPolynomialFunction,
                           DynMat<real_t>, DynVec<real_t>> lasso(regressor.get_model(), 0.0001, 1, regressor.get_model().n_coeffs());
 
-            // the error function to to use for measuring the error
-            MSEFunction<RealVectorPolynomialFunction,
-                        DynMat<real_t>,
-                        DynVec<uint_t>,
-                        LassoFunction<RealVectorPolynomialFunction,
-                                      DynMat<real_t>, DynVec<real_t>>> mse(regressor.get_model(), lasso);
+            typedef MSEFunction<RealVectorPolynomialFunction,
+                    DynMat<real_t>,
+                    DynVec<uint_t>,
+                    LassoFunction<RealVectorPolynomialFunction,
+                                  DynMat<real_t>, DynVec<real_t>>> error_t;
 
-            GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
+            GDControl control(10000, kernel::KernelConsts::tolerance(),
+                                       GDControl::DEFAULT_LEARNING_RATE);
             control.show_iterations = false;
-            Gd gd(control);
 
-            auto result = regressor.train(dataset.first, dataset.second, gd, mse);
+            Gd<error_t> gd(control);
+
+            auto result = regressor.train(dataset.first, dataset.second, gd);
             std::cout<<result<<std::endl;
 
         }
@@ -73,20 +74,22 @@ int main(){
 
 
             RidgeFunction<RealVectorPolynomialFunction,
-                          DynMat<real_t>, DynVec<real_t>> lasso(regressor.get_model(), 0.001, 1, regressor.get_model().n_coeffs());
+                          DynMat<real_t>, DynVec<real_t>> ridge(regressor.get_model(), 0.001, 1, regressor.get_model().n_coeffs());
 
             // the error function to to use for measuring the error
-            MSEFunction<RealVectorPolynomialFunction,
+            typedef MSEFunction<RealVectorPolynomialFunction,
                         DynMat<real_t>,
                         DynVec<uint_t>,
                         RidgeFunction<RealVectorPolynomialFunction,
-                                      DynMat<real_t>, DynVec<real_t>>> mse(regressor.get_model(), lasso);
+                                      DynMat<real_t>, DynVec<real_t>>> error_t;
 
-            GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
+            GDControl control(10000, kernel::KernelConsts::tolerance(),
+                              GDControl::DEFAULT_LEARNING_RATE);
             control.show_iterations = false;
-            Gd gd(control);
 
-            auto result = regressor.train(dataset.first, dataset.second, gd, mse);
+            Gd<error_t> gd(control);
+
+            auto result = regressor.train(dataset.first, dataset.second, gd);
             std::cout<<result<<std::endl;
 
         }
@@ -99,22 +102,24 @@ int main(){
             // set initial weights to 0
             LinearRegression regressor({0.0, 0.0});
 
-
             ElasticNetFunction<RealVectorPolynomialFunction,
-                          DynMat<real_t>, DynVec<real_t>> lasso(regressor.get_model(), 0.001, 0.0001, 1, regressor.get_model().n_coeffs());
+                          DynMat<real_t>, DynVec<real_t>> elastic_net(regressor.get_model(), 0.001, 0.0001,
+                                                                      1, regressor.get_model().n_coeffs());
 
             // the error function to to use for measuring the error
-            MSEFunction<RealVectorPolynomialFunction,
+            typedef MSEFunction<RealVectorPolynomialFunction,
                         DynMat<real_t>,
                         DynVec<uint_t>,
                         ElasticNetFunction<RealVectorPolynomialFunction,
-                                      DynMat<real_t>, DynVec<real_t>>> mse(regressor.get_model(), lasso);
+                                      DynMat<real_t>, DynVec<real_t>>> error_t;
 
-            GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
+            GDControl control(10000, kernel::KernelConsts::tolerance(),
+                                       GDControl::DEFAULT_LEARNING_RATE);
             control.show_iterations = false;
-            Gd gd(control);
 
-            auto result = regressor.train(dataset.first, dataset.second, gd, mse);
+            Gd<error_t> gd(control);
+
+            auto result = regressor.train(dataset.first, dataset.second, gd);
             std::cout<<result<<std::endl;
 
         }

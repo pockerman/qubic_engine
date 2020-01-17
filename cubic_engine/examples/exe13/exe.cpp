@@ -41,9 +41,9 @@ int main(){
 
         transformer_t sigmoid_h(classifier.get_model());
 
-        GDControl<error_t> control(20000, 1.0e-4, 0.005);
+        GDControl control(20000, 1.0e-4, 0.005);
         control.show_iterations = true;
-        control.err_function.set_hypothesis_function(sigmoid_h);
+
         Gd<error_t> gd(control);
 
         auto result = classifier.train(dataset.first, dataset.second, gd);

@@ -46,9 +46,9 @@ int main(){
             std::cout<<"Serial GD..."<<std::endl;
 
             typedef MSEFunction<transformer_t, DynMat<real_t>, DynVec<uint_t>> error_t;
-            GDControl<error_t> control(10000, kernel::KernelConsts::tolerance(), GDControl<error_t>::DEFAULT_LEARNING_RATE);
+            GDControl control(10000, kernel::KernelConsts::tolerance(),
+                              GDControl::DEFAULT_LEARNING_RATE);
             control.show_iterations = false;
-            control.err_function.set_hypothesis_function(sigmoid_h);
 
             /// load the dataset
             auto dataset = kernel::load_reduced_iris_data_set();
@@ -82,9 +82,8 @@ int main(){
             /// we need a partitioned data set
             auto dataset = kernel::load_reduced_iris_data_set_with_partitions(executor.get_n_threads());
 
-            GDControl<error_t> control(10000, kernel::KernelConsts::tolerance(), GDControl<error_t>::DEFAULT_LEARNING_RATE);
+            GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
             control.show_iterations = false;
-            control.err_function.set_hypothesis_function(sigmoid_h);
 
             // this is a serial implmentation
             BatchGradientDescentWrapper<error_t, ThreadPool, Null> gd(control, executor, Null() );
