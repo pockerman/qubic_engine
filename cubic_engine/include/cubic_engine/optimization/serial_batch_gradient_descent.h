@@ -23,13 +23,16 @@ class Gd: private boost::noncopyable
 {
     
 public:
+
+    /// \brief The type used to measure the error
+    typedef ErrorFunction error_t;
     
     /// \brief Expose the type that is returned by this object
     /// when calling its solve functions
-    typedef GDInfo output_type;
+    typedef GDInfo output_t;
     
     /// \brief Constructor
-    Gd(const GDControl<ErrorFunction>& input);
+    Gd(const GDControl& input);
     
     /// \brief Solves the optimization problem. Returns information
     /// about the performance of the solver.
@@ -37,20 +40,24 @@ public:
     GDInfo solve(const MatType& mat,const VecType& v, HypothesisFuncType& h);
 
     /// \brief Reset the control
-    void reset_control(const GDControl<ErrorFunction>& control){input_ = control;}
+    void reset_control(const GDControl& control);
       
 private:
     
     /// \brief The control data the GD solver is using
-    GDControl<ErrorFunction> input_;
+    GDControl input_;
+
+    /// \brief The error function to use
+    error_t err_function_;
     
 };
 
 template<typename ErrorFunction>
 inline
-Gd<ErrorFunction>::Gd(const GDControl<ErrorFunction>& input)
+Gd<ErrorFunction>::Gd(const GDControl& input)
     :
-      input_(input)
+      input_(input),
+      err_function_()
 {}
 
 template<typename ErrorFunction>
@@ -65,7 +72,7 @@ Gd<ErrorFunction>::solve(const MatType& data, const VecType& y, HypothesisFuncTy
     GDInfo info;
     info.learning_rate = input_.learning_rate;
 
-    real_t j_old = input_.err_function.value(data, y).get_resource();
+    real_t j_old = err_function_.value(data, y).get_resource();
     real_t j_current = 0.0;
     
     const size_t ncoeffs = h.n_coeffs();
@@ -73,7 +80,7 @@ Gd<ErrorFunction>::solve(const MatType& data, const VecType& y, HypothesisFuncTy
     while(input_.continue_iterations()){
 
         // get the gradients with respect to the coefficients
-        auto j_grads = input_.err_function.gradients(data, y);
+        auto j_grads = err_function_.gradients(data, y);
 
         //update the coefficients
         auto coeffs = h.coeffs();
@@ -86,11 +93,11 @@ Gd<ErrorFunction>::solve(const MatType& data, const VecType& y, HypothesisFuncTy
         h.set_coeffs(coeffs);
         
         //recalculate...
-        j_current = input_.err_function.value(data, y).get_resource();
+        j_current = err_function_.value(data, y).get_resource();
 
         real_t error = std::fabs(j_current - j_old);
         input_.update_residual(error);
-        uint_t itr = input_.get_current_tteration();
+        uint_t itr = input_.get_current_iteration();
         
         if(input_.show_iterations){
             
@@ -116,6 +123,12 @@ Gd<ErrorFunction>::solve(const MatType& data, const VecType& y, HypothesisFuncTy
     info.tolerance = state.tolerance;
     info.niterations = state.num_iterations;
     return info;  
+}
+
+template<typename ErrorFunction>
+void
+Gd<ErrorFunction>::reset_control(const GDControl& control){
+    input_.reset(control);
 }
         
 }
