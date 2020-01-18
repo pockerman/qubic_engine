@@ -28,12 +28,15 @@ int main(){
     using cengine::ElasticNetFunction;
     using kernel::RealVectorPolynomialFunction;
     using kernel::MSEFunction;
-    using kernel::SigmoidFunction;
 
     try{
 
-        auto dataset = kernel::load_reduced_iris_data_set();
+        auto dataset = kernel::load_x_y_sinuisoid_data_set();
 
+        typedef RealVectorPolynomialFunction hypothesis_t;
+        typedef LassoFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>> lasso_t;
+        typedef RidgeFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>> ridge_t;
+        typedef ElasticNetFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>> elastic_net_t;
 
         {
             std::cout<<"Using Lasso Regularizer"<<std::endl;
@@ -43,23 +46,18 @@ int main(){
             // set initial weights to 0
             LinearRegression regressor({0.0, 0.0});
 
-
-            LassoFunction<RealVectorPolynomialFunction,
-                          DynMat<real_t>, DynVec<real_t>> lasso(regressor.get_model(), 0.0001, 1, regressor.get_model().n_coeffs());
-
-            typedef MSEFunction<RealVectorPolynomialFunction,
-                    DynMat<real_t>,
-                    DynVec<uint_t>,
-                    LassoFunction<RealVectorPolynomialFunction,
-                                  DynMat<real_t>, DynVec<real_t>>> error_t;
+            /// lasso regulaizer
+            lasso_t lasso(regressor.get_model(), 0.0001, 1,
+                          regressor.get_model().n_coeffs());
 
             GDControl control(10000, kernel::KernelConsts::tolerance(),
                                        GDControl::DEFAULT_LEARNING_RATE);
             control.show_iterations = false;
 
+            typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<uint_t>, lasso_t> error_t;
             Gd<error_t> gd(control);
 
-            auto result = regressor.train(dataset.first, dataset.second, gd);
+            auto result = regressor.train(dataset.first, dataset.second, gd, lasso);
             std::cout<<result<<std::endl;
 
         }
@@ -72,24 +70,18 @@ int main(){
             // set initial weights to 0
             LinearRegression regressor({0.0, 0.0});
 
-
-            RidgeFunction<RealVectorPolynomialFunction,
-                          DynMat<real_t>, DynVec<real_t>> ridge(regressor.get_model(), 0.001, 1, regressor.get_model().n_coeffs());
-
-            // the error function to to use for measuring the error
-            typedef MSEFunction<RealVectorPolynomialFunction,
-                        DynMat<real_t>,
-                        DynVec<uint_t>,
-                        RidgeFunction<RealVectorPolynomialFunction,
-                                      DynMat<real_t>, DynVec<real_t>>> error_t;
+            ridge_t ridge(regressor.get_model(), 0.001, 1,
+                          regressor.get_model().n_coeffs());
 
             GDControl control(10000, kernel::KernelConsts::tolerance(),
                               GDControl::DEFAULT_LEARNING_RATE);
             control.show_iterations = false;
 
+            // the error function to to use for measuring the error
+            typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<uint_t>, ridge_t> error_t;
             Gd<error_t> gd(control);
 
-            auto result = regressor.train(dataset.first, dataset.second, gd);
+            auto result = regressor.train(dataset.first, dataset.second, gd, ridge);
             std::cout<<result<<std::endl;
 
         }
@@ -102,29 +94,21 @@ int main(){
             // set initial weights to 0
             LinearRegression regressor({0.0, 0.0});
 
-            ElasticNetFunction<RealVectorPolynomialFunction,
-                          DynMat<real_t>, DynVec<real_t>> elastic_net(regressor.get_model(), 0.001, 0.0001,
-                                                                      1, regressor.get_model().n_coeffs());
-
-            // the error function to to use for measuring the error
-            typedef MSEFunction<RealVectorPolynomialFunction,
-                        DynMat<real_t>,
-                        DynVec<uint_t>,
-                        ElasticNetFunction<RealVectorPolynomialFunction,
-                                      DynMat<real_t>, DynVec<real_t>>> error_t;
+             elastic_net_t elastic_net(regressor.get_model(), 0.001, 0.0001,
+                                       1, regressor.get_model().n_coeffs());
 
             GDControl control(10000, kernel::KernelConsts::tolerance(),
                                        GDControl::DEFAULT_LEARNING_RATE);
             control.show_iterations = false;
 
+            // the error function to to use for measuring the error
+            typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<uint_t>, elastic_net_t> error_t;
             Gd<error_t> gd(control);
 
-            auto result = regressor.train(dataset.first, dataset.second, gd);
+            auto result = regressor.train(dataset.first, dataset.second, gd, elastic_net);
             std::cout<<result<<std::endl;
 
         }
-
-
     }
     catch(std::exception& e){
 
