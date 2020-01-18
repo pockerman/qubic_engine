@@ -2,7 +2,6 @@
 #define	LOGISTIC_REGRESSION_H
 
 #include "cubic_engine/base/cubic_engine_types.h"
-//#include "kernel/base/types.h"
 #include "kernel/maths/matrix_utilities.h"
 
 #include <boost/noncopyable.hpp>
@@ -38,6 +37,13 @@ class LogisticRegression: private boost::noncopyable
     template<typename DataSetType, typename LabelsType, typename Trainer>
     typename Trainer::output_t
     train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer);
+
+    /// \brief Train the model
+    template<typename DataSetType, typename LabelsType,
+             typename Trainer, typename RegularizerType>
+    typename Trainer::output_t
+    train(const DataSetType& dataset, const LabelsType& labels,
+          Trainer& trainer, const RegularizerType& regularizer);
 
     /// \brief Predict the class for the given data point
     template<typename DataPoint>
@@ -79,6 +85,16 @@ typename Trainer::output_t
 LogisticRegression<HypothesisType, TransformerType>::train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer ){
     
     return trainer.solve(dataset, labels, hypothesis_);
+}
+
+template<typename HypothesisType, typename TransformerType>
+template<typename DataSetType, typename LabelsType,
+         typename Trainer, typename RegularizerType>
+typename Trainer::output_t
+LogisticRegression<HypothesisType, TransformerType>::train(const DataSetType& dataset, const LabelsType& labels,
+                                                           Trainer& trainer, const RegularizerType& regularizer){
+
+    return trainer.solve(dataset, labels, hypothesis_, regularizer);
 }
 
 template<typename HypothesisType, typename TransformerType>
