@@ -37,6 +37,13 @@ public:
      typename Trainer::output_t
      train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer);
 
+     /// \brief Train the  model using a regularizer
+     template<typename DataSetType, typename LabelsType,
+              typename Trainer, typename RegularizerType>
+     typename Trainer::output_t
+     train(const DataSetType& dataset, const LabelsType& labels,
+           Trainer& trainer, const  RegularizerType& regularizer);
+
      /// \brief Predict the class for the given data point
      template<typename DataPoint>
      output_t predict(const DataPoint& point)const;
@@ -70,6 +77,16 @@ typename Trainer::output_t
 Regressor<HypothesisType>::train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer){
     
     return trainer.solve(dataset, labels, hypothesis_);
+}
+
+template<typename HypothesisType>
+template<typename DataSetType, typename LabelsType,
+         typename Trainer, typename RegularizerType>
+typename Trainer::output_t
+Regressor<HypothesisType>::train(const DataSetType& dataset, const LabelsType& labels,
+                                 Trainer& trainer, const  RegularizerType& regularizer){
+
+    return trainer.solve(dataset, labels, hypothesis_, regularizer);
 }
 
 template<typename HypothesisType>

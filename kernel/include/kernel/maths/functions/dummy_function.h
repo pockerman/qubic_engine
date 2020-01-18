@@ -17,10 +17,10 @@ public:
     /**
      * Returns the value of the function
      */
-    virtual output_t value(const InputType&...  /*input*/)const override final {}
+    virtual output_t value(const InputType&...  /*input*/)const override final {return output_t();}
 
     template<typename Executor, typename Options>
-    output_t value(Executor&, const Options&, const InputType&... )const{}
+    output_t value(Executor&, const Options&, const InputType&... )const{return output_t();}
 
     /**
       * Returns the gradients of the function

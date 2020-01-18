@@ -5,6 +5,7 @@
 
 #include <exception>
 #include <cstdlib> //std::atof
+#include <iostream>
 
 namespace kernel
 {
@@ -382,6 +383,103 @@ std::pair<PartitionedType<DynMat<real_t>>,
           }
 
         r++;
+      }
+
+     std::vector<range1d<uint_t>> partitions;
+     partition_range(0, matrix.rows(), partitions, nparts );
+     matrix.set_partitions(partitions);
+     labels.set_partitions(partitions);
+     return std::pair(std::move(matrix), std::move(labels));
+
+}
+
+
+std::pair<DynMat<real_t>, DynVec<real_t>>
+load_x_y_sinuisoid_data_set(bool add_ones_column){
+
+    std::string file(DATA_SET_FOLDER);
+    file += "/X_Y_Sinusoid_Data.csv";
+
+    CSVFileReader reader(file);
+
+    uint_t cols = add_ones_column? 2 : 1;
+    real_t val = add_ones_column ? 1.0 : 0.0;
+    DynMat<real_t> matrix(20, cols, val);
+    DynVec<real_t> labels(20);
+
+    // read the first line as this is the header
+    reader.read_line();
+
+    uint_t r = 0;
+
+     while(!reader.eof()){
+
+         if(r==20)
+             break;
+
+          auto line = reader.read_line();
+
+          std::vector<real_t> row(line.size(), 0.0);
+
+          for(uint_t i = 0; i<line.size(); ++i){
+             row[i] = std::atof(line[i].c_str());
+          }
+
+          if(add_ones_column){
+              matrix(r, 1) = row[0];
+          }
+          else{
+             matrix(r, 0) = row[0];
+          }
+
+          labels[r] = row[1];
+          r++;
+      }
+
+      return std::pair(std::move(matrix), std::move(labels));
+}
+
+/// \brief Load the reduced iris data set and assigned partitions
+std::pair<PartitionedType<DynMat<real_t>>,
+          PartitionedType<DynVec<real_t>>> load_x_y_sinuisoid_data_set_with_partitions(uint nparts,
+                                                                                       bool add_ones_column){
+    std::string file(DATA_SET_FOLDER);
+    file += "/X_Y_Sinusoid_Data.csv";
+
+    CSVFileReader reader(file);
+
+    uint_t cols = add_ones_column? 2 : 1;
+    real_t val = add_ones_column ? 1.0 : 0.0;
+    PartitionedType<DynMat<real_t>> matrix(20, cols, val);
+    PartitionedType<DynVec<real_t>> labels(20);
+
+    // read the first line as this is the header
+    reader.read_line();
+
+    uint_t r = 0;
+
+     while(!reader.eof()){
+
+         if(r==20)
+             break;
+
+          auto line = reader.read_line();
+
+          std::vector<real_t> row(line.size(), 0.0);
+
+          for(uint_t i = 0; i<line.size(); ++i){
+             row[i] = std::atof(line[i].c_str());
+          }
+
+          if(add_ones_column){
+              matrix(r, 1) = row[0];
+          }
+          else{
+             matrix(r, 0) = row[0];
+          }
+
+          labels[r] = row[1];
+          r++;
       }
 
      std::vector<range1d<uint_t>> partitions;

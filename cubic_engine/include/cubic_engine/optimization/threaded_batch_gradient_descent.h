@@ -4,6 +4,7 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/optimization/utils/gd_control.h"
 #include "cubic_engine/optimization/utils/gd_info.h"
+#include "kernel/maths/functions/dummy_function.h"
 
 #include <boost/noncopyable.hpp>
 #include <chrono>
@@ -38,6 +39,14 @@ public:
     GDInfo solve(const MatType& mat,const VecType& v, HypothesisFuncType& h,
                  Executor& executor, const Options& options);
 
+    /// \brief Solves the optimization problem. Returns information
+    /// about the performance of the solver.
+    template<typename MatType, typename VecType, typename HypothesisFuncType,
+             typename RegularizerFuncType, typename Executor, typename Options>
+    GDInfo solve(const MatType& mat,const VecType& v, HypothesisFuncType& h,
+                 const RegularizerFuncType& regularizer, Executor& executor,
+                 const Options& options);
+
     /// \brief Reset the control
     void reset_control(const GDControl& control);
 
@@ -49,6 +58,12 @@ private:
     /// \brief The error function to use
     error_t err_function_;
 
+    /// \brief actually solve the optimization problem
+    template<typename MatType, typename VecType, typename HypothesisFuncType,
+             typename RegularizerFuncType, typename Executor, typename Options>
+    GDInfo do_solve_(const MatType& mat,const VecType& v, HypothesisFuncType& h,
+                     const RegularizerFuncType* regularizer, Executor& executor,
+                     const Options& options);
 };
 template<typename ErrorFunction>
 inline
@@ -65,8 +80,41 @@ GDInfo
 ThreadedGd<ErrorFunction>::solve(const MatType& mat,const VecType& v, HypothesisFuncType& h,
                                  Executor& executor, const Options& options){
 
+    typedef typename ErrorFunction::regularizer_t regularizer_t;
+    regularizer_t* regularizer = nullptr;
+    return do_solve_(mat, v, h, regularizer, executor, options);
+}
+
+template<typename ErrorFunction>
+template<typename MatType, typename VecType, typename HypothesisFuncType,
+         typename RegularizerFuncType, typename Executor, typename Options>
+GDInfo
+ThreadedGd<ErrorFunction>::solve(const MatType& mat,const VecType& v, HypothesisFuncType& h,
+                                 const RegularizerFuncType& regularizer, Executor& executor,
+                                 const Options& options){
+
+    return do_solve_(mat, v, h, regularizer, executor, options );
+}
+
+template<typename ErrorFunction>
+template<typename MatType, typename VecType, typename HypothesisFuncType,
+         typename RegularizerFuncType, typename Executor, typename Options>
+GDInfo
+ThreadedGd<ErrorFunction>::do_solve_(const MatType& mat,const VecType& v, HypothesisFuncType& h,
+                                     const RegularizerFuncType* regularizer, Executor& executor,
+                                     const Options& options){
+
+
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
+
+    // set the hypothesis function of the
+    // error function
+    err_function_.set_hypothesis_function(h);
+
+    if(regularizer != nullptr){
+        err_function_.set_regularizer_function(*regularizer);
+    }
 
     //the info object to return
     GDInfo info;
@@ -129,6 +177,8 @@ ThreadedGd<ErrorFunction>::solve(const MatType& mat,const VecType& v, Hypothesis
     info.niterations = state.num_iterations;
     return info;
 }
+
+
 
 template<typename ErrorFunction>
 void
