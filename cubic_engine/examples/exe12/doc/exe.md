@@ -1,7 +1,6 @@
 # Example 12: Linear Regression
 
 ## Contents
-* [Acknowledgements](#ackw)
 * [Overview](#overview) 
     * [Linear Regression](#linear_regression)
     * [How Good Is The Fit?](#how_good_is_the_fit)
@@ -117,6 +116,20 @@ int main(){
 ```
 
 ## <a name="results"></a> Results
+
+```
+# iterations:..7322
+# processors:..1
+# threads:.....1
+Residual:......9.99585e-09
+Tolerance:.....1e-08
+Convergence:...Yes
+Total time:....0.118251
+Learning rate:..0.01
+
+Intercept: 0.385994 slope: 0.415595
+Value: 2.75489
+```
 
 ## <a name="source_code"></a> Source Code
 
