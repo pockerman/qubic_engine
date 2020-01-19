@@ -14,9 +14,9 @@
 namespace cengine
 {
 
-/// Lasso regularization for the function given as a template parameter
-/// The workings of the Lasso regularization can be read here
-///
+/// ElasticNet regularization for the function given as a template parameter
+/// The workings of the ElasticNet regularization can be read here
+/// https://en.wikipedia.org/wiki/Elastic_net_regularization
 template<typename FunctionTp, typename...InputTp>
 class ElasticNetFunction: public kernel::FunctionBase<real_t, InputTp...>
 {
@@ -25,7 +25,8 @@ public:
 
     typedef typename kernel::FunctionBase<real_t, InputTp...>::output_t output_t;
 
-    /// \brief Constructor
+    /// \brief Constructor. lambda1 is the Lasso coeffcient
+    /// and lambda2 is the Ridge coefficient
     ElasticNetFunction(const FunctionTp& function,
                        real_t lambda1, real_t lambda2,
                        uint_t coeff_start, uint_t coeff_end);

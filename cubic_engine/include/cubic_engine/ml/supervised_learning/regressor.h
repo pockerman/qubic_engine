@@ -54,6 +54,9 @@ public:
      /// \brief Return the i-th parameter
      real_t coeff(uint_t i)const{return hypothesis_.coeff(i);}
 
+     /// \brief Print the model coeffs
+     std::ostream& print(std::ostream& out)const;
+
 private:
 
      hypothesis_t hypothesis_;
@@ -102,6 +105,30 @@ typename Regressor<HypothesisType>::output_t
 Regressor<HypothesisType>::predict(const DataPoint& point)const{
     
    return hypothesis_.value(point);
+}
+
+template<typename HypothesisType>
+std::ostream&
+Regressor<HypothesisType>::print(std::ostream& out)const{
+
+    for(uint_t c=0; c < hypothesis_.n_coeffs(); ++c){
+        out<<hypothesis_.coeff(c);
+
+        if(c == hypothesis_.n_coeffs() - 1){
+            out<<"\n";
+        }
+        else{
+            out<<",";
+        }
+    }
+
+    return out;
+}
+
+template<typename HypothesisType>
+inline
+std::ostream& operator<<(std::ostream& out, const Regressor<HypothesisType>& regressor){
+    return regressor.print(out);
 }
 
 

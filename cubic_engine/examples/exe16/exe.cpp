@@ -38,39 +38,45 @@ int main(){
         typedef RidgeFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>> ridge_t;
         typedef ElasticNetFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>> elastic_net_t;
 
+        const real_t LASSO_COEF = 0.0001;
+        const real_t RIDGE_COEF = 0.001;
+
         {
             std::cout<<"Using Lasso Regularizer"<<std::endl;
+            std::cout<<"\n";
 
-            // the classifier to use. use a hypothesis of the form
+            // the regressor to use. use a hypothesis of the form
             // f = w_0 + w_1*x_1
             // set initial weights to 0
             LinearRegression regressor({0.0, 0.0});
 
             /// lasso regulaizer
-            lasso_t lasso(regressor.get_model(), 0.0001, 1,
+            lasso_t lasso(regressor.get_model(), LASSO_COEF, 1,
                           regressor.get_model().n_coeffs());
 
             GDControl control(10000, kernel::KernelConsts::tolerance(),
                                        GDControl::DEFAULT_LEARNING_RATE);
             control.show_iterations = false;
 
-            typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<uint_t>, lasso_t> error_t;
+            typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, lasso_t> error_t;
             Gd<error_t> gd(control);
 
             auto result = regressor.train(dataset.first, dataset.second, gd, lasso);
             std::cout<<result<<std::endl;
+            std::cout<<regressor<<std::endl;
 
         }
 
         {
             std::cout<<"Using Ridge Regularizer"<<std::endl;
+            std::cout<<"\n";
 
             // the classifier to use. use a hypothesis of the form
             // f = w_0 + w_1*x_1
             // set initial weights to 0
             LinearRegression regressor({0.0, 0.0});
 
-            ridge_t ridge(regressor.get_model(), 0.001, 1,
+            ridge_t ridge(regressor.get_model(), RIDGE_COEF, 1,
                           regressor.get_model().n_coeffs());
 
             GDControl control(10000, kernel::KernelConsts::tolerance(),
@@ -78,23 +84,25 @@ int main(){
             control.show_iterations = false;
 
             // the error function to to use for measuring the error
-            typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<uint_t>, ridge_t> error_t;
+            typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, ridge_t> error_t;
             Gd<error_t> gd(control);
 
             auto result = regressor.train(dataset.first, dataset.second, gd, ridge);
             std::cout<<result<<std::endl;
+            std::cout<<regressor<<std::endl;
 
         }
 
         {
             std::cout<<"Using ElasticNet Regularizer"<<std::endl;
+            std::cout<<"\n";
 
             // the classifier to use. use a hypothesis of the form
             // f = w_0 + w_1*x_1
             // set initial weights to 0
             LinearRegression regressor({0.0, 0.0});
 
-             elastic_net_t elastic_net(regressor.get_model(), 0.001, 0.0001,
+             elastic_net_t elastic_net(regressor.get_model(), LASSO_COEF, RIDGE_COEF,
                                        1, regressor.get_model().n_coeffs());
 
             GDControl control(10000, kernel::KernelConsts::tolerance(),
@@ -102,11 +110,12 @@ int main(){
             control.show_iterations = false;
 
             // the error function to to use for measuring the error
-            typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<uint_t>, elastic_net_t> error_t;
+            typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, elastic_net_t> error_t;
             Gd<error_t> gd(control);
 
             auto result = regressor.train(dataset.first, dataset.second, gd, elastic_net);
             std::cout<<result<<std::endl;
+            std::cout<<regressor<<std::endl;
 
         }
     }
