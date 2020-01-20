@@ -1,47 +1,73 @@
-/* 
- * File:   serial_kmeans.h
- * Author: david
- *
- * Created on October 24, 2016, 9:01 AM
- */
 
 #ifndef SERIAL_KMEANS_H
 #define	SERIAL_KMEANS_H
 
-#include "parml/unsupervised_learning/kmeans_base.h"
-#include "parframepp/base/platform_enum_type.h"
+#include "cubic_engine/base/cubic_engine_types.h"
+#include "cubic_engine/ml/unsupervised_learning/kmeans_info.h"
+#include "cubic_engine/ml/unsupervised_learning/utils/kmeans_control.h"
+#include "cubic_engine/ml/unsupervised_learning/utils/cluster.h"
 
+#include "kernel/parallel/utilities/result_holder.h"
+#include "kernel/base/kernel_consts.h"
+
+#include <exception>
 #include <chrono>
 
-namespace parml
+namespace cengine
 {
     
-//forward declarations
-template<parframepp::platform_type::Type t,typename DataPoint> class KMeans;
-template<typename T> class ArmaVecDataSet;
 
-    
-/**
- * @brief Serial implementation of KMeans
- */ 
-template<typename DataPoint>
-class KMeans<parframepp::platform_type::Type::SERIAL,DataPoint>: public KMeansBase<DataPoint>
+/// \brief Implementation of KMeans
+template<typename ClusterType>
+class KMeans: public KMeansBase<DataPoint>
 {
     
 public:
+
+    /// \brief The output type returned upon completion
+    /// of the algorithm
+    typedef KMeansInfo output_t;
+
+    /// \brief The input to the algorithm
+    typedef KMeansControl control_t;
+
+    /// \brief The cluster type used
+    typedef ClusterType cluster_t;
+
+    /// \brief The centroid type
+    typedef typename ClusterType::point_t point_t;
+
+    /// \brief The result after computing
+    typedef kernel::ResultHolder<std::vector<cluster_t>> result_t;
     
-    /**
-      * @brief Constructor
-      */
+    /// \brief Constructor
     KMeans(const KMeansControl& cntrl);
         
-        
-    /**
-     * @brief Cluster the given data set
-     */
-    template<typename DataIn,typename Similarity,typename Initializer>
-    void cluster(const DataIn& data,const Similarity& similarity,const Initializer& init);
-        
+    /// \brief Cluster the given data set
+    template<typename DataIn, typename Similarity,typename Initializer>
+    output_t cluster(const DataIn& data,const Similarity& similarity,const Initializer& init);
+
+    /// \brief Save the clustering into a csv file
+    template<typename DataInput,typename CentroidType>
+    void save(const std::string& file_name, const DataInput& data_in)const;
+
+private:
+
+    /// \brief The algorithm control
+    control_t control_;
+
+    /// \brief The clusters
+    std::vector<cluster_t> clusters_;
+
+
+    /// \brief Detect convergence
+    template<typename Similarity>
+    bool detect_convergence_(const Similarity& sim,
+                             const std::vector<point_t>& old_centers)const;
+
+    /// \brief Actually cluster the given point
+    template<typename Similarity>
+    void cluster_point_(const point_t& point, uint_t pid, const Similarity& sim );
 };
 
 //template and inline methods
@@ -49,12 +75,11 @@ public:
 template<typename DataPoint>
 template<typename DataIn,typename Similarity,typename Initializer>
 void 
-KMeans<parframepp::platform_type::Type::SERIAL,DataPoint>::cluster(const DataIn& data,
-                                                                   const Similarity& similarity,const Initializer& init){
+KMeans<DataPoint>::cluster(const DataIn& data, const Similarity& similarity,const Initializer& init){
 
-    size_type k = this->cntrl_.k;
-    size_type rows = data.n_rows();
-    size_type max_itrs = this->cntrl_.max_n_iterations;
+    auto k = control_.k;
+    auto rows = data.n_rows();
+    auto max_itrs = control_.max_n_iterations;
 
 #ifdef PARML_DEBUG
     const std::string func_msg = "In KMeans<parframepp::platform_type::Type::SERIAL,DataPoint>::cluster(). ";
@@ -112,6 +137,82 @@ KMeans<parframepp::platform_type::Type::SERIAL,DataPoint>::cluster(const DataIn&
     
     end = std::chrono::system_clock::now();
     this->info_.runtime = end-start;    
+}
+
+template<typename ClusterType>
+template<typename Similarity>
+bool
+KMeans<ClusterType>::detect_convergence_(const Similarity& sim,
+                                         const std::vector<typename ClusterType::point_t>& old_centers)const{
+
+    if(clusters_.size() != old_centers.size()){
+        const std::string msg = "Current number of clusters: "+std::to_string(clusters_.size())+
+                                " not equal of old number of clusters: "+std::to_string(old_centers.size());
+        throw std::logic_error(msg);
+    }
+
+    bool converged = true;
+
+    for(auto c=0; c<clusters_.size(); ++c){
+
+        auto dis = sim(clusters_[c].centroid, old_centers[c]);
+
+        if(dis > Similarity::tolerance){
+            converged = false;
+            break; //we don't have to continue calculating distances
+        }
+    }
+
+    return converged;
+}
+
+template<typename ClusterType>
+template<typename Similarity>
+void
+KMeans<ClusterType>::cluster_point_(const point_t& point, uint_t pid, const Similarity& sim ){
+
+    typedef typename Similarity::value_type value_type;
+
+    value_type current_dis = std::numeric_limits<value_type>::max();
+    auto cluster_id = kernel::KernelConsts::invalid_size_type();
+
+    for(auto c=0; c<clusters_.size(); ++c){
+
+        auto dis = sim(point, clusters_[c].centroid);
+
+        if(dis - current_dis < Similarity::tolerance()){
+
+            current_dis = dis;
+            cluster_id = c;
+        }
+    }
+
+    if(cluster_id < clusters_.size()){
+
+        //make sure we have a valid cluster id
+        const std::string msg = "Cluster id: "+
+                            std::to_string(cluster_id)+" not in [0,"+
+                            std::to_string(clusters_.size())+")";
+        throw std::logic_error(msg);
+    }
+
+
+    // add to the new cluster
+    // and remove the id from the others. Since each point is assigned
+    // to exactly one cluster we don't have to remove from the rest
+    // of the clusters if the point was found.
+
+    bool found  = clusters_[cluster_id].add_to_cluster(pid);
+
+    if(!found){
+
+        for(auto c=0; c<clusters_.size(); ++c){
+
+            if(c!= cluster_id && !found){
+                found = clusters_[c].remove_from_cluster(pid);
+            }
+        }
+    }
 }
 
 
