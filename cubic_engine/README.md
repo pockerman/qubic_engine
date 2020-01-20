@@ -87,6 +87,7 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 - <a href="examples/exe13/doc/exe.md">Example 13</a> Logistic Regression
 - <a href="examples/exe14/doc/exe.md">Example 14</a> Logistic Regression With ```BatchGradientDescentWrapper```
 - <a href="examples/exe16/doc/exe.md">Example 16</a> Compare Lasso, Ridge and ElasticNet Regularizers
+- <a href="examples/exe17/doc/exe.md">Example 17</a> KMeans Clustering
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
