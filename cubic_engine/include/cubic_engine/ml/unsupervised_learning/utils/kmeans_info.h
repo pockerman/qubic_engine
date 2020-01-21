@@ -19,7 +19,7 @@ struct KMeansInfo: public kernel::AlgInfo
     
     /// \brief Array of the clusters along with the number of datapoints
     /// each cluster contains
-    std::vector<std::pair<size_type,size_type> > clusters;
+    std::vector<std::pair<uint_t, uint_t> > clusters;
     
     /// \brief Number of points for clustering
     uint_t n_clustering_points;

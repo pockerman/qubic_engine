@@ -1,6 +1,6 @@
-#include "parml/unsupervised_learning/kmeans_info.h"
+#include "cubic_engine/ml/unsupervised_learning/utils/kmeans_info.h"
 
-namespace parml
+namespace cengine
 {
     
    
@@ -20,8 +20,8 @@ namespace parml
         out<<"# of clustering points: "<<n_clustering_points<<std::endl;
         out<<"# clusters: "<<clusters.size()<<std::endl;
         
-        size_type ntotal_clustered_points = 0;
-        typedef std::vector<std::pair<size_type,size_type> >::const_iterator const_iterator;
+        uint_t ntotal_clustered_points = 0;
+        typedef std::vector<std::pair<uint_t, uint_t> >::const_iterator const_iterator;
         const_iterator cb = clusters.begin();
         const_iterator ce = clusters.end();
         
