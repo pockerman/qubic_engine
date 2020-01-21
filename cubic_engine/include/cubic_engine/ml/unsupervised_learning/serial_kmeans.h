@@ -3,7 +3,7 @@
 #define	SERIAL_KMEANS_H
 
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/ml/unsupervised_learning/kmeans_info.h"
+#include "cubic_engine/ml/unsupervised_learning/utils/kmeans_info.h"
 #include "cubic_engine/ml/unsupervised_learning/utils/kmeans_control.h"
 #include "cubic_engine/ml/unsupervised_learning/utils/cluster.h"
 
@@ -19,7 +19,7 @@ namespace cengine
 
 /// \brief Implementation of KMeans
 template<typename ClusterType>
-class KMeans: public KMeansBase<DataPoint>
+class KMeans
 {
     
 public:
@@ -45,11 +45,11 @@ public:
         
     /// \brief Cluster the given data set
     template<typename DataIn, typename Similarity,typename Initializer>
-    output_t cluster(const DataIn& data,const Similarity& similarity,const Initializer& init);
+    output_t cluster(const DataIn& data, const Similarity& similarity, const Initializer& init);
 
     /// \brief Save the clustering into a csv file
-    template<typename DataInput,typename CentroidType>
-    void save(const std::string& file_name, const DataInput& data_in)const;
+    //template<typename CentroidType>
+    //void save(const std::string& file_name, const DataInput& data_in)const;
 
 private:
 
@@ -57,7 +57,7 @@ private:
     control_t control_;
 
     /// \brief The clusters
-    std::vector<cluster_t> clusters_;
+    kernel::ResultHolder<std::vector<cluster_t>> clusters_;
 
 
     /// \brief Detect convergence
@@ -70,37 +70,44 @@ private:
     void cluster_point_(const point_t& point, uint_t pid, const Similarity& sim );
 };
 
-//template and inline methods
+template<typename ClusterType>
+KMeans<ClusterType>::KMeans(const KMeansControl& cntrl)
+    :
+   control_(cntrl),
+   clusters_()
+{}
 
-template<typename DataPoint>
-template<typename DataIn,typename Similarity,typename Initializer>
-void 
-KMeans<DataPoint>::cluster(const DataIn& data, const Similarity& similarity,const Initializer& init){
+
+template<typename ClusterType>
+template<typename DataIn, typename Similarity, typename Initializer>
+typename KMeans<ClusterType>::output_t
+KMeans<ClusterType>::cluster(const DataIn& data, const Similarity& similarity, const Initializer& init){
 
     auto k = control_.k;
-    auto rows = data.n_rows();
-    auto max_itrs = control_.max_n_iterations;
+    auto rows = data.rows();
 
-#ifdef PARML_DEBUG
-    const std::string func_msg = "In KMeans<parframepp::platform_type::Type::SERIAL,DataPoint>::cluster(). ";
-    kmeans_detail::assert_comon(func_msg,rows,k,max_itrs);
-#endif
-    
+
+    // more clusters than data does not make
+    // sense
+    if(k > rows){
+        throw std::logic_error("Number of clusters cannot be larger than number of rows");
+    }
  //start timing 
  std::chrono::time_point<std::chrono::system_clock> start, end;
  start = std::chrono::system_clock::now();
  
  random_restart:
  
- 
     //the old centroids
-    std::vector<DataPoint> centroids;
+    std::vector<typename ClusterType::point_t> centroids;
  
     //initialize the clusters
-    kmeans_detail::DataOnProcInitializer::initialize(data,init,this->cntrl_.k,this->clusters_,centroids);
+    init(data, k, centroids);
+
+
  
     //the exit condition
-    kmeans_detail::ExitCondition exit_cond(this->cntrl_.max_n_iterations);
+    /*kmeans_detail::ExitCondition exit_cond(this->cntrl_.max_n_iterations);
     
     //the object that handles the iteration
     kmeans_detail::Iteration<parframepp::platform_type::Type::SERIAL> iteration(this->cntrl_);
@@ -136,7 +143,7 @@ KMeans<DataPoint>::cluster(const DataIn& data, const Similarity& similarity,cons
     }
     
     end = std::chrono::system_clock::now();
-    this->info_.runtime = end-start;    
+    this->info_.runtime = end-start;  */
 }
 
 template<typename ClusterType>
@@ -153,7 +160,7 @@ KMeans<ClusterType>::detect_convergence_(const Similarity& sim,
 
     bool converged = true;
 
-    for(auto c=0; c<clusters_.size(); ++c){
+    /*for(auto c=0; c<clusters_.size(); ++c){
 
         auto dis = sim(clusters_[c].centroid, old_centers[c]);
 
@@ -161,7 +168,7 @@ KMeans<ClusterType>::detect_convergence_(const Similarity& sim,
             converged = false;
             break; //we don't have to continue calculating distances
         }
-    }
+    }*/
 
     return converged;
 }
@@ -171,7 +178,7 @@ template<typename Similarity>
 void
 KMeans<ClusterType>::cluster_point_(const point_t& point, uint_t pid, const Similarity& sim ){
 
-    typedef typename Similarity::value_type value_type;
+    /*typedef typename Similarity::value_type value_type;
 
     value_type current_dis = std::numeric_limits<value_type>::max();
     auto cluster_id = kernel::KernelConsts::invalid_size_type();
@@ -212,7 +219,7 @@ KMeans<ClusterType>::cluster_point_(const point_t& point, uint_t pid, const Simi
                 found = clusters_[c].remove_from_cluster(pid);
             }
         }
-    }
+    }*/
 }
 
 
