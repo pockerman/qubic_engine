@@ -154,7 +154,7 @@ ThreadedGd<ErrorFunction>::do_solve_(const MatType& mat,const VecType& v, Hypoth
         input_.update_residual(error);
         uint_t itr = input_.get_current_iteration();
 
-        if(input_.show_iterations){
+        if(input_.show_iterations()){
 
             std::cout<<"BatchGD: iteration: "<<itr<<std::endl;
             std::cout<<"\tJold: "<<j_old<<" Jcur: "<<j_current

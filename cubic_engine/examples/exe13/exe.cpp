@@ -42,7 +42,7 @@ int main(){
         transformer_t sigmoid_h(classifier.get_model());
 
         GDControl control(20000, 1.0e-4, 0.005);
-        control.show_iterations = true;
+        control.set_show_iterations_flag(true);
 
         Gd<error_t> gd(control);
 

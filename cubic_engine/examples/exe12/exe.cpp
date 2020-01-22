@@ -38,8 +38,6 @@ int main(){
         GDControl control(10000, kernel::KernelConsts::tolerance(),
                           GDControl::DEFAULT_LEARNING_RATE);
 
-        control.show_iterations = false;
-
         Gd<error_t> gd(control);
 
         auto result = regressor.train(dataset.first, dataset.second, gd);

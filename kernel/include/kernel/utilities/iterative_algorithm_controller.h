@@ -31,40 +31,36 @@ public:
    /// \brief Destructor
    virtual ~IterativeAlgorithmController()=default;
 
-   /**
-    * Returns true if the iterations of the algorithm should be continued
-    */
-    bool continue_iterations();
+   /// \brief Returns true if the iterations of the algorithm should be continued
+   bool continue_iterations();
 
-    /**
-      * Returns the current iteration index
-    */
-    uint_t get_current_iteration()const{
-           return current_iteration_idx_;
-    }
+   /// \brief show iterations
+   bool show_iterations()const{return show_iterations_;}
 
-    /**
-     * Returns the exit tolerance for the algorithm
-    */
-    real_t get_exit_tolerance()const{
-        return exit_tolerance_;
-    }
+   /// \brief show iterations
+   void set_show_iterations_flag(bool flag){show_iterations_ = flag;}
 
-    /**
-     * Returns the state of the controller
-     */
-    IterativeAlgorithmResult get_state()const;
+   /// \brief Returns the current iteration index
+   uint_t get_current_iteration()const{
+          return current_iteration_idx_;
+   }
 
-    /**
-     * Update the residual
-     */
-    void update_residual(real_t res){
+   /// \brief Returns the exit tolerance for the algorithm
+   real_t get_exit_tolerance()const{
+       return exit_tolerance_;
+   }
 
-      current_res_ = res;
-    }
+   /// \brief Returns the state of the controller
+   IterativeAlgorithmResult get_state()const;
+
+   /// \brief Update the residual
+   void update_residual(real_t res){
+     current_res_ = res;
+   }
 
     /// \brief reset
     virtual void reset(const IterativeAlgorithmController& control);
+
 private:
 
 
@@ -72,6 +68,7 @@ private:
     real_t exit_tolerance_;
     uint_t current_iteration_idx_;
     real_t current_res_;
+    bool show_iterations_;
 };
 
 inline
@@ -80,7 +77,8 @@ IterativeAlgorithmController::IterativeAlgorithmController(uint_t max_iterations
   max_iterations_(max_iterations),
   exit_tolerance_(exit_tolerance),
   current_iteration_idx_(0),
-  current_res_(std::numeric_limits<real_t>::max())
+  current_res_(std::numeric_limits<real_t>::max()),
+  show_iterations_(false)
 {}
 
 

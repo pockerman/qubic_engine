@@ -56,7 +56,6 @@ int main(){
 
             GDControl control(10000, kernel::KernelConsts::tolerance(),
                                        GDControl::DEFAULT_LEARNING_RATE);
-            control.show_iterations = false;
 
             typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, lasso_t> error_t;
             Gd<error_t> gd(control);
@@ -81,7 +80,6 @@ int main(){
 
             GDControl control(10000, kernel::KernelConsts::tolerance(),
                               GDControl::DEFAULT_LEARNING_RATE);
-            control.show_iterations = false;
 
             // the error function to to use for measuring the error
             typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, ridge_t> error_t;
@@ -107,7 +105,6 @@ int main(){
 
             GDControl control(10000, kernel::KernelConsts::tolerance(),
                                        GDControl::DEFAULT_LEARNING_RATE);
-            control.show_iterations = false;
 
             // the error function to to use for measuring the error
             typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, elastic_net_t> error_t;

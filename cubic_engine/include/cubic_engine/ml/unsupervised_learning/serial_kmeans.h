@@ -9,8 +9,10 @@
 
 #include "kernel/parallel/utilities/result_holder.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/maths/matrix_utilities.h"
 
 #include <exception>
+#include <iostream>
 #include <chrono>
 
 namespace cengine
@@ -59,7 +61,6 @@ private:
     /// \brief The clusters
     kernel::ResultHolder<std::vector<cluster_t>> clusters_;
 
-
     /// \brief Detect convergence
     template<typename Similarity>
     bool detect_convergence_(const Similarity& sim,
@@ -68,6 +69,12 @@ private:
     /// \brief Actually cluster the given point
     template<typename Similarity>
     void cluster_point_(const point_t& point, uint_t pid, const Similarity& sim );
+
+    /// \brief Check if an empty cluster exists
+    bool check_empty_clusters_()const;
+
+    /// \brief Calculate the new centroids of the clusters
+    void calculate_new_centroids_();
 };
 
 template<typename ClusterType>
@@ -104,13 +111,56 @@ KMeans<ClusterType>::cluster(const DataIn& data, const Similarity& similarity, c
     //initialize the clusters
     init(data, k, centroids);
 
+    while (control_.continue_iterations()) {
 
+        if(control_.show_iterations()){
+
+            std::cout<<"\tK-means iteration: "<<control_.get_current_iteration()<<std::endl;
+        }
+
+        for(uint_t r=0; r<data.rows(); ++r){
+
+            // try to cluster the point
+            cluster_point_(kernel::get_row(data, r), r, similarity);
+        }
+
+        // check if we have empty clusters
+        auto empty_cluster = check_empty_clusters_();
+
+        if(empty_cluster){
+
+            if ( control_.show_iterations()){
+                std::cout<<"\t\tEmpty cluster detected..."<<std::endl;
+            }
+
+            if(!control_.continue_on_empty_cluster && control_.random_restart_on_empty_cluster){
+
+                if(control_.show_iterations()){
+                    std::cout<<"\t\tRestarting..."<<std::endl;
+                }
+
+                goto random_restart;
+            }
+            else if(!control_.continue_on_empty_cluster){
+                break;
+            }
+            else if(control_.show_iterations()){
+                std::cout<<"\t\tContinue with empty cluster detected..."<<std::endl;
+            }
+        }
+
+        // clalculate new centroids
+        calculate_new_centroids_();
+
+        // check if we converged
+        auto converged = detect_convergence_(similarity, centroids);
+
+    }
  
     //the exit condition
-    /*kmeans_detail::ExitCondition exit_cond(this->cntrl_.max_n_iterations);
+    /*
     
-    //the object that handles the iteration
-    kmeans_detail::Iteration<parframepp::platform_type::Type::SERIAL> iteration(this->cntrl_);
+
     
     //what the algorithm should do at each iteration
     typename KMeansBase<DataPoint>::ActionType action = KMeansBase<DataPoint>::ActionType::INVALID_TYPE;
@@ -222,7 +272,17 @@ KMeans<ClusterType>::cluster_point_(const point_t& point, uint_t pid, const Simi
     }*/
 }
 
+template<typename ClusterType>
+bool
+KMeans<ClusterType>::check_empty_clusters_()const{
+    return false;
+}
 
+template<typename ClusterType>
+void
+KMeans<ClusterType>::calculate_new_centroids_(){
+
+}
 
     
 }

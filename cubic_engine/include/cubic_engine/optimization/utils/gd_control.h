@@ -15,9 +15,6 @@ struct GDControl: public kernel::IterativeAlgorithmController
     /// \brief The learning rate
     real_t learning_rate;
 
-    /// \brief Flag indicating if iteration infor should be printed
-    bool show_iterations;
-
     /// \brief Constructor
     GDControl( uint_t max_num_itrs,
                real_t tolerance=kernel::KernelConsts::tolerance(),
@@ -33,8 +30,7 @@ inline
 GDControl::GDControl( uint_t max_num_itrs, real_t tolerance, real_t eta_ )
     :
 kernel::IterativeAlgorithmController(max_num_itrs,  tolerance),
-learning_rate(eta_),
-show_iterations(false)
+learning_rate(eta_)
 {}
 
 void
@@ -42,7 +38,6 @@ GDControl::reset(const GDControl& control){
 
     this->kernel::IterativeAlgorithmController::reset(control);
     learning_rate = control.learning_rate;
-    show_iterations = control.show_iterations;
 }
 
 }
