@@ -48,7 +48,6 @@ int main(){
             typedef MSEFunction<transformer_t, DynMat<real_t>, DynVec<uint_t>> error_t;
             GDControl control(10000, kernel::KernelConsts::tolerance(),
                               GDControl::DEFAULT_LEARNING_RATE);
-            control.show_iterations = false;
 
             /// load the dataset
             auto dataset = kernel::load_reduced_iris_data_set();
@@ -83,7 +82,6 @@ int main(){
             auto dataset = kernel::load_reduced_iris_data_set_with_partitions(executor.get_n_threads());
 
             GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
-            control.show_iterations = false;
 
             // this is a serial implmentation
             BatchGradientDescentWrapper<error_t, ThreadPool, Null> gd(control, executor, Null() );

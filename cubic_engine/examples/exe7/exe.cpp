@@ -47,7 +47,6 @@ int main(){
 
         GDControl control(10000, kernel::KernelConsts::tolerance(),
                                    GDControl::DEFAULT_LEARNING_RATE);
-        control.show_iterations = false;
 
         ThreadedGd<error_t> gd(control);
 
@@ -66,8 +65,6 @@ int main(){
 
         GDControl control(10000, kernel::KernelConsts::tolerance(),
                                    GDControl::DEFAULT_LEARNING_RATE);
-
-        control.show_iterations = false;
 
         ThreadedGd<error_t> gd(control);
 
