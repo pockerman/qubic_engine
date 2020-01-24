@@ -18,7 +18,12 @@ public:
 
    static const int Power = P;
    static const bool TakeRoot = TTakeRoot;
+   static real_t tolerance_value;
    typedef real_t cost_t;
+   typedef real_t value_t;
+
+   /// \brief Tolerance used by the class
+   static real_t tolerance(){return tolerance_value;}
 
    /// \brief Default constructor. It is required to
    /// satisfy the metric policy
@@ -31,9 +36,8 @@ public:
    static real_t evaluate(const DynVec<real_t>& v1, const DynVec<real_t>& v2);
 };
 
-/**
- * \brief some useful shortcuts
- */
+
+/// \brief some useful shortcuts
 using ManhattanMetric = LpMetric<1, false> ;
 using SqrEuclidean_metric =  LpMetric<2, false> ;
 using EuclideanMetric = LpMetric<2, true> ;
