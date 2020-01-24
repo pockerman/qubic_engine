@@ -2,8 +2,11 @@
 #define CLUSTER_H
 
 #include "cubic_engine/base/cubic_engine_types.h"
+#include "kernel/maths/matrix_utilities.h"
+
 #include <vector>
 #include <algorithm>
+#include <exception>
 
 namespace cengine
 {
@@ -35,11 +38,14 @@ struct Cluster
     /// cluster which in this case does nothing.
     bool add_to_cluster(uint_t pid);
 
-
     /// \brief Remove from this cluster the point with the given id.
     /// Returns true if and only if the point is found. Otherwise, it returns
     /// false and does not remove anything.
     bool remove_from_cluster(uint_t pid);
+
+    /// \brief recalculate the cluster centroid
+    template<typename DataSetType>
+    void recalculate_centroid(const DataSetType& set);
 };
 
 
@@ -80,6 +86,27 @@ Cluster<DataPoint>::remove_from_cluster(uint_t id){
         return true;
     }
     return false;
+}
+
+template<typename DataPoint>
+template<typename DataSetType>
+void
+Cluster<DataPoint>::recalculate_centroid(const DataSetType& set){
+
+
+    if(points.empty()){
+        throw std::logic_error("Cannot calculate centroid from empty points list");
+    }
+
+    typedef typename Cluster<DataPoint>::point_t point_t;
+    point_t tmp = kernel::get_row(set, points[0]);
+
+    for(uint_t t = 1; t<points.size(); ++t){
+        tmp += kernel::get_row(set, points[t]);
+    }
+
+    tmp /= points.size();
+    centroid = tmp;
 }
 
 }
