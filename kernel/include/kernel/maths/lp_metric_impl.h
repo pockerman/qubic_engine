@@ -6,6 +6,9 @@
 namespace kernel
 {
 
+template<int P, bool TTakeRoot>
+real_t LpMetric<P,TTakeRoot>::tolerance_value = 1.0e-8;
+
 //the general implementation
 template<int P, bool TTakeRoot>
 real_t

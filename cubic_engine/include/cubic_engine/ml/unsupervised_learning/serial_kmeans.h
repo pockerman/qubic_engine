@@ -10,10 +10,12 @@
 #include "kernel/parallel/utilities/result_holder.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/maths/matrix_utilities.h"
+#include "kernel/utilities/csv_file_writer.h"
 
 #include <exception>
 #include <iostream>
 #include <chrono>
+#include <tuple>
 
 namespace cengine
 {
@@ -40,7 +42,7 @@ public:
     typedef typename ClusterType::point_t point_t;
 
     /// \brief The result after computing
-    typedef kernel::ResultHolder<std::vector<cluster_t>> result_t;
+    typedef std::vector<cluster_t> result_t;
     
     /// \brief Constructor
     KMeans(const KMeansControl& cntrl);
@@ -49,9 +51,15 @@ public:
     template<typename DataIn, typename Similarity,typename Initializer>
     output_t cluster(const DataIn& data, const Similarity& similarity, const Initializer& init);
 
+    /// \brief Return the clusters container
+    result_t& get_clusters(){return clusters_;}
+
+    /// \brief Return the clusters container
+    const result_t& get_clusters()const{return clusters_;}
+
     /// \brief Save the clustering into a csv file
-    //template<typename CentroidType>
-    //void save(const std::string& file_name, const DataInput& data_in)const;
+    template<typename DataSetType>
+    void save(const std::string& file_name, const DataSetType& data_in)const;
 
 private:
 
@@ -59,13 +67,12 @@ private:
     control_t control_;
 
     /// \brief The clusters
-    kernel::ResultHolder<std::vector<cluster_t>> clusters_;
+    std::vector<cluster_t> clusters_;
 
     /// \brief Detect convergence
     template<typename Similarity>
-    bool detect_convergence_(const Similarity& sim,
-                             const std::vector<point_t>& old_centers)const;
-
+    std::tuple<bool, real_t> detect_convergence_(const Similarity& sim,
+                                                    const std::vector<point_t>& old_centers)const;
     /// \brief Actually cluster the given point
     template<typename Similarity>
     void cluster_point_(const point_t& point, uint_t pid, const Similarity& sim );
@@ -74,7 +81,8 @@ private:
     bool check_empty_clusters_()const;
 
     /// \brief Calculate the new centroids of the clusters
-    void calculate_new_centroids_();
+    template<typename DataSetType>
+    void calculate_new_centroids_(const DataSetType& dataset);
 };
 
 template<typename ClusterType>
@@ -90,6 +98,11 @@ template<typename DataIn, typename Similarity, typename Initializer>
 typename KMeans<ClusterType>::output_t
 KMeans<ClusterType>::cluster(const DataIn& data, const Similarity& similarity, const Initializer& init){
 
+
+    typedef typename KMeans<ClusterType>::cluster_t cluster_t;
+    typedef typename KMeans<ClusterType>::output_t output_t;
+
+    output_t info;
     auto k = control_.k;
     auto rows = data.rows();
 
@@ -99,6 +112,7 @@ KMeans<ClusterType>::cluster(const DataIn& data, const Similarity& similarity, c
     if(k > rows){
         throw std::logic_error("Number of clusters cannot be larger than number of rows");
     }
+
  //start timing 
  std::chrono::time_point<std::chrono::system_clock> start, end;
  start = std::chrono::system_clock::now();
@@ -107,9 +121,29 @@ KMeans<ClusterType>::cluster(const DataIn& data, const Similarity& similarity, c
  
     //the old centroids
     std::vector<typename ClusterType::point_t> centroids;
- 
+
+    {
+        std::vector<cluster_t> empty;
+        clusters_.swap(empty);
+    }
+
     //initialize the clusters
     init(data, k, centroids);
+
+    if(centroids.size() != k){
+        throw std::logic_error("Incorrect centroid initialization: "+
+                               std::to_string(centroids.size()) +
+                               " not equal to: "+
+                               std::to_string(k));
+    }
+
+    clusters_.resize(k);
+    for(uint_t c=0; c<clusters_.size(); ++c){
+        clusters_[c].centroid = centroids[c];
+    }
+
+    bool converged = false;
+    real_t residual = std::numeric_limits<real_t>::max();
 
     while (control_.continue_iterations()) {
 
@@ -150,55 +184,35 @@ KMeans<ClusterType>::cluster(const DataIn& data, const Similarity& similarity, c
         }
 
         // clalculate new centroids
-        calculate_new_centroids_();
+        calculate_new_centroids_(data);
 
         // check if we converged
-        auto converged = detect_convergence_(similarity, centroids);
+        auto [converged, residual] = detect_convergence_(similarity, centroids);
+
+        control_.update_residual(residual);
+
+        if(converged){
+            break;
+        }
 
     }
  
-    //the exit condition
-    /*
-    
-
-    
-    //what the algorithm should do at each iteration
-    typename KMeansBase<DataPoint>::ActionType action = KMeansBase<DataPoint>::ActionType::INVALID_TYPE;
-    
-    while(exit_cond.check() == false){
-        
-        if(this->cntrl_.show_iterations){
-            
-            std::cout<<"\tK-means iteration: "<<exit_cond.current_itr<<std::endl;
-        }
-        
-        action = iteration(data,similarity,this->clusters_,centroids);
-        
-        if(action == KMeansBase<DataPoint>::ActionType::RESTART)
-            goto random_restart;
-        else if(action == KMeansBase<DataPoint>::ActionType::BREAK)
-            break;
-        else if(action == KMeansBase<DataPoint>::ActionType::CONVERGED){
-            this->info_.converged = true;
-            break;   
-        }
-    }
-    
-    if(action == KMeansBase<DataPoint>::ActionType::CONVERGED){
-        
-        this->info_.clusters.resize(this->clusters_.size());
-        for(size_type c=0; c<this->clusters_.size(); ++c){
-            this->info_.clusters[c]=std::make_pair(c,this->clusters_[c].points.size());   
-        }
-    }
-    
+    auto state = control_.get_state();
     end = std::chrono::system_clock::now();
-    this->info_.runtime = end-start;  */
+
+    info.runtime = end-start;
+    info.nprocs = 1;
+    info.nthreads = 1;
+    info.converged = state.converged;
+    info.residual = state.residual;
+    info.tolerance = state.tolerance;
+    info.niterations = state.num_iterations;
+    return info;
 }
 
 template<typename ClusterType>
 template<typename Similarity>
-bool
+std::tuple<bool, real_t>
 KMeans<ClusterType>::detect_convergence_(const Similarity& sim,
                                          const std::vector<typename ClusterType::point_t>& old_centers)const{
 
@@ -209,18 +223,19 @@ KMeans<ClusterType>::detect_convergence_(const Similarity& sim,
     }
 
     bool converged = true;
+    auto dis = std::numeric_limits<real_t>::max();
 
-    /*for(auto c=0; c<clusters_.size(); ++c){
+    for(auto c=0; c<clusters_.size(); ++c){
 
-        auto dis = sim(clusters_[c].centroid, old_centers[c]);
+        dis = sim(clusters_[c].centroid, old_centers[c]);
 
-        if(dis > Similarity::tolerance){
+        if(dis > Similarity::tolerance()){
             converged = false;
             break; //we don't have to continue calculating distances
         }
-    }*/
+    }
 
-    return converged;
+    return {converged, dis};
 }
 
 template<typename ClusterType>
@@ -228,9 +243,9 @@ template<typename Similarity>
 void
 KMeans<ClusterType>::cluster_point_(const point_t& point, uint_t pid, const Similarity& sim ){
 
-    /*typedef typename Similarity::value_type value_type;
+    typedef typename Similarity::value_t value_t;
 
-    value_type current_dis = std::numeric_limits<value_type>::max();
+    value_t current_dis = std::numeric_limits<value_t>::max();
     auto cluster_id = kernel::KernelConsts::invalid_size_type();
 
     for(auto c=0; c<clusters_.size(); ++c){
@@ -269,7 +284,7 @@ KMeans<ClusterType>::cluster_point_(const point_t& point, uint_t pid, const Simi
                 found = clusters_[c].remove_from_cluster(pid);
             }
         }
-    }*/
+    }
 }
 
 template<typename ClusterType>
@@ -279,9 +294,56 @@ KMeans<ClusterType>::check_empty_clusters_()const{
 }
 
 template<typename ClusterType>
+template<typename DataSetType>
 void
-KMeans<ClusterType>::calculate_new_centroids_(){
+KMeans<ClusterType>::calculate_new_centroids_(const DataSetType& dataset){
 
+    for(uint_t c=0; c<clusters_.size(); ++c){
+        clusters_[c].recalculate_centroid(dataset);
+    }
+}
+
+template<typename ClusterType>
+template<typename DataSetType>
+void
+KMeans<ClusterType>::save(const std::string& file_name, const DataSetType& data)const{
+
+
+    kernel::CSVWriter writer(file_name, kernel::CSVWriter::default_delimiter(), true);
+
+    std::vector<std::string> names(data.columns() + 1);
+
+    names[0] = "ClusterId";
+
+    for(uint_t i=1; i<names.size(); ++i){
+        names[i] = "X-"+std::to_string(i);
+    }
+
+    //write the names
+    writer.write_row(names);
+
+    std::vector<real_t> row(names.size());
+
+    for(uint_t c=0; c<clusters_.size(); ++c){
+
+        auto& cluster = clusters_[c];
+
+        for(uint_t p=0; p<cluster.points.size(); ++p){
+
+            uint_t pidx = cluster.points[p];
+            auto point = kernel::get_row(data, pidx);
+            row[0] = cluster.id;
+
+            for(uint_t r=0; r<point.size(); ++r){
+                row[r+1] = point[r];
+            }
+
+           writer.write_row(row);
+        }
+    }
+
+    //close the file
+    writer.close();
 }
 
     
