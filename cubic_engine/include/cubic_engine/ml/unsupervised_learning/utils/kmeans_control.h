@@ -34,9 +34,8 @@ struct KMeansControl: public kernel::IterativeAlgorithmController
               
 };
 
-//template and inline methods
 inline
-KMeansControl::KMeansControl(uint_t k_,uint_t itrs)
+KMeansControl::KMeansControl(uint_t k_, uint_t itrs)
             :
             kernel::IterativeAlgorithmController(itrs, kernel::KernelConsts::tolerance()),
             k(k_),
