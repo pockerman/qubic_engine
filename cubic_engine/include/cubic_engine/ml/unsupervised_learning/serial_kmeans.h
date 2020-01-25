@@ -78,7 +78,7 @@ private:
     void cluster_point_(const point_t& point, uint_t pid, const Similarity& sim );
 
     /// \brief Check if an empty cluster exists
-    bool check_empty_clusters_()const;
+    std::pair<bool, uint_t> check_empty_clusters_()const;
 
     /// \brief Calculate the new centroids of the clusters
     template<typename DataSetType>
@@ -137,13 +137,17 @@ KMeans<ClusterType>::cluster(const DataIn& data, const Similarity& similarity, c
                                std::to_string(k));
     }
 
+
     clusters_.resize(k);
     for(uint_t c=0; c<clusters_.size(); ++c){
         clusters_[c].centroid = centroids[c];
+        clusters_[c].id = c;
     }
 
     bool converged = false;
     real_t residual = std::numeric_limits<real_t>::max();
+    bool empty_cluster  = false;
+    uint_t empty_cluster_id = kernel::KernelConsts::invalid_size_type();
 
     while (control_.continue_iterations()) {
 
@@ -159,7 +163,7 @@ KMeans<ClusterType>::cluster(const DataIn& data, const Similarity& similarity, c
         }
 
         // check if we have empty clusters
-        auto empty_cluster = check_empty_clusters_();
+        auto [empty_cluster, empty_cluster_id]  = check_empty_clusters_();
 
         if(empty_cluster){
 
@@ -191,10 +195,15 @@ KMeans<ClusterType>::cluster(const DataIn& data, const Similarity& similarity, c
 
         control_.update_residual(residual);
 
-        if(converged){
-            break;
+        // update the centroids also
+        for(uint_t c=0; c<clusters_.size(); ++c){
+            centroids[c] = clusters_[c].centroid;
         }
 
+        if(control_.show_iterations()){
+
+           std::cout<<"\t\t Residual at teration: "<<residual<<std::endl;
+        }
     }
  
     auto state = control_.get_state();
@@ -259,7 +268,7 @@ KMeans<ClusterType>::cluster_point_(const point_t& point, uint_t pid, const Simi
         }
     }
 
-    if(cluster_id < clusters_.size()){
+    if(cluster_id >= clusters_.size()){
 
         //make sure we have a valid cluster id
         const std::string msg = "Cluster id: "+
@@ -288,9 +297,20 @@ KMeans<ClusterType>::cluster_point_(const point_t& point, uint_t pid, const Simi
 }
 
 template<typename ClusterType>
-bool
+std::pair<bool, uint_t>
 KMeans<ClusterType>::check_empty_clusters_()const{
-    return false;
+
+    //check for empty cluster
+    for(uint_t c=0; c<clusters_.size(); ++c){
+
+        if(clusters_[c].points.empty() || clusters_[c].points.size()== 0){
+
+            return std::make_pair(true, c);
+        }
+    }
+
+    return std::make_pair(false, kernel::KernelConsts::invalid_size_type());
+
 }
 
 template<typename ClusterType>
