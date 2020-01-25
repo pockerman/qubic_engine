@@ -48,6 +48,11 @@ std::pair<PartitionedType<DynMat<real_t>>,
                                                                                       bool add_ones_column=true);
 
 
+/// \brief Loads test data for Kmeans
+/// Sample data set taken from scikit-learn example
+/// which can be found here: https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
+DynMat<real_t> load_kmeans_test_data();
+
 
 
 }
