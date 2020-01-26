@@ -17,6 +17,7 @@
 #include <vector>
 #include <utility>
 #include <map>
+#include <iostream>
 
 namespace cengine
 {
@@ -229,7 +230,7 @@ knn_policy_base_data_handler<false>::fillin_majority_vote(const DataVec& labels)
        uint_t idx = k_distances[i].first;
        uint_t cls = labels[idx];
 
-       kernel::add_or_update_map(majority_vote,cls, static_cast<uint_t>(1),
+       kernel::add_or_update_map(majority_vote, cls, static_cast<uint_t>(1),
                                 [](iterator itr){itr->second += 1;});
    }
 }
@@ -385,7 +386,7 @@ knn_policy_base<is_regressor>::operator()(const DataMat& data,  const LabelType&
         //compute the distance between the data point and the 
         //input point
         real_t dis = sim(data_point, point);
-        
+
         //compute the similarity and append it to distances
         distances.push_back(std::make_pair(r,dis));  
     }
@@ -398,6 +399,7 @@ knn_policy_base<is_regressor>::operator()(const DataMat& data,  const LabelType&
         //empty what has been already computed 
         std::vector<Pair> empt;
         data_handler_.k_distances.swap(empt);
+        data_handler_.majority_vote.clear();
     }
                
     data_handler_.k_distances.reserve(data_handler_.k);
@@ -409,7 +411,6 @@ knn_policy_base<is_regressor>::operator()(const DataMat& data,  const LabelType&
     
     //fill in the majority vote
     fillin_majority_vote(labels);
-
 }
 
 template<bool is_regressor>
