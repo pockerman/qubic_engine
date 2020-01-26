@@ -9,11 +9,9 @@
 namespace cengine
 {
 
-/**
- * @brief Small struct that wraps 
- * configuration parameters for k-means algorithm
- */    
 
+/// \brief Small struct that wraps
+/// configuration parameters for k-means algorithm
 struct KMeansControl: public kernel::IterativeAlgorithmController
 {
 
@@ -28,7 +26,6 @@ struct KMeansControl: public kernel::IterativeAlgorithmController
     /// continue its execution when an empty cluster is detected
     bool continue_on_empty_cluster;
     
-
     /// \brief Constructor
     KMeansControl(uint_t k_, uint_t itrs=1000);
               

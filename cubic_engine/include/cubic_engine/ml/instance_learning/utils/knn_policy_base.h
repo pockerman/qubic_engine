@@ -104,35 +104,22 @@ struct knn_policy_base_data_handler<true>
        */
     template<typename DataVec>
     void fillin_majority_vote(const DataVec& labels);
-    
-    
-    /**
-     * @brief Return the top-k results.  Return
-     * a dynamic array of pairs (distance,value). This
-     * function is used in the implementation of MPI K-nn algorithm.
-     * In general, we don't expect that there will be a large number
-     * of such pairs as k in general will not be large. Note that
-     * passed array is reseted to a new pointer. 
-     */
-    //void get_top_k_results(boost::scoped_array<comm_chunk>& arr)const;
-           
+              
 };
 
 
 template<typename DataVec>
 void 
 knn_policy_base_data_handler<true>::fillin_majority_vote(const DataVec& labels){
-    
-#ifdef PARML_DEBUG
-    
-    using utilities::ExeLogicError;
-    std::string msg = "In knn_policy_base_data_handler<true>::fillin_majority_vote(). k_distances empty ";
-    Assert(k_distances.empty()==false,ExeLogicError(msg));
-    msg = "In knn_policy_base_data_handler<true>::fillin_majority_vote(). Incompatible number of neighbors: "+
-            std::to_string(k)+" and k_distances size: "+std::to_string(k_distances.size());
-    Assert( k <= k_distances.size(),ExeLogicError(msg));
-#endif
-    
+     
+    if( k <= k_distances.size()){
+        throw std::logic_error("Incompatible number of neighbors: "+
+                               std::to_string(k)+
+                               " and k_distances size: "+
+                               std::to_string(k_distances.size()));
+    }
+
+
     //we loop ove all the k-distances as we want
     //the average
     for(uint_t d=0; d<k; ++d){
@@ -195,7 +182,6 @@ struct knn_policy_base_data_handler<false>
       * @brief The top k distances computed by the classifier
       * coupled with row id that the distance occurred
       */
-     
     std::vector<Pair> k_distances;
      
      
@@ -219,18 +205,7 @@ struct knn_policy_base_data_handler<false>
        */
     template<typename DataVec>
     void fillin_majority_vote(const DataVec& labels);
-    
-    
-   /**
-     * @brief Return the top-k results.  Return
-     * a dynamic array of pairs (class idx,class counter). This
-     * function is used in the implementation of MPI K-nn algorithm.
-     * In general, we don't expect that there will be a large number
-     * of such pairs as k in general will not be large. Note that
-     * passed array is reseted to a new pointer. 
-     */
-    //void get_top_k_results(boost::scoped_array<comm_chunk>& arr)const;
-        
+            
 };
 
 
@@ -239,16 +214,13 @@ template<typename DataVec>
 void 
 knn_policy_base_data_handler<false>::fillin_majority_vote(const DataVec& labels){
     
-#ifdef PARML_DEBUG
-    
-    using utilities::ExeLogicError;
-    const std::string msg = "In knn_policy_base_data_handler<false>::fillin_majority_vote(). Number of neighbors: "+
-                            std::to_string(k)+" not compatible with: "+
-                            std::to_string(k_distances.size());
-    //std::cout<<"k: "<<k<<" distances: "<<k_distances.size()<<std::endl;
-    //Assert(k < k_distances.size(),ExeLogicError(msg));
-#endif
-    
+
+    if(k < k_distances.size()){
+        throw std::logic_error("Number of neighbors: "+
+                               std::to_string(k)+
+                               " not compatible with: "+
+                               std::to_string(k_distances.size()));
+    }
     
    typedef std::map<uint_t, uint_t>::iterator iterator;
     
@@ -295,12 +267,7 @@ public:
      */
     typedef std::vector<Pair> distances_container_type;
     
-    /**
-     * @brief Expose the type of the object needed for communication when using MPI
-     */
-    //typedef typename knn_policy_base_data_handler<is_regressor>::comm_chunk comm_chunk;
-    
-     
+
     /**
      * @brief Return the value that indicates an invalid result
      */
@@ -387,18 +354,6 @@ public:
     void resume(){resume(data_handler_.k);}
     
     
-     /**
-     * @brief Return the top-k results.  Return
-     * a dynamic array of pairs. Depending on whether the implementation
-     * is a regressor or a classifier it returns a dynamic array or pairs
-     * (distance,value) or (class idx,class counter) respectively. This
-     * function is used in the implementation of the MPI K-nn algorithm.
-     * In general, we don't expect that there will be a large number
-     * of such pairs as k in general will not be large. Note that
-     * passed array is reseted to a new pointer. 
-     */
-    //void get_top_k_results(boost::scoped_array<comm_chunk>& arr)const{return data_handler_.get_top_k_results(arr);}
-    
 protected:
     
     
@@ -425,7 +380,7 @@ knn_policy_base<is_regressor>::operator()(const DataMat& data,  const LabelType&
     for(uint_t r=range.begin(); r<range.end(); ++r){
         
         //access the r-th row of the matrix
-        const DataVec& data_point = kernel::get_row(data, r); //data.row(r);
+        const DataVec& data_point = kernel::get_row(data, r);
         
         //compute the distance between the data point and the 
         //input point
@@ -454,12 +409,7 @@ knn_policy_base<is_regressor>::operator()(const DataMat& data,  const LabelType&
     
     //fill in the majority vote
     fillin_majority_vote(labels);
-    
-    /*if(compute_majority_vote_){
-        auto y = DataInput::type_2(this->data_in_);
-    
-        kmeans_detail::fillin_majority_vote(majority_vote_,*y,distances,k_);
-    }*/
+
 }
 
 template<bool is_regressor>

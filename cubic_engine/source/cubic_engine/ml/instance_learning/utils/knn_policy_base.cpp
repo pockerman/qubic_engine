@@ -1,4 +1,4 @@
-#include "cubic_engine/ml/instance_learning/knn_policy_base.h"
+#include "cubic_engine/ml/instance_learning/utils/knn_policy_base.h"
 #include "kernel/base/kernel_consts.h"
 #include <limits>
 

@@ -1,4 +1,4 @@
-#include "cubic_engine/ml/instance_learning/knn_classification_policy.h"
+#include "cubic_engine/ml/instance_learning/utils/knn_classification_policy.h"
 #include "kernel/base/kernel_consts.h"
 
 
@@ -41,32 +41,4 @@ namespace cengine
 
         return rslt;      
    }
-   
-   
-   /*KnnClassificationPolicy::return_type
-   KnnClassificationPolicy::get_result(const boost::scoped_array<knn_classify_policy::comm_chunk>& results,
-                                         uint_t nelems)const{
-       
-       
-        size_type rslt = ParML::iuint();
-    
-        //the class index
-        rslt = results[0].first;
-       
-        //the class counter
-        size_type ctr  = results[0].second;
-    
-        for(size_type e=0; e<nelems; ++e){
-        
-            size_type rslttmp = results[e].first;
-            size_type ctrtmp  = results[e].second;
-        
-            if(ctrtmp > ctr){
-                        ctr = ctrtmp;
-                        rslt = rslttmp;
-            }
-        }
-    
-        return rslt;    
-   }*/
 }
