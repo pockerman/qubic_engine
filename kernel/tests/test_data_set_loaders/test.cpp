@@ -34,6 +34,54 @@ TEST(TestDataSetLoaders, LoadReducedIrisSet) {
 }
 
 /***
+ * Test Scenario:   The application attempts to load the iris data set without ones
+ * Expected Output:	Data set should be loaded
+ **/
+
+TEST(TestDataSetLoaders, LoadIrisSetNoOnes) {
+
+
+    /// TODO: Is there a better way to do this?
+    try{
+
+        auto data = kernel::load_iris_data_set(false);
+        auto expected_rows = 150;
+        auto expected_columns = 4;
+        ASSERT_EQ(data.first.rows(), expected_rows);
+        ASSERT_EQ(data.first.columns(), expected_columns);
+        ASSERT_EQ(data.second.size(), data.first.rows());
+
+    }
+    catch(...){
+
+        ASSERT_FALSE("A non expected exception was thrown");
+    }
+}
+
+/***
+ * Test Scenario:   The application attempts to load the iris data set with ones column
+ * Expected Output:	Data set should be loaded
+ **/
+
+TEST(TestDataSetLoaders, LoadIrisSetWithOnes) {
+
+    /// TODO: Is there a better way to do this?
+    try{
+
+        auto data = kernel::load_iris_data_set(true);
+        auto expected_rows = 150;
+        auto expected_columns = 5;
+        ASSERT_EQ(data.first.rows(), expected_rows);
+        ASSERT_EQ(data.first.columns(), expected_columns);
+        ASSERT_EQ(data.second.size(), data.first.rows());
+    }
+    catch(...){
+
+        ASSERT_FALSE("A non expected exception was thrown");
+    }
+}
+
+/***
  * Test Scenario:   The application attempts to load the x_y sinuisoid iris data set
  * Expected Output:	Data set should be loaded
  **/

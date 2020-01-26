@@ -393,6 +393,118 @@ std::pair<PartitionedType<DynMat<real_t>>,
 
 }
 
+/// \brief Load the iris data set and assigned
+std::pair<DynMat<real_t>, DynVec<uint_t>> load_iris_data_set(bool add_ones_column){
+
+    std::string file(DATA_SET_FOLDER);
+    file += "/iris_data.csv";
+
+    CSVFileReader reader(file);
+
+    uint_t cols = add_ones_column? 5 : 4;
+    real_t val = add_ones_column ? 1.0 : 0.0;
+    DynMat<real_t> matrix(150, cols, val);
+    DynVec<uint_t> labels(150);
+
+    // read the first line as this is the header
+    reader.read_line();
+
+    uint_t r = 0;
+
+     while(!reader.eof() && r < matrix.rows() ){
+
+          auto line = reader.read_line();
+
+          std::vector<real_t> row(4, 0.0);
+
+          for(uint_t i = 0; i<line.size()-1; ++i){
+             row[i] = std::atof(line[i].c_str());
+          }
+
+          uint c = add_ones_column?1:0;
+
+          for(; c<cols; ++c){
+              matrix(r, c) = row[ add_ones_column ? c-1 : c ];
+          }
+
+          if(line[4] == "Iris-setosa"){
+              labels[r] = 0;
+          }
+          else if(line[4] == "Iris-versicolor"){
+              labels[r] = 1;
+          }
+          else if(line[4] == "Iris-virginica"){
+              labels[r] = 2;
+          }
+          else{
+              throw std::invalid_argument("Unknown class in reduced iris dataset: "+line[4]);
+          }
+
+        r++;
+      }
+
+     return std::pair(std::move(matrix), std::move(labels));
+}
+
+std::pair<PartitionedType<DynMat<real_t>>,
+          PartitionedType<DynVec<uint_t>>> load_iris_data_set_with_partitions(uint nparts,
+                                                                              bool add_ones_column){
+
+    std::string file(DATA_SET_FOLDER);
+    file += "/iris_data.csv";
+
+    CSVFileReader reader(file);
+
+    uint_t cols = add_ones_column? 5 : 4;
+    real_t val = add_ones_column ? 1.0 : 0.0;
+    PartitionedType<DynMat<real_t>> matrix(150, cols, val);
+    PartitionedType<DynVec<uint_t>> labels(150);
+
+    // read the first line as this is the header
+    reader.read_line();
+
+    uint_t r = 0;
+
+     while(!reader.eof()){
+
+          auto line = reader.read_line();
+
+          std::vector<real_t> row(4, 0.0);
+
+          for(uint_t i = 0; i<line.size()-1; ++i){
+             row[i] = std::atof(line[i].c_str());
+          }
+
+          uint c = add_ones_column?1:0;
+
+          for(; c<cols; ++c){
+              matrix(r, c) = row[ add_ones_column ? c-1 : c ];
+          }
+
+          if(line[4] == "Iris-setosa"){
+              labels[r] = 0;
+          }
+          else if(line[4] == "Iris-versicolor"){
+              labels[r] = 1;
+          }
+          else if(line[4] == "Iris-virginica"){
+              labels[r] = 2;
+          }
+          else{
+              throw std::invalid_argument("Unknown class in reduced iris dataset: "+line[4]);
+          }
+
+        r++;
+      }
+
+     std::vector<range1d<uint_t>> partitions;
+     partition_range(0, matrix.rows(), partitions, nparts );
+     matrix.set_partitions(partitions);
+     labels.set_partitions(partitions);
+     return std::pair(std::move(matrix), std::move(labels));
+
+}
+
 
 std::pair<DynMat<real_t>, DynVec<real_t>>
 load_x_y_sinuisoid_data_set(bool add_ones_column){
