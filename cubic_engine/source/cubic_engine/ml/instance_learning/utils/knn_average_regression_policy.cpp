@@ -1,4 +1,4 @@
-#include "cubic_engine/ml/instance_learning/knn_average_regression_policy.h"
+#include "cubic_engine/ml/instance_learning/utils/knn_average_regression_policy.h"
 #include <algorithm>
 
 
@@ -22,14 +22,16 @@ KnnAvgRegressionPolicy::get_result()const{
                           " not equal to k: "+std::to_string(this->data_handler_.k);
     Assert(this->data_handler_.majority_vote.size()== this->data_handler_.k,ExeLogicError(msg));
 #endif 
+
+
     
     
     //std::cout<<"In knn_avg_regression_policy::get_result(). majority_vote size: "<<this->data_handler_.majority_vote.size()<<std::endl;
     
-    real_t avg = 0.0;
+    /*real_t avg = 0.0;
     avg = std::accumulate(this->data_handler_.majority_vote.begin(),
-                    this->data_handler_.majority_vote.end(),avg);
-    return avg/this->data_handler_.k;
+                    this->data_handler_.majority_vote.end(),avg);*/
+    return 0.0; //avg/this->data_handler_.k;
 }
 
 /*knn_avg_regression_policy::return_type

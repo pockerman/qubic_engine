@@ -1,4 +1,4 @@
-#include "cubic_engine/ml/instance_learning/knn_info.h"
+#include "cubic_engine/ml/instance_learning/utils/knn_info.h"
 
 namespace cengine
 {
