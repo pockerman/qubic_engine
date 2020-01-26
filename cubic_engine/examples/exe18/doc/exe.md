@@ -73,10 +73,11 @@ int main(){
 ```
 # threads: 1
 # procs: 1
-# points predicted: 1
-# neighbors: 3
-Total runtime: 0.0329224
+# neighbors: 4
+Total runtime: 0.0397838
 ```
+
+![IrisDataSetPredicted](knn_classifier_4_neighbors.png)
 
 ## <a name="source_code"></a> Source Code
 

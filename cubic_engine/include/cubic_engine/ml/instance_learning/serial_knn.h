@@ -15,6 +15,7 @@
 
 #include <utility>
 #include <chrono>
+#include <iostream>
 
 namespace cengine
 {
@@ -160,7 +161,6 @@ Knn<DataSetType, LabelType, Similarity, Actor>::predict(const DataSetType& data)
 
     KnnInfo info;
     info.n_neighbors = k;
-    info.n_pts_predicted = 1;
     info.nprocs = 1;
     info.nthreads = 1;
 
@@ -182,6 +182,7 @@ Knn<DataSetType, LabelType, Similarity, Actor>::predict(const DataSetType& data)
     for(uint row_idx=0; row_idx<data.rows(); ++row_idx){
 
         auto point = kernel::get_row(data, row_idx);
+
         actor(*this->data_ptr_, *this->labels_ptr_, point, sim, range);
 
         //get the result
@@ -189,11 +190,9 @@ Knn<DataSetType, LabelType, Similarity, Actor>::predict(const DataSetType& data)
         result[row_idx] = rslt;
     }
 
-
-
     end = std::chrono::system_clock::now();
     info.runtime = end-start;
-    return std::make_pair(result,info);
+    return std::make_pair(std::move(result), std::move(info));
 
 }
    

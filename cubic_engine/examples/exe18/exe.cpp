@@ -29,7 +29,7 @@ int main(){
 
         auto dataset = kernel::load_iris_data_set(false);
 
-        Knn<DynMat<real_t>, DynVec<real_t>, similarity_t, actor_t> knn(KnnControl(3));
+        Knn<DynMat<real_t>, DynVec<uint_t>, similarity_t, actor_t> knn(KnnControl(4));
         knn.train(dataset.first, dataset.second);
         auto result = knn.predict(dataset.first);
         std::cout<<result.second<<std::endl;
