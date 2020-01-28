@@ -465,7 +465,7 @@ std::pair<PartitionedType<DynMat<real_t>>,
 
     uint_t r = 0;
 
-     while(!reader.eof()){
+     while(!reader.eof() && r < matrix.rows() ){
 
           auto line = reader.read_line();
 
