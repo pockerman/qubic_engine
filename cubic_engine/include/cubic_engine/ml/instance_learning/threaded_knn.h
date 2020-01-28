@@ -9,6 +9,7 @@
 #include "kernel/maths/matrix_utilities.h"
 #include "kernel/parallel/threading/simple_task.h"
 #include "kernel/utilities/range_1d.h"
+#include "kernel/maths/matrix_traits.h"
 
 #include <utility>
 #include <chrono>
@@ -46,7 +47,8 @@ public:
                                           Executor& execute, const Options& option);
 
     /// \brief Predict outcome for the given dataset
-    std::pair<std::vector<return_t>, output_t> predict(const DataSetType& data);
+    template<typename Executor, typename Options>
+    std::pair<std::vector<return_t>, output_t> predict(const DataSetType& data, Executor& execuotor, const Options& options);
 
 private:
 
@@ -87,11 +89,20 @@ struct
 ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::Task: public kernel::SimpleTaskBase<typename Actor::return_t>
 {
 public:
-                
+
+   /// \brief Constructor
+   Task(uint_t id, uint_t k);
 
    /// \brief Constructor
    Task(uint_t id, uint_t k, const DataSetType& data,
-        const LabelType& labeltype, const DataPoint& point);
+        const LabelType& labels, const DataPoint& point);
+
+   /// \brief Reset the point to work on
+   void reset_point(const DataPoint& point){point_ = &point;}
+
+   /// \brief Reset the DataSet and labels
+   void reset_data(const DataSetType& data,
+                   const LabelType& labels);
                             
 protected:
                 
@@ -116,6 +127,20 @@ protected:
 
 };
 
+
+template<typename DataSetType, typename LabelType,
+         typename Similarity, typename Actor>
+template<typename DataPoint>
+ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::Task<DataPoint>::Task(uint_t id, uint_t k)
+ :
+kernel::SimpleTaskBase<typename Actor::return_t>(id),
+data_(nullptr),
+labels_(nullptr),
+point_(nullptr),
+actor_(k),
+sim_()
+{}
+
 template<typename DataSetType, typename LabelType,
          typename Similarity, typename Actor>
 template<typename DataPoint>
@@ -130,14 +155,25 @@ actor_(k),
 sim_()
 {}
 
+
+template<typename DataSetType, typename LabelType, typename Similarity, typename Actor>
+template<typename DataPoint>
+void
+ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::Task<DataPoint>::reset_data(const DataSetType& data,
+                                                                                     const LabelType& labels){
+
+   data_ = &data;
+   labels_ = &labels;
+}
+
 template<typename DataSetType, typename LabelType, typename Similarity, typename Actor>
 template<typename DataPoint>
 void
 ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::Task<DataPoint>::run(){
     
     actor_.resume();
-    auto& range = data_->get_parition(this->get_id());
-    actor_(*data_, *labels_, *point_, *sim_, range);
+    auto& range = data_->get_partition(this->get_id());
+    actor_(*data_, *labels_, *point_, sim_, range);
 
     //get the result
     auto rslt = actor_.get_result();
@@ -154,7 +190,7 @@ template<typename DataPoint, typename Executor, typename Options>
 std::pair<typename ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::return_t,
           typename ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::output_t>
 ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::predict(const DataPoint& point,
-                                                                Executor& executor, const Options& option){
+                                                                Executor& executor, const Options& options){
     
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
@@ -172,7 +208,10 @@ ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::predict(const DataPoint&
     uint_t labels_size = labels_ptr_->size();
 
     if(labels_size != nrows){
-        throw std::logic_error("Labels size: "+std::to_string(labels_size)+" does not match dataset rows: "+std::to_string(nrows));
+        throw std::logic_error("Labels size: " +
+                               std::to_string(labels_size) +
+                               " does not match dataset rows: " +
+                               std::to_string(nrows));
     }
 
     if(k == 0 || k>= nrows){
@@ -206,14 +245,92 @@ ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::predict(const DataPoint&
     }
 
     // this should block
-    executor.execute(tasks_);
+    executor.execute(tasks_, options);
 
     // now reduce the result
 
     end = std::chrono::system_clock::now();
     info.runtime = end-start;
-    return std::make_pair(rslt,info);
+
+    typename ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::return_t result;
+    return {result, info};
       
+}
+
+template<typename DataSetType, typename LabelType, typename Similarity, typename Actor>
+template<typename Executor, typename Options>
+std::pair<std::vector<typename ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::return_t>,
+                      typename ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::output_t>
+ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::predict(const DataSetType& data, Executor& executor, const Options& options){
+
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
+
+    if(data_ptr_ == nullptr){
+        throw std::logic_error("Dataset pointer in null");
+    }
+
+    if(labels_ptr_ == nullptr){
+        throw std::logic_error("Labels pointer in null");
+    }
+
+    uint_t k = input_.k;
+    uint_t nrows = data_ptr_->rows();
+    uint_t labels_size = labels_ptr_->size();
+
+    if(labels_size != nrows){
+        throw std::logic_error("Labels size: " +
+                               std::to_string(labels_size) +
+                               " does not match dataset rows: " +
+                               std::to_string(nrows));
+    }
+
+    if(k == 0 || k>= nrows){
+        throw std::logic_error("Number of neighbors: "+std::to_string(k)+
+                               " not in [1,"+std::to_string(nrows)+")");
+    }
+
+    KnnInfo info;
+    info.n_neighbors = k;
+    info.n_pts_predicted = 1;
+    info.nprocs = 1;
+    info.nthreads = executor.get_n_threads();
+
+    typedef typename kernel::matrix_row_trait<DataSetType>::row_t row_t;
+    typedef ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::Task<row_t> task_t;
+
+    if(tasks_.empty()){
+
+        // we don't have tasks so we create them
+        tasks_.reserve(executor.get_n_threads());
+
+        for(uint_t t=0; t<executor.get_n_threads(); ++t){
+            tasks_.push_back(std::make_unique<task_t>(t, k));
+        }
+
+    }
+
+    for(uint_t t=0; t<executor.get_n_threads(); ++t){
+        dynamic_cast<task_t*>(tasks_[t].get())->reset_data(*data_ptr_, *labels_ptr_);
+    }
+
+    std::vector<typename ThreadedKnn<DataSetType, LabelType, Similarity, Actor>::return_t> result(data.rows());
+    for(uint_t r=0; r<data.rows(); ++r){
+
+        auto point = kernel::matrix_row_trait<DataSetType>::get_row(data, r);
+
+        for(uint_t t=0; t<executor.get_n_threads(); ++t){
+            dynamic_cast<task_t*>(tasks_[t].get())->reset_point(point);
+        }
+
+        // this should block
+        executor.execute(tasks_, options);
+
+        //collect the results from this point
+    }
+
+    return {std::move(result), info};
+
 }
     
 }

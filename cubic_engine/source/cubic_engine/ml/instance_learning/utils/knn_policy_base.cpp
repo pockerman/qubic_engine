@@ -11,9 +11,15 @@ knn_policy_base_data_handler<true>::knn_policy_base_data_handler(uint_t k_)
 :
 k(k_),
 k_distances(),
-majority_vote(),
-result()
+majority_vote()
 {}
+
+void
+knn_policy_base_data_handler<true>::resume(){
+
+    k_distances.clear();
+    majority_vote.clear();
+}
 
 
 /*void
@@ -44,9 +50,16 @@ knn_policy_base_data_handler<false>::knn_policy_base_data_handler(uint_t k_)
 :
 k(k_),
 k_distances(),
-majority_vote(),
-result()
+majority_vote()
 {}
+
+void
+knn_policy_base_data_handler<false>::resume(){
+
+    k_distances.clear();
+    majority_vote.clear();
+    //result.invalidate_result(true);
+}
 
 
 /*void

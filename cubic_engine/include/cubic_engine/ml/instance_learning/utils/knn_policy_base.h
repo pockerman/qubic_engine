@@ -40,7 +40,7 @@ struct knn_policy_base_data_handler<true>
     typedef real_t return_t;
 
     /// \brief The result type of the policy
-    typedef kernel::ResultHolder<return_t> result_t;
+    //typedef kernel::ResultHolder<return_t> result_t;
     
     /**
      * @brief The type of the container that holds
@@ -73,7 +73,7 @@ struct knn_policy_base_data_handler<true>
     std::vector<real_t> majority_vote;
 
     /// \brief The result of the policy
-    result_t result;
+    //result_t result;
      
      /**
       * @brief Constructor
@@ -119,19 +119,12 @@ knn_policy_base_data_handler<true>::fillin_majority_vote(const DataVec& labels){
 }
 
 
-void
-knn_policy_base_data_handler<true>::resume(){
-
-    k_distances.clear();
-    majority_vote.clear();
-    result.invalidate_result(true);
-}
 
 
-/**
- * @brief Explicit specializations. Data handler
- * for classification policy
- */
+
+
+/// \brief Explicit specializations. Data handler
+/// for classification policy
 template<>
 struct knn_policy_base_data_handler<false>
 {
@@ -142,7 +135,7 @@ struct knn_policy_base_data_handler<false>
     typedef uint_t return_t;
 
     /// \brief The result type of the policy
-    typedef kernel::ResultHolder<return_t> result_t;
+    //typedef kernel::ResultHolder<return_t> result_t;
     
     /**
      * @brief The type of the container that holds
@@ -176,7 +169,7 @@ struct knn_policy_base_data_handler<false>
     std::map<uint_t, uint_t> majority_vote;
 
     /// \brief The result of the policy
-    result_t result;
+    //result_t result;
     
     /// \brief Constructor
     knn_policy_base_data_handler(uint_t k_);
@@ -223,13 +216,7 @@ knn_policy_base_data_handler<false>::fillin_majority_vote(const DataVec& labels)
 }
 
 
-void
-knn_policy_base_data_handler<false>::resume(){
 
-    k_distances.clear();
-    majority_vote.clear();
-    result.invalidate_result(true);
-}
 
 /**
  * @brief Base class that holds common
@@ -245,7 +232,7 @@ public:
     /**
      * @brief Expose the return type of the policy
      */
-    typedef typename knn_policy_base_data_handler<is_regressor>::return_type return_type;
+    typedef typename knn_policy_base_data_handler<is_regressor>::return_t return_type;
     
     /**
      * @brief Expose the majority vote container type of the policy
