@@ -309,10 +309,9 @@ ResultHolder<T>::invalidate_result(bool reinit){
 }
 
 
-/**
- * @brief class ResultHolder<void>. Specialization that does not hold a
- * result. It simply signals if the execution was successful or not
- */
+
+/// \brief class ResultHolder<void>. Specialization that does not hold a
+/// result. It simply signals if the execution was successful or not
 template<>
 class ResultHolder<void>
 {
@@ -360,55 +359,10 @@ private:
 };
 
 
-ResultHolder<void>::ResultHolder(bool valid)
-    :
-   item_(nullptr),
-   valid_result_(valid)
-{}
-
-
-void
-ResultHolder<void>::get_copy(ResultHolder<void>& other)const{
-    other.valid_result_ = valid_result_;
-    other.item_ = item_;
-}
-
-
-ResultHolder<void>::result_type
-ResultHolder<void>::get()const{
-    return std::make_pair(&(const_cast<ResultHolder<void>&>(*this).item_), valid_result_);
-}
-
-
-ResultHolder<void>::result_type
-ResultHolder<void>::get_or_wait()const{
-
-    while(!valid_result_){
-        std::this_thread::yield();
-    }
-
-    return std::make_pair(&(const_cast<ResultHolder<void>&>(*this).item_), valid_result_);
-}
-
-
-ResultHolder<void>::result_type
-ResultHolder<void>::get_or_wait_for(uint_t mills)const{
-
-    if(!valid_result_){
-        std::this_thread::sleep_for(std::chrono::milliseconds(mills));
-    }
-
-    return std::make_pair(&(const_cast<ResultHolder<void>&>(*this).item_), valid_result_);
-}
-
-/**
- * With Null type is the same as with void type
- */
+/// With Null type is the same as with void type
 template<>
 class ResultHolder<Null>: public ResultHolder<void>
-{
-
-};
+{};
 
 
 
