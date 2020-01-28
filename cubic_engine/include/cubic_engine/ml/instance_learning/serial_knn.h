@@ -1,10 +1,3 @@
-/* 
- * File:   serial_knn.h
- * Author: david
- *
- * Created on October 17, 2016, 8:19 PM
- */
-
 #ifndef SERIAL_KNN_H
 #define	SERIAL_KNN_H
 
@@ -20,10 +13,9 @@
 namespace cengine
 {
     
-/**
- * @brief Serial implementation
- * of K-nearest neighbors algorithm
- */
+
+/// \brief Serial implementation
+/// of K-nearest neighbors algorithm
 template<typename DataSetType, typename LabelType, typename Similarity, typename Actor>
 class Knn
 {
@@ -78,6 +70,9 @@ std::pair<typename Knn<DataSetType, LabelType, Similarity, Actor>::return_t,
           typename Knn<DataSetType, LabelType, Similarity, Actor>::output_t>
 Knn<DataSetType, LabelType, Similarity, Actor>::predict(const DataVec& point){
 
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
+
     if(data_ptr_ == nullptr){
         throw std::logic_error("Dataset pointer in null");
     }
@@ -86,9 +81,7 @@ Knn<DataSetType, LabelType, Similarity, Actor>::predict(const DataVec& point){
         throw std::logic_error("Labels pointer in null");
     }
     
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-    start = std::chrono::system_clock::now();
-    
+
     uint_t k = input_.k;
     uint_t nrows = data_ptr_->rows();
     uint_t labels_size = labels_ptr_->size();

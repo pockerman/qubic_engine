@@ -1,18 +1,14 @@
-/* 
- * File:   knn_policy_base.h
- * Author: david
- *
- * Created on October 19, 2016, 2:30 PM
- */
 
 #ifndef KNN_POLICY_BASE_H
 #define	KNN_POLICY_BASE_H
 
 #include "cubic_engine/base/cubic_engine_types.h"
+
 #include "kernel/utilities/range_1d.h"
 #include "kernel/utilities/map_utilities.h"
 #include "kernel/maths/matrix_utilities.h"
-#include <boost/scoped_array.hpp>
+#include "kernel/parallel/utilities/result_holder.h"
+
 
 #include <vector>
 #include <utility>
@@ -41,7 +37,10 @@ struct knn_policy_base_data_handler<true>
    /**
      * @brief Expose the return type of the policy
      */
-    typedef real_t return_type;
+    typedef real_t return_t;
+
+    /// \brief The result type of the policy
+    typedef kernel::ResultHolder<return_t> result_t;
     
     /**
      * @brief The type of the container that holds
@@ -56,23 +55,6 @@ struct knn_policy_base_data_handler<true>
     
 
     /**
-     * @brief The value that indicates that the policy has returned an invalid result.
-     * By default this is numeric_limits<return_type>::max()
-     */
-    static return_type invalid_result_value;
-    
-    /**
-     * @brief Return the value that indicates an invalid result
-     */
-    static return_type invalid_result(){return invalid_result_value;}
-    
-    /**
-     * @brief Set the value for the policy that indicates an invalid result
-     */
-    static void set_invalid_result_value(return_type val){invalid_result_value = val;}
-    
-    
-    /**
      * @brief Number of neighbors
      */
     uint_t k;
@@ -82,15 +64,16 @@ struct knn_policy_base_data_handler<true>
       * @brief The top k distances computed by the regressor
       * coupled with row id that the distance occurred
       */
-     
     std::vector<Pair> k_distances;
-     
      
      /**
       * @brief The vector that holds the values of the labels
       * vector for the k-top neighbors
       */
     std::vector<real_t> majority_vote;
+
+    /// \brief The result of the policy
+    result_t result;
      
      /**
       * @brief Constructor
@@ -105,7 +88,11 @@ struct knn_policy_base_data_handler<true>
        */
     template<typename DataVec>
     void fillin_majority_vote(const DataVec& labels);
-              
+
+    /// \brief Resume the policy. Clear all data structs
+    /// and invalidate the result
+    void resume();
+
 };
 
 
@@ -132,6 +119,15 @@ knn_policy_base_data_handler<true>::fillin_majority_vote(const DataVec& labels){
 }
 
 
+void
+knn_policy_base_data_handler<true>::resume(){
+
+    k_distances.clear();
+    majority_vote.clear();
+    result.invalidate_result(true);
+}
+
+
 /**
  * @brief Explicit specializations. Data handler
  * for classification policy
@@ -143,7 +139,10 @@ struct knn_policy_base_data_handler<false>
    /**
      * @brief Expose the return type of the policy
      */
-    typedef uint_t return_type;
+    typedef uint_t return_t;
+
+    /// \brief The result type of the policy
+    typedef kernel::ResultHolder<return_t> result_t;
     
     /**
      * @brief The type of the container that holds
@@ -157,22 +156,6 @@ struct knn_policy_base_data_handler<false>
     typedef std::pair<uint_t, real_t> Pair;
     
 
-     /**
-     * @brief The value that indicates that the policy has returned an invalid result.
-     * By default this is numeric_limits<return_type>::max()
-     */
-    static return_type invalid_result_value;
-    
-    /**
-     * @brief Return the value that indicates an invalid result
-     */
-    static return_type invalid_result(){return invalid_result_value;}
-    
-    /**
-     * @brief Set the value for the policy that indicates an invalid result
-     */
-    static void set_invalid_result_value(return_type val){invalid_result_value = val;}
-    
     /**
      * @brief Number of neighbors
      */
@@ -191,11 +174,11 @@ struct knn_policy_base_data_handler<false>
       * vector for the k-top neighbors
       */
     std::map<uint_t, uint_t> majority_vote;
+
+    /// \brief The result of the policy
+    result_t result;
     
-     
-     /**
-      * @brief Constructor
-      */
+    /// \brief Constructor
     knn_policy_base_data_handler(uint_t k_);
      
      
@@ -206,6 +189,10 @@ struct knn_policy_base_data_handler<false>
        */
     template<typename DataVec>
     void fillin_majority_vote(const DataVec& labels);
+
+    /// \brief Resume the policy. Clear all data structs
+    /// and invalidate the result
+    void resume();
             
 };
 
@@ -234,7 +221,15 @@ knn_policy_base_data_handler<false>::fillin_majority_vote(const DataVec& labels)
                                 [](iterator itr){itr->second += 1;});
    }
 }
-    
+
+
+void
+knn_policy_base_data_handler<false>::resume(){
+
+    k_distances.clear();
+    majority_vote.clear();
+    result.invalidate_result(true);
+}
 
 /**
  * @brief Base class that holds common
@@ -269,16 +264,6 @@ public:
     typedef std::vector<Pair> distances_container_type;
     
 
-    /**
-     * @brief Return the value that indicates an invalid result
-     */
-    static return_type invalid_result(){return knn_policy_base_data_handler<is_regressor>::invalid_result_value;}
-    
-    /**
-     * @brief Set the value for the policy that indicates an invalid result
-     */
-    static void set_invalid_result_value(return_type val){knn_policy_base_data_handler<is_regressor>::set_invalid_result_value(val);}
-    
     /**
      * @brief Constructor
      */
@@ -397,8 +382,8 @@ knn_policy_base<is_regressor>::operator()(const DataMat& data,  const LabelType&
     
     {
         //empty what has been already computed 
-        std::vector<Pair> empt;
-        data_handler_.k_distances.swap(empt);
+        std::vector<Pair> empty;
+        data_handler_.k_distances.swap(empty);
         data_handler_.majority_vote.clear();
     }
                
