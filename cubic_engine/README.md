@@ -89,6 +89,7 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 - <a href="examples/exe16/doc/exe.md">Example 16</a> Compare Lasso, Ridge and ElasticNet Regularizers
 - <a href="examples/exe17/doc/exe.md">Example 17</a> KMeans clustering
 - <a href="examples/exe18/doc/exe.md">Example 18</a> KNN classification
+- <a href="examples/exe19/doc/exe.md">Example 19</a> KNN classification with multiple threads
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
