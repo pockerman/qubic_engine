@@ -5,14 +5,14 @@
 namespace cengine
 {
     
-knn_policy_base_data_handler<true>::return_type knn_policy_base_data_handler<true>::invalid_result_value = 
-                std::numeric_limits<knn_policy_base_data_handler<true>::return_type>::max();   
+
      
 knn_policy_base_data_handler<true>::knn_policy_base_data_handler(uint_t k_)
 :
 k(k_),
 k_distances(),
-majority_vote()
+majority_vote(),
+result()
 {}
 
 
@@ -38,13 +38,14 @@ knn_policy_base_data_handler<true>::get_top_k_results(boost::scoped_array<knn_po
     }   
 }*/
 
-knn_policy_base_data_handler<false>::return_type knn_policy_base_data_handler<false>::invalid_result_value = kernel::KernelConsts::invalid_size_type();
+
 
 knn_policy_base_data_handler<false>::knn_policy_base_data_handler(uint_t k_)
 :
 k(k_),
 k_distances(),
-majority_vote()
+majority_vote(),
+result()
 {}
 
 
