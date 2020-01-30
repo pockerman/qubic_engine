@@ -1,4 +1,4 @@
-# Example 2: Create ```StoppableTask```s
+# Example 3: Create ```StoppableTask```s
 
 ## Contents
 
