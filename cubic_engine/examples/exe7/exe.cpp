@@ -32,6 +32,9 @@ int main(){
     const uint_t NUM_THREADS = 2;
 
     auto dataset = kernel::load_car_plant_dataset_with_partitions(NUM_THREADS);
+    typedef RealVectorPolynomialFunction hypothesis_t;
+    typedef MSEFunction<hypothesis_t, PartitionedType<DynMat<real_t>>, PartitionedType<DynVec<real_t>>> error_t;
+
 
 #ifdef USE_OPENMP
     {
@@ -40,19 +43,14 @@ int main(){
 
         //hypothesis of the form f = w_0 + w_1*x
         // where w_0 = w_1 = 0.0
-        RealVectorPolynomialFunction hypothesis({0.0, 0.0});
+        hypothesis_t hypothesis({0.0, 0.0});
 
-        // the error functionto to use for measuring the error
-        MSEFunction<RealVectorPolynomialFunction,
-                PartitionedType<DynMat<real_t>>,
-                PartitionedType<DynVec<real_t>>> mse(hypothesis);
+        GDControl control(10000, kernel::KernelConsts::tolerance(),
+                                   GDControl::DEFAULT_LEARNING_RATE);
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
-        control.show_iterations = false;
+        ThreadedGd<error_t> gd(control);
 
-        ThreadedGd gd(control);
-
-        auto result = gd.solve(dataset.first, dataset.second, mse, hypothesis, executor, kernel::OMPOptions());
+        auto result = gd.solve(dataset.first, dataset.second, hypothesis, executor, kernel::OMPOptions());
         std::cout<<result<<std::endl;
         std::cout<<"Intercept: "<<hypothesis.coeff(0)<<", slope: "<<hypothesis.coeff(1)<<std::endl;
         std::cout<<std::endl;
@@ -63,19 +61,14 @@ int main(){
 
         //hypothesis of the form f = w_0 + w_1*x
         // where w_0 = w_1 = 0.0
-        RealVectorPolynomialFunction hypothesis({0.0, 0.0});
+        hypothesis_t hypothesis({0.0, 0.0});
 
-        // the error functionto to use for measuring the error
-        MSEFunction<RealVectorPolynomialFunction,
-                PartitionedType<DynMat<real_t>>,
-                PartitionedType<DynVec<real_t>>> mse(hypothesis);
+        GDControl control(10000, kernel::KernelConsts::tolerance(),
+                                   GDControl::DEFAULT_LEARNING_RATE);
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
-        control.show_iterations = false;
+        ThreadedGd<error_t> gd(control);
 
-        ThreadedGd gd(control);
-
-        auto result = gd.solve(dataset.first, dataset.second, mse, hypothesis, executor, kernel::Null());
+        auto result = gd.solve(dataset.first, dataset.second, hypothesis, executor, kernel::Null());
         std::cout<<result<<std::endl;
         std::cout<<"Intercept: "<<hypothesis.coeff(0)<<", slope: "<<hypothesis.coeff(1)<<std::endl;
     }

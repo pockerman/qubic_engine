@@ -1,7 +1,6 @@
-# Example 12: Logistic Regression 
+# Example 13: Logistic Regression
 
 ## Contents
-* [Acknowledgements](#ackw)
 * [Overview](#overview) 
 	* [Logistic Regression](#logistic_regression)
 	* [Error Metrics](#error_metrics)
@@ -12,12 +11,9 @@
 		* [Specificity](#specificity)
 		* [F1-score](#f1_score)
 * [Include files](#include_files)
-* [Program structure](#prg_struct)
 * [The main function](#m_func)
 * [Results](#results)
 * [Source Code](#source_code)
-
-## <a name="ackw"></a>  Acknowledgements
 
 ## <a name="overview"></a> Overview
 
@@ -91,7 +87,6 @@ Specificity is one minus the false Positive Rate
 
 #include <iostream>
 ```
-## <a name="prg_struct"></a> Program structure
 
 ## <a name="m_func"></a> The main function
 
@@ -110,6 +105,9 @@ int main(){
     using kernel::MSEFunction;
     using kernel::SigmoidFunction;
 
+    typedef RealVectorPolynomialFunction hypothesis_t;
+    typedef SigmoidFunction<RealVectorPolynomialFunction> transformer_t;
+
     try{
 
         auto dataset = kernel::load_reduced_iris_data_set();
@@ -117,22 +115,20 @@ int main(){
         // the classifier to use. use a hypothesis of the form
         // f = w_0 + w_1*x_1 + w_2*x_2 + w_3*x_3 + w_4*x_4;
         // set initial weights to 0
-        LogisticRegression<RealVectorPolynomialFunction,
-                          SigmoidFunction<RealVectorPolynomialFunction>> classifier({0.0, 0.0, 0.0, 0.0, 0.0});
+        LogisticRegression<hypothesis_t, transformer_t> classifier({0.0, 0.0, 0.0, 0.0, 0.0});
 
-        SigmoidFunction<RealVectorPolynomialFunction> sigmoid_h(classifier.get_model());
+        transformer_t sigmoid_h(classifier.get_model());
 
         // the error function to to use for measuring the error
-        MSEFunction<SigmoidFunction<RealVectorPolynomialFunction>,
-                    DynMat<real_t>,
-                    DynVec<uint_t>> mse(sigmoid_h);
+        MSEFunction<transformer_t, DynMat<real_t>, DynVec<uint_t>> mse(sigmoid_h);
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
-        control.show_iterations = false;
+        GDControl control(20000, 1.0e-4, 0.005);
+        control.show_iterations = true;
         Gd gd(control);
 
         auto result = classifier.train(dataset.first, dataset.second, gd, mse);
         std::cout<<result<<std::endl;
+        std::cout<<classifier<<std::endl;
 
         DynVec<real_t> point{1.0, 5.7, 2.8, 4.1, 1.3};
         auto class_idx = classifier.predict(point);
@@ -140,12 +136,20 @@ int main(){
         std::cout<<"Class index: "<<class_idx<<std::endl;
 
         // predictions on the training set
-        DynVec<uint_t> predictions;
+        DynVec<uint_t> predictions(dataset.first.rows(), 0);
         classifier.predict(dataset.first, predictions);
 
         ConfusionMatrix cmatrix(dataset.second, predictions, 2);
 
         // let's do some calculations
+        std::cout<<"\nConsfusion Matrix...."<<std::endl;
+        std::cout<<cmatrix<<std::endl;
+
+        std::cout<<"Accuracy.........."<<cmatrix.accuracy()<<std::endl;
+        std::cout<<"True positives...."<<cmatrix.true_positives()<<std::endl;
+        std::cout<<"Recall class 0...."<<cmatrix.recall_class(0)<<std::endl;
+        std::cout<<"Recall class 1...."<<cmatrix.recall_class(1)<<std::endl;
+
     }
     catch(std::exception& e){
 
@@ -162,6 +166,59 @@ int main(){
 ```
 
 ## <a name="results"></a> Results
+
+When running the driver, we get the following output
+
+```
+BatchGD: iteration: 1
+        Jold: 0.693147 Jcur: 0.68686 error std::fabs(Jcur-Jold): 0.00628751 exit tolerance: 0.0001
+BatchGD: iteration: 2
+        Jold: 0.68686 Jcur: 0.681045 error std::fabs(Jcur-Jold): 0.0058148 exit tolerance: 0.0001
+BatchGD: iteration: 3
+        Jold: 0.681045 Jcur: 0.6756 error std::fabs(Jcur-Jold): 0.00544443 exit tolerance: 0.0001
+BatchGD: iteration: 4
+        Jold: 0.6756 Jcur: 0.670448 error std::fabs(Jcur-Jold): 0.00515239 exit tolerance: 0.0001
+BatchGD: iteration: 5
+        Jold: 0.670448 Jcur: 0.665528 error std::fabs(Jcur-Jold): 0.00492023 exit tolerance: 0.0001
+BatchGD: iteration: 6
+        Jold: 0.665528 Jcur: 0.660794 error std::fabs(Jcur-Jold): 0.00473387 exit tolerance: 0.0001
+BatchGD: iteration: 7
+        Jold: 0.660794 Jcur: 0.656211 error std::fabs(Jcur-Jold): 0.00458253 exit tolerance: 0.0001
+BatchGD: iteration: 8
+        Jold: 0.656211 Jcur: 0.651753 error std::fabs(Jcur-Jold): 0.00445799 exit tolerance: 0.0001
+BatchGD: iteration: 9
+        Jold: 0.651753 Jcur: 0.647399 error std::fabs(Jcur-Jold): 0.00435398 exit tolerance: 0.0001
+BatchGD: iteration: 10
+        Jold: 0.647399 Jcur: 0.643134 error std::fabs(Jcur-Jold): 0.00426572 exit tolerance: 0.0001
+BatchGD: iteration: 11
+        Jold: 0.643134 Jcur: 0.638944 error std::fabs(Jcur-Jold): 0.00418957 exit tolerance: 0.0001
+
+...
+
+# iterations:..781
+# processors:..1
+# threads:.....1
+Residual:......9.98194e-05
+Tolerance:.....0.0001
+Convergence:...Yes
+Total time:....0.197053
+Learning rate:..0.005
+
+-0.164834,-0.25484,-0.943743,1.44809,0.621685
+
+Class index: 1
+
+Consfusion Matrix....
+50 , 0
+
+0 , 50
+
+
+Accuracy..........1
+True positives....100
+Recall class 0....1
+Recall class 1....1
+```
 
 ## <a name="source_code"></a> Source Code
 

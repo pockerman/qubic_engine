@@ -32,7 +32,7 @@ public:
     DynVec<real_t> coeff_grads(const input_t&  input)const{return function_ptr_->coeff_grads(input);}
 
     /// \brief Returns the number of coefficients
-    virtual uint_t n_coeffs()const final override{return 0;}
+    virtual uint_t n_coeffs()const final override{return function_ptr_->n_coeffs();}
 
 private:
 

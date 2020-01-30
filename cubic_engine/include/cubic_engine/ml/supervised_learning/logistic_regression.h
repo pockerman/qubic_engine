@@ -1,18 +1,14 @@
-/* 
- * File:   linear_logistic_regression.h
- * Author: david
- *
- * Created on June 20, 2016, 11:56 AM
- */
-
 #ifndef LOGISTIC_REGRESSION_H
 #define	LOGISTIC_REGRESSION_H
 
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "kernel/base/types.h"
+#include "kernel/maths/matrix_utilities.h"
 
 #include <boost/noncopyable.hpp>
 #include <vector>
+#include <ostream>
+
+
 namespace cengine
 {
     
@@ -38,11 +34,16 @@ class LogisticRegression: private boost::noncopyable
     void set_model_parameters(const std::vector<real_t>& coeffs);
 
     /// \brief Train the model
+    template<typename DataSetType, typename LabelsType, typename Trainer>
+    typename Trainer::output_t
+    train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer);
+
+    /// \brief Train the model
     template<typename DataSetType, typename LabelsType,
-             typename Trainer, typename ErrorFuncType>
-    typename Trainer::output_type
+             typename Trainer, typename RegularizerType>
+    typename Trainer::output_t
     train(const DataSetType& dataset, const LabelsType& labels,
-          Trainer& trainer, ErrorFuncType& func);
+          Trainer& trainer, const RegularizerType& regularizer);
 
     /// \brief Predict the class for the given data point
     template<typename DataPoint>
@@ -57,6 +58,9 @@ class LogisticRegression: private boost::noncopyable
 
     /// \brief Return the i-th parameter
     real_t coeff(uint_t i)const{return hypothesis_.coeff(i);}
+
+    /// \brief Print the model coeffs
+    std::ostream& print(std::ostream& out)const;
 
 private:
 
@@ -76,14 +80,21 @@ LogisticRegression<HypothesisType, TransformerType>::LogisticRegression(const st
 {}
 
 template<typename HypothesisType, typename TransformerType>
+template<typename DataSetType, typename LabelsType, typename Trainer>
+typename Trainer::output_t
+LogisticRegression<HypothesisType, TransformerType>::train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer ){
+    
+    return trainer.solve(dataset, labels, hypothesis_);
+}
+
+template<typename HypothesisType, typename TransformerType>
 template<typename DataSetType, typename LabelsType,
-         typename Trainer, typename ErrorFuncType>
-typename Trainer::output_type
+         typename Trainer, typename RegularizerType>
+typename Trainer::output_t
 LogisticRegression<HypothesisType, TransformerType>::train(const DataSetType& dataset, const LabelsType& labels,
-                                                           Trainer& trainer, ErrorFuncType& func){
-    
-    return trainer.solve(dataset, labels, func, hypothesis_);
-    
+                                                           Trainer& trainer, const RegularizerType& regularizer){
+
+    return trainer.solve(dataset, labels, hypothesis_, regularizer);
 }
 
 template<typename HypothesisType, typename TransformerType>
@@ -111,9 +122,46 @@ LogisticRegression<HypothesisType, TransformerType>::predict(const DataPoint& po
 template<typename HypothesisType, typename TransformerType>
 template<typename DataSet, typename OutputType>
 void
-LogisticRegression<HypothesisType, TransformerType>::predict(const DataSet& point, OutputType& out)const{
+LogisticRegression<HypothesisType, TransformerType>::predict(const DataSet& data, OutputType& out)const{
 
-    //for(uint_t r = 0; r<)
+
+    if(out.size() != data.rows()){
+        throw std::logic_error("out vector size " +
+                               std::to_string(out.size()) +
+                               " not equal to " +
+                               std::to_string(data.rows()));
+    }
+
+    for(uint_t r = 0; r < data.rows(); ++r){
+
+        auto row = kernel::get_row(data, r);
+        out[r] = predict(row);
+    }
+}
+
+template<typename HypothesisType, typename TransformerType>
+std::ostream&
+LogisticRegression<HypothesisType, TransformerType>::print(std::ostream& out)const{
+
+    for(uint_t c=0; c < hypothesis_.n_coeffs(); ++c){
+        out<<hypothesis_.coeff(c);
+
+        if(c == hypothesis_.n_coeffs() - 1){
+            out<<"\n";
+        }
+        else{
+            out<<",";
+        }
+    }
+
+    return out;
+}
+
+template<typename HypothesisType, typename TransformerType>
+inline
+std::ostream& operator<<(std::ostream& out,
+                         const LogisticRegression<HypothesisType, TransformerType>& classifier){
+    return classifier.print(out);
 }
     
 }

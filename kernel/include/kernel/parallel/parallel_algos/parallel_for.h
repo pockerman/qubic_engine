@@ -78,18 +78,11 @@ parallel_for<RangeTp, BodyTp, ExecutorTp>::execute(ExecutorTp& executor, const O
     //spawn the tasks
     for(uint_t t = 0; t < executor.get_n_threads(); ++t){
         tasks_.push_back(std::make_unique<task_type>(t, range_.get_partition(t), body_, range_));
-        //executor.add_task(*(tasks_[t].get()));
     }
 
     executor.execute(tasks_, options);
-    // if the tasks have not finished yet
-    // then the calling thread waits here
-    /*while(!tasks_finished()){
-       std::this_thread::yield();
-    }*/
-
-
     result_.validate_result();
+
     for(uint_t t=0; t < tasks_.size(); ++t){
 
         // if we reached here but for some reason the

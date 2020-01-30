@@ -12,30 +12,41 @@
 namespace cengine
 {
 
-template<typename ExecutorType, typename OptionsType>
+template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
 class BatchGradientDescentWrapper: private boost::noncopyable
 {
 public:
 
-    typedef ExecutorType executor_type;
-    typedef OptionsType options_type;
+    /// \brief The type used to measure the error
+    typedef ErrorFunction error_t;
+
+    /// \brief The type of the executor
+    typedef ExecutorType executor_t;
+
+    /// \brief The options to use
+    typedef OptionsType options_t;
 
     /// \brief Expose the type that is returned by this object
     /// when calling its solve functions
-    typedef GDInfo output_type;
+    typedef GDInfo output_t;
 
     /// \brief Constructor
     BatchGradientDescentWrapper(const GDControl& input,
-                                executor_type& executor,
-                                const options_type& options);
+                                executor_t& executor,
+                                const options_t& options);
 
+    /// \brief Solve the problem
+    template<typename MatType, typename VecType, typename HypothesisFuncType>
+    GDInfo solve(const MatType& mat, const VecType& v, HypothesisFuncType& h);
+
+    /// \brief Solve the problem
     template<typename MatType, typename VecType,
-             typename ErrorFuncType, typename HypothesisFuncType>
+             typename HypothesisFuncType, typename RegularizerFuncType>
     GDInfo solve(const MatType& mat, const VecType& v,
-                 ErrorFuncType& error_fun, HypothesisFuncType& h);
+                 HypothesisFuncType& h, const RegularizerFuncType& regularizer);
 
     /// \brief Reset the control
-    void reset_control(const GDControl& control){input_ = control;}
+    void reset_control(const GDControl& control);
 
 private:
 
@@ -43,20 +54,17 @@ private:
     GDControl input_;
 
     /// \brief The executor used
-    executor_type& executor_;
+    executor_t& executor_;
 
     /// \brief options for the executor
-    const options_type& options_;
+    const options_t& options_;
 };
 
-template<typename ExecutorType,
-         typename OptionsType>
-BatchGradientDescentWrapper<ExecutorType,
+template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
+BatchGradientDescentWrapper<ErrorFunction, ExecutorType,
                             OptionsType>::BatchGradientDescentWrapper(const GDControl& input,
-                                                                     typename BatchGradientDescentWrapper<ExecutorType,
-                                                                                                       OptionsType>::executor_type& executor,
-                                                                      const  typename BatchGradientDescentWrapper<ExecutorType,
-                                                                                                       OptionsType>::options_type& options)
+                                                                      typename BatchGradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::executor_t& executor,
+                                                                      const  typename BatchGradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::options_t& options)
     :
       input_(input),
       executor_(executor),
@@ -64,27 +72,116 @@ BatchGradientDescentWrapper<ExecutorType,
 {}
 
 
-template<typename ExecutorType,
-         typename OptionsType>
-template<typename MatType, typename VecType,
-         typename ErrorFuncType, typename HypothesisFuncType>
+template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
+template<typename MatType, typename VecType, typename HypothesisFuncType>
 GDInfo
-BatchGradientDescentWrapper<ExecutorType, OptionsType>::solve(const MatType& mat,const VecType& v,
-                                                              ErrorFuncType& error_fun, HypothesisFuncType& h){
+BatchGradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::solve(const MatType& mat,const VecType& v, HypothesisFuncType& h){
 
-    ThreadedGd gd(input_);
-    return gd.solve(mat, v, error_fun, h, executor_, options_);
+    ThreadedGd<ErrorFunction> gd(input_);
+    return gd.solve(mat, v, h, executor_, options_);
 }
 
-template<>
+template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
 template<typename MatType, typename VecType,
-         typename ErrorFuncType, typename HypothesisFuncType>
+         typename HypothesisFuncType, typename RegularizerFuncType>
 GDInfo
-BatchGradientDescentWrapper<Null, Null>::solve(const MatType& mat,const VecType& v,
-                                         ErrorFuncType& error_fun, HypothesisFuncType& h){
+BatchGradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::solve(const MatType& mat, const VecType& v,
+                                                                             HypothesisFuncType& h, const RegularizerFuncType& regularizer){
 
-    Gd gd(input_);
-    return gd.solve(mat, v, error_fun, h);
+    ThreadedGd<ErrorFunction> gd(input_);
+    return gd.solve(mat, v, h, regularizer, executor_, options_);
+}
+
+template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
+void
+BatchGradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::reset_control(const GDControl& control){
+    input_.reset(control);
+}
+
+
+/// \brief Specialization for serial. Do I really need this?
+template<typename ErrorFunction>
+class BatchGradientDescentWrapper<ErrorFunction, Null, Null>: private boost::noncopyable
+{
+public:
+
+    /// \brief The type used to measure the error
+    typedef ErrorFunction error_t;
+
+    /// \brief The type of the executor
+    typedef Null executor_t;
+
+    /// \brief The options to use
+    typedef Null options_t;
+
+    /// \brief Expose the type that is returned by this object
+    /// when calling its solve functions
+    typedef GDInfo output_t;
+
+    /// \brief Constructor
+    BatchGradientDescentWrapper(const GDControl& input,
+                                executor_t& executor,
+                                const options_t& options);
+
+    template<typename MatType, typename VecType, typename HypothesisFuncType>
+    GDInfo solve(const MatType& mat, const VecType& v, HypothesisFuncType& h);
+
+    /// \brief Solve the problem
+    template<typename MatType, typename VecType,
+             typename HypothesisFuncType, typename RegularizerFuncType>
+    GDInfo solve(const MatType& mat, const VecType& v,
+                 HypothesisFuncType& h, const RegularizerFuncType& regularizer);
+
+    /// \brief Reset the control
+    void reset_control(const GDControl& control);
+
+private:
+
+    /// \brief The control data the GD solver is using
+    GDControl input_;
+
+    /// \brief The executor used
+    executor_t& executor_;
+
+    /// \brief options for the executor
+    const options_t& options_;
+};
+
+template<typename ErrorFunction>
+BatchGradientDescentWrapper<ErrorFunction, Null, Null>::BatchGradientDescentWrapper(const GDControl& input,
+                                                                      typename BatchGradientDescentWrapper<ErrorFunction, Null, Null>::executor_t& executor,
+                                                                      const  typename BatchGradientDescentWrapper<ErrorFunction, Null, Null>::options_t& options)
+    :
+      input_(input),
+      executor_(executor),
+      options_(options)
+{}
+
+
+template<typename ErrorFunction>
+template<typename MatType, typename VecType, typename HypothesisFuncType>
+GDInfo
+BatchGradientDescentWrapper<ErrorFunction, Null, Null>::solve(const MatType& mat,const VecType& v, HypothesisFuncType& h){
+
+    Gd<ErrorFunction> gd(input_);
+    return gd.solve(mat, v, h);
+}
+
+template<typename ErrorFunction>
+template<typename MatType, typename VecType,
+         typename HypothesisFuncType, typename RegularizerFuncType>
+GDInfo
+BatchGradientDescentWrapper<ErrorFunction, Null, Null>::solve(const MatType& mat,const VecType& v,
+                                                              HypothesisFuncType& h, const RegularizerFuncType& regularizer){
+
+    Gd<ErrorFunction> gd(input_);
+    return gd.solve(mat, v, h, regularizer);
+}
+
+template<typename ErrorFunction>
+void
+BatchGradientDescentWrapper<ErrorFunction, Null, Null>::reset_control(const GDControl& control){
+    input_.reset(control);
 }
 
 }

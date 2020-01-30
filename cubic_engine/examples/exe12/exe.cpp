@@ -22,6 +22,10 @@ int main(){
     using kernel::RealVectorPolynomialFunction;
     using kernel::MSEFunction;
 
+    typedef MSEFunction<RealVectorPolynomialFunction,
+            DynMat<real_t>,
+            DynVec<uint_t>> error_t;
+
     try{
 
         auto dataset = kernel::load_car_plant_dataset();
@@ -31,16 +35,12 @@ int main(){
         // set initial weights to 0
         LinearRegression regressor({0.0, 0.0});
 
-        // the error function to to use for measuring the error
-        MSEFunction<RealVectorPolynomialFunction,
-                    DynMat<real_t>,
-                    DynVec<uint_t>> mse(regressor.get_model());
+        GDControl control(10000, kernel::KernelConsts::tolerance(),
+                          GDControl::DEFAULT_LEARNING_RATE);
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
-        control.show_iterations = false;
-        Gd gd(control);
+        Gd<error_t> gd(control);
 
-        auto result = regressor.train(dataset.first, dataset.second, gd, mse);
+        auto result = regressor.train(dataset.first, dataset.second, gd);
         std::cout<<result<<std::endl;
 
         std::cout<<"Intercept: "<<regressor.coeff(0)<<" slope: "<<regressor.coeff(1)<<std::endl;
