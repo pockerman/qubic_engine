@@ -63,16 +63,16 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 
 ### <a name="multi_threading"></a> Multi-threading
 
-- <a href="examples/example_1">Example 1</a> Create ```SimpleTask```s
-- <a href="examples/example_2">Example 2</a> Create  ```StoppableTask```s
-- <a href="examples/example_5">Example 5</a> Sum the elements of an array 
+- <a href="examples/example_1/doc/exe.md">Example 1</a> Create ```SimpleTask```s
+- <a href="examples/example_2/doc/exe.md">Example 2</a> Create  ```StoppableTask```s
+- <a href="examples/example_5/doc/exe.md">Example 5</a> Parallel Sum Array Elements
 - <a href="examples/example_9">Example 9</a> ```parallel_for``` pattern with ```ThreadPool``` class
 - <a href="examples/example_12">Example 12</a> Producer-Consumer pattern
 - <a href="examples/example_13">Example 13</a> ```parallel_for``` pattern with ```OMPExecutor``` class
 
 ### <a name="linear_algebra"></a> Linear Algebra
 
-- <a href="examples/example_4">Example 4</a> Multithreaded Jacobi Iterator
+- <a href="examples/example_4/doc/exe.md">Example 4</a> Multithreaded Jacobi Iterator
 - <a href="examples/example_6">Example 6</a> Multithreaded Conjugate Gradient solver
 
 
@@ -89,3 +89,4 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 ### <a name="physics_simulation"></a> Physics Simulation
 
 - <a href="#">Example 7</a> Longitudinal Vehicle Model
+- <a href="examples/example_17/doc/exe.md">Example 17</a>Simulate differential drive system
