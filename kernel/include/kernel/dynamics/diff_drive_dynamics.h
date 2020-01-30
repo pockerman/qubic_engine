@@ -19,10 +19,14 @@ class DiffDriveDynamics
 {
 public:
 
-    typedef SysState<3> state_type;
+    /// \brief Tge type of the state handled by this dynamics object
+    typedef SysState<3> state_t;
 
     /// \brief Constructor
-    DiffDriveDynamics(state_type&& state);
+    DiffDriveDynamics();
+
+    /// \brief Constructor
+    DiffDriveDynamics(state_t&& state);
 
     /// \brief Integrate the new state. The input is
     /// the distance Dk and orientation
@@ -35,7 +39,7 @@ public:
 private:
 
     /// \brief Object describing the state of the dynamics
-    state_type state_;
+    state_t state_;
 };
 
 }

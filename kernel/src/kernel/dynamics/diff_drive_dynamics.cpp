@@ -5,7 +5,16 @@ namespace kernel
 namespace dynamics
 {
 
-DiffDriveDynamics::DiffDriveDynamics(DiffDriveDynamics::state_type&& state)
+DiffDriveDynamics::DiffDriveDynamics()
+    :
+  state_()
+{
+    state_.set(0, {"X", 0.0});
+    state_.set(0, {"Y", 0.0});
+    state_.set(0, {"Theta", 0.0});
+}
+
+DiffDriveDynamics::DiffDriveDynamics(DiffDriveDynamics::state_t&& state)
     :
       state_(std::move(state))
 {}

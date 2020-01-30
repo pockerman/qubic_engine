@@ -22,6 +22,9 @@ class SysState
 public:
 
     /// \brief Initialize the state with the given names and values
+    SysState();
+
+    /// \brief Initialize the state with the given names and values
     SysState(std::array<std::pair<std::string, real_t>, dim>&& values);
 
     /// \brief Initialize the state with the given names
@@ -42,6 +45,9 @@ public:
 
     /// \brief Returns the value for the variable name
     void set(const std::string& name, real_t val);
+
+    /// \brief Set the name and value of the i-th variable
+    void set(uint_t i, const std::pair<std::string, real_t>& value);
 
     /// \brief Returns the size of the system
     uint_t size()const{return dim;}
@@ -71,17 +77,16 @@ private:
 };
 
 template<int dim>
+SysState<dim>::SysState()
+    :
+   values_()
+{}
+
+template<int dim>
 SysState<dim>::SysState(std::array<std::pair<std::string, real_t>, dim>&& values)
     :
     values_(values)
 {}
-
-/*template<int dim>
-SysState<dim>::SysState(const SysState<dim>& values)
-    :
-    values_(values)
-{}*/
-
 
 template<int dim>
 SysState<dim>::SysState(std::array<std::string, dim>&& names, real_t val)
@@ -148,6 +153,14 @@ SysState<dim>::set(const std::string& name, real_t val){
 
 
     itr->second = val;
+}
+
+template<int dim>
+void
+SysState<dim>::set(uint_t i, const std::pair<std::string, real_t>& value){
+
+    values_[i] = value;
+
 }
 
 
