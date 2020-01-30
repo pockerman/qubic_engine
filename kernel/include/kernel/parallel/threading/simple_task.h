@@ -17,7 +17,8 @@ class SimpleTaskBase: public TaskBase
 public:
 
     /// \brief The result this task returns
-    typedef ResultType result_t;
+    typedef ResultType result_value_t;
+    typedef ResultHolder<result_value_t> result_t;
 
     /// \brief Destructor
     virtual ~SimpleTaskBase();
@@ -26,7 +27,10 @@ public:
     void operator()();
 
     /// \brief Returns the result computed by the task
-    virtual ResultHolder<result_t> get_result()const{return result_; }
+    virtual const result_t& get_result()const{return result_; }
+
+    /// \brief Returns the result computed by the task
+    virtual const result_t get_result(){return result_; }
 
 protected:
 
@@ -34,7 +38,7 @@ protected:
     SimpleTaskBase(uint_t id = kernel::KernelConsts::invalid_size_type());
 
     /// \brief The result computed by the task
-    ResultHolder<result_t> result_;
+    result_t result_;
 
 };
 

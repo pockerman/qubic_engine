@@ -22,19 +22,13 @@ public:
     virtual ~FunctionBase()
     {}
 
-    /**
-     * Returns the value of the function
-     */
+    /// \brief Returns the value of the function
     virtual output_t value(const InputTp&...  input)const=0;
 
-    /**
-      * Returns the gradients of the function
-      */
+    /// \brief Returns the gradients of the function
     virtual DynVec<real_t> gradients(const InputTp&...  input)const=0;
 
-    /**
-      * Returns the number of coefficients
-      */
+    /// \brief Returns the number of coefficients
     virtual uint_t n_coeffs()const=0;
 
 protected:

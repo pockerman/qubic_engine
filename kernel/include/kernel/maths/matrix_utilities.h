@@ -77,6 +77,32 @@ get_row(const DynMat<T>& matrix, uint_t row_idx){
     return row;
 }
 
+
+template<typename T>
+void extract_randomly(const DynMat<T>& matrix, std::vector<DynVec<T>>& rsult,
+                      uint_t how_many, bool allow_duplicates=false){
+
+    rsult.clear();
+    rsult.reserve(how_many);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, matrix.rows() - 1);
+    std::set<uint_t> touched;
+
+    while(rsult.size() != how_many){
+
+        uint_t idx = dis(gen);
+
+        // this row was touched
+        if((touched.find(idx) != touched.end()) && !allow_duplicates){
+            continue;
+        }
+
+        rsult.push_back(get_row(matrix, idx));
+        touched.insert(idx);
+    }
+}
 }
 
 #endif // MATRIX_SHUFFLER_H

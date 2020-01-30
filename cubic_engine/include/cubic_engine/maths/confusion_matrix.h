@@ -7,6 +7,7 @@
 #include <vector>
 #include <exception>
 #include <ostream>
+#include <iostream>
 
 namespace cengine
 {

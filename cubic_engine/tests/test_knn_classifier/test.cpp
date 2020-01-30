@@ -1,6 +1,7 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/instance_learning/serial_knn.h"
-#include "cubic_engine/ml/instance_learning/knn_classification_policy.h"
+#include "cubic_engine/ml/instance_learning/utils/knn_classification_policy.h"
+#include "cubic_engine/ml/instance_learning/utils/knn_control.h"
 #include "kernel/maths/lp_metric.h"
 
 #include <vector>
@@ -61,8 +62,7 @@ TEST(TestKnnClassifier, TestCorrectClass) {
 
     create_data_set(matrix, labels);
 
-    cengine::KnnInput input;
-    input.k = 2;
+    cengine::KnnControl input(2);
 
     cengine::Knn<Mat, VecInt, kernel::LpMetric<2>, cengine::KnnClassificationPolicy> classifier(input);
     classifier.train(matrix, labels);

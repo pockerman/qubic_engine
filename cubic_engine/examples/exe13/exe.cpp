@@ -26,6 +26,10 @@ int main(){
     using kernel::MSEFunction;
     using kernel::SigmoidFunction;
 
+    typedef RealVectorPolynomialFunction hypothesis_t;
+    typedef SigmoidFunction<RealVectorPolynomialFunction> transformer_t;
+    typedef MSEFunction<transformer_t, DynMat<real_t>, DynVec<uint_t>> error_t;
+
     try{
 
         auto dataset = kernel::load_reduced_iris_data_set();
@@ -33,22 +37,18 @@ int main(){
         // the classifier to use. use a hypothesis of the form
         // f = w_0 + w_1*x_1 + w_2*x_2 + w_3*x_3 + w_4*x_4;
         // set initial weights to 0
-        LogisticRegression<RealVectorPolynomialFunction,
-                          SigmoidFunction<RealVectorPolynomialFunction>> classifier({0.0, 0.0, 0.0, 0.0, 0.0});
+        LogisticRegression<hypothesis_t, transformer_t> classifier({0.0, 0.0, 0.0, 0.0, 0.0});
 
-        SigmoidFunction<RealVectorPolynomialFunction> sigmoid_h(classifier.get_model());
+        transformer_t sigmoid_h(classifier.get_model());
 
-        // the error function to to use for measuring the error
-        MSEFunction<SigmoidFunction<RealVectorPolynomialFunction>,
-                    DynMat<real_t>,
-                    DynVec<uint_t>> mse(sigmoid_h);
+        GDControl control(20000, 1.0e-4, 0.005);
+        control.set_show_iterations_flag(true);
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
-        control.show_iterations = false;
-        Gd gd(control);
+        Gd<error_t> gd(control);
 
-        auto result = classifier.train(dataset.first, dataset.second, gd, mse);
+        auto result = classifier.train(dataset.first, dataset.second, gd);
         std::cout<<result<<std::endl;
+        std::cout<<classifier<<std::endl;
 
         DynVec<real_t> point{1.0, 5.7, 2.8, 4.1, 1.3};
         auto class_idx = classifier.predict(point);
@@ -56,12 +56,20 @@ int main(){
         std::cout<<"Class index: "<<class_idx<<std::endl;
 
         // predictions on the training set
-        DynVec<uint_t> predictions;
+        DynVec<uint_t> predictions(dataset.first.rows(), 0);
         classifier.predict(dataset.first, predictions);
 
         ConfusionMatrix cmatrix(dataset.second, predictions, 2);
 
         // let's do some calculations
+        std::cout<<"\nConsfusion Matrix...."<<std::endl;
+        std::cout<<cmatrix<<std::endl;
+
+        std::cout<<"Accuracy.........."<<cmatrix.accuracy()<<std::endl;
+        std::cout<<"True positives...."<<cmatrix.true_positives()<<std::endl;
+        std::cout<<"Recall class 0...."<<cmatrix.recall_class(0)<<std::endl;
+        std::cout<<"Recall class 1...."<<cmatrix.recall_class(1)<<std::endl;
+
     }
     catch(std::exception& e){
 

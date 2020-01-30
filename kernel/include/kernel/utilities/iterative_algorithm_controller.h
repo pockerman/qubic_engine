@@ -13,42 +13,53 @@ class IterativeAlgorithmController
 {
 public:
 
-   /**
-    * Constructor
-    */
+   /// \brief Constructor
    IterativeAlgorithmController(uint_t maxIterations, real_t exitTolerance);
 
-   /**
-    * Returns true if the iterations of the algorithm should be continued
-    */
-    bool continue_iterations();
+   /// \brief Copy constructor
+   IterativeAlgorithmController(const IterativeAlgorithmController&)=default;
 
-    /**
-      * Returns the current iteration index
-    */
-    uint_t get_current_tteration()const{
-           return current_iteration_idx_;
-    }
+   /// \brief Move copy constructor
+   IterativeAlgorithmController(IterativeAlgorithmController&&)=default;
 
-    /**
-     * Returns the exit tolerance for the algorithm
-    */
-    real_t get_exit_tolerance()const{
-        return exit_tolerance_;
-    }
+   /// \brief copy assignement
+   IterativeAlgorithmController& operator=(const IterativeAlgorithmController&)=default;
 
-    /**
-     * Returns the state of the controller
-     */
-    IterativeAlgorithmResult get_state()const;
+   /// \brief move copy assignement
+   IterativeAlgorithmController& operator=(IterativeAlgorithmController&&)=default;
 
-    /**
-     * Update the residual
-     */
-    void update_residual(real_t res){
+   /// \brief Destructor
+   virtual ~IterativeAlgorithmController()=default;
 
-      current_res_ = res;
-    }
+   /// \brief Returns true if the iterations of the algorithm should be continued
+   bool continue_iterations();
+
+   /// \brief show iterations
+   bool show_iterations()const{return show_iterations_;}
+
+   /// \brief show iterations
+   void set_show_iterations_flag(bool flag){show_iterations_ = flag;}
+
+   /// \brief Returns the current iteration index
+   uint_t get_current_iteration()const{
+          return current_iteration_idx_;
+   }
+
+   /// \brief Returns the exit tolerance for the algorithm
+   real_t get_exit_tolerance()const{
+       return exit_tolerance_;
+   }
+
+   /// \brief Returns the state of the controller
+   IterativeAlgorithmResult get_state()const;
+
+   /// \brief Update the residual
+   void update_residual(real_t res){
+     current_res_ = res;
+   }
+
+    /// \brief reset
+    virtual void reset(const IterativeAlgorithmController& control);
 
 private:
 
@@ -57,6 +68,7 @@ private:
     real_t exit_tolerance_;
     uint_t current_iteration_idx_;
     real_t current_res_;
+    bool show_iterations_;
 };
 
 inline
@@ -65,8 +77,11 @@ IterativeAlgorithmController::IterativeAlgorithmController(uint_t max_iterations
   max_iterations_(max_iterations),
   exit_tolerance_(exit_tolerance),
   current_iteration_idx_(0),
-  current_res_(std::numeric_limits<real_t>::max())
+  current_res_(std::numeric_limits<real_t>::max()),
+  show_iterations_(false)
 {}
+
+
 
 }
 
