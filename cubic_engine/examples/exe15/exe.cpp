@@ -5,12 +5,15 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/supervised_learning/pytorch_linear_regressor.h"
+#include "cubic_engine/optimization/pytorch_stochastic_gradient_descent.h"
+#include "cubic_engine/optimization/utils/gd_control.h"
 
-#include "kernel/maths/functions/real_vector_polynomial.h"
-#include "kernel/maths/errorfunctions/mse_function.h"
-#include "kernel/maths/functions/sigmoid_function.h"
-#include "kernel/utilities/data_set_loaders.h"
-#include "kernel/parallel/threading/thread_pool.h"
+//#include "kernel/maths/functions/real_vector_polynomial.h"
+//#include "kernel/maths/errorfunctions/mse_function.h"
+//#include "kernel/utilities/data_set_loaders.h"
+
+
+#include <torch/torch.h>
 
 #include <iostream>
 
@@ -20,30 +23,38 @@ int main(){
     using cengine::real_t;
     using cengine::DynMat;
     using cengine::DynVec;
-    using cengine::pytorch::PYLinearRegressor;
+    using cengine::GDControl;
+    using cengine::pytorch::PYT_LinearRegressor;
+    using cengine::pytorch::PYT_StochasticGD;
     using cengine::Null;
-    using kernel::RealVectorPolynomialFunction;
-    using kernel::MSEFunction;
-    using kernel::SigmoidFunction;
-    using kernel::ThreadPool;
-    using kernel::PartitionedType;
+   // using kernel::RealVectorPolynomialFunction;
+   // using kernel::MSEFunction;
+
+    //typedef torch::nn::functional::MSEloss error_t;
+
 
     try{
 
         /// load the dataset
-        auto dataset = kernel::load_reduced_iris_data_set();
+        /*typedef torch::nn::MSELoss error_t;
+        auto x_train = torch::randint(0, 10, {15, 1});
+        auto y_train = torch::randint(0, 10, {15, 1});
 
         // the classifier to use. use a hypothesis of the form
         // f = w_0 + w_1*x_1
         // set initial weights to 0. The bias term is included
         // by default
         std::vector<real_t> weights(1, 0.0);
-        PYLinearRegressor regressor(weights);
+        PYT_LinearRegressor regressor(weights);
 
         // let's see the weights
         regressor.print(std::cout);
 
-        // let's train the model
+        GDControl control(10000, kernel::KernelConsts::tolerance(),
+                          GDControl::DEFAULT_LEARNING_RATE);
+
+        PYT_StochasticGD<error_t> sgd(control);
+        regressor.train(x_train, y_train, sgd);*/
 
 
     }
