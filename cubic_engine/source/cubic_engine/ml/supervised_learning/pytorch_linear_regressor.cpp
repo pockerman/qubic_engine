@@ -7,16 +7,16 @@ namespace cengine
 namespace pytorch
 {
 
-PYLinearRegressor::PYLinearRegressor(uint_t n_features)
+PYT_LinearRegressor::PYT_LinearRegressor(uint_t n_features)
     :
-    torch::nn::Module(),
+    torch::nn::Module("PYT_LinearRegressor"),
     hypothesis_(register_module("linear", torch::nn::Linear(n_features, 1)))
 {
     // always include the bias term
     hypothesis_->options.with_bias(true);
 }
 
-PYLinearRegressor::PYLinearRegressor(const std::vector<real_t>& params)
+PYT_LinearRegressor::PYT_LinearRegressor(const std::vector<real_t>& params)
     :
     torch::nn::Module(),
     hypothesis_(register_module("linear", torch::nn::Linear(params.size(), 1)))
@@ -30,7 +30,7 @@ PYLinearRegressor::PYLinearRegressor(const std::vector<real_t>& params)
 
 
 void
-PYLinearRegressor::set_model_parameters(const std::vector<real_t>& params){
+PYT_LinearRegressor::set_model_parameters(const std::vector<real_t>& params){
 
     uint_t w=0;
     for(auto param : params){
