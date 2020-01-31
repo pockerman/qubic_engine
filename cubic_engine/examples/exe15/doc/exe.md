@@ -1,4 +1,4 @@
-# Example 15: Linear Regression  With ```PyTorch```
+# Example 15: Linear Regression  With  ```PYLinearRegressor```
 
 ## Contents
 * [Overview](#overview) 
