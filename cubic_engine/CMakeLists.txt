@@ -28,7 +28,7 @@ SET(CMAKE_BUILD_TYPE "Debug")
 SET(ENABLE_TESTING "ON")
 SET(USE_OPENMP "ON")
 SET(USE_LOG "ON")
-SET(USE_PYTORCH "ON")
+SET(USE_PYTORCH "OFF")
 
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/cubic_engine)
@@ -57,17 +57,15 @@ ENDIF()
 # Currently fail the build if the user does not supply the
 # variables.
 # TODO: How to do it better
-SET(KERNEL_INCL_DIR ${PWD}/../kernel/include)
+SET(KERNEL_INCL_DIR ${PROJECT_SOURCE_DIR}/../kernel/include)
 
-MESSAGE(STATUS "Kernel include dir ${KERNEL_INCL_DIR}")
 
 IF(CENGINE_DEBUG MATCHES "ON")
-        SET(KERNEL_LIB_DIR  ${PWD}/../kernel/install/lib/dbg)
+        SET(KERNEL_LIB_DIR  ${PROJECT_SOURCE_DIR}/../kernel/install/lib/dbg)
 ELSE()
-        SET(KERNEL_LIB_DIR ${PWD}/../kernel/install/lib/opt)
+        SET(KERNEL_LIB_DIR ${PROJECT_SOURCE_DIR}/../kernel/install/lib/opt)
 ENDIF()
 
-MESSAGE(STATUS "Kernel lib dir ${KERNEL_LIB_DIR}")
 
 if(${KERNEL_INCL_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " kernel directory not set")
@@ -75,7 +73,7 @@ else()
     INCLUDE_DIRECTORIES(${KERNEL_INCL_DIR})
 endif()
 
-SET(BLAZE_INCL_DIR "/home/david/MyProjects/cubic_engine/chrono_lib/blaze-3.4/install/include")
+SET(BLAZE_INCL_DIR " ")
 
 if(${BLAZE_INCL_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " Blaze directory not set")
@@ -84,8 +82,8 @@ else()
 endif()
 
 IF( ENABLE_TESTING MATCHES "ON")
-    SET(GTEST_INC_DIR "/home/david/MySoftware/gtest/install/include")
-    SET(GTEST_LIB_DIR "/home/david/MySoftware/gtest/install/lib")
+    SET(GTEST_INC_DIR " ")
+    SET(GTEST_LIB_DIR " ")
     INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
 ENDIF()
 
@@ -132,7 +130,11 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
                  ${PROJECT_SRC_DIR}/systems/*.cpp
                  ${PROJECT_SRC_DIR}/control/*.cpp
                  ${PROJECT_SRC_DIR}/ml/instance_learning/*.cpp
+                 ${PROJECT_SRC_DIR}/ml/instance_learning/utils/*.cpp
                  ${PROJECT_SRC_DIR}/ml/supervised_learning/*.cpp
+                 ${PROJECT_SRC_DIR}/ml/supervised_learning/utils/*.cpp
+                 ${PROJECT_SRC_DIR}/ml/unsupervised_learning/*.cpp
+                 ${PROJECT_SRC_DIR}/ml/unsupervised_learning/utils/*.cpp
                  ${PROJECT_SRC_DIR}/optimization/utils/*.cpp
                  ${PROJECT_SRC_DIR}/maths/*.cpp)
 

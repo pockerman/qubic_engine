@@ -1,4 +1,4 @@
-# Example 14: Logistic Regression With ```BatchGradientDescentWrapper```
+# Example 15: Linear Regression  With ```PyTorch```
 
 ## Contents
 * [Overview](#overview) 
@@ -9,25 +9,20 @@
 
 ## <a name="overview"></a> Overview
 
-Example 12 discussed the logistic regression model. Therein, we used the <a href="https://en.wikipedia.org/wiki/Gradient_descent#C">Gradient Descent</a> algorithm.
-There is also a multithreaded version of the algorithm in the class ```ThreadedGd```. In this example, we will use a simple
-wrapper class that depending on the intantiation allows us to use either the ```ThreadedGd``` or the ```Gd``` implementation.
-This may be useful when we want to compare the two implementations. 
-
 
 ## <a name="include_files"></a> Include files
 
 ```
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_PYTORCH
+
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/ml/supervised_learning/logistic_regression.h"
-#include "cubic_engine/optimization/batch_gradient_descent_wrapper.h"
+#include "cubic_engine/ml/supervised_learning/pytorch_linear_regressor.h"
+#include "cubic_engine/optimization/pytorch_stochastic_gradient_descent.h"
 #include "cubic_engine/optimization/utils/gd_control.h"
 
-#include "kernel/maths/functions/real_vector_polynomial.h"
-#include "kernel/maths/errorfunctions/mse_function.h"
-#include "kernel/maths/functions/sigmoid_function.h"
-#include "kernel/utilities/data_set_loaders.h"
-#include "kernel/parallel/threading/thread_pool.h"
+#include <torch/torch.h>
 
 #include <iostream>
 ```
@@ -42,84 +37,33 @@ int main(){
     using cengine::DynMat;
     using cengine::DynVec;
     using cengine::GDControl;
-    using cengine::BatchGradientDescentWrapper;
-    using cengine::LogisticRegression;
-    using cengine::Null;
-    using kernel::RealVectorPolynomialFunction;
-    using kernel::MSEFunction;
-    using kernel::SigmoidFunction;
-    using kernel::ThreadPool;
-    using kernel::PartitionedType;
+    using cengine::pytorch::PYT_LinearRegressor;
+    using cengine::pytorch::PYT_StochasticGD;
 
     try{
 
+        typedef torch::nn::MSELoss error_t;
 
+        /// load the dataset
+        auto x_train = torch::randint(0, 10, {15, 1});
+        auto y_train = torch::randint(0, 10, {15, 1});
 
         // the classifier to use. use a hypothesis of the form
-        // f = w_0 + w_1*x_1 + w_2*x_2 + w_3*x_3 + w_4*x_4;
-        // set initial weights to 0
-        LogisticRegression<RealVectorPolynomialFunction,
-                          SigmoidFunction<RealVectorPolynomialFunction>> classifier({0.0, 0.0, 0.0, 0.0, 0.0});
+        // f = w_0 + w_1*x_1
+        // set initial weights to 0. The bias term is included
+        // by default
+        std::vector<real_t> weights(1, 0.0);
+        PYT_LinearRegressor regressor(weights);
 
-        SigmoidFunction<RealVectorPolynomialFunction> sigmoid_h(classifier.get_model());
+        // let's see the weights
+        regressor.print(std::cout);
 
+        GDControl control(10000, kernel::KernelConsts::tolerance(),
+                          GDControl::DEFAULT_LEARNING_RATE);
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
-        control.show_iterations = false;
+        PYT_StochasticGD<error_t> sgd(control);
+        regressor.train(x_train, y_train, sgd);
 
-        {
-
-            std::cout<<"Serial GD..."<<std::endl;
-
-            /// load the dataset
-            auto dataset = kernel::load_reduced_iris_data_set();
-
-            // the error function to to use for measuring the error
-            MSEFunction<SigmoidFunction<RealVectorPolynomialFunction>,
-                        DynMat<real_t>,
-                        DynVec<uint_t>> mse(sigmoid_h);
-
-            Null executor;
-            // this is a serial implmentation
-            BatchGradientDescentWrapper<Null, Null> gd(control, executor, Null() );
-
-            auto result = classifier.train(dataset.first, dataset.second, gd, mse);
-            std::cout<<result<<std::endl;
-
-            DynVec<real_t> point{1.0, 5.7, 2.8, 4.1, 1.3};
-            auto class_idx = classifier.predict(point);
-
-            std::cout<<"Class index: "<<class_idx<<std::endl;
-        }
-
-        {
-            std::cout<<"Threaded GD..."<<std::endl;
-
-            /// a thread pool with 4 threads
-            ThreadPool executor(4);
-
-            /// reset the model parameters
-            classifier.set_model_parameters({0.0, 0.0, 0.0, 0.0, 0.0});
-
-            MSEFunction<SigmoidFunction<RealVectorPolynomialFunction>,
-                        PartitionedType<DynMat<real_t>>,
-                        PartitionedType<DynVec<uint_t>>> mse(sigmoid_h);
-
-            /// we need a partitioned data set
-            auto dataset = kernel::load_reduced_iris_data_set_with_partitions(executor.get_n_threads());
-
-            // this is a serial implmentation
-            BatchGradientDescentWrapper<ThreadPool, Null> gd(control, executor, Null() );
-
-            auto result = classifier.train(dataset.first, dataset.second, gd, mse);
-            std::cout<<result<<std::endl;
-
-            DynVec<real_t> point{1.0, 5.7, 2.8, 4.1, 1.3};
-            auto class_idx = classifier.predict(point);
-
-            std::cout<<"Class index: "<<class_idx<<std::endl;
-
-        }
     }
     catch(std::exception& e){
 
@@ -132,7 +76,13 @@ int main(){
 
     return 0;
 }
-
+#else
+#include <iostream>
+int main(){
+std::cout<<"This example requires PyTorch configuration"<<std::endl;
+return 0;
+}
+#endif
 ```
 
 ## <a name="results"></a> Results
@@ -140,31 +90,6 @@ int main(){
 Execution of the code driver should show
 
 ```
-Serial GD...
-
-# iterations:..2
-# processors:..1
-# threads:.....1
-Residual:......0
-Tolerance:.....1e-08
-Convergence:...Yes
-Total time:....0.000571512
-Learning rate:..0.01
-
-Class index: 1
-
-Threaded GD...
-
-# iterations:..2
-# processors:..1
-# threads:.....4
-Residual:......0
-Tolerance:.....1e-08
-Convergence:...Yes
-Total time:....0.000418419
-Learning rate:..0.01
-
-Class index: 1
 
 ```
 

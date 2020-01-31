@@ -54,7 +54,7 @@ configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/kernel/base/config.h @O
 # add this because config.h ends up in the build directory
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
-SET(BLAZE_INCL_DIR "/home/david/MyProjects/cubic_engine/chrono_lib/blaze-3.4/install/include")
+SET(BLAZE_INCL_DIR " ")
 
 IF( BLAZE_INCL_DIR MATCHES " " )
     MESSAGE( FATAL_ERROR  "Blaze include directory has not been specified")
@@ -62,8 +62,8 @@ ENDIF()
 
 
 IF( ENABLE_TESTING MATCHES "ON")
-    SET(GTEST_INC_DIR "/home/david/MySoftware/gtest/install/include")
-    SET(GTEST_LIB_DIR "/home/david/MySoftware/gtest/install/lib")
+    SET(GTEST_INC_DIR " ")
+    SET(GTEST_LIB_DIR " ")
     INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
 ENDIF()
 

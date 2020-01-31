@@ -8,11 +8,6 @@
 #include "cubic_engine/optimization/pytorch_stochastic_gradient_descent.h"
 #include "cubic_engine/optimization/utils/gd_control.h"
 
-//#include "kernel/maths/functions/real_vector_polynomial.h"
-//#include "kernel/maths/errorfunctions/mse_function.h"
-//#include "kernel/utilities/data_set_loaders.h"
-
-
 #include <torch/torch.h>
 
 #include <iostream>
@@ -26,17 +21,12 @@ int main(){
     using cengine::GDControl;
     using cengine::pytorch::PYT_LinearRegressor;
     using cengine::pytorch::PYT_StochasticGD;
-    using cengine::Null;
-   // using kernel::RealVectorPolynomialFunction;
-   // using kernel::MSEFunction;
-
-    //typedef torch::nn::functional::MSEloss error_t;
-
 
     try{
 
+        typedef torch::nn::MSELoss error_t;
+
         /// load the dataset
-        /*typedef torch::nn::MSELoss error_t;
         auto x_train = torch::randint(0, 10, {15, 1});
         auto y_train = torch::randint(0, 10, {15, 1});
 
@@ -54,8 +44,7 @@ int main(){
                           GDControl::DEFAULT_LEARNING_RATE);
 
         PYT_StochasticGD<error_t> sgd(control);
-        regressor.train(x_train, y_train, sgd);*/
-
+        regressor.train(x_train, y_train, sgd);
 
     }
     catch(std::exception& e){
