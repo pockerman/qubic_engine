@@ -1,8 +1,3 @@
-/**
-  * Show case for read-write lock implementation
-  * TODO: Review/finalize implementation
-  **/
-
 #include "kernel/base/types.h"
 #include "kernel/parallel/threading/thread_pool.h"
 #include "kernel/parallel/threading/simple_task.h"

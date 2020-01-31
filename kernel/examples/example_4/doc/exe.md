@@ -1,3 +1,19 @@
+# Example 4: Multithreaded Jacobi Iteration
+
+## Contents
+
+* [Overview](#overview) 
+* [Include files](#include_files)
+* [The main function](#m_func)
+* [Results](#results)
+* [Source Code](#source_code)
+
+
+## <a name="overview"></a> Overview
+
+## <a name="include_files"></a> Include files
+
+```
 #include "kernel/parallel/threading/thread_pool.h"
 #include "kernel/parallel/threading/simple_task.h"
 #include "kernel/utilities/algorithm_info.h"
@@ -13,7 +29,11 @@
 #include <iostream>
 #include <stdexcept>
 
+```
 
+## <a name="m_func"></a> The main function
+
+```
 namespace  {
 
     using kernel::uint_t;
@@ -226,3 +246,14 @@ int main(){
 
     return 0;
 }
+```
+
+## <a name="results"></a> Results
+
+## <a name="source_code"></a> Source Code
+
+<a href="../exe.cpp">exc.cpp</a>
+
+
+
+
