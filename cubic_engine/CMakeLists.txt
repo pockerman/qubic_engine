@@ -35,7 +35,6 @@ SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/cubic_engine)
 SET(PWD ${PROJECT_SOURCE_DIR})
 SET(CMAKE_INSTALL_PREFIX ${PWD}/install)
 
-
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(CENGINE_DEBUG "ON")
 ENDIF()
@@ -58,13 +57,15 @@ ENDIF()
 # Currently fail the build if the user does not supply the
 # variables.
 # TODO: How to do it better
-SET(KERNEL_INCL_DIR ${PWD}/../kernel/include)
+SET(KERNEL_INCL_DIR ${PROJECT_SOURCE_DIR}/../kernel/include)
+
 
 IF(CENGINE_DEBUG MATCHES "ON")
-    SET(KERNEL_LIB_DIR  ${PWD}../kernel/install/lib/dbg)
+        SET(KERNEL_LIB_DIR  ${PROJECT_SOURCE_DIR}/../kernel/install/lib/dbg)
 ELSE()
-	SET(KERNEL_LIB_DIR ${PWD}../kernel/install/lib/opt)
+        SET(KERNEL_LIB_DIR ${PROJECT_SOURCE_DIR}/../kernel/install/lib/opt)
 ENDIF()
+
 
 if(${KERNEL_INCL_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " kernel directory not set")
@@ -95,7 +96,7 @@ IF( ENABLE_TESTING MATCHES "ON" AND GTEST_LIB_DIR MATCHES " " )
 ENDIF()
 
 IF(USE_PYTORCH MATCHES "ON")
-	SET(CMAKE_PREFIX_PATH ${PWD}../libtorch)
+        SET(CMAKE_PREFIX_PATH /home/david/CubicEngineering/cubic_engine_develop_branches/integrate_pytorch/libtorch)
 	find_package(Torch REQUIRED)
 	INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})
 ENDIF()
@@ -129,6 +130,11 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
                  ${PROJECT_SRC_DIR}/systems/*.cpp
                  ${PROJECT_SRC_DIR}/control/*.cpp
                  ${PROJECT_SRC_DIR}/ml/instance_learning/*.cpp
+                 ${PROJECT_SRC_DIR}/ml/instance_learning/utils/*.cpp
+                 ${PROJECT_SRC_DIR}/ml/supervised_learning/*.cpp
+                 ${PROJECT_SRC_DIR}/ml/supervised_learning/utils/*.cpp
+                 ${PROJECT_SRC_DIR}/ml/unsupervised_learning/*.cpp
+                 ${PROJECT_SRC_DIR}/ml/unsupervised_learning/utils/*.cpp
                  ${PROJECT_SRC_DIR}/optimization/utils/*.cpp
                  ${PROJECT_SRC_DIR}/maths/*.cpp)
 
