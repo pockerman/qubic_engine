@@ -43,6 +43,40 @@ TEST(TestDotProduct, TestInsertDof) {
      ASSERT_EQ(dof_obj.has_variable("dummy_var"), true);
 }
 
+TEST(TestDotProduct, TestReInsertDof) {
+
+    /***
+       * Test Scenario:   The application attempts to insert a  DoF ithat already exists into DoFObject
+       * Expected Output: std::logic_error should be thrown
+     **/
+
+    using kernel::DoFObject;
+    using kernel::DoF;
+    DoFObject dof_obj;
+
+    // make sure we don't have dofs
+    ASSERT_EQ(dof_obj.n_dofs(), 0);
+
+    DoF dof{"dummy_var", 10, true};
+
+    dof_obj.insert_dof(std::move(dof));
+
+    ASSERT_EQ(dof_obj.n_dofs(), 1);
+    ASSERT_EQ(dof_obj.has_variable("dummy_var"), true);
+
+    dof = {"dummy_var", 10, true};
+
+    try {
+
+        dof_obj.insert_dof(std::move(dof));
+    }
+    catch (std::logic_error& error) {
+
+        const std::string expected("Dof already exists");
+        ASSERT_EQ(error.what(), expected);
+    }
+}
+
 
 
 
