@@ -11,6 +11,7 @@ ADD_SUBDIRECTORY(test_file_writer_base)
 ADD_SUBDIRECTORY(test_matrix_utilities)
 ADD_SUBDIRECTORY(test_real_vector_polynomial)
 ADD_SUBDIRECTORY(test_data_set_loaders)
+ADD_SUBDIRECTORY(test_dof_object)
 
 INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR})
 LINK_DIRECTORIES(${PROJECT_LIB_DIR})
