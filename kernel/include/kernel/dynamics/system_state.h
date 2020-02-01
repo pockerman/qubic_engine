@@ -126,7 +126,7 @@ real_t
 SysState<dim>::get(const std::string& name)const{
 
 
-    auto itr = std::find(values_.begin(), values_.end(),
+    auto itr = std::find_if(values_.begin(), values_.end(),
                          [&](const std::pair<std::string, real_t>& item){
         return item.first == name;
     });
@@ -135,14 +135,14 @@ SysState<dim>::get(const std::string& name)const{
         throw std::invalid_argument("Invalid variable name");
     }
 
-    return itr.second;
+    return itr->second;
 }
 
 template<int dim>
 void
 SysState<dim>::set(const std::string& name, real_t val){
 
-    auto itr = std::find(values_.begin(), values_.end(),
+    auto itr = std::find_if(values_.begin(), values_.end(),
                          [&](const std::pair<std::string, real_t>& item){
         return item.first == name;
     });
@@ -180,7 +180,7 @@ template<int dim>
 real_t&
 SysState<dim>::operator[](const std::string& name){
 
-    auto itr = std::find(values_.begin(), values_.end(),
+    auto itr = std::find_if(values_.begin(), values_.end(),
                          [&](const std::pair<std::string, real_t>& item){
         return item.first == name;
     });
@@ -195,7 +195,8 @@ SysState<dim>::operator[](const std::string& name){
 template<int dim>
 const real_t&
 SysState<dim>::operator[](const std::string& name)const{
-    auto itr = std::find(values_.begin(), values_.end(),
+
+    auto itr = std::find_if(values_.begin(), values_.end(),
                          [&](const std::pair<std::string, real_t>& item){
         return item.first == name;
     });

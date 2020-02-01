@@ -27,6 +27,18 @@ public:
     /// account for errors also
     void integrate(real_t velocity, real_t orientation, const std::array<real_t, 2>& errors);
 
+    /// \brief Read the x-coordinate
+    real_t get_x_position()const{return dynamics_.get_x_position(); }
+
+    /// \brief Read the y-coordinate
+    real_t get_y_position()const{return dynamics_.get_y_position();}
+
+    /// \brief Read the orientation
+    real_t get_orientation()const{return dynamics_.get_orientation();}
+
+    /// \brief Read current velocity of the vehicle
+    real_t get_velcoty()const{return velocity_;}
+
 private:
 
     /// \brief The radius of the wheels
@@ -34,6 +46,13 @@ private:
 
     /// \brief The object that handles the dynamics
     dynamics::DiffDriveDynamics dynamics_;
+
+    /// \brief The current velocity of the vehicle
+    /// this is given as an input to the integration functions
+    real_t velocity_;
+
+    /// \brief The angular velocity of the vehicle
+    real_t w_;
 
 
 };
