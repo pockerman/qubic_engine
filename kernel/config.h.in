@@ -10,8 +10,16 @@
 /*Use OpenMP */
 #cmakedefine USE_OPENMP
 
+/*Use FVM*/
+#cmakedefine USE_FVM
+
+/*Use Trilinos*/
+#cmakedefine USE_TRILINOS
+
 /*Path to the datasets*/
 #cmakedefine DATA_SET_FOLDER "@DATA_SET_FOLDER@"
+
+
 
 #endif
 
