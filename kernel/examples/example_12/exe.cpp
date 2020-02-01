@@ -104,7 +104,7 @@ ConsumerTask::run(){
 
         {
             std::lock_guard<std::mutex> lock(m_);
-            std::cout<<"Consumer thread got: "<<*item<<std::endl;
+            std::cout<<"Consumer thread got: "<<item<<std::endl;
         }
 
         std::this_thread::sleep_for (std::chrono::milliseconds(1));
