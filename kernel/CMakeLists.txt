@@ -36,10 +36,12 @@ ENDIF()
 
 SET(BUILD_SHARED_LIBS ON)
 SET(CMAKE_BUILD_TYPE "Debug")
-SET(ENABLE_TESTING "OFF")
+SET(ENABLE_TESTING "ON")
 SET(USE_OPENMP "ON")
 SET(USE_LOG "ON")
-SET(CMAKE_INSTALL_PREFIX ${PWD}/install)
+SET(USE_FVM "ON")
+SET(USE_TRILINOS "ON")
+SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install)
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/kernel)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
@@ -116,7 +118,9 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/utilities/*.cpp
                  ${PROJECT_SRC_DIR}/vehicles/*.cpp
                  ${PROJECT_SRC_DIR}/maths/functions/*.cpp
-                 ${PROJECT_SRC_DIR}/dynamics/*.cpp)
+                 ${PROJECT_SRC_DIR}/dynamics/*.cpp
+                 ${PROJECT_SRC_DIR}/numerics/*.cpp
+                 ${PROJECT_SRC_DIR}/discretization/*.cpp)
 
 
 ADD_LIBRARY(${LIB_NAME} SHARED ${SRCS})
