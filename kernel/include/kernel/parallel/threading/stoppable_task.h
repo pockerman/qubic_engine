@@ -44,15 +44,15 @@ public:
 protected:
 
     /// \brief Constructor
-    explicit StoppableTask(const stop_condition_t& condition = stop_condition_t());
+    explicit StoppableTask(stop_condition_t& condition);
 
     /// \brief The object responsible for providing
     /// the information if the task should be stopped or not
-    stop_condition_t stop_cond_;
+    stop_condition_t& stop_cond_;
 };
 
 template<typename StopCondition>
-StoppableTask<StopCondition>::StoppableTask(const stop_condition_t& condition)
+StoppableTask<StopCondition>::StoppableTask(stop_condition_t& condition)
     :
     TaskBase(),
     stop_cond_(condition)
@@ -74,7 +74,7 @@ StoppableTask<StopCondition>::operator()(){
             this->set_state(TaskBase::TaskState::FINISHED);
         }
         else{
-           this->set_state(TaskBase::TaskState::INTERRUPTED);
+           this->set_state(TaskBase::TaskState::STOPPED);
         }
     }
     catch (...) {
