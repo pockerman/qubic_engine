@@ -23,9 +23,16 @@ class kernel_thread;
 
 }
 
-/**
- * @brief The ThreadPool class. Executes tasks using C++11 threading
- */
+struct ThreadPoolOptions
+{
+   uint_t n_threads{1};
+   bool start_on_construction{true};
+   bool msg_when_adding_tasks{false};
+   bool msg_on_start_up{false};
+   bool msg_on_shut_down{false};
+};
+
+/// \brief The ThreadPool class. Executes tasks using C++11 threading
 class ThreadPool: private boost::noncopyable
 {
 public:
@@ -36,6 +43,9 @@ public:
     /// \brief Constructor. Initialize the pool with the given number
     /// of threads
     ThreadPool(uint_t n_threads, bool start_=true);
+
+    /// \brief Initialize with the given options
+    ThreadPool(const ThreadPoolOptions& options);
 
     /// Destructor
     ~ThreadPool();
@@ -74,6 +84,9 @@ private:
     pool_t pool_;
     uint_t n_threads_;
     uint_t next_thread_available_ {kernel::KernelConsts::invalid_size_type()};
+
+    /// \brief The options used
+    ThreadPoolOptions options_;
 };
 
 
