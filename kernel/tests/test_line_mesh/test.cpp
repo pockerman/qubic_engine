@@ -33,7 +33,7 @@ TEST(TestLineMesh, TestInsertElement) {
     LineMesh mesh;
     ASSERT_EQ(mesh.n_nodes(), 0);
     ASSERT_EQ(mesh.n_elements(), 0);
-    auto* ptr = mesh.add_element();
+    auto ptr = mesh.add_element();
 
     ASSERT_EQ(mesh.n_nodes(), 0);
     ASSERT_EQ(mesh.n_elements(), 1);

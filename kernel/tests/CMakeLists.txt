@@ -13,6 +13,8 @@ ADD_SUBDIRECTORY(test_real_vector_polynomial)
 ADD_SUBDIRECTORY(test_data_set_loaders)
 ADD_SUBDIRECTORY(test_dof_object)
 ADD_SUBDIRECTORY(test_line_mesh)
+ADD_SUBDIRECTORY(test_mesh_generator)
+ADD_SUBDIRECTORY(test_edge_element)
 
 INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR})
 LINK_DIRECTORIES(${PROJECT_LIB_DIR})
