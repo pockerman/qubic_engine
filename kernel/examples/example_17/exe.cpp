@@ -7,19 +7,21 @@
 
 
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <thread>
 
 namespace example
 {
 
-std::mutex read_cmd_mutex;
+std::mutex msg_mutex;
 
 using kernel::real_t;
 using kernel::uint_t;
 using DynMat = kernel::DynMat<real_t>;
 using DynVec = kernel::DynVec<real_t>;
 using kernel::ThreadPool;
+using kernel::ThreadPoolOptions;
 using kernel::DiffDriveVehicle;
 using kernel::LockableQueue;
 
@@ -55,10 +57,6 @@ struct CMD
 };
 
 
-
-class ServerThread;
-class SimulatorThread;
-
 class DiffDriveVehicleWrapper
 {
 
@@ -66,20 +64,15 @@ public:
 
     DiffDriveVehicleWrapper(DiffDriveVehicle& vehicle);
 
-    /// \brief Read the x-coordinate
-    real_t get_x_position()const;
-
-    /// \brief Read the y-coordinate
-    real_t get_y_position()const;
-
-    /// \brief Read the orientation
-    real_t get_orientation()const;
-
-    /// \brief Read current velocity of the vehicle
-    real_t get_velcoty()const;
-
     /// set the CMD to execute
     void set_cmd(CMD cmd);
+
+    /// \brief integrate the diff drive system
+    /// account for errors also
+    std::string integrate();
+
+    /// \brief Returns the state of the vehicle as string
+    std::string get_state_as_string()const;
 
 private:
 
@@ -87,12 +80,6 @@ private:
     DiffDriveVehicle* vehicle_ptr_;
 
     CMD cmd_;
-
-    /// \brief integrate the diff drive system
-    /// account for errors also
-    void integrate();
-
-    friend class SimulatorThread;
 
 };
 
@@ -103,125 +90,164 @@ DiffDriveVehicleWrapper::DiffDriveVehicleWrapper(DiffDriveVehicle& vehicle)
    cmd_()
 {}
 
-void
+std::string
 DiffDriveVehicleWrapper::integrate(){
-    std::unique_lock<std::mutex> lock(integrate_mutex_);
-    vehicle_ptr_->integrate(cmd_.velocity, cmd_.orientation);
+    std::lock_guard<std::mutex> lock(integrate_mutex_);
+
+    if(cmd_.name != "INVALID_NAME"){
+        vehicle_ptr_->integrate(cmd_.velocity, cmd_.orientation);
+    }
+
+    return cmd_.name;
+}
+
+std::string
+DiffDriveVehicleWrapper::get_state_as_string()const{
+    std::lock_guard<std::mutex> lock(integrate_mutex_);
+
+    auto x = vehicle_ptr_->get_x_position();
+    auto y = vehicle_ptr_->get_y_position();
+    auto theta = vehicle_ptr_->get_orientation();
+    auto velocity = vehicle_ptr_->get_velcoty();
+    return std::to_string(x)+","+std::to_string(y)+","+std::to_string(theta)+","+std::to_string(velocity)+"\n";
+
 }
 
 void
 DiffDriveVehicleWrapper::set_cmd(CMD cmd){
-    std::unique_lock<std::mutex> lock(integrate_mutex_);
+    std::lock_guard<std::mutex> lock(integrate_mutex_);
     cmd_ = cmd;
 }
 
 
-
-real_t
-DiffDriveVehicleWrapper::get_x_position()const{
-    std::unique_lock<std::mutex> lock(integrate_mutex_);
-    return vehicle_ptr_->get_x_position();
-}
-
-real_t
-DiffDriveVehicleWrapper::get_y_position()const{
-
-    std::unique_lock<std::mutex> lock(integrate_mutex_);
-    return vehicle_ptr_->get_y_position();
-}
-
-real_t
-DiffDriveVehicleWrapper::get_orientation()const{
-    std::unique_lock<std::mutex> lock(integrate_mutex_);
-    return vehicle_ptr_->get_orientation();
-}
-
-real_t
-DiffDriveVehicleWrapper::get_velcoty()const{
-
-    std::unique_lock<std::mutex> lock(integrate_mutex_);
-    return vehicle_ptr_->get_velcoty();
-}
-
-class ClientThread: public kernel::StoppableTask<StopSimulation>
+class ServerThread: public kernel::StoppableTask<StopSimulation>
 {
-
 public:
 
-    ClientThread(StopSimulation& stop_condition,
-                 LockableQueue<std::string>& input,
-                 LockableQueue<std::string>& output);
+    ServerThread(const StopSimulation& stop_condition,
+                 DiffDriveVehicleWrapper& vwrapper,
+                 ThreadPool& threads);
 
 protected:
 
     virtual void run()override final;
 
-    LockableQueue<std::string>& input_;
-    LockableQueue<std::string>& output_;
+    DiffDriveVehicleWrapper& vwrapper_;
+
+    LockableQueue<std::string> requests_;
+    LockableQueue<std::string> responses_;
+    LockableQueue<CMD> cmds_;
+
+
+    ThreadPool& thread_pool_;
+
+    struct SimulatorTask;
+    struct RequestTask;
+    struct ClientTask;
+
+    // list of tasks the server handles
+    std::vector<std::unique_ptr<kernel::TaskBase>> tasks_;
+
+    // checks if all tasks are stopped
+    // if this is true the server is stopped as well
+    void tasks_stopped();
+
 };
 
-ClientThread::ClientThread(StopSimulation& stop_condition,
-                           LockableQueue<std::string>& input,
-                           LockableQueue<std::string>& output)
+ServerThread::ServerThread(const StopSimulation& stop_condition,
+                           DiffDriveVehicleWrapper& vwrapper,
+                           ThreadPool& thread_pool)
     :
-  kernel::StoppableTask<StopSimulation>(stop_condition)
-  input_(input),
-  output_(output)
-
-{}
-
-
-void
-ClientThread::run(){
-
-    std::string request;
-    while(!this->should_stop()){
-
-        std::cout<<"Enter CMD for robot:..."<<std::endl;
-
-        // Read the CMD
-        std::getline(std::cin, request);
-
-        if(request == "EXIT"){
-            std::cout<<"Exit simulation loop..."<<std::endl;
-            this->get_condition().set_condition(true);
-        }
-        else{
-           std::cout<<"Command entered: "<<request<<std::endl;
-        }
-
-
-    }
-
+  kernel::StoppableTask<StopSimulation>(stop_condition),
+  vwrapper_(vwrapper),
+  requests_(),
+  responses_(),
+  cmds_(),
+  thread_pool_(thread_pool),
+  tasks_()
+{
+    this->set_name("ServerThread");
 }
 
-class RequestThread: public kernel::StoppableTask<StopSimulation>
+struct ServerThread::SimulatorTask: public kernel::StoppableTask<StopSimulation>
 {
 
 public:
 
-    RequestThread(StopSimulation& stop_condition, LockableQueue<std::string>& requests);
+   SimulatorTask(const StopSimulation& stop_condition, DiffDriveVehicleWrapper& vwrapper );
+
+protected:
+
+    virtual void run()override final;
+    DiffDriveVehicleWrapper& vwrapper_;
+
+};
+
+ServerThread::SimulatorTask::SimulatorTask(const StopSimulation& stop_condition, DiffDriveVehicleWrapper& vwrapper)
+    :
+   kernel::StoppableTask<StopSimulation>(stop_condition),
+   vwrapper_(vwrapper)
+{
+    this->set_name("SimulatorTask");
+}
+
+void
+ServerThread::SimulatorTask::run(){
+
+    // run as long as we are not told to stop
+    while (!this->should_stop()) {
+
+        auto cmd = vwrapper_.integrate();
+
+        if(cmd == "EXIT"){
+            this->get_condition().set_condition(true);
+        }
+    }
+
+    std::lock_guard<std::mutex> lock(msg_mutex);
+    std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
+}
+
+
+struct ServerThread::RequestTask: public kernel::StoppableTask<StopSimulation>
+{
+
+public:
+
+    RequestTask(const StopSimulation& stop_condition,
+                LockableQueue<std::string>& requests,
+                LockableQueue<CMD>& cmds,
+                LockableQueue<std::string>& responses,
+                DiffDriveVehicleWrapper& vwrapper);
 
 protected:
 
     virtual void run()override final;
     LockableQueue<std::string>& requests_;
     LockableQueue<CMD>& cmds_;
+    LockableQueue<std::string>& responses_;
+    DiffDriveVehicleWrapper& vwrapper_;
 
     void serve_request(const std::string& request);
 };
 
-RequestThread::RequestThread(StopSimulation& stop_condition,
-                             LockableQueue<std::string>& requests,
-                             LockableQueue<CMD>& cmds)
+ServerThread::RequestTask::RequestTask(const StopSimulation& stop_condition,
+                                       LockableQueue<std::string>& requests,
+                                       LockableQueue<CMD>& cmds,
+                                       LockableQueue<std::string>& responses,
+                                       DiffDriveVehicleWrapper& vwrapper)
     :
   kernel::StoppableTask<StopSimulation>(stop_condition),
-  requests_(requests)
-  cmds_(cmds)
-{}
+  requests_(requests),
+  cmds_(cmds),
+  responses_(responses),
+  vwrapper_(vwrapper)
+{
+    this->set_name("RequestTask");
+}
 
 void
-RequestThread::run(){
+ServerThread::RequestTask::run(){
 
     while(!this->should_stop()){
 
@@ -232,16 +258,19 @@ RequestThread::run(){
         // otherwise create the input
         while(!requests_.empty()){
 
-            auto* request = requests_.pop();
+            auto request = requests_.pop_wait();
 
             // if the request is a CMD
-            serve_request(*request);
+            serve_request(request);
         }
     }
+
+    std::lock_guard<std::mutex> lock(msg_mutex);
+    std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
 }
 
 void
-RequestThread::serve_request(const std::string& request){
+ServerThread::RequestTask::serve_request(const std::string& request){
 
     std::vector<std::string> strings;
     std::istringstream f(request);
@@ -253,121 +282,135 @@ RequestThread::serve_request(const std::string& request){
     if(strings[0] == "CMD"){
 
         CMD cmd;
+        cmds_.push_item(cmd);
     }
-    else if(strings[0] == "PLT"){
+    else if(strings[0] == "EXIT"){
 
+        this->get_condition().set_condition(true);
+        CMD exit(0.0, 0.0, "EXIT");
+        cmds_.push_item(exit);
     }
-    else if(strings[0] == "PRN"){
+    else if(strings[0] == "PRINT"){
 
+        //std::lock_guard<std::mutex> lock(msg_mutex);
+        //std::cout<<"MESSAGE: Task "+this->get_name()<<" servicing PRINT..."<<std::endl;
+        //std::cout<<"MESSAGE: State is: "<<vwrapper_.get_state_as_string()<<std::endl;
+
+        responses_.push_item(vwrapper_.get_state_as_string());
     }
 }
 
-
-class ResponseThread: public kernel::StoppableTask<StopSimulation>
+struct ServerThread::ClientTask: public kernel::StoppableTask<StopSimulation>
 {
 
 public:
 
-    ResponseThread(StopSimulation& stop_condition, LockableQueue<std::string>& input);
+    ClientTask(const StopSimulation& stop_condition,
+               LockableQueue<std::string>& request,
+               LockableQueue<std::string>& response);
 
 protected:
 
     virtual void run()override final;
-    LockableQueue<std::string>& input_;
+
+    LockableQueue<std::string>& requests_;
+    LockableQueue<std::string>& responses_;
 };
 
-ResponseThread::ResponseThread(StopSimulation& stop_condition, LockableQueue<std::string>& input)
+ServerThread::ClientTask::ClientTask(const StopSimulation& stop_condition,
+                                     LockableQueue<std::string>& request,
+                                     LockableQueue<std::string>& response)
     :
   kernel::StoppableTask<StopSimulation>(stop_condition),
-  input_(input)
-{}
+  requests_(request),
+  responses_(response)
+
+{
+    this->set_name("ClientTask");
+}
 
 void
-ResponseThread::run(){
+ServerThread::ClientTask::run(){
 
+    std::string request;
     while(!this->should_stop()){
 
-        while(input_.empty()){
-            std::this_thread::yield();
+        std::cout<<"MESSAGE: Enter CMD for robot..."<<std::endl;
+
+        // Read the CMD
+        std::getline(std::cin, request);
+
+        std::cout<<"MESSAGE: CMD entered..."<<request<<std::endl;
+
+        if(request == "EXIT"){
+
+            this->get_condition().set_condition(true);
+            requests_.push_item(request);
+            break;
+        }
+        else{
+            requests_.push_item(request);
         }
 
-        // otherwise create the input
+        // sleep until we get a response
+        while(responses_.empty()){
+           std::this_thread::yield();
+        }
+
+        while(!responses_.empty()){
+            //empty what is comming from the server
+            auto response = responses_.pop_wait();
+            std::cout<<"RESPONSE: "<<response<<std::endl;
+        }
     }
+
+    std::lock_guard<std::mutex> lock(msg_mutex);
+    std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
 }
-
-
-
-class ServerThread: public kernel::StoppableTask<StopSimulation>
-{
-public:
-
-    ServerThread(StopSimulation& stop_condition, DiffDriveVehicleWrapper& vwrapper);
-
-protected:
-
-    virtual void run()override final;
-
-    DiffDriveVehicleWrapper& vwrapper_;
-
-};
-
-ServerThread::ServerThread(StopSimulation& stop_condition, DiffDriveVehicleWrapper& vwrapper)
-    :
-  kernel::StoppableTask<StopSimulation>(stop_condition),
-  vwrapper_(vwrapper)
-{}
 
 void
 ServerThread::run(){
 
 
-    std::string request;
+    // create the tasks and assign them
+    // to the queue
+
+    tasks_.reserve(3);
+    tasks_.push_back(std::make_unique<ServerThread::SimulatorTask>(this->get_condition(), vwrapper_));
+    tasks_.push_back(std::make_unique<ServerThread::RequestTask>(this->get_condition(), requests_, cmds_, responses_, vwrapper_));
+    tasks_.push_back(std::make_unique<ServerThread::ClientTask>(this->get_condition(), requests_, responses_));
+
+    // add the tasks
+    thread_pool_.add_tasks(tasks_);
+
     while(!this->should_stop()){
 
-        std::cout<<"Enter CMD for robot:..."<<std::endl;
-
-        // Read the CMD
-        std::getline(std::cin, request);
-
-        if(request == "EXIT"){
-            std::cout<<"Exit simulation loop..."<<std::endl;
-            this->get_condition().set_condition(true);
-        }
-        else{
-           std::cout<<"Command entered: "<<request<<std::endl;
+        while(!cmds_.empty()){
+            CMD cmd = cmds_.pop_wait();
+            vwrapper_.set_cmd(cmd);
         }
 
-        CMD cmd = CMD::generate_cmd(0.0, 0.0, "EXIT");
-        vwrapper_.set_cmd(cmd);
+        tasks_stopped();
     }
+
+    std::lock_guard<std::mutex> lock(msg_mutex);
+    std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
 }
 
-class SimulatorThread: public kernel::StoppableTask<StopSimulation>
-{
-
-public:
-
-   SimulatorThread(StopSimulation& stop_condition, DiffDriveVehicleWrapper& vwrapper );
-
-protected:
-
-    virtual void run()override final;
-    DiffDriveVehicleWrapper& vwrapper_;
-
-};
-
-SimulatorThread::SimulatorThread(StopSimulation& stop_condition, DiffDriveVehicleWrapper& vwrapper)
-    :
-   kernel::StoppableTask<StopSimulation>(stop_condition),
-   vwrapper_(vwrapper)
-{}
-
 void
-SimulatorThread::run(){
+ServerThread::tasks_stopped(){
 
-    // run as long as we are not told to stop
-    while (!this->should_stop()) {
-        vwrapper_.integrate();
+    bool stop = true;
+    for(uint_t t=0; t<tasks_.size(); ++t){
+
+        if(tasks_[t] && !dynamic_cast<StoppableTask<StopSimulation>*>(tasks_[t].get())->is_stopped()){
+            stop = false;
+            break;
+        }
+    }
+
+    if(stop){
+        this->get_condition().set_condition(true);
     }
 }
 
@@ -379,12 +422,8 @@ int main(){
 
     using namespace example;
 
-    const uint_t N_THREADS = 2;
+    const uint_t N_THREADS = 4;
     const real_t RADIUS = 2.0;
-
-    // the queue over which the two threads will communicate
-    LockableQueue<std::string> input_queue;
-    LockableQueue<std::string> output_queue;
 
     // the shared object that
     // controls when to stop
@@ -396,20 +435,21 @@ int main(){
     // a wrapper class to provide synchronization
     DiffDriveVehicleWrapper vehicle_wrapper(vehicle);
 
+    ThreadPoolOptions options;
+    options.n_threads = N_THREADS;
+    options.msg_on_start_up = true;
+    options.msg_on_shut_down = true;
+    options.msg_when_adding_tasks = true;
+    options.start_on_construction = true;
+
     // executor
-    ThreadPool pool(N_THREADS);
+    ThreadPool pool(options);
 
     // the server instance
-    ServerThread server(stop_sim, vehicle_wrapper, input_queue, output_queue);
+    ServerThread server(stop_sim, vehicle_wrapper, pool);
 
+    // add the server to the pool
     pool.add_task(server);
-
-    SimulatorThread simulator(stop_sim, vehicle_wrapper);
-    pool.add_task(simulator);
-
-    ClientThread client(stop_sim, input_queue, output_queue);
-    pool.add_task(client);
-
 
     //this should block
     pool.close();
