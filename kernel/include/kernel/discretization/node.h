@@ -27,10 +27,30 @@ public:
     Node();
 
     /// \brief Constructor
-    Node(real_t coord);
+    Node(real_t coord, uint_t id);
 
     /// \brief Constructor
-    Node(const std::array<real_t, dim>& coords);
+    Node(const std::array<real_t, dim>& coords, uint_t id);
+
+    /// \brief Returns the id of the node
+    uint_t get_id()const{return id_;}
+
+    /// \brief Set the id of the node
+    void set_id(uint_t id){id_ = id;}
+
+    /// \brief Returns true is the Node is a vertex
+    bool is_vertex()const{return is_vertex_;}
+
+    /// \brief Signal the Node that it is a vertex
+    void make_vertex(){is_vertex_ = true;}
+
+private:
+
+    /// \brief the id of the node
+    uint_t id_;
+
+    /// \brief is the Node a vertex
+    bool is_vertex_;
 
 };
 

@@ -9,6 +9,8 @@ namespace kernel
 namespace numerics
 {
 
+template<int dim> class Node;
+
 namespace detail
 {
 
@@ -55,8 +57,23 @@ class Element: public detail::element_base
 
 public:
 
+    typedef std::shared_ptr<Element<dim>> neighbor_ptr_t;
+    typedef std::shared_ptr<Node<dim>> node_ptr_t;
+
     /// \brief How many vertices the element has
     virtual uint_t n_vertices()const=0;
+
+    /// \brief How many nodes the element has
+    virtual uint_t n_nodes()const=0;
+
+    /// \brief Set the i-th node
+    virtual void set_node(uint_t i, node_ptr_t node)=0;
+
+    /// \brief Reserve space for nodes
+    virtual void reserve_nodes(uint n)=0;
+
+    /// \brief Returns the i-th node
+    virtual node_ptr_t get_node(uint_t n)=0;
 
     /// \brief How many edges the element has
     virtual uint_t n_edges()const=0;
@@ -64,6 +81,14 @@ public:
     /// \brief How many faces the element has
     virtual uint_t n_faces()const=0;
 
+    /// \brief Set the i-th neighbor
+    virtual void set_neighbor(uint n, neighbor_ptr_t neigh)=0;
+
+    /// \brief Reserve space for neighbors
+    virtual void reserve_neighbors(uint n)=0;
+
+    /// \brief Access the n-th neighbor
+    virtual neighbor_ptr_t get_neighbor(uint_t n)=0;
 
 protected:
 
@@ -72,6 +97,12 @@ protected:
 
     /// \brief Constructor
     Element(uint_t id, uint_t pid);
+
+    /// \brief The neighbors of the element
+    std::vector<neighbor_ptr_t> neginbors_;
+
+    /// \brief The nodes of the element
+    std::vector<node_ptr_t> nodes_;
 
 };
 
