@@ -37,6 +37,9 @@ public:
     /// \brief Returns true if the task should stop
     bool should_stop()const{return stop_cond_.stop();}
 
+    /// \brief Returns true if the task is stopped
+    bool is_stopped()const{return stop_cond_.stop();}
+
     /// \brief Access the stop condition object. since the conditionals may change
     /// allow this to be accessed externally.
     stop_condition_t& get_condition(){return stop_cond_;}
@@ -44,15 +47,15 @@ public:
 protected:
 
     /// \brief Constructor
-    explicit StoppableTask(stop_condition_t& condition);
+    explicit StoppableTask(const stop_condition_t& condition);
 
     /// \brief The object responsible for providing
     /// the information if the task should be stopped or not
-    stop_condition_t& stop_cond_;
+    stop_condition_t stop_cond_;
 };
 
 template<typename StopCondition>
-StoppableTask<StopCondition>::StoppableTask(stop_condition_t& condition)
+StoppableTask<StopCondition>::StoppableTask(const stop_condition_t& condition)
     :
     TaskBase(),
     stop_cond_(condition)
