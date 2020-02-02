@@ -9,6 +9,7 @@
     * [Linear Algebra](#linear_algebra)
     * [Numerics](#numerics)
     * [Physics Simulation](#physics_simulation)
+    * [Miscellaneous](#miscellaneous)
 
 
 ## <a name="dependencies"></a> Dependencies
@@ -90,3 +91,7 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 
 - <a href="#">Example 7</a> Longitudinal Vehicle Model
 - <a href="examples/example_17/doc/exe.md">Example 17</a>Simulate differential drive system
+
+### <a name="miscellaneous"></a> Miscellaneous
+
+- <a href="examples/example_18/doc/exe.md">Example 18</a> Assign DOFs In Parallel
