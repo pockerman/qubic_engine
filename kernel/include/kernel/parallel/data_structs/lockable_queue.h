@@ -46,7 +46,7 @@ class LockableQueue: private boost::noncopyable
     //pop an element from the queue. If the queue is empty
     //then return nullptr. This function does not cause the
     //calling thread to wait
-    value_t pop();
+    //value_t pop();
 
      //pop an element from the queue. If the queue is empty
     //then return false. This function does not cause the
@@ -55,7 +55,6 @@ class LockableQueue: private boost::noncopyable
 
     //push an element to the queue
     void push_item(const value_t& element);
-
 
     template<typename Iterator>
     void push_items(Iterator begin,Iterator end);
@@ -162,7 +161,7 @@ LockableQueue<T>::pop_wait(value_t& ele){
     std::unique_lock<std::mutex> lk(mutex_);
 
     //tell the thread to wait until the queue has at least one element
-    cond_.wait(lk,[this]{ return !task_queue_.empty();});
+    cond_.wait(lk, [this]{ return !task_queue_.empty();});
 
     node n = task_queue_.front();
     task_queue_.pop();
@@ -170,7 +169,7 @@ LockableQueue<T>::pop_wait(value_t& ele){
     return true;
 }
 
-template<typename T>
+/*template<typename T>
 inline
 T
 LockableQueue<T>::pop(){
@@ -183,7 +182,7 @@ LockableQueue<T>::pop(){
     node n = task_queue_.front();
     task_queue_.pop();
     return n.value_;
-}
+}*/
 
 template<typename T>
 inline
