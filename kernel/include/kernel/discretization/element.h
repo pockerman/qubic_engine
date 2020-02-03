@@ -33,6 +33,8 @@ public:
     /// \brief Set the id of the element
     void set_pid(uint_t id){pid_ = id;}
 
+    bool has_valid_id()const{return true;}
+
 
 protected:
 

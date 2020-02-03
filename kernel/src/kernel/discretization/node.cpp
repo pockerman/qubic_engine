@@ -8,8 +8,6 @@ namespace numerics
 template<int dim>
 Node<dim>::Node()
     :
-   GeomPoint<dim>(),
-   DoFObject(),
    id_(KernelConsts::invalid_size_type()),
    is_vertex_(false)
 {}
@@ -17,8 +15,6 @@ Node<dim>::Node()
 template<int dim>
 Node<dim>::Node(real_t coord, uint_t id)
     :
-      GeomPoint<dim>(coord),
-      DoFObject(),
       id_(id),
       is_vertex_(false)
    {}
@@ -26,8 +22,6 @@ Node<dim>::Node(real_t coord, uint_t id)
 template<int dim>
 Node<dim>::Node(const std::array<real_t, dim>& coords, uint_t id)
     :
-      GeomPoint<dim>(coords),
-      DoFObject(),
       id_(id),
       is_vertex_(false)
    {}

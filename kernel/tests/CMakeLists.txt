@@ -15,6 +15,7 @@ ADD_SUBDIRECTORY(test_dof_object)
 ADD_SUBDIRECTORY(test_line_mesh)
 ADD_SUBDIRECTORY(test_mesh_generator)
 ADD_SUBDIRECTORY(test_edge_element)
+ADD_SUBDIRECTORY(test_mesh_topology)
 
 INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR})
 LINK_DIRECTORIES(${PROJECT_LIB_DIR})

@@ -23,13 +23,13 @@ public:
     EdgeElem(uint_t id, uint_t proc_id=0);
 
     /// \brief How many nodes the element has
-    virtual uint_t n_nodes()const {return 2;}
+    virtual uint_t n_nodes()const override{return 2;}
 
     /// \brief Set the i-th node
     virtual void set_node(uint_t i, node_ptr_t node) override final;
 
     /// \brief Reserve space for nodes
-    virtual void reserve_nodes(uint n);
+    virtual void reserve_nodes(uint n) override;
 
     /// \brief Returns the i-th node
     virtual node_ptr_t get_node(uint_t n) override final;
