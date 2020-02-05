@@ -80,7 +80,6 @@ void build_mesh(LineMesh& mesh, uint_t n_elements,
     element->reserve_nodes(2);
     element->set_node(0, mesh.get_node(e ));
     element->set_node(1, mesh.get_node(e + 1));
-
 }
 
 

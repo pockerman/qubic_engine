@@ -46,7 +46,7 @@ LineMesh::n_faces()const{
 LineMesh::node_ptr_t
 LineMesh::add_node(real_t x){
     uint_t id = nodes_.size();
-    nodes_.push_back(std::make_shared<Node<1>>(x, id));
+    nodes_.push_back(new Node<1>(x, id));
     return nodes_[id];
 }
 
@@ -64,7 +64,7 @@ LineMesh::elem_ptr_t
 LineMesh::add_element(){
 
     uint_t id = elements_.size();
-    elements_.push_back(std::make_shared<EdgeElem<1>>(id));
+    elements_.push_back(new EdgeElem<1>(id));
     return elements_[id];
 }
 
