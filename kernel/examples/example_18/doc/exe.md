@@ -8,8 +8,6 @@
 * [Results](#results)
 * [Source Code](#source_code)
 
-
-
 ## <a name="overview"></a> Overview
 
 ## <a name="include_files"></a> Include files
