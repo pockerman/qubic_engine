@@ -13,7 +13,8 @@ template<int spacedim>
 FaceElement<spacedim,0>::FaceElement()
                         :
                         GeomPoint<spacedim>(),
-                        is_vertex_(false)
+                        is_vertex_(false),
+                        id_(KernelConsts::invalid_size_type())
                         {}
                
     
@@ -27,12 +28,13 @@ FaceElement<spacedim,0>::FaceElement(uint_t global_id,
                                      {}
 
 template<int spacedim>
-FaceElement<spacedim,0>::FaceElement(uint_t global_id,
-                                     const std::vector<real_t>& data,
+FaceElement<spacedim,0>::FaceElement(const std::array<real_t, spacedim>& coords,
+                                     uint_t global_id,
                                      uint_t pid)
                                      :
-                                     GeomPoint<spacedim>(data),                                   
-                                     is_vertex_(false)
+                                     GeomPoint<spacedim>(coords),
+                                     is_vertex_(false),
+                                     id_(global_id)
                                      {}
                 
 
@@ -42,7 +44,8 @@ FaceElement<spacedim,0>::FaceElement(const GeomPoint<spacedim>& point,
                                      uint_t pid)
                                      :
                                      GeomPoint<spacedim>(point),                                    
-                                     is_vertex_(false)
+                                     is_vertex_(false),
+                                     id_(global_id)
                                      {}
                 
 template<int spacedim>
@@ -61,11 +64,18 @@ FaceElement<spacedim,0>::operator=(const FaceElement<spacedim,0>& o)
   
   this->GeomPoint<spacedim>::operator=(o);
   is_vertex_ = o.is_vertex_;
+  this->id_ = o.id_;
   
   return *this;
 
 }
 
+/*template<int spacedim>
+GeomPoint<spacedim>
+FaceElement<spacedim,0>::coords()const{
+
+
+}*/
 
 FaceElement<1,0>::FaceElement()
                         :

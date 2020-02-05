@@ -40,17 +40,17 @@ public:
    /**
      * \detailed copy ctor
      */
-   GeomPoint(const GeomPoint& t);
+    GeomPoint(const GeomPoint& t);
 
    /**
      *\detailed copy assignement operator
      */
-   GeomPoint& operator=(const GeomPoint& t);
+    GeomPoint& operator=(const GeomPoint& t);
 
    /**
      *\detailed dtor
      */
-  virtual ~GeomPoint(){}
+    virtual ~GeomPoint(){}
 
    /**
      * \detailed Add another vector, i.e. move
@@ -62,7 +62,7 @@ public:
    /**
      * \detailed Subtract another tensor.
      */
-    GeomPoint & operator -= (const GeomPoint &);
+        GeomPoint & operator -= (const GeomPoint &);
 
    /**
      * \detailed Scale the vector by

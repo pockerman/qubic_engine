@@ -24,9 +24,9 @@ public:
     typedef Node<1> edge_t;
     typedef Node<1> face_t;
     typedef Node<1> node_t;
-    typedef std::shared_ptr<node_t> node_ptr_t;
+    typedef node_t* node_ptr_t;
     typedef EdgeElem<1> elem_t;
-    typedef std::shared_ptr<elem_t> elem_ptr_t;
+    typedef elem_t* elem_ptr_t;
 
     /// \brief Constructor
     LineMesh()=default;

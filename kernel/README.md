@@ -94,4 +94,4 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 
 ### <a name="miscellaneous"></a> Miscellaneous
 
-- <a href="examples/example_18/doc/exe.md">Example 18</a> Assign DOFs In Parallel
+- <a href="examples/example_18/doc/exe.md">Example 18</a> Create a rectangular grid

@@ -8,6 +8,8 @@
 #include "kernel/geometry/geom_point.h"
 #include "kernel/base/kernel_consts.h"
 
+#include <array>
+
 namespace kernel
 {
 
@@ -30,59 +32,53 @@ template<int dim,int topodim> class FaceElement;
   owns the point and if it is an internal point who is the neighbor 
 */
 template<int spacedim>
-class FaceElement<spacedim,0>: public GeomPoint<spacedim>,
+class FaceElement<spacedim, 0>: public GeomPoint<spacedim>,
                                DoFObject
 {
 
- public:
+public:
 
 
+    /**
+      * \detailed default ctor
+      */
+    FaceElement();
 
-  /**
-    * \detailed default ctor
-    */
-  FaceElement();
+    /**
+      * \detailed ctor all dim data are assigned the given value
+      */
+    explicit FaceElement(uint_t global_id,
+                         real_t val=0.0,
+                         uint_t pid=0);
 
-  /**
-    * \detailed ctor all dim data are assigned the given value
-    */
-  explicit FaceElement(uint_t global_id,
-                       real_t val=0.0,
-                       uint_t pid=0);
-  
-  /**
-    *\detailed create by passing a vector of data
-    */
-  FaceElement(uint_t global_id,
-              const std::vector<real_t>& data,
-              uint_t pid=0);
+    /**
+      *\detailed create by passing a vector of data
+      */
+    FaceElement(const std::array<real_t, spacedim>& coords,
+                uint_t global_id, uint_t pid=0);
 
-  /**
-    *\detailed create from the given \p point. 
-    */     
-  FaceElement(const GeomPoint<spacedim>& point, 
-              uint_t global_id,
-              uint_t pid=0);
+    /**
+      *\detailed create from the given \p point.
+      */
+    FaceElement(const GeomPoint<spacedim>& point,
+                uint_t global_id,
+                uint_t pid=0);
+
+    /**
+      * \detailed copy ctor
+      */
+    FaceElement(const FaceElement& t);
+
+    /**
+      *\detailed copy assignement operator
+      */
+    FaceElement& operator=(const FaceElement& t);
   
-  
-  /**
-    * \detailed copy ctor
-    */
-  FaceElement(const FaceElement& t);
-  
-  
-  /**
-    *\detailed copy assignement operator
-    */
-  FaceElement& operator=(const FaceElement& t);
-  
-  
-  /**
-    *\detailed dtor
-    */
- virtual ~FaceElement(){}
-  
-  
+    /// \brief dtor
+    virtual ~FaceElement()
+    {}
+
+
    /**
      * \detailed add a variable to the array that holds the variables that this object
      * manages
@@ -183,7 +179,7 @@ class FaceElement<spacedim,0>: public GeomPoint<spacedim>,
   
     uint_t get_id()const{return id_;}
     void set_id(uint_t id){id_ = id;}
-    bool has_valid_id()const{return true;}
+    bool has_valid_id()const{return id_ != KernelConsts::invalid_size_type();}
 
   private:
   

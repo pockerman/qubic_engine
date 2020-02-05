@@ -3,6 +3,7 @@
 
 #include "kernel/numerics/dof_object.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/discretization/mesh_entity.h"
 
 namespace kernel
 {
@@ -11,7 +12,7 @@ namespace numerics
 
 template<int dim> class Node;
 
-namespace detail
+/*namespace detail
 {
 
 class element_base: public DoFObject
@@ -35,6 +36,8 @@ public:
 
     bool has_valid_id()const{return true;}
 
+    bool is_active()const{return true;}
+
 
 protected:
 
@@ -48,19 +51,19 @@ protected:
     uint_t pid_;
 
 };
-}
+}*/
 
 
 
 /// \brief Wraps the notion of an element
 template<int dim>
-class Element: public detail::element_base
+class Element: public MeshEntity //detail::element_base
 {
 
 public:
 
-    typedef std::shared_ptr<Element<dim>> neighbor_ptr_t;
-    typedef std::shared_ptr<Node<dim>> node_ptr_t;
+    typedef Element<dim>* neighbor_ptr_t;
+    typedef Node<dim>* node_ptr_t;
 
     /// \brief How many vertices the element has
     virtual uint_t n_vertices()const=0;
@@ -71,11 +74,15 @@ public:
     /// \brief Set the i-th node
     virtual void set_node(uint_t i, node_ptr_t node)=0;
 
+    /// \brief Append a  node to the nodes list
+    virtual void append_node(node_ptr_t node)=0;
+
     /// \brief Reserve space for nodes
     virtual void reserve_nodes(uint n)=0;
 
     /// \brief Returns the i-th node
     virtual node_ptr_t get_node(uint_t n)=0;
+
 
     /// \brief How many edges the element has
     virtual uint_t n_edges()const=0;

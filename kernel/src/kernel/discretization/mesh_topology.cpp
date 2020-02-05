@@ -14,7 +14,7 @@ namespace numerics
 template<int spacedim>
 template<typename T,typename C>
 T* 
-MeshTopology<spacedim>::add_entity(T* t,C& c)
+MeshTopology<spacedim>::add_entity(T* t, C& c)
 {
 
   if(!t){
@@ -26,7 +26,7 @@ MeshTopology<spacedim>::add_entity(T* t,C& c)
   // container if necessary.
   
   if (!t->has_valid_id()){
-    t->set_id (c.size());
+        t->set_id (c.size());
   }
     
   uint_t id = t->get_id();
