@@ -33,11 +33,14 @@ public:
     /// \brief Constructor
     Node(const std::array<real_t, dim>& coords, uint_t id);
 
+    /// \brief Constructor
+    Node(const GeomPoint<dim>& point, uint_t global_id, uint_t pid);
+
     /// \brief Returns the id of the node
-    uint_t get_id()const{return id_;}
+    //uint_t get_id()const{return id_;}
 
     /// \brief Set the id of the node
-    void set_id(uint_t id){id_ = id;}
+    //void set_id(uint_t id){id_ = id;}
 
     /// \brief Returns true is the Node is a vertex
     bool is_vertex()const{return is_vertex_;}
@@ -45,12 +48,12 @@ public:
     /// \brief Signal the Node that it is a vertex
     void make_vertex(){is_vertex_ = true;}
 
-    bool has_valid_id()const{return true;}
+    //bool has_valid_id()const{return true;}
 
 private:
 
     /// \brief the id of the node
-    uint_t id_;
+    //uint_t id_;
 
     /// \brief is the Node a vertex
     bool is_vertex_;
