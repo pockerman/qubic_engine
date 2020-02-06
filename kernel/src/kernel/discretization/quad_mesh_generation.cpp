@@ -78,9 +78,6 @@ namespace
           }
 
           element->reserve_nodes(4);
-
-          //uint_t ele_id = element->get_id();
-
           uint_t node_id = idx(Nx, i, j);
 
           auto* node = mesh.node(node_id);

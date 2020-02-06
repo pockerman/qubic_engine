@@ -16,6 +16,7 @@ ADD_SUBDIRECTORY(test_line_mesh)
 ADD_SUBDIRECTORY(test_mesh_generator)
 ADD_SUBDIRECTORY(test_edge_element)
 ADD_SUBDIRECTORY(test_mesh_topology)
+ADD_SUBDIRECTORY(test_fv_dof_manager)
 
 INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR})
 LINK_DIRECTORIES(${PROJECT_LIB_DIR})

@@ -60,8 +60,16 @@ class EdgeElem<1>: public Element<1>
 {
 public:
 
-    typedef Element<1>::neighbor_ptr_t neighbor_ptr_t;
-    typedef Element<1>::node_ptr_t node_ptr_t;
+    typedef  Element<1>::neighbor_ptr_t neighbor_ptr_t;
+    typedef  Element<1>::node_ptr_t node_ptr_t;
+    typedef  Element<1>::edge_ptr_t edge_ptr_t;
+    typedef  Element<1>::cedge_ptr_t cedge_ptr_t;
+    typedef  Element<1>::edge_ref_t edge_ref_t;
+    typedef  Element<1>::cedge_ref_t cedge_ref_t;
+    typedef  Element<1>::face_ptr_t face_ptr_t;
+    typedef  Element<1>::cface_ptr_t cface_ptr_t;
+    typedef  Element<1>::face_ref_t face_ref_t;
+    typedef  Element<1>::cface_ref_t cface_ref_t;
 
     /// \brief Constructor
     EdgeElem(uint_t id, uint_t proc_id=0);
@@ -89,6 +97,12 @@ public:
 
     /// \brief How many faces the element has
     virtual uint_t n_faces()const override final{return 2;}
+
+    /// \brief Returns the f-face
+    virtual cface_ref_t get_face(uint_t f)const override;
+
+    /// \brief Returns the f-face
+    virtual face_ref_t get_face(uint_t f) override;
 
     /// \brief Set the i-th neighbor
     virtual void set_neighbor(uint n, neighbor_ptr_t neigh)override final;

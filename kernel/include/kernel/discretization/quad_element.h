@@ -27,27 +27,26 @@ class Quad: public Element<dim>
 
     typedef typename Element<dim>::node_ptr_t node_ptr_t;
     typedef typename Element<dim>::neighbor_ptr_t neighbor_ptr_t;
+    typedef typename Element<dim>::edge_ptr_t edge_ptr_t;
+    typedef typename Element<dim>::cedge_ptr_t cedge_ptr_t;
+    typedef typename Element<dim>::edge_ref_t edge_ref_t;
+    typedef typename Element<dim>::cedge_ref_t cedge_ref_t;
+    typedef typename Element<dim>::face_ptr_t face_ptr_t;
+    typedef typename Element<dim>::cface_ptr_t cface_ptr_t;
+    typedef typename Element<dim>::face_ref_t face_ref_t;
+    typedef typename Element<dim>::cface_ref_t cface_ref_t;
  
-   /**
-     *\detailed default ctor
-     */
-   explicit Quad(uint_t nnodes=4);
+    /// \brief ctor
+    explicit Quad(uint_t nnodes=4);
    
-   
-   explicit Quad(uint_t id, uint_t pid, uint_t n=4);
+    /// \brief Constructor
+    explicit Quad(uint_t id, uint_t pid, uint_t n=4);
  
-
-  /**
-     *\detailed the total number of nodes for the
-     *element
-     */
-   virtual uint_t n_nodes()const override final{return impl_.n_nodes();}
+    /// \brief Returns the total number of nodes for the element
+    virtual uint_t n_nodes()const override final{return impl_.n_nodes();}
    
-   /**
-     *\detailed quads has 4 vertices independent of the
-     *dimension
-     */
-   virtual uint_t n_vertices()const override final{return 4;}
+    /// \brief A quad has 4 vertices independent of the dimension
+    virtual uint_t n_vertices()const override final{return 4;}
 
     /// \brief Set the i-th node
     virtual void set_node(uint_t i, node_ptr_t node)override;
@@ -61,11 +60,8 @@ class Quad: public Element<dim>
     /// \brief Returns the i-th node
     virtual node_ptr_t get_node(uint_t n)override;
    
-   /**
-     *\detailed quads have 4 neighbors independent of the
-     *dimension
-     */
-   virtual uint_t n_neighbors()const  final{return 4;}
+    /// \brief A quad has 4 neighbors independent of the dimension
+    virtual uint_t n_neighbors()const  final{return 4;}
 
     /// \brief Set the i-th neighbor
     virtual void set_neighbor(uint n, neighbor_ptr_t neigh){}
@@ -76,41 +72,34 @@ class Quad: public Element<dim>
     /// \brief Access the n-th neighbor
     virtual neighbor_ptr_t get_neighbor(uint_t n){};
    
-   /**
-     *\detailed quads have 4 sides independent of the dimension
-     */
-   virtual uint_t n_faces()const  final{return 4;}
+    /// \brief A quad has 4 sides independent of the dimension
+    virtual uint_t n_faces()const  final{return 4;}
+
+    /// \brief Returns the f-face
+    virtual cface_ref_t get_face(uint_t f)const override;
+
+    /// \brief Returns the f-face
+    virtual face_ref_t get_face(uint_t f) override;
    
-   /**
-     *\detailed quads have 4 edges independent of the dimension
-     */
-   virtual uint_t n_edges()const  final{return 4;}
+    /// \brief A quad has 4 edges independent of the dimension
+    virtual uint_t n_edges()const  final{return 4;}
    
-   /**
-     *\detailed get the volume of the element
-     */
-   virtual real_t volume()const{}
+    /// \brief Returns the volume of the element
+    virtual real_t volume()const{}
    
+    /// \brief Refine the element
+    virtual void refine(){}
    
-   /**
-     *\detailed refine the element
-     */
-   virtual void refine(){}
-   
-   
-   /**
-      *\detailed get the vertices global indices for the face-th face of the 
-      *element 
-      */
-    virtual void face_vertices(uint_t face,std::vector<uint_t>& face_vertices)const{}
- 
- private:
+private:
  
   /**
     *\detailed object that handles the various calculations
     */
   QuadImpl<dim> impl_;
- 
+
+  /// \brief The faces of the quad
+  std::vector<face_ptr_t> faces_;
+
 };
 
 
@@ -140,13 +129,11 @@ class Quad<3>:public Face
 
 public:
 
-   /**
-     *\detailed default ctor
-     */
-   explicit Quad(uint_t nnodes=4);
+    /// \brief ctor
+    explicit Quad(uint_t nnodes=4);
    
-   
-   explicit Quad(uint_t id, uint_t pid=0,uint_t n=4);
+    /// \brief ctor
+    explicit Quad(uint_t id, uint_t pid=0,uint_t n=4);
  
 
   /**
@@ -202,6 +189,9 @@ public:
     *\detailed object that handles the various calculations
     */
   QuadImpl<3> impl_;
+
+  /// \brief The faces of the quad
+  std::vector<face_ptr_t> faces_;
 
 }; 
 
