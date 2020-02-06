@@ -29,7 +29,6 @@ public:
      */
     virtual void write_header()override;
 
-
 };
 
 
