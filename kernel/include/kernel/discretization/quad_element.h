@@ -27,6 +27,7 @@ class Quad: public Element<dim>
 
     typedef typename Element<dim>::node_ptr_t node_ptr_t;
     typedef typename Element<dim>::neighbor_ptr_t neighbor_ptr_t;
+    typedef typename Element<dim>::neighbor_ref_t neighbor_ref_t;
     typedef typename Element<dim>::edge_ptr_t edge_ptr_t;
     typedef typename Element<dim>::cedge_ptr_t cedge_ptr_t;
     typedef typename Element<dim>::edge_ref_t edge_ref_t;
@@ -60,9 +61,6 @@ class Quad: public Element<dim>
     /// \brief Returns the i-th node
     virtual node_ptr_t get_node(uint_t n)override;
    
-    /// \brief A quad has 4 neighbors independent of the dimension
-    virtual uint_t n_neighbors()const  final{return 4;}
-
     /// \brief Set the i-th neighbor
     virtual void set_neighbor(uint n, neighbor_ptr_t neigh){}
 
@@ -70,7 +68,10 @@ class Quad: public Element<dim>
     virtual void reserve_neighbors(uint n){}
 
     /// \brief Access the n-th neighbor
-    virtual neighbor_ptr_t get_neighbor(uint_t n){};
+    virtual const neighbor_ref_t get_neighbor(uint_t n)const{};
+
+    /// \brief A quad has 4 neighbors independent of the dimension
+    virtual uint_t n_neighbors()const override final{return 4;}
    
     /// \brief A quad has 4 sides independent of the dimension
     virtual uint_t n_faces()const  final{return 4;}

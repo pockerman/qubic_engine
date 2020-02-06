@@ -23,6 +23,7 @@ class Element: public MeshEntity
 public:
 
     typedef Element<dim>* neighbor_ptr_t;
+    typedef Element<dim>& neighbor_ref_t;
     typedef Node<dim>* node_ptr_t;
     typedef typename element_traits<Element<dim>>::edge_ptr_t edge_ptr_t;
     typedef typename element_traits<Element<dim>>::cedge_ptr_t cedge_ptr_t;
@@ -69,11 +70,20 @@ public:
     /// \brief Set the i-th neighbor
     virtual void set_neighbor(uint n, neighbor_ptr_t neigh)=0;
 
+    /// \brief Returns the number of neighbors
+    virtual uint_t n_neighbors()const=0;
+
     /// \brief Reserve space for neighbors
     virtual void reserve_neighbors(uint n)=0;
 
     /// \brief Access the n-th neighbor
-    virtual neighbor_ptr_t get_neighbor(uint_t n)=0;
+    virtual const neighbor_ref_t get_neighbor(uint_t n)const=0;
+
+    /// \brief Access the n-th neighbor pointer
+    virtual neighbor_ptr_t neighbor_ptr(uint_t n);
+
+    /// \brief Access the n-th neighbor pointer
+    virtual const neighbor_ptr_t neighbor_ptr(uint_t n)const;
 
     /// \brief Invalidate the dofs associated with
     /// the given variable

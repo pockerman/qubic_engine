@@ -33,8 +33,8 @@ EdgeElem<1>::reserve_neighbors(uint n){
     this->neginbors_.reserve(n);
 }
 
-EdgeElem<1>::neighbor_ptr_t
-EdgeElem<1>::get_neighbor(uint_t n){
+const EdgeElem<1>::neighbor_ref_t
+EdgeElem<1>::get_neighbor(uint_t n)const{
 
     if(n >= n_faces()){
         throw std::logic_error("Invalid neighbor index "+std::to_string(n)+" not in [0, "+std::to_string(n_faces())+")");
@@ -44,7 +44,7 @@ EdgeElem<1>::get_neighbor(uint_t n){
         throw std::logic_error("Neighbors list have not been initialized");
     }
 
-    return this->neginbors_[n];
+    return *this->neginbors_[n];
 }
 
 void

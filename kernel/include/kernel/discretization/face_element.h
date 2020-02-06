@@ -92,6 +92,9 @@ public:
 
     /// \brief
     real_t volume()const{return 0.0;}
+
+    /// \brief The centroid is the point itself
+    GeomPoint<spacedim> centroid()const{return *this;}
   
     uint_t get_id()const{return id_;}
     void set_id(uint_t id){id_ = id;}
@@ -110,6 +113,18 @@ private:
     *\detailed the boundary indicator of the Node
     */
   uint_t boundary_indicator_;
+
+  /**
+   *\detailed the owner of the FaceElement
+   */
+  Element<spacedim>* owner_;
+
+
+ /**
+   *\detailed the neighbor of the FaceElement
+   */
+  Element<spacedim>* neighbor_;
+
 
   uint_t id_;
 
@@ -144,107 +159,48 @@ class FaceElement<1,0>: public GeomPoint<1>,
 
 
 
-  /**
-    * \detailed default ctor
-    */
+
   FaceElement();
 
-  /**
-    * \detailed ctor all dim data are assigned the given value
-    */
+
   explicit FaceElement(uint_t global_id,
                        real_t val=0.0,
                        uint_t pid=0);
   
-  /**
-    *\detailed create by passing a vector of data
-    */
   FaceElement(uint_t global_id,
               const std::vector<real_t>& data,
               uint_t pid=0);
   
-  /**
-    *\detailed create from the given \p point. 
-    */     
   FaceElement(const GeomPoint<1>& point, 
               uint_t global_id,
               uint_t pid=0);
   
-  
-  /**
-    * \detailed copy ctor
-    */
   FaceElement(const FaceElement& t);
-  
-  
-  /**
-    *\detailed copy assignement operator
-    */
   FaceElement& operator=(const FaceElement& t);
   
   
-  /**
-    *\detailed dtor
-    */
+
  virtual ~FaceElement(); //{}
   
-    /**
-      *\detailed make this node a vertex
-      */
+
     void make_vertex(){is_vertex_ = true;}
-    
-    
-    /**
-      *  set the pointer to the
-      *  element that holds the side.
-      */
-   void set_owner_element(Element<1>* o){owner_ = o;}
-
-
-     /**
-       * set the pointer to the element that
-       * shares this side. It also sets the old sharing element
-       * to the element we use before calling this function
-       */
-      void set_shared_element(Element<1>* n){neighbor_ = n;}
-
-     /**
-       * set the pointers for the shared and owner of this side
-       */
-      void set_owner_shared_elements(Element<1>* o, Element<1>* n)
+    void set_owner_element(Element<1>* o){owner_ = o;}
+    void set_shared_element(Element<1>* n){neighbor_ = n;}
+    void set_owner_shared_elements(Element<1>* o, Element<1>* n)
       {owner_ = o; neighbor_ = n;}
   
-      /**
-        *\detailed set the boundary indicator for the FaceElement
-        */
-      void set_boundary_indicator(uint_t bind){boundary_indicator_=bind;}
 
-    /**
-      *\detailed returns true iff \p make_vertex has been called on this object
-      */
+    void set_boundary_indicator(uint_t bind){boundary_indicator_=bind;}
     bool is_vertex()const{return is_vertex_;}
-    
-    
-    
-    /**
-      * @returns \p true iff a boundary indicator has been set
-      */
-   bool on_boundary () const {return boundary_indicator_!=KernelConsts::invalid_size_type();}
- 
- 
-  /**
-    *\detailed get the boundary indicator of the face
-    */
-   uint_t boundary_indicator()const{return boundary_indicator_;}
-   
-    /**
-     *\detailed print the information for the MeshEntity
-     */
-   virtual std::ostream& print_mesh_entity_info(std::ostream &out)const;
+    bool on_boundary () const {return boundary_indicator_!=KernelConsts::invalid_size_type();}
+    uint_t boundary_indicator()const{return boundary_indicator_;}
+    virtual std::ostream& print_mesh_entity_info(std::ostream &out)const;
 
-   /// \brief
-   real_t volume()const{return 0.0;}
-    
+    /// \brief
+    real_t volume()const{return 0.0;}
+
+    /// \brief The centroid is the point itself
+    GeomPoint<1> centroid()const{return *this;}
     
     bool is_active()const{return true;}
     uint_t get_id()const{return id_;}
@@ -294,8 +250,6 @@ FaceElement<1,0>::print_mesh_entity_info(std::ostream &out)const
   return out;
 
 }
-
-
 
 
 
@@ -400,6 +354,9 @@ class FaceElement<2,1>/*: public BaseElement<element_traits<FaceElement<2,1> > >
        */
      virtual std::ostream& print_mesh_entity_info(std::ostream &out)const;
  
+     /// \brief Returns the centroid of the face element
+     /// \brief The centroid is the point itself
+     GeomPoint<2> centroid()const{return GeomPoint<2>(0.0);}
  
       bool is_active()const{return true;}
       uint_t get_id()const{return id_;}
@@ -537,6 +494,9 @@ class FaceElement<3,1>/*: public BaseElement<element_traits<FaceElement<3,1> > >
 
      /// \brief
      real_t volume()const{return 0.0;}
+
+     /// \brief Returns the centroid of the face element
+     GeomPoint<3> centroid()const{return GeomPoint<3>(0.0);}
 
        bool is_active()const{return true;}
 
@@ -680,8 +640,12 @@ class FaceElement<3,2>/*: public BaseElement<element_traits<FaceElement<3,2> > >
    */
   virtual std::ostream& print_mesh_entity_info(std::ostream &out)const;
   
- /// \brief
- real_t volume()const{return 0.0;}
+    /// \brief
+    real_t volume()const{return 0.0;}
+
+    /// \brief Returns the centroid of the face element
+    /// \brief The centroid is the point itself
+    GeomPoint<3> centroid()const{return GeomPoint<3>(0.0);}
   
    bool is_active()const{return true;}
 
