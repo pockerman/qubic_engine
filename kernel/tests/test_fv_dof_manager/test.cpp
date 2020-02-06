@@ -1,6 +1,5 @@
 #include "kernel/base/types.h"
 #include "kernel/numerics/dof_object.h"
-#include "kernel/base/kernel_consts.h"
 
 #include <vector>
 #include <gtest/gtest.h>
@@ -22,7 +21,7 @@ TEST(TestDoFObject, TestDefaultInitialization) {
 }
 
 
-TEST(TestDoFObject, TestInsertDof) {
+TEST(TestDotProduct, TestInsertDof) {
 
     /***
        * Test Scenario:   The application attempts to insert a valid DoF into DoFObject
@@ -41,10 +40,10 @@ TEST(TestDoFObject, TestInsertDof) {
     dof_obj.insert_dof(std::move(dof));
 
     ASSERT_EQ(dof_obj.n_dofs(), 1);
-    ASSERT_EQ(dof_obj.has_variable("dummy_var"), true);
+     ASSERT_EQ(dof_obj.has_variable("dummy_var"), true);
 }
 
-TEST(TestDoFObject, TestReInsertDof) {
+TEST(TestDotProduct, TestReInsertDof) {
 
     /***
        * Test Scenario:   The application attempts to insert a  DoF ithat already exists into DoFObject
@@ -76,37 +75,6 @@ TEST(TestDoFObject, TestReInsertDof) {
         const std::string expected("Dof already exists");
         ASSERT_EQ(error.what(), expected);
     }
-}
-
-
-TEST(TestDoFObject, TestInvalidateDof) {
-
-    /***
-       * Test Scenario:   The application attempts to invalidate the dof for an existing variable
-       * Expected Output: The dof should be invalidated
-     **/
-
-    using kernel::numerics::DoFObject;
-    using kernel::numerics::DoF;
-    DoFObject dof_obj;
-
-    const std::string name("dummy_var");
-
-    // make sure we don't have dofs
-    ASSERT_EQ(dof_obj.n_dofs(), 0);
-
-    DoF dof{name, 10, true};
-
-    dof_obj.insert_dof(std::move(dof));
-
-    ASSERT_EQ(dof_obj.n_dofs(), 1);
-    ASSERT_EQ(dof_obj.has_variable("dummy_var"), true);
-
-
-    dof_obj.invalidate_dofs(name);
-    auto dofs = dof_obj.get_dof(name);
-    ASSERT_EQ(dofs.id, kernel::KernelConsts::invalid_size_type());
-    ASSERT_EQ(dofs.active, true);
 }
 
 
