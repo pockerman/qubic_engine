@@ -2,21 +2,14 @@
 #define DOF_OBJECT_H
 
 #include "kernel/base/types.h"
+#include "kernel/numerics/dof.h"
+
 #include <vector>
 #include <string>
+#include <map>
 
-namespace kernel
-{
-
-struct DoF
-{
-    std::string var_name;
-    uint_t id;
-    bool active;
-
-    static void invalidate_dof(DoF& dof);
-    static void invalidate_dof(DoF&& dof);
-};
+namespace kernel{
+namespace numerics {
 
 /// \brief A DofObject holds DoF objects
 class DoFObject
@@ -35,13 +28,21 @@ public:
 
     /// \brief Returns true if the variable with the
     /// given name exists
-    bool has_variable(const std::string& variable)const;
+    bool has_variable(std::string_view variable)const;
+
+    /// \brief Invalidate the dof indeces for the variable
+    /// with the given name
+    void invalidate_dofs(std::string_view name);
+
+    /// \brief Returns the DoF for the given variable
+    DoF get_dof(std::string_view name)const;
 
 private:
 
-    /// \brief List dof managed by the object
-    std::vector<DoF> dofs_;
+    /// \brief Dofs associated with the variable
+    std::map<std::string_view, DoF> dofs_;
 };
+}
 
 }
 

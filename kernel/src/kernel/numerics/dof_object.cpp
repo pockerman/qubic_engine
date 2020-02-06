@@ -4,23 +4,9 @@
 #include <algorithm>
 #include <exception>
 
-namespace kernel
-{
+namespace kernel{
+namespace numerics {
 
-void
-DoF::invalidate_dof(DoF& dof){
-    dof.id = KernelConsts::invalid_size_type();
-    dof.var_name = KernelConsts::dummy_string();
-    dof.active = false;
-}
-
-void
-DoF::invalidate_dof(DoF&& dof){
-
-    dof.id = KernelConsts::invalid_size_type();
-    dof.var_name = KernelConsts::dummy_string();
-    dof.active = false;
-}
 
 DoFObject::DoFObject()
     :
@@ -36,23 +22,34 @@ DoFObject::insert_dof(DoF&& dof){
         throw std::logic_error("Dof already exists");
     }
 
-    dofs_.push_back(dof);
+    dofs_.insert_or_assign(dof.var_name, dof);
     DoF::invalidate_dof(dof);
-
 }
 
 bool
-DoFObject::has_variable(const std::string& variable)const{
+DoFObject::has_variable(std::string_view variable)const{
+    return dofs_.find(variable) != dofs_.end();
+}
 
-    auto itr = std::find_if(dofs_.begin(), dofs_.end(),
-                            [&](const DoF& dof){
-        return dof.var_name == variable;
-    });
+void
+DoFObject::invalidate_dofs(std::string_view name){
+    auto itr = dofs_.find(name);
 
     if(itr != dofs_.end()){
-        return true;
+            DoF::invalidate_dof(itr->second);
+    }
+}
+
+DoF
+DoFObject::get_dof(std::string_view name)const{
+    auto itr = dofs_.find(name);
+
+    if(itr != dofs_.end()){
+        return itr->second;
     }
 
-    return false;
+    return DoF();
 }
+}
+
 }
