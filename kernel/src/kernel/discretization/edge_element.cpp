@@ -81,11 +81,25 @@ EdgeElem<1>::reserve_nodes(uint n){
     this->nodes_.reserve(n);
 }
 
+
+EdgeElem<1>::cface_ref_t
+EdgeElem<1>::get_face(uint_t f)const{
+
+}
+
+
+EdgeElem<1>::face_ref_t
+EdgeElem<1>::get_face(uint_t f){
+
+}
+
 template<int dim>
 EdgeElem<dim>::EdgeElem(uint_t id, uint_t pid)
     :
     FaceElement<dim, 1>(id, pid)
 {}
+
+
 
 template class EdgeElem<2>;
 template class EdgeElem<3>;

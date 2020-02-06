@@ -74,8 +74,19 @@ Quad<dim>::get_node(uint_t n){
     return  this->nodes_[n];
 }
 
+template<int dim>
+typename Quad<dim>::cface_ref_t
+Quad<dim>::get_face(uint_t f)const{
+    return *faces_[f];
+}
+
+template<int dim>
+typename Quad<dim>::face_ref_t
+Quad<dim>::get_face(uint_t f){
+     return *faces_[f];
+}
+
 template class Quad<2>;
-//template class Quad<3>;
 
 }
 }
