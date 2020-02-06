@@ -10,6 +10,7 @@
 // Trilinos includes
 #include <Epetra_CrsMatrix.h>
 #include <Epetra_CrsGraph.h>
+#include <Epetra_SerialComm.h>
 
 #include <memory>
 #include <vector>
@@ -17,13 +18,17 @@
 namespace kernel{
 namespace numerics{
 
+/// forward declarations
+class TrilinosKrylovSolver;
+
 class TrilinosEpetraMatrix
 {
 
+public:
+
+
     typedef std::vector<real_t> RowEntries;
     typedef std::vector<uint_t> RowIndices;
-
-
 
      ///
      /// Constructor; initializes the matrix to
@@ -45,9 +50,9 @@ class TrilinosEpetraMatrix
      /// \brief detailed dtor
      ~TrilinosEpetraMatrix();
 
-    /// \brief Initialize a matrix with m global rows having nz non-zero entries per rows
-    /// note this function creates a matrix that has the same number of global and local rows
-    void init(uint_t m,uint_t nz);
+    /// \brief Initialize a matrix with m global rows and n globals columns
+    /// having nz non-zero entries per rows
+    void init(uint_t m, uint_t n, uint_t nz);
 
     /// \brief Initialize by passing in the given sparsity pattern
     void init(const Epetra_CrsGraph& graph);
@@ -55,13 +60,14 @@ class TrilinosEpetraMatrix
     /// \brief Zro the entries of the matrix
     void zero();
 
-    /// \brief Clear the memory that has been allocated for the matrix
-    void clear();
+    /// \brief set the entries of the row to value
+    void set_row_entries(uint_t r, real_t val);
 
-    ///
     /// \brief Set the (i,j) entry of the matrix to val
-    ///
     void set_entry(uint_t i,uint_t j,real_t val);
+
+    /// \brief Returns the (i, j) entry
+    real_t entry(uint_t i,  uint_t j)const;
 
     /// \brief set the entries in RowIndices to the values in RowEntries
     void set_row_entries(const RowIndices& indices,const RowEntries& entries)const;
@@ -90,12 +96,25 @@ class TrilinosEpetraMatrix
     /// \brief Print the matrix
     std::ostream& print(std::ostream& out)const;
 
+protected:
+
+    Epetra_CrsMatrix* get_matrix(){return mat_.get(); }
+
 private:
 
 
    /// \brief The  Epetra datatype to hold matrix entries.
    /// A pointer since Epetra_CrsMatrix does not have a default ctor
    std::unique_ptr<Epetra_CrsMatrix> mat_;
+
+   /// \brief The communicator we use.
+   /// The Trilinos::Epetra_SerialComm has default ctor
+   Epetra_SerialComm comm_;
+
+   /// \brief
+   std::unique_ptr<Epetra_Map> epetra_map_;
+
+   friend class TrilinosKrylovSolver;
 
 };
 
