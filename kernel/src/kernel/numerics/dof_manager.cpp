@@ -77,6 +77,7 @@ FVDoFManager<dim>::get_dofs(const Element<dim>& elem, std::vector<DoF>& dofs)con
     elem.get_dofs(var_name_, dofs);
 }
 
+template class FVDoFManager<1>;
 template class FVDoFManager<2>;
 template class FVDoFManager<3>;
 

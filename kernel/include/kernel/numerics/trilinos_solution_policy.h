@@ -7,6 +7,7 @@ namespace numerics {
 /// forward declarations
 class TrilinosEpetraMatrix;
 class TrilinosEpetraVector;
+class TrilinosKrylovSolver;
 
 /// \brief A solution policy should
 /// expose the type of the matrix and vector
@@ -15,7 +16,7 @@ struct TrilinosSolutionPolicy
 {
     typedef TrilinosEpetraMatrix matrix_t;
     typedef TrilinosEpetraVector vector_t;
-
+    typedef TrilinosKrylovSolver solver_t;
 };
 
 }
