@@ -88,20 +88,20 @@ TEST(TestLineMesh, TestMeshGeneration) {
 
     auto elem = mesh.get_elem(0);
 
-    ASSERT_EQ(elem->get_neighbor(0), nullptr);
-    ASSERT_EQ(elem->get_neighbor(1)->get_id(),  1);
+    ASSERT_EQ(elem->neighbor_ptr(0), nullptr);
+    ASSERT_EQ(elem->neighbor_ptr(1)->get_id(),  1);
 
     uint_t e = 1;
     for(; e < mesh.n_elements() - 1; ++e){
 
         elem = mesh.get_elem(e);
-        ASSERT_EQ(elem->get_neighbor(0)->get_id(), e - 1);
-        ASSERT_EQ(elem->get_neighbor(1)->get_id(), e + 1);
+        ASSERT_EQ(elem->neighbor_ptr(0)->get_id(), e - 1);
+        ASSERT_EQ(elem->neighbor_ptr(1)->get_id(), e + 1);
     }
 
     elem = mesh.get_elem(e);
-    ASSERT_EQ(elem->get_neighbor(0)->get_id(), e - 1);
-    ASSERT_EQ(elem->get_neighbor(1),  nullptr);
+    ASSERT_EQ(elem->neighbor_ptr(0)->get_id(), e - 1);
+    ASSERT_EQ(elem->neighbor_ptr(1),  nullptr);
 
     // test the elemen-node connectivity
 
