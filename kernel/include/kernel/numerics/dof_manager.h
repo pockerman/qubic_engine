@@ -33,6 +33,10 @@ public:
     /// returns the number of dofs
     uint_t n_dofs()const{return n_dofs_;}
 
+    /// \brief Returns the variable the dof manager
+    /// is working on
+    std::string_view var_name()const{return var_name_;}
+
 protected:
 
     /// \brief Invalidate the dofs

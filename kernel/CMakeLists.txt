@@ -62,6 +62,13 @@ IF( BLAZE_INCL_DIR MATCHES " " )
     MESSAGE( FATAL_ERROR  "Blaze include directory has not been specified")
 ENDIF()
 
+IF(USE_TRILINOS MATCHES "ON")
+SET(TRILINOS_INCL_DIR " ")
+SET(TRILINOS_LIB_DIR " ")
+INCLUDE_DIRECTORIES(${TRILINOS_INCL_DIR})
+LINK_DIRECTORIES(${TRILINOS_LIB_DIR})
+ENDIF()
+
 
 IF( ENABLE_TESTING MATCHES "ON")
     SET(GTEST_INC_DIR " ")
@@ -118,6 +125,8 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/utilities/*.cpp
                  ${PROJECT_SRC_DIR}/vehicles/*.cpp
                  ${PROJECT_SRC_DIR}/maths/functions/*.cpp
+                 ${PROJECT_SRC_DIR}/maths/krylov_solvers/*.cpp
+                 ${PROJECT_SRC_DIR}/maths/*.cpp
                  ${PROJECT_SRC_DIR}/dynamics/*.cpp
                  ${PROJECT_SRC_DIR}/numerics/*.cpp
                  ${PROJECT_SRC_DIR}/discretization/*.cpp)

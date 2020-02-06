@@ -61,6 +61,7 @@ class EdgeElem<1>: public Element<1>
 public:
 
     typedef  Element<1>::neighbor_ptr_t neighbor_ptr_t;
+    typedef  Element<1>::neighbor_ref_t neighbor_ref_t;
     typedef  Element<1>::node_ptr_t node_ptr_t;
     typedef  Element<1>::edge_ptr_t edge_ptr_t;
     typedef  Element<1>::cedge_ptr_t cedge_ptr_t;
@@ -111,7 +112,10 @@ public:
     virtual void reserve_neighbors(uint n)override final;
 
     /// \brief Access the n-th neighbor
-    virtual neighbor_ptr_t get_neighbor(uint_t n) override final;
+    virtual const neighbor_ref_t get_neighbor(uint_t n)const override final;
+
+    /// \brief Returns the number of neighbors
+    virtual uint_t n_neighbors()const{return 2;}
 
 };
 

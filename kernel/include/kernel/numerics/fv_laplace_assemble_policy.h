@@ -2,7 +2,7 @@
 #define FV_LAPLACE_ASSEMBLE_POLICY_H
 
 #include "kernel/base/types.h"
-
+#include "kernel/numerics/dof.h"
 
 #include "boost/any.hpp"
 #include <memory>
@@ -61,10 +61,10 @@ private:
     std::vector<real_t> qvals_;
 
     /// \brief The dofs of the neighbors of the cell we do work on
-    std::vector<uint_t> neigh_dofs_;
+    std::vector<DoF> neigh_dofs_;
 
     /// \brief The dofs of the cell
-    std::vector<uint_t> cell_dofs_;
+    std::vector<DoF> cell_dofs_;
 
     /// \brief The cell fluxes
     std::vector<real_t> fluxes_;

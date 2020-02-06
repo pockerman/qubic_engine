@@ -19,6 +19,9 @@ public:
      */
     static char default_comment_mark(){return '#';}
 
+    /// \brief Default ctor
+    FileWriterBase()=default;
+
     /**
       *@brief Constructor. Construct by passing the name
       * of the file to write into.

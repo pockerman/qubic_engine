@@ -32,6 +32,7 @@ public:
     typedef SolutionPolicy solution_policy_t;
     typedef typename solution_policy_t::matrix_t matrix_t;
     typedef typename solution_policy_t::vector_t vector_t;
+    typedef typename solution_policy_t::solver_t solver_t;
 
     /// \brief constructor
     ScalarFVSystem(std::string&& sys_name, std::string&&  var_name);
@@ -54,6 +55,9 @@ public:
 
     /// \brief Solve the system
     virtual void solve();
+
+    /// \brief Save the solution vector
+    virtual void save_solution(const std::string& file_name)const;
 
 protected:
 
@@ -82,8 +86,8 @@ protected:
     /// \brief The assembly ploicy
     assembly_policy_t assembly_;
 
-    /// \brief The solution policy
-    solution_policy_t solver_;
+    /// \brief The solver to solve the system
+    solver_t solver_;
 
 };
 
@@ -152,13 +156,25 @@ ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy>::assemble_system(){
     for(; elem_itr != elem_itr_e; ++elem_itr){
 
         auto* elem = *elem_itr;
-        assembly_.reinit(elem);
+        assembly_.reinit(*elem);
         assembly_.assemble(matrix_, solution_, rhs_);
     }
 }
 
+template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
+void
+ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy>::solve(){
+
+    solver_.solve(matrix_, solution_, rhs_);
 }
 
+template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
+void
+ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy>::save_solution(const std::string& file_name)const{
+
+}
+
+}
 }
 
 #endif // SCALAR_FV_SYSTEM_H

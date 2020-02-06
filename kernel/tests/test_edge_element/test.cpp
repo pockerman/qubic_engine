@@ -75,8 +75,8 @@ TEST(TestEdgeElem, TestInsertNeighbor) {
     std::shared_ptr<EdgeElem<1>> neigh2 = std::make_shared<EdgeElem<1>>(2, 0);
     elem.set_neighbor(1, neigh2.get());
 
-    ASSERT_EQ(elem.get_neighbor(0)->get_id(), neigh1->get_id());
-    ASSERT_EQ(elem.get_neighbor(1)->get_id(), neigh2->get_id());
+    ASSERT_EQ(elem.neighbor_ptr(0)->get_id(), neigh1->get_id());
+    ASSERT_EQ(elem.neighbor_ptr(1)->get_id(), neigh2->get_id());
 
 }
 
