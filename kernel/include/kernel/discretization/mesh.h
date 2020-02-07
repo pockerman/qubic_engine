@@ -38,6 +38,14 @@ class Mesh
     typedef typename std::vector<Element<spacedim>* >::iterator element_iterator_impl;
     typedef typename std::vector<Element<spacedim>* >::const_iterator celement_iterator_impl;
 
+    /// \brief Edge iteration
+    typedef typename std::vector<edge_ptr_t >::iterator edge_iterator_impl;
+    typedef typename std::vector<edge_ptr_t >::const_iterator cedge_iterator_impl;
+
+    /// \brief Face iteration
+    typedef typename std::vector<face_ptr_t>::iterator face_iterator_impl;
+    typedef typename std::vector<face_ptr_t>::const_iterator cface_iterator_impl;
+
     const static int dimension = spacedim;
 
     /// \brief Constructor. Creates an empty Mesh
@@ -129,7 +137,6 @@ class Mesh
      */
    uint_t n_vertices()const;
 
-
    /**
      *\detailed how many nodes the mesh has
      */
@@ -164,25 +171,21 @@ class Mesh
      */
    MeshTopology<spacedim>* topology(){return &topology_;}
 
+    ///
+    /// \brief Read access to the topology of the mesh
+    ///
+    const MeshTopology<spacedim>* topology()const{return &topology_;}
 
-   /**
-     *\detailed read access to the topology of the mesh
-     */
-   const MeshTopology<spacedim>* topology()const{return &topology_;}
+    ///
+    /// \brief Get the pointers to the faces described by the given MeshConnectivity
+    ///
+    void faces(const MeshConnectivity& faces_idx,std::vector<cface_ptr_t>& faces_ptr)const
+    {topology_.faces(faces_idx,faces_ptr);}
 
-
-   /**
-     *\detailed get the pointers to the faces described by the given MeshConnectivity
-     */
-   void faces(const MeshConnectivity& faces_idx,std::vector<cface_ptr_t>& faces_ptr)const
-   {topology_.faces(faces_idx,faces_ptr);}
-
-
-   /**
-     *\detailed get the number of boundaries of the mesh
-     */
-  uint_t n_boundaries()const{return n_boundaries_;}
-
+    ///
+    /// \brief Get the number of boundaries of the mesh
+    ///
+    uint_t n_boundaries()const{return n_boundaries_;}
 
     /// \brief Raw node iteration
     node_iterator_impl nodes_begin(){return topology_.nodes_begin();}
@@ -200,118 +203,33 @@ class Mesh
     celement_iterator_impl elements_begin()const{return topology_.elements_begin();}
     celement_iterator_impl elements_end()const{return topology_.elements_end();}
 
+    /// \brief Raw faces iteration
+    edge_iterator_impl edges_begin(){return topology_.edges_begin();}
+    edge_iterator_impl edges_end(){return topology_.edges_end();}
 
+    /// \brief Raw faces iteration
+    cedge_iterator_impl edges_begin()const{return topology_.edges_begin();}
+    cedge_iterator_impl edges_end()const{return topology_.edges_end();}
 
+    /// \brief Raw faces iteration
+    face_iterator_impl faces_begin(){return topology_.faces_begin();}
+    face_iterator_impl faces_end(){return topology_.faces_end();}
 
+    /// \brief Raw faces iteration
+    cface_iterator_impl faces_begin()const{return topology_.faces_begin();}
+    cface_iterator_impl faces_end()const{return topology_.faces_end();}
 
+private:
 
+    ///
+    /// \brief The number of boundaries of the mesh
+    ///
+    uint_t n_boundaries_;
 
-
-
-//  /**
-//   *\detailed the object that represents the iterator for the elements
-//   */
-
-
-
- /**
-   *\detailed non-const iterator for the edges of the mesh
-   */
-// template<typename PREDICATE>
-// struct edge_iterator;
-
-
-// /**
-//   *\detailed const iterator for the elements of the mesh
-//   */
-//  template<typename PREDICATE>
-//  struct const_edge_iterator;
-
-
-//  //start-end over all elements of the mesh
-//  edge_iterator<NotNull> edges_begin();
-//  edge_iterator<NotNull> edges_end();
-
-//  const_edge_iterator<NotNull> edges_begin()const;
-//  const_edge_iterator<NotNull> edges_end()const;
-
-//  //start-end over all active elements of the mesh
-//  edge_iterator<Active> active_edges_begin();
-//  edge_iterator<Active> active_edges_end();
-
-//  const_edge_iterator<Active> active_edges_begin()const;
-//  const_edge_iterator<Active> active_edges_end()const;
-
-
-//  /**
-//   *\detailed the object that represents the iterator for the elements
-//   */
-// typedef typename std::vector<edge_ptr >::iterator edge_iterator_impl;
-// typedef typename std::vector<edge_ptr >::const_iterator const_edge_iterator_impl;
-
-
- /**
-   *\detailed non-const iterator for the edges of the mesh
-   */
-// template<typename PREDICATE>
-// struct face_iterator;
-
-
-// /**
-//   *\detailed const iterator for the elements of the mesh
-//   */
-//  template<typename PREDICATE>
-//  struct const_face_iterator;
-
-
-
-//  //start-end over all elements of the mesh
-//  face_iterator<NotNull> faces_begin();
-//  face_iterator<NotNull> faces_end();
-
-//  const_face_iterator<NotNull> faces_begin()const;
-//  const_face_iterator<NotNull> faces_end()const;
-
-//  //start-end over all active elements of the mesh
-//  face_iterator<Active> active_faces_begin();
-//  face_iterator<Active> active_faces_end();
-
-//  const_face_iterator<Active> active_faces_begin()const;
-//  const_face_iterator<Active> active_faces_end()const;
-
-
-
-//  //start-end over all elements of the mesh
-//  face_iterator<ActiveBoundaryObject> active_boundary_faces_begin();
-//  face_iterator<ActiveBoundaryObject> active_boundary_faces_end();
-
-//  const_face_iterator<ActiveBoundaryObject> active_boundary_faces_begin()const;
-//  const_face_iterator<ActiveBoundaryObject> active_boundary_faces_end()const;
-
-
-  /**
-   *\detailed the object that represents the iterator for the elements
-   */
- typedef typename std::vector<face_ptr_t>::iterator face_iterator_impl;
- typedef typename std::vector<face_ptr_t>::const_iterator const_face_iterator_impl;
-
-
-
-  private:
-
- /**
-   *\detailed the number of boundaries of the mesh
-   */
- uint_t n_boundaries_;
-
-
-  /**
-    *\detailed describes how the various mesh
-    * entities are connected
-    */
-  MeshTopology<spacedim> topology_;
-
-
+    ///
+    /// \brief Describes how the various mesh entities are connected
+    ///
+    MeshTopology<spacedim> topology_;
 };
 
 
@@ -319,557 +237,29 @@ template<int spacedim>
 inline
 uint_t
 Mesh<spacedim>::n_edges()const{
- return topology_.n_edges();
+    return topology_.n_edges();
 }
 
 template<int spacedim>
 inline
 uint_t
 Mesh<spacedim>::n_faces()const{
-return topology_.n_faces();
+    return topology_.n_faces();
 }
-
-
 
 template<>
 inline
 uint_t
 Mesh<1>::n_edges()const{
- return n_vertices();
+    return n_vertices();
 }
 
 template<>
 inline
 uint_t
 Mesh<1>::n_faces()const{
-return n_edges();
+    return n_edges();
 }
-
-
-////Edge iterator
-
-//  template<int dim>
-//  template<typename PREDICATE>
-//  struct
-//  Mesh<dim,serial_mode>::edge_iterator: public biblsimpp_filter_iterator<PREDICATE,
-//                                                                        typename Mesh<dim,serial_mode>::edge_iterator_impl>
-//  {
-
-//     typedef typename Mesh<dim,serial_mode>::edge_iterator_impl iterator_impl;
-//     typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::value_type value_type;
-//     //typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::reference reference;
-//     //typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::pointer pointer;
-//     //typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::difference_type difference_type;
-
-
-//    edge_iterator():biblsimpp_filter_iterator<PREDICATE,iterator_impl>(){}
-
-//    edge_iterator(PREDICATE p,iterator_impl begin ,iterator_impl end)
-//                          :
-//                          biblsimpp_filter_iterator<PREDICATE,iterator_impl>(p,begin,end){}
-
-//  };
-
-//template<int dim>
-//typename Mesh<dim,serial_mode>::template edge_iterator<NotNull>
-//Mesh<dim,serial_mode>::edges_begin()
-//{
-//  NotNull  p;
-//  return edge_iterator<NotNull>(p,topology_.edges_begin(),topology_.edges_end());
-//}
-
-//template<int dim>
-//typename Mesh<dim,serial_mode>::template edge_iterator<NotNull >
-//Mesh<dim,serial_mode>::edges_end()
-//{
-//  NotNull p;
-//  return edge_iterator<NotNull >(p,topology_.edges_end(),topology_.edges_end());
-//}
-
-////specializations for 1D edges
-////==============================================================================================================
-//  template<>
-//  template<>
-//  struct
-//  Mesh<1,serial_mode>::edge_iterator<NotNull>: public biblsimpp_filter_iterator<VertexNotNull,
-//                                                                       Mesh<1,serial_mode>::edge_iterator_impl>
-//  {
-
-//     typedef typename Mesh<1,serial_mode>::edge_iterator_impl iterator_impl;
-//     typedef typename biblsimpp_filter_iterator<VertexNotNull,iterator_impl>::value_type value_type;
-//     //typedef typename biblsimpp_filter_iterator<VertexNotNull,iterator_impl>::reference reference;
-//     //typedef typename biblsimpp_filter_iterator<VertexNotNull,iterator_impl>::pointer pointer;
-//     //typedef typename biblsimpp_filter_iterator<VertexNotNull,iterator_impl>::difference_type difference_type;
-
-
-//    edge_iterator()
-//    :
-//    biblsimpp_filter_iterator<VertexNotNull,iterator_impl>()
-//    {}
-
-//    edge_iterator(VertexNotNull p,iterator_impl begin ,iterator_impl end)
-//                          :
-//                biblsimpp_filter_iterator<VertexNotNull,iterator_impl>(p,begin,end){}
-
-//  };
-
-//  template<>
-//  template<>
-//  struct
-//  Mesh<1,serial_mode>::edge_iterator<Active>: public biblsimpp_filter_iterator<VertexActive,
-//                                                                       Mesh<1,serial_mode>::edge_iterator_impl>
-//  {
-
-//     typedef typename Mesh<1,serial_mode>::edge_iterator_impl iterator_impl;
-//     typedef typename biblsimpp_filter_iterator<VertexActive,iterator_impl>::value_type value_type;
-//     //typedef typename biblsimpp_filter_iterator<VertexActive,iterator_impl>::reference reference;
-//     //typedef typename biblsimpp_filter_iterator<VertexActive,iterator_impl>::pointer pointer;
-//     //typedef typename biblsimpp_filter_iterator<VertexActive,iterator_impl>::difference_type difference_type;
-
-
-//    edge_iterator()
-//    :
-//    biblsimpp_filter_iterator<VertexActive,iterator_impl>()
-//    {}
-
-//    edge_iterator(VertexActive p,iterator_impl begin ,iterator_impl end)
-//                          :
-//                biblsimpp_filter_iterator<VertexActive,iterator_impl>(p,begin,end){}
-
-//  };
-
-//template<>
-//inline
-//typename Mesh<1,serial_mode>::template edge_iterator<NotNull>
-//Mesh<1,serial_mode>::edges_begin()
-//{
-//  VertexNotNull  p;
-//  return edge_iterator<NotNull>(p,topology_.edges_begin(),topology_.edges_end());
-//}
-
-//template<>
-//inline
-//typename Mesh<1,serial_mode>::template edge_iterator<NotNull>
-//Mesh<1,serial_mode>::edges_end()
-//{
-//  VertexNotNull p;
-//  return edge_iterator<NotNull >(p,topology_.edges_end(),topology_.edges_end());
-//}
-
-//template<>
-//inline
-//typename Mesh<1,serial_mode>::template edge_iterator<Active>
-//Mesh<1,serial_mode>::active_edges_begin()
-//{
-
-//VertexActive p;
-//return edge_iterator<Active>(p,topology_.edges_begin(),topology_.edges_end());
-
-//}
-
-//template<>
-//inline
-//typename Mesh<1,serial_mode>::template edge_iterator<Active>
-//Mesh<1,serial_mode>::active_edges_end()
-//{
-
-//VertexActive p;
-//return edge_iterator<Active>(p,topology_.edges_end(),topology_.edges_end());
-
-//}
-
-
-//template<int spacedim>
-//typename Mesh<spacedim,serial_mode>::template edge_iterator<Active>
-//Mesh<spacedim,serial_mode>::active_edges_begin()
-//{
-
-//Active p;
-//return edge_iterator<Active>(p,topology_.edges_begin(),topology_.edges_end());
-
-//}
-
-//template<int spacedim>
-//typename Mesh<spacedim,serial_mode>::template edge_iterator<Active>
-//Mesh<spacedim,serial_mode>::active_edges_end()
-//{
-
-//Active p;
-//return edge_iterator<Active >(p,topology_.edges_end(),topology_.edges_end());
-
-//}
-
-
-//template<int dim>
-//  template<typename PREDICATE>
-//  struct
-//  Mesh<dim,serial_mode>::const_edge_iterator: public
-//               biblsimpp_filter_iterator<PREDICATE,
-//                                        typename Mesh<dim,serial_mode>::const_edge_iterator_impl>
-//  {
-//     typedef typename Mesh<dim,serial_mode>::const_edge_iterator_impl iterator_impl;
-//      typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::value_type value_type;
-//     //typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::reference reference;
-//     //typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::pointer pointer;
-//     //typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::difference_type difference_type;
-
-//     const_edge_iterator():biblsimpp_filter_iterator<PREDICATE,iterator_impl>(){}
-
-
-//    //template<typename PREDICATE>
-//    const_edge_iterator(PREDICATE p,iterator_impl begin ,iterator_impl end)
-//                          :
-//                          biblsimpp_filter_iterator<PREDICATE,iterator_impl>(p,begin,end){}
-
-//  };
-
-
-//template<int dim>
-//typename Mesh<dim,serial_mode>::template const_edge_iterator<NotNull >
-//Mesh<dim,serial_mode>::edges_begin()const
-//{
-//  NotNull p;
-//  return const_edge_iterator<NotNull >(p,topology_.edges_begin(),topology_.edges_end());
-//}
-
-//template<int dim>
-//typename Mesh<dim,serial_mode>::template const_edge_iterator<NotNull>
-//Mesh<dim,serial_mode>::edges_end()const
-//{
-//  NotNull  p;
-//  return const_edge_iterator<NotNull >(p,topology_.edges_end(),topology_.edges_end());
-//}
-
-
-//template<int spacedim>
-//typename Mesh<spacedim,serial_mode>::template const_edge_iterator<Active>
-//Mesh<spacedim,serial_mode>::active_edges_begin()const
-//{
-
-//Active p;
-//return const_edge_iterator<Active>(p,topology_.edges_begin(),topology_.edges_end());
-
-//}
-
-//template<int spacedim>
-//typename Mesh<spacedim,serial_mode>::template const_edge_iterator<Active>
-//Mesh<spacedim,serial_mode>::active_edges_end()const
-//{
-
-//Active p;
-//return const_edge_iterator<Active>(p,topology_.edges_end(),topology_.edges_end());
-
-//}
-
-
-////Face iterator
-
-//  template<int dim>
-//  template<typename PREDICATE>
-//  struct
-//  Mesh<dim,serial_mode>::face_iterator: public biblsimpp_filter_iterator<PREDICATE,
-//                                                                        typename Mesh<dim,serial_mode>::face_iterator_impl>
-//  {
-
-//     typedef typename Mesh<dim,serial_mode>::face_iterator_impl iterator_impl;
-//     typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::value_type value_type;
-//     //typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::reference reference;
-//     //typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::pointer pointer;
-//     //typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::difference_type difference_type;
-
-
-//    face_iterator():biblsimpp_filter_iterator<PREDICATE,iterator_impl>(){}
-
-//    face_iterator(PREDICATE p,iterator_impl begin ,iterator_impl end)
-//                          :
-//                          biblsimpp_filter_iterator<PREDICATE,iterator_impl>(p,begin,end){}
-
-//  };
-
-//template<int dim>
-//typename Mesh<dim,serial_mode>::template face_iterator<NotNull >
-//Mesh<dim,serial_mode>::faces_begin()
-//{
-//  NotNull  p;
-//  return face_iterator<NotNull>(p,topology_.faces_begin(),topology_.faces_end());
-//}
-
-//template<int dim>
-//typename Mesh<dim,serial_mode>::template face_iterator<NotNull>
-//Mesh<dim,serial_mode>::faces_end()
-//{
-//  NotNull  p;
-//  return face_iterator<NotNull>(p,topology_.faces_end(),topology_.faces_end());
-//}
-
-
-//template<int spacedim>
-//typename Mesh<spacedim,serial_mode>::template face_iterator<Active>
-//Mesh<spacedim,serial_mode>::active_faces_begin()
-//{
-
-//Active p;
-//return face_iterator<Active>(p,topology_.faces_begin(),topology_.faces_end());
-
-//}
-
-//template<int spacedim>
-//typename Mesh<spacedim,serial_mode>::template face_iterator<Active>
-//Mesh<spacedim,serial_mode>::active_faces_end()
-//{
-
-//Active p;
-//return face_iterator<Active >(p,topology_.faces_end(),topology_.faces_end());
-
-//}
-
-//template<int spacedim>
-//typename Mesh<spacedim,serial_mode>::template face_iterator<ActiveBoundaryObject>
-//Mesh<spacedim,serial_mode>::active_boundary_faces_begin()
-//{
-
-//  ActiveBoundaryObject p;
-//  return face_iterator<ActiveBoundaryObject >(p,topology_.faces_begin(),topology_.faces_end());
-//}
-
-
-//template<int spacedim>
-//typename Mesh<spacedim,serial_mode>::template face_iterator<ActiveBoundaryObject>
-//Mesh<spacedim,serial_mode>::active_boundary_faces_end()
-//{
-
-//  ActiveBoundaryObject p;
-//  return face_iterator<ActiveBoundaryObject>(p,topology_.faces_end(),topology_.faces_end());
-//}
-
-////specialization of faces for 1D
-////=====================================================================================
-
-//  template<>
-//  template<>
-//  struct
-//  Mesh<1,serial_mode>::face_iterator<NotNull>: public biblsimpp_filter_iterator<VertexNotNull,
-//                                                                                Mesh<1,serial_mode>::face_iterator_impl>
-//  {
-
-//     typedef typename Mesh<1,serial_mode>::face_iterator_impl iterator_impl;
-//     typedef typename biblsimpp_filter_iterator<VertexNotNull,iterator_impl>::value_type value_type;
-//     //typedef typename biblsimpp_filter_iterator<VertexNotNull,iterator_impl>::reference reference;
-//     //typedef typename biblsimpp_filter_iterator<VertexNotNull,iterator_impl>::pointer pointer;
-//     //typedef typename biblsimpp_filter_iterator<VertexNotNull,iterator_impl>::difference_type difference_type;
-
-
-//    face_iterator()
-//    :
-//    biblsimpp_filter_iterator<VertexNotNull,iterator_impl>(){}
-
-//    face_iterator(VertexNotNull p,iterator_impl begin ,iterator_impl end)
-//                          :
-//                          biblsimpp_filter_iterator<VertexNotNull,iterator_impl>(p,begin,end){}
-
-//  };
-
-//template<>
-//inline
-//Mesh<1,serial_mode>::template face_iterator<NotNull>
-//Mesh<1,serial_mode>::faces_begin()
-//{
-//  VertexNotNull  p;
-//  return face_iterator<NotNull>(p,topology_.faces_begin(),topology_.faces_end());
-//}
-
-//template<>
-//inline
-//Mesh<1,serial_mode>::template face_iterator<NotNull>
-//Mesh<1,serial_mode>::faces_end()
-//{
-//  VertexNotNull  p;
-//  return face_iterator<NotNull>(p,topology_.faces_end(),topology_.faces_end());
-//}
-
-
-//  template<>
-//  template<>
-//  struct
-//  Mesh<1,serial_mode>::face_iterator<Active>: public biblsimpp_filter_iterator<VertexActive,
-//                                                                                Mesh<1,serial_mode>::face_iterator_impl>
-//  {
-
-//     typedef typename Mesh<1,serial_mode>::face_iterator_impl iterator_impl;
-//     typedef typename biblsimpp_filter_iterator<VertexActive,iterator_impl>::value_type value_type;
-//     //typedef typename biblsimpp_filter_iterator<VertexActive,iterator_impl>::reference reference;
-//     //typedef typename biblsimpp_filter_iterator<VertexActive,iterator_impl>::pointer pointer;
-//     //typedef typename biblsimpp_filter_iterator<VertexActive,iterator_impl>::difference_type difference_type;
-
-
-//    face_iterator()
-//    :
-//    biblsimpp_filter_iterator<VertexActive,iterator_impl>(){}
-
-//    face_iterator(VertexActive p,iterator_impl begin ,iterator_impl end)
-//                          :
-//                          biblsimpp_filter_iterator<VertexActive,iterator_impl>(p,begin,end){}
-
-//  };
-
-//template<>
-//inline
-//Mesh<1,serial_mode>::template face_iterator<Active>
-//Mesh<1,serial_mode>::active_faces_begin()
-//{
-
-//VertexActive p;
-//return face_iterator<Active>(p,topology_.faces_begin(),topology_.faces_end());
-
-//}
-
-//template<>
-//inline
-//Mesh<1,serial_mode>::template face_iterator<Active>
-//Mesh<1,serial_mode>::active_faces_end()
-//{
-
-//VertexActive p;
-//return face_iterator<Active>(p,topology_.faces_end(),topology_.faces_end());
-
-//}
-
-// template<>
-//  template<>
-//  struct
-//  Mesh<1,serial_mode>::face_iterator<ActiveBoundaryObject>: public biblsimpp_filter_iterator<VertexActiveBoundary,
-//                                                                                Mesh<1,serial_mode>::face_iterator_impl>
-//  {
-
-//     typedef typename Mesh<1,serial_mode>::face_iterator_impl iterator_impl;
-//     typedef typename biblsimpp_filter_iterator<VertexActiveBoundary,iterator_impl>::value_type value_type;
-//     //typedef typename biblsimpp_filter_iterator<VertexActiveBoundary,iterator_impl>::reference reference;
-//     //typedef typename biblsimpp_filter_iterator<VertexActiveBoundary,iterator_impl>::pointer pointer;
-//     //typedef typename biblsimpp_filter_iterator<VertexActiveBoundary,iterator_impl>::difference_type difference_type;
-
-
-//    face_iterator()
-//    :
-//    biblsimpp_filter_iterator<VertexActiveBoundary,iterator_impl>(){}
-
-//    face_iterator(VertexActiveBoundary p,iterator_impl begin ,iterator_impl end)
-//                          :
-//                          biblsimpp_filter_iterator<VertexActiveBoundary,iterator_impl>(p,begin,end){}
-
-//  };
-
-//template<>
-//inline
-//Mesh<1,serial_mode>::template face_iterator<ActiveBoundaryObject>
-//Mesh<1,serial_mode>::active_boundary_faces_begin()
-//{
-
-//  VertexActiveBoundary p;
-//  return face_iterator<ActiveBoundaryObject>(p,topology_.faces_begin(),topology_.faces_end());
-//}
-
-
-//template<>
-//inline
-//Mesh<1,serial_mode>::template face_iterator<ActiveBoundaryObject>
-//Mesh<1,serial_mode>::active_boundary_faces_end()
-//{
-
-//  VertexActiveBoundary p;
-//  return face_iterator<ActiveBoundaryObject>(p,topology_.faces_end(),topology_.faces_end());
-//}
-
-
-////=====================================================================================
-
-
-//template<int dim>
-//template<typename PREDICATE>
-//struct
-//Mesh<dim,serial_mode>::const_face_iterator: public
-//               biblsimpp_filter_iterator<PREDICATE,
-//                                        typename Mesh<dim,serial_mode>::const_face_iterator_impl>
-//  {
-//     typedef typename Mesh<dim,serial_mode>::const_face_iterator_impl iterator_impl;
-//     typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::value_type value_type;
-//     //typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::reference reference;
-//     //typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::pointer pointer;
-//     //typedef typename biblsimpp_filter_iterator<PREDICATE,iterator_impl>::difference_type difference_type;
-
-//     const_face_iterator():biblsimpp_filter_iterator<PREDICATE,iterator_impl>(){}
-
-
-//    //template<typename PREDICATE>
-//    const_face_iterator(PREDICATE p,iterator_impl begin ,iterator_impl end)
-//                          :
-//                          biblsimpp_filter_iterator<PREDICATE,iterator_impl>(p,begin,end){}
-
-//  };
-
-
-//template<int dim>
-//typename Mesh<dim,serial_mode>::template const_face_iterator<NotNull>
-//Mesh<dim,serial_mode>::faces_begin()const
-//{
-//  NotNull  p;
-//  return const_face_iterator<NotNull>(p,topology_.faces_begin(),topology_.faces_end());
-//}
-
-//template<int dim>
-//typename Mesh<dim,serial_mode>::template const_face_iterator<NotNull>
-//Mesh<dim,serial_mode>::faces_end()const
-//{
-//  NotNull  p;
-//  return const_face_iterator<NotNull>(p,topology_.faces_end(),topology_.faces_end());
-//}
-
-
-//template<int spacedim>
-//typename Mesh<spacedim,serial_mode>::template const_face_iterator<Active>
-//Mesh<spacedim,serial_mode>::active_faces_begin()const
-//{
-
-//Active p;
-//return const_face_iterator<Active >(p,topology_.faces_begin(),topology_.faces_end());
-
-//}
-
-//template<int spacedim>
-//typename Mesh<spacedim,serial_mode>::template const_face_iterator<Active  >
-//Mesh<spacedim,serial_mode>::active_faces_end()const
-//{
-
-//Active p;
-//return const_face_iterator<Active >(p,topology_.faces_end(),topology_.faces_end());
-
-//}
-
-
-
-//template<int spacedim>
-//typename Mesh<spacedim,serial_mode>::template const_face_iterator<ActiveBoundaryObject>
-//Mesh<spacedim,serial_mode>::active_boundary_faces_begin()const
-//{
-
-//  ActiveBoundaryObject p;
-//  return const_face_iterator<ActiveBoundaryObject>(p,topology_.faces_begin(),topology_.faces_end());
-//}
-
-
-//template<int spacedim>
-//typename Mesh<spacedim,serial_mode>::template const_face_iterator<ActiveBoundaryObject>
-//Mesh<spacedim,serial_mode>::active_boundary_faces_end()const
-//{
-
-//  ActiveBoundaryObject p;
-//  return const_face_iterator<ActiveBoundaryObject >(p,topology_.faces_end(),topology_.faces_end());
-//}
-
-
-
-
-
-
 
 }
 

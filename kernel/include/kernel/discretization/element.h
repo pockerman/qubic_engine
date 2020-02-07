@@ -7,11 +7,10 @@
 #include "kernel/base/kernel_consts.h"
 #include "kernel/discretization/edge_face_selector.h"
 #include "kernel/discretization/element_traits.h"
+#include "kernel/geometry/geom_point.h"
 
-namespace kernel
-{
-namespace numerics
-{
+namespace kernel{
+namespace numerics{
 
 template<int dim> class Node;
 
@@ -24,6 +23,7 @@ public:
 
     typedef Element<dim>* neighbor_ptr_t;
     typedef Element<dim>& neighbor_ref_t;
+    typedef const Element<dim>& cneighbor_ref_t;
     typedef Node<dim>* node_ptr_t;
     typedef typename element_traits<Element<dim>>::edge_ptr_t edge_ptr_t;
     typedef typename element_traits<Element<dim>>::cedge_ptr_t cedge_ptr_t;
@@ -44,16 +44,16 @@ public:
     virtual uint_t n_nodes()const=0;
 
     /// \brief Set the i-th node
-    virtual void set_node(uint_t i, node_ptr_t node)=0;
+    virtual void set_node(uint_t i, node_ptr_t node);
 
     /// \brief Append a  node to the nodes list
-    virtual void append_node(node_ptr_t node)=0;
+    virtual void append_node(node_ptr_t node);
 
     /// \brief Reserve space for nodes
-    virtual void reserve_nodes(uint n)=0;
+    virtual void resize_nodes();
 
     /// \brief Returns the i-th node
-    virtual node_ptr_t get_node(uint_t n)=0;
+    virtual node_ptr_t get_node(uint_t n);
 
     /// \brief How many edges the element has
     virtual uint_t n_edges()const=0;
@@ -61,29 +61,46 @@ public:
     /// \brief How many faces the element has
     virtual uint_t n_faces()const=0;
 
+    /// \brief Resize the space for the faces
+    virtual void resize_faces()=0;
+
     /// \brief Returns the f-face
     virtual cface_ref_t get_face(uint_t f)const=0;
 
     /// \brief Returns the f-face
     virtual face_ref_t get_face(uint_t f)=0;
 
+    /// \brief Set the f-th face of the element
+    virtual void set_face(uint_t f, face_ptr_t face)=0;
+
     /// \brief Set the i-th neighbor
-    virtual void set_neighbor(uint n, neighbor_ptr_t neigh)=0;
+    virtual void set_neighbor(uint_t n, neighbor_ptr_t neigh);
 
     /// \brief Returns the number of neighbors
     virtual uint_t n_neighbors()const=0;
 
     /// \brief Reserve space for neighbors
-    virtual void reserve_neighbors(uint n)=0;
+    virtual void resize_neighbors();
 
     /// \brief Access the n-th neighbor
-    virtual const neighbor_ref_t get_neighbor(uint_t n)const=0;
+    virtual cneighbor_ref_t get_neighbor(uint_t n)const;
 
     /// \brief Access the n-th neighbor pointer
     virtual neighbor_ptr_t neighbor_ptr(uint_t n);
 
     /// \brief Access the n-th neighbor pointer
     virtual const neighbor_ptr_t neighbor_ptr(uint_t n)const;
+
+    /// \brief Returns the node ids of the vertices of the
+    /// given face
+    virtual void face_vertices(uint_t f, std::vector<uint_t>& ids)const=0;
+
+    /// \brief Returns the volume of the element
+    virtual real_t volume()const=0;
+
+    /// \brief Returns the average location of the
+    /// vertices of the element
+    virtual GeomPoint<dim> centroid()const;
 
     /// \brief Invalidate the dofs associated with
     /// the given variable
@@ -95,6 +112,10 @@ public:
 
     /// \brief Return the dofs for the given variable
     void get_dofs(std::string_view name, std::vector<DoF>& dofs)const{}
+
+    /// \brief Returns the local id relevant to the calling object
+    /// of the  passed  object
+    uint_t which_neighbor_am_i(const Element<dim>& element)const;
 
 protected:
 
