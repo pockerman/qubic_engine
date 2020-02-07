@@ -7,7 +7,6 @@
 
 #include "kernel/base/types.h"
 
-
 #include <Epetra_Vector.h>
 #include <Epetra_SerialComm.h>
 #include <Epetra_Map.h>
@@ -23,7 +22,7 @@ class TrilinosEpetraVector{
 
 public:
 
-    ///the data type the vector holds
+    /// \brief The data type the vector holds
     typedef real_t value_t;
 
     typedef value_t* iterator;
@@ -44,7 +43,6 @@ public:
     /// sizes will be the same
     /// if \p fast is set to false we set the entries of the
     /// vector to zero. The default is to initialize to zero
-    ///
     void init(uint_t n, bool fast=false);
 
     /// initialize the vector with n entries and set all entries to val
@@ -62,22 +60,15 @@ public:
     /// \brief Compress the vector
     void compress();
 
-    ///
     ///for the given global indices add the the given values
-    ///
     void add(const std::vector<uint_t>& dofs, const std::vector<real_t>& vals);
 
-    ///
     ///read access to the i-th entry of the vector
-    ///
     real_t operator[](uint_t i)const;
 
-    ///
     /// read/write access to the i-th entry of the vector
-    ///
     real_t& operator[](uint_t i);
 
-    ///
     /// get the start of the vector
     iterator begin();
 
