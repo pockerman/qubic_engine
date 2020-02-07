@@ -27,7 +27,7 @@ FVGaussGrad<dim>::compute_gradients(const Element<dim>& elem, std::vector<real_t
     for(uint_t f=0; f<elem.n_faces(); ++f){
 
         auto& face = elem.get_face(f);
-        values.push_back(face.volume()); //face.owner_neighbor_distance());
+        values.push_back(face.volume()/face.owner_neighbor_distance());
     }
 }
 

@@ -2,6 +2,7 @@
 #define FV_LAPLACE_ASSEMBLE_POLICY_H
 
 #include "kernel/base/types.h"
+#include "kernel/base/config.h"
 #include "kernel/numerics/dof.h"
 
 #include "boost/any.hpp"
@@ -18,8 +19,10 @@ template<int dim> class Element;
 template<int dim> class FVDoFManager;
 template<int dim> class BoundaryFunctionBase;
 
+#ifdef USE_TRILINOS
 class TrilinosEpetraMatrix;
 class TrilinosEpetraVector;
+#endif
 
 /// \brief Policy that assembles Laplaces terms
 /// on a user specified mesh using user specified
@@ -39,12 +42,14 @@ public:
     /// \brief Reinitialize the policy
     void reinit(const Element<dim>& element, std::vector<real_t>&& qvals);
 
+#ifdef USE_TRILINOS
     /// \brief Assemble the data
     void assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b )const;
 
     /// \brief Apply the boundary conditions
     void apply_boundary_conditions(const  std::vector<boost::any>& bfaces, TrilinosEpetraMatrix& mat,
                                    TrilinosEpetraVector& x, TrilinosEpetraVector& b )const;
+#endif
 
     /// \brief Compute the fluxes over the cell last
     /// reinitialized
