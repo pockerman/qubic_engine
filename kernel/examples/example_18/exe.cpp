@@ -3,9 +3,12 @@
 #include "kernel/discretization/quad_mesh_generation.h"
 #include "kernel/geometry/geom_point.h"
 #include "kernel/discretization/element.h"
+#include "kernel/discretization/face_element.h"
 #include "kernel/utilities/filtered_iterator.h"
 #include "kernel/discretization/element_mesh_iterator.h"
+#include "kernel/discretization/face_mesh_iterator.h"
 #include "kernel/discretization/mesh_predicates.h"
+#include "kernel/utilities/predicates.h"
 #include "kernel/utilities/vtk_mesh_file_writer.h"
 
 #include <iostream>
@@ -39,6 +42,8 @@ int main(){
     std::cout<<"Number of nodes: "<<mesh.n_nodes()<<std::endl;
     std::cout<<"Number of faces: "<<mesh.n_faces()<<std::endl;
     std::cout<<"Number of edges: "<<mesh.n_edges()<<std::endl;
+    std::cout<<"Number of boundaries: "<<mesh.n_boundaries()<<std::endl;
+    std::cout<<"\n";
 
     // loop over the elements
     auto elem_itr = mesh.elements_begin();
@@ -54,12 +59,16 @@ int main(){
 
                 std::cout<<"Number of nodes: "<<elem->n_nodes()<<std::endl;
                 std::cout<<"Number of vertices: "<<elem->n_vertices()<<std::endl;
+                std::cout<<"Number of edges: "<<elem->n_edges()<<std::endl;
+                std::cout<<"Number of faces: "<<elem->n_faces()<<std::endl;
             }
             else{
                 elem->set_active_flag(false);
             }
         }
     }
+
+    std::cout<<"\n";
 
     // filtered iteration can also be used
     kernel::numerics::ElementMeshIterator<kernel::numerics::Active, Mesh<2>> filter(mesh);
@@ -82,6 +91,18 @@ int main(){
         elem->set_active_flag(true);
     }
 
+    // loop over the boundary faces and print their ids
+    // and the boundary indicator
+    kernel::numerics::ConstFaceMeshIterator<kernel::ActiveBoundaryObject, kernel::numerics::Mesh<2>> face_filter(mesh);
+
+    auto face_begin = face_filter.begin();
+    auto face_end   = face_filter.end();
+
+    for(; face_begin != face_end; ++face_begin){
+
+        auto* face = *face_begin;
+        std::cout<<"face: "<<face->get_id()<<" is at boundary: "<<face->boundary_indicator()<<std::endl;
+    }
 
     // finally let's save the mesh for visualization
     kernel::numerics::VtkMeshFileWriter mesh_writer("example_18_mesh.vtk", true);
