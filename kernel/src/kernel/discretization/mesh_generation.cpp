@@ -44,40 +44,40 @@ void build_mesh(LineMesh& mesh, uint_t n_elements,
 
     // element-element connectivity
     auto element = mesh.get_elem(0);
-    element->reserve_neighbors(2);
+    element->resize_neighbors();
     element->set_neighbor(0, elem_ptr_t());
     element->set_neighbor(1, mesh.get_elem(1));
 
     uint_t e=1;
     for(; e<mesh.n_elements()-1; ++e){
         element = mesh.get_elem(e);
-        element->reserve_neighbors(2);
+        element->resize_neighbors();
         element->set_neighbor(0, mesh.get_elem(e - 1));
         element->set_neighbor(1, mesh.get_elem(e + 1));
     }
 
     element = mesh.get_elem(mesh.n_elements()-1);
-    element->reserve_neighbors(2);
+    element->resize_neighbors();
     element->set_neighbor(0, mesh.get_elem(e - 1));
     element->set_neighbor(1, elem_ptr_t());
 
     // element-node connectivity
 
     element = mesh.get_elem(0);
-    element->reserve_nodes(2);
+    element->resize_nodes();
     element->set_node(0, mesh.get_node(0));
     element->set_node(1, mesh.get_node(1));
 
     e=1;
     for(; e<mesh.n_elements()-1; ++e){
         element = mesh.get_elem(e);
-        element->reserve_nodes(2);
+        element->resize_nodes();
         element->set_node(0, mesh.get_node(e ));
         element->set_node(1, mesh.get_node(e + 1));
     }
 
     element = mesh.get_elem(mesh.n_elements()-1);
-    element->reserve_nodes(2);
+    element->resize_nodes();
     element->set_node(0, mesh.get_node(e ));
     element->set_node(1, mesh.get_node(e + 1));
 }
