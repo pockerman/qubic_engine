@@ -9,14 +9,9 @@
 #include <ostream>
 #include <algorithm>
 
-namespace kernel
-{
+namespace kernel{
 
-/**
-  * A class that describes a point with spacedim spatial dimension space.
-  */
-
-
+/// A class that describes a point with spacedim spatial dimension space.
 template<int spacedim, typename T=real_t>
 class GeomPoint
 {
@@ -26,26 +21,26 @@ public:
     typedef T value_type;
     static const int dimension = spacedim;
 
-   /**
-     * \detailed ctor all dim data are assigned the given value
-     */
+   ///
+   /// \brief ctor all dim data are assigned the given value
+   ///
    explicit GeomPoint(T val =  T());
 
-   /**
-     *\detailed create by passing a vector of data
-     */
+   ///
+   /// \brief Create by passing a vector of data
+   ///
    template<typename Container>
    explicit GeomPoint(const Container& data);
 
-   /**
-     * \detailed copy ctor
-     */
-    GeomPoint(const GeomPoint& t);
+   ///
+   /// \brief copy ctor
+   ///
+   GeomPoint(const GeomPoint& t);
 
-   /**
-     *\detailed copy assignement operator
-     */
-    GeomPoint& operator=(const GeomPoint& t);
+   ///
+   /// \brief copy assignement operator
+   ///
+   GeomPoint& operator=(const GeomPoint& t);
 
    /**
      *\detailed dtor
@@ -62,19 +57,19 @@ public:
    /**
      * \detailed Subtract another tensor.
      */
-        GeomPoint & operator -= (const GeomPoint &);
+     GeomPoint & operator -= (const GeomPoint &);
 
    /**
      * \detailed Scale the vector by
      * <tt>factor</tt>, i.e. multiply all
      * coordinates by <tt>factor</tt>.
      */
-    GeomPoint & operator *= (T factor);
+     GeomPoint & operator *= (T factor);
 
     /**
       * Scale the vector by <tt>1/factor</tt>.
       */
-    GeomPoint & operator /= (T factor);
+     GeomPoint & operator /= (T factor);
 
     /**
       *\detailed scale with a given factor
@@ -92,57 +87,57 @@ public:
       */
     void zero();
 
-    /**
-      *\detailed add the coordinates of the given point to this
-      *scaled by factor
-      */
+    /// \brief Add the coordinates of the given point to this scaled by factor
     void add_scaled(const GeomPoint& p, T factor);
 
-    /**
-      *\detailed access the i-th coordinate of the point
-      */
+    ///
+    /// \brief Access the i-th coordinate of the point
+    ///
     T& operator[](uint_t i);
 
-     /**
-      *\detailed access the i-th coordinate of the point read-only
-      */
+    ///
+    /// \brief  Access the i-th coordinate of the point read-only
+    ///
     T operator[](uint_t i)const;
 
-     /**
-      *\detailed access the i-th coordinate of the point read-only
-      */
+    ///
+    /// \brief access the i-th coordinate of the point read-only
+    ///
     T entry(uint_t i)const{return (*this)[i];}
 
-    /**
-      * \detailed get a copy of the data of this object
-      */
+    ///
+    /// \brief Get a copy of the data of this object
+    ///
     auto coordinates()const{return data_;}
 
-    /**
-      *\detailed get the max element in the point
-      */
-     T max()const;
+    ///
+    /// \brief Get the max element in the point
+    ///
+    T max()const;
 
-     /**
-       *\detailed get the min element in the point
-       */
-     T min()const;
+    ///
+    /// \brief Get the min element in the point
+    ///
+    T min()const;
 
-     /**
-       *\detailed get the distance from the given point
-       */
-     T distance(const GeomPoint&)const;
+    ///
+    /// \brief Get the distance from the given point
+    ///
+    T distance(const GeomPoint&)const;
 
-     /**
-       * \detailed print the point
-       */
-     std::ostream& print_point_info(std::ostream &out)const;
+    /// \brief Return the distance from the origin
+    T L2_norm()const{return distance(GeomPoint(static_cast<T>(0)));}
+
+    ///
+    /// \brief print the point
+    ///
+    std::ostream& print_point_info(std::ostream &out)const;
 
 private:
 
-    /**
-      *\detailed hold the coordinates of the point
-      */
+    ///
+    /// \brief Hold the coordinates of the point
+    ///
     std::array<T, spacedim> data_;
 
 };
