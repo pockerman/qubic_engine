@@ -18,6 +18,7 @@
 - <a href="https://www.boost.org/">Boost C++</a> libraries
 - <a href="https://bitbucket.org/blaze-lib/blaze/wiki/browse/">Blaze</a> library for linear algebra
 - <a href="https://github.com/google/googletest">GTest</a> if testing is enabled
+- <a href="https://github.com/trilinos/Trilinos">Trilinos</a> if it is enabled.
 
 ## <a name="nstallation"></a> Installation
 
@@ -31,6 +32,8 @@ specify the following:
 - The compilation mode ```Debug``` or ```Release```. Default is ```Debug```
 - ```USE_OPENMP``` by default is ```ON``` meaning use OpenMP specification
 - ```USE_LOG``` by default is ```ON``` meaning use logging
+- ```USE_TRILINOS``` by default is ```OFF``` meaning do not use Trilinos. If the variable is set to ```ON``` then the following
+variables should also be set ```TRILINOS_INCL_DIR``` and ```TRILINOS_LIB_DIR```
 
 ```
 mkdir build
@@ -39,7 +42,6 @@ cmake ..
 make
 make install
 make tests
-
 ```
 
 ## <a name="dependencies"></a> How to use
@@ -91,6 +93,7 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 
 - <a href="#">Example 7</a> Longitudinal Vehicle Model
 - <a href="examples/example_17/doc/exe.md">Example 17: </a>Simulate differential drive system
+- <a href="examples/example_19/doc/exe.md">Example 19: </a>Solve Laplace equation with collocated  finite volume method
 
 ### <a name="miscellaneous"></a> Miscellaneous
 

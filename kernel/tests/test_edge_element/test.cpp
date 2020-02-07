@@ -32,29 +32,6 @@ TEST(TestEdgeElem, TestInvalidNeighborIdx) {
 }
 
 
-TEST(TestEdgeElem, TestReserveZeroNeighbors) {
-
-    /***
-       * Test Scenario:   The application attempts to reserve neighbors but uses incorrect number
-       * Expected Output: std::logic_error should be thrown
-     **/
-
-    using kernel::uint_t;
-    using kernel::numerics::EdgeElem;
-    EdgeElem<1> elem(0, 0);
-
-    uint_t n = 0;
-    try {
-        elem.reserve_neighbors(n);
-    }
-    catch (std::logic_error& e) {
-
-        const std::string expected("Invalid neighbors number "+std::to_string(n)+" not equal to "+std::to_string(elem.n_faces()));
-        ASSERT_EQ(e.what(), expected);
-    }
-
-}
-
 TEST(TestEdgeElem, TestInsertNeighbor) {
 
     /***
@@ -67,7 +44,7 @@ TEST(TestEdgeElem, TestInsertNeighbor) {
     EdgeElem<1> elem(0, 0);
 
     uint_t n = 2;
-    elem.reserve_neighbors(n);
+    elem.resize_neighbors();
 
     std::shared_ptr<EdgeElem<1>> neigh1 = std::make_shared<EdgeElem<1>>(1, 0);
     elem.set_neighbor(0, neigh1.get());

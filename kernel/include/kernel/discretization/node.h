@@ -36,30 +36,20 @@ public:
     /// \brief Constructor
     Node(const GeomPoint<dim>& point, uint_t global_id, uint_t pid);
 
-    /// \brief Returns the id of the node
-    //uint_t get_id()const{return id_;}
-
-    /// \brief Set the id of the node
-    //void set_id(uint_t id){id_ = id;}
-
     /// \brief Returns true is the Node is a vertex
     bool is_vertex()const{return is_vertex_;}
 
     /// \brief Signal the Node that it is a vertex
     void make_vertex(){is_vertex_ = true;}
 
-    //bool has_valid_id()const{return true;}
-
 private:
-
-    /// \brief the id of the node
-    //uint_t id_;
 
     /// \brief is the Node a vertex
     bool is_vertex_;
 
 };
 
+/*
 template<>
 class Node<1>: public FaceElement<1,0>
 
@@ -68,54 +58,37 @@ class Node<1>: public FaceElement<1,0>
 
   public:
 
-  /**
-    * \detailed default ctor
-    */
+
   Node();
 
-  /**
-    * \detailed ctor all dim data are assigned the given value
-    */
+
   explicit Node(uint_t global_id,
                 real_t val=0.0,
                 uint_t pid=0);
 
-  /**
-    *\detailed create by passing a vector of data
-    */
+
   Node(uint_t global_id,
        const std::vector<real_t>& data,
        uint_t pid=0);
 
-  /**
-    *\detailed create from the given \p point.
-    */
+
   Node(const GeomPoint<1>& point,
        uint_t global_id,
        uint_t pid=0);
 
 
-  /**
-    * \detailed copy ctor
-    */
+
   Node(const Node& t);
 
 
-  /**
-    *\detailed copy assignement operator
-    */
+
   Node& operator=(const Node& t);
 
 
-  /**
-    *\detailed dtor
-    */
+
   ~Node(){}
 
 
-  /**
-    *\detailed print the information for the node
-    */
 
   std::ostream& print_node_info(std::ostream &out)const;
 
@@ -177,6 +150,8 @@ Node<1>::print_node_info(std::ostream &out)const
   this->print_mesh_entity_info(out);
   return out;
 }
+
+*/
 
 }
 

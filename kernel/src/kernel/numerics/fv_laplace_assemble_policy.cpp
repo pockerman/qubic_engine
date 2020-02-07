@@ -77,6 +77,8 @@ FVLaplaceAssemblyPolicy<dim>::reinit(const Element<dim>& element, std::vector<re
     compute_fluxes();
 }
 
+#ifdef USE_TRILINOS
+
 template<int dim>
 void
 FVLaplaceAssemblyPolicy<dim>::assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b )const{
@@ -152,6 +154,7 @@ FVLaplaceAssemblyPolicy<dim>::apply_boundary_conditions(const  std::vector<boost
             }//Dirichlet
         }
 }
+#endif
 
 template class FVLaplaceAssemblyPolicy<1>;
 template class FVLaplaceAssemblyPolicy<2>;

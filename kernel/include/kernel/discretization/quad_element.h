@@ -4,6 +4,7 @@
 #include "kernel/base/types.h"
 #include "kernel/discretization/element.h"
 #include "kernel/discretization/face.h"
+#include "kernel/discretization/face_element.h"
 #include "kernel/discretization/quad_implementation.h"
 
 
@@ -13,29 +14,42 @@ namespace kernel
 namespace numerics
 {
 
-/**
-  *\detailed a class that represents quad type
-  *elements in MeshGeometry::dim_ spatial dimension. In 2D
-  * this object acts like a proper element. In 3D this class
-  * has extented functionality making act like a face to Hex elements
-  */
-template<int dim>
-class Quad: public Element<dim>
+/// \detailed a class that represents quad type elements in dim spatial dimension.
+/// In 2D this object acts like a proper element. In 3D this class
+/// has extented functionality making act like a face to Hex elements
+///
+/// We use the following counter-clockwise numbering scheme
+
+///        3           2     D           C
+/// QUAD4: o-----------o	 o-----------o
+///        |           |	 |           |
+///        |           |	 |           |
+///        |           | 	 |           |
+///        |           |	 |           |
+///        |           |	 |           |
+///        o-----------o	 o-----------o
+///        0           1	 A           B
+
+template<int dim> class Quad;
+
+
+template<>
+class Quad<2>: public Element<2>
 {
 
  public:
 
-    typedef typename Element<dim>::node_ptr_t node_ptr_t;
-    typedef typename Element<dim>::neighbor_ptr_t neighbor_ptr_t;
-    typedef typename Element<dim>::neighbor_ref_t neighbor_ref_t;
-    typedef typename Element<dim>::edge_ptr_t edge_ptr_t;
-    typedef typename Element<dim>::cedge_ptr_t cedge_ptr_t;
-    typedef typename Element<dim>::edge_ref_t edge_ref_t;
-    typedef typename Element<dim>::cedge_ref_t cedge_ref_t;
-    typedef typename Element<dim>::face_ptr_t face_ptr_t;
-    typedef typename Element<dim>::cface_ptr_t cface_ptr_t;
-    typedef typename Element<dim>::face_ref_t face_ref_t;
-    typedef typename Element<dim>::cface_ref_t cface_ref_t;
+    typedef typename Element<2>::node_ptr_t node_ptr_t;
+    typedef typename Element<2>::neighbor_ptr_t neighbor_ptr_t;
+    typedef typename Element<2>::neighbor_ref_t neighbor_ref_t;
+    typedef typename Element<2>::edge_ptr_t edge_ptr_t;
+    typedef typename Element<2>::cedge_ptr_t cedge_ptr_t;
+    typedef typename Element<2>::edge_ref_t edge_ref_t;
+    typedef typename Element<2>::cedge_ref_t cedge_ref_t;
+    typedef typename Element<2>::face_ptr_t face_ptr_t;
+    typedef typename Element<2>::cface_ptr_t cface_ptr_t;
+    typedef typename Element<2>::face_ref_t face_ref_t;
+    typedef typename Element<2>::cface_ref_t cface_ref_t;
  
     /// \brief ctor
     explicit Quad(uint_t nnodes=4);
@@ -49,30 +63,15 @@ class Quad: public Element<dim>
     /// \brief A quad has 4 vertices independent of the dimension
     virtual uint_t n_vertices()const override final{return 4;}
 
-    /// \brief Set the i-th node
-    virtual void set_node(uint_t i, node_ptr_t node)override;
-
-    /// \brief Append a  node to the nodes list
-    virtual void append_node(node_ptr_t node)override;
-
-    /// \brief Reserve space for nodes
-    virtual void reserve_nodes(uint n)override;
-
-    /// \brief Returns the i-th node
-    virtual node_ptr_t get_node(uint_t n)override;
-   
-    /// \brief Set the i-th neighbor
-    virtual void set_neighbor(uint n, neighbor_ptr_t neigh){}
-
-    /// \brief Reserve space for neighbors
-    virtual void reserve_neighbors(uint n){}
-
-    /// \brief Access the n-th neighbor
-    virtual const neighbor_ref_t get_neighbor(uint_t n)const{};
-
     /// \brief A quad has 4 neighbors independent of the dimension
     virtual uint_t n_neighbors()const override final{return 4;}
+
+    /// \brief Resize the space for the faces
+    virtual void resize_faces();
    
+    /// \brief Set the f-th face of the element
+    virtual void set_face(uint_t f, face_ptr_t face)override final;
+
     /// \brief A quad has 4 sides independent of the dimension
     virtual uint_t n_faces()const  final{return 4;}
 
@@ -84,9 +83,13 @@ class Quad: public Element<dim>
    
     /// \brief A quad has 4 edges independent of the dimension
     virtual uint_t n_edges()const  final{return 4;}
+
+    /// \brief Returns the node ids of the vertices of the
+    /// given face
+    virtual void face_vertices(uint_t f, std::vector<uint_t>& ids)const override;
    
     /// \brief Returns the volume of the element
-    virtual real_t volume()const{}
+    virtual real_t volume()const override final;
    
     /// \brief Refine the element
     virtual void refine(){}
@@ -96,7 +99,7 @@ private:
   /**
     *\detailed object that handles the various calculations
     */
-  QuadImpl<dim> impl_;
+  QuadImpl<2> impl_;
 
   /// \brief The faces of the quad
   std::vector<face_ptr_t> faces_;
@@ -105,21 +108,8 @@ private:
 
 
 
-template<int spacedim>
-inline
-Quad<spacedim>::Quad(uint_t n)
-               :
-               Element<spacedim>(),
-               impl_(n)
-               {}
-               
-template<int spacedim>
-inline
-Quad<spacedim>::Quad(uint_t id, uint_t pid, uint_t n)
-               :
-               Element<spacedim>(id,pid),
-               impl_(n)
-               {}
+
+
                
 
 //specialization for 3D Quad elements act like faces

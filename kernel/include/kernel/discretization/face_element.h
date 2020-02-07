@@ -39,39 +39,23 @@ class FaceElement<spacedim, 0>: public GeomPoint<spacedim>,
 public:
 
 
-    /**
-      * \detailed default ctor
-      */
+
     FaceElement();
 
-    /**
-      * \detailed ctor all dim data are assigned the given value
-      */
     explicit FaceElement(uint_t global_id,
                          real_t val=0.0,
                          uint_t pid=0);
 
-    /**
-      *\detailed create by passing a vector of data
-      */
     FaceElement(const std::array<real_t, spacedim>& coords,
                 uint_t global_id, uint_t pid=0);
 
-    /**
-      *\detailed create from the given \p point.
-      */
     FaceElement(const GeomPoint<spacedim>& point,
                 uint_t global_id,
                 uint_t pid=0);
 
-    /**
-      * \detailed copy ctor
-      */
     FaceElement(const FaceElement& t);
 
-    /**
-      *\detailed copy assignement operator
-      */
+
     FaceElement& operator=(const FaceElement& t);
   
     /// \brief dtor
@@ -95,37 +79,27 @@ public:
 
     /// \brief The centroid is the point itself
     GeomPoint<spacedim> centroid()const{return *this;}
+
+    /// \brief computes a reference distance between the
+    /// centroids of the two elements sharing the FaceElement
+    /// If this lies on the the boundary then the centroid of
+    /// the FaceElementis used
+    real_t owner_neighbor_distance()const;
   
     uint_t get_id()const{return id_;}
     void set_id(uint_t id){id_ = id;}
     bool has_valid_id()const{return id_ != KernelConsts::invalid_size_type();}
 
+    bool on_boundary () const {return boundary_indicator_!=KernelConsts::invalid_size_type();}
+    uint_t boundary_indicator()const{return boundary_indicator_;}
+
+
 private:
   
-  
-  /**
-    *\detailed flag indicating if the node is a vertex
-    *default is false
-    */
-   bool is_vertex_;
-   
-  /**
-    *\detailed the boundary indicator of the Node
-    */
+  bool is_vertex_;
   uint_t boundary_indicator_;
-
-  /**
-   *\detailed the owner of the FaceElement
-   */
   Element<spacedim>* owner_;
-
-
- /**
-   *\detailed the neighbor of the FaceElement
-   */
   Element<spacedim>* neighbor_;
-
-
   uint_t id_;
 
 };
@@ -143,115 +117,6 @@ FaceElement<spacedim,0>::print_mesh_entity_info(std::ostream &out)const
 
 }
 
-/**
-  *\detailed Explicit instantiation for 1D. In 1D a Node is also an edge/face
-  */
-  
-template<>
-class FaceElement<1,0>: public GeomPoint<1>,
-                        DoFObject
-{
-
- public:
- 
- static const int dim_ = 1;
- static const int topodim_ = 0;
-
-
-
-
-  FaceElement();
-
-
-  explicit FaceElement(uint_t global_id,
-                       real_t val=0.0,
-                       uint_t pid=0);
-  
-  FaceElement(uint_t global_id,
-              const std::vector<real_t>& data,
-              uint_t pid=0);
-  
-  FaceElement(const GeomPoint<1>& point, 
-              uint_t global_id,
-              uint_t pid=0);
-  
-  FaceElement(const FaceElement& t);
-  FaceElement& operator=(const FaceElement& t);
-  
-  
-
- virtual ~FaceElement(); //{}
-  
-
-    void make_vertex(){is_vertex_ = true;}
-    void set_owner_element(Element<1>* o){owner_ = o;}
-    void set_shared_element(Element<1>* n){neighbor_ = n;}
-    void set_owner_shared_elements(Element<1>* o, Element<1>* n)
-      {owner_ = o; neighbor_ = n;}
-  
-
-    void set_boundary_indicator(uint_t bind){boundary_indicator_=bind;}
-    bool is_vertex()const{return is_vertex_;}
-    bool on_boundary () const {return boundary_indicator_!=KernelConsts::invalid_size_type();}
-    uint_t boundary_indicator()const{return boundary_indicator_;}
-    virtual std::ostream& print_mesh_entity_info(std::ostream &out)const;
-
-    /// \brief
-    real_t volume()const{return 0.0;}
-
-    /// \brief The centroid is the point itself
-    GeomPoint<1> centroid()const{return *this;}
-    
-    bool is_active()const{return true;}
-    uint_t get_id()const{return id_;}
-    void set_id(uint_t id){id_ = id;}
-    bool has_valid_id()const{return true;}
-  
-private:
-  
-
-  /**
-   *\detailed the owner of the FaceElement
-   */
-  Element<1>* owner_;
- 
- 
- /**
-   *\detailed the neighbor of the FaceElement
-   */
-  Element<1>* neighbor_;
-  
-  
-  /**
-    *\detailed flag indicating if the node is a vertex
-    *default is false
-    */
-   bool is_vertex_;
-   
-    
-  /**
-    *\detailed the boundary indicator of the Node
-    */
-  uint_t boundary_indicator_;
-
-  uint_t id_;
-
-};
-
-
-inline
-std::ostream& 
-FaceElement<1,0>::print_mesh_entity_info(std::ostream &out)const
-{
-  /*this->print_point_info(out);
-  this->MeshEntity<1,0>::print_mesh_entity_info(out);
-  dof_object_.print_dof_object_info(out);*/
-  
-  return out;
-
-}
-
-
 
 ///
 /// FaceElement<spacedim,1> exists only when MeshGeometry::dim_ = 2 or 3
@@ -264,142 +129,133 @@ FaceElement<1,0>::print_mesh_entity_info(std::ostream &out)const
 /// Concrete classes implement the pure virtual functions inherited by Element<spacedim,1>
 /// Concrete classes of this class are: Edge<2> and Edge<3>.
 ///
-///
-
-
-
 template<>
-class FaceElement<2,1>/*: public BaseElement<element_traits<FaceElement<2,1> > >*/
+class FaceElement<2,1>
 {
 
- protected:
+public:
  
-  FaceElement();
-  
-  FaceElement(uint_t id,uint_t pid=0);
-  
- public:
+    static const int dim_ = 2;
+    static const int topodim_ = 1;
+
+    typedef Node<2>* node_ptr_t;
+    typedef EdgeSelector<2>::ptr_t edge_ptr_t;
+    typedef EdgeSelector<2>::ptr_t face_ptr_t;
+
+    /// \brief dtor
+    virtual ~FaceElement(){}
+
+    /// \brief Resize the number of nodes the face has
+    virtual void resize_nodes();
+
+    /// \brief How many nodes the element has
+    virtual uint_t n_nodes()const {return n_nodes_;}
+
+    /// \brief Set the i-th node
+    virtual void set_node(uint_t i, node_ptr_t node);
+
+    /// \brief Returns the i-th node
+    virtual node_ptr_t node_ptr(uint_t n);
+
+    /// \brief How many vertices the element has
+    virtual uint_t n_vertices()const {return 2;}
+
+    /// \brief How many edges the element has
+    virtual uint_t n_edges()const {return 2;}
+
+    /// \brief How many faces the element has
+    virtual uint_t n_faces()const {return 2;}
+
+    /// set the pointer to the
+    /// element that holds the side.
+    void set_owner_element(Element<2>* o){owner_ = o;}
+
+    /// set the pointer to the element that
+    /// shares this side. It also sets the old sharing element
+    /// to the element we use before calling this function
+    void set_shared_element(Element<2>* n){neighbor_ = n;}
+
+    /// set the pointers for the shared and owner of this side
+    void set_owner_shared_elements(Element<2>* o, Element<2>* n)
+    {owner_ = o; neighbor_ = n;}
+
+    /// \detailed set the boundary indicator for the FaceElement
+    void set_boundary_indicator(uint_t bind){boundary_indicator_=bind;}
+
+    /// \detailed read/write access to the owner of this
+    /// face. May return NULL
+    Element<2>* owner(){return owner_;}
  
- static const int dim_ = 2;
- static const int topodim_ = 1;
+    /// \detailed read/write access to the neighbor of this
+    /// face may return NULL in this case the face is on the
+    /// boundary
+    Element<2>* neighbor(){return neighbor_;}
+
+    /// \brief Returns the vertices ids
+    virtual std::vector<uint_t> get_vertices_ids()const;
+
+    /// Rreturns \p true iff a boundary indicator has been set
+    bool on_boundary () const {return boundary_indicator_ != KernelConsts::invalid_size_type();}
  
- typedef EdgeSelector<2>::ptr_t edge_ptr_t;
- typedef EdgeSelector<2>::ptr_t face_ptr_t;
+    /// Get the boundary indicator of the face
+    uint_t boundary_indicator()const{return boundary_indicator_;}
+
+    /// \brief
+    real_t volume()const{return 0.0;}
+
+    /// \brief computes a reference distance between the
+    /// centroids of the two elements sharing the FaceElement
+    /// If this lies on the the boundary then the centroid of
+    /// the FaceElementis used
+    real_t owner_neighbor_distance()const;
+
+    /// Print the information for the MeshEntity
+    virtual std::ostream& print_mesh_entity_info(std::ostream &out)const;
  
- /**
-   *\detailed dtor
-   */
- virtual ~FaceElement(){}
- 
+    /// \brief Returns the centroid of the face element
+    const GeomPoint<2> centroid()const;
 
- /**
-   *  set the pointer to the
-   *  element that holds the side.
-   */
- void set_owner_element(Element<2>* o){owner_ = o;}
+    bool is_active()const{return true;}
+    uint_t get_id()const{return id_;}
+    void set_id(uint_t id){id_ = id;}
+    bool has_valid_id()const{return true;}
 
+protected:
 
- /**
-   * set the pointer to the element that
-   * shares this side. It also sets the old sharing element
-   * to the element we use before calling this function
-   */
- void set_shared_element(Element<2>* n){neighbor_ = n;}
+    FaceElement();
+    FaceElement(uint_t id,uint_t pid=0);
+    FaceElement(uint_t id, uint_t nnodes, uint_t pid);
 
-
-     /**
-       * set the pointers for the shared and owner of this side
-       */
-     void set_owner_shared_elements(Element<2>* o, Element<2>* n)
-     {owner_ = o; neighbor_ = n;}
-
-
-     /**
-       *\detailed set the boundary indicator for the FaceElement
-       */
-      void set_boundary_indicator(uint_t bind){boundary_indicator_=bind;}
-
-
-     /**
-       *\detailed read/write access to the owner of this
-       * face. May return NULL
-       */
-     Element<2>* owner(){return owner_;}
- 
- 
-     /**
-       *\detailed read/write access to the neighbor of this
-       * face may return NULL in this case the face is on the
-       * boundary
-       */
-     Element<2>* neighbor(){return neighbor_;}
-
-
-     /**
-       * @returns \p true iff a boundary indicator has been set
-       */
-     bool on_boundary () const {return true;/*boundary_indicator_!=LibSimPP::internal_mesh_entity_id();*/}
- 
- 
-     /**
-       *\detailed get the boundary indicator of the face
-       */
-     uint_t boundary_indicator()const{return boundary_indicator_;}
-
-     /// \brief
-     real_t volume()const{return 0.0;}
-
-     /**
-       *\detailed print the information for the MeshEntity
-       */
-     virtual std::ostream& print_mesh_entity_info(std::ostream &out)const;
- 
-     /// \brief Returns the centroid of the face element
-     /// \brief The centroid is the point itself
-     GeomPoint<2> centroid()const{return GeomPoint<2>(0.0);}
- 
-      bool is_active()const{return true;}
-      uint_t get_id()const{return id_;}
-      void set_id(uint_t id){id_ = id;}
-      bool has_valid_id()const{return true;}
+    /// \brief The nodes of the element
+    std::vector<node_ptr_t> nodes_;
  
 private:
  
- 
- /**
-   *\detailed the owner of the FaceElement
-   */
-  Element<2>* owner_;
- 
- 
- /**
-   *\detailed the neighbor of the FaceElement
-   */
-  Element<2>* neighbor_;
-  
-   
-  /**
-    *\detailed the boundary indicator of the edge
-    *the default is LibSimPP::internal_mesh_entity_id()
-    */
-  uint_t boundary_indicator_;
-  
-  /**
-    *\detailed we fail to link with the print_mesh_entity_info
-    */
-  std::ostream& print_(std::ostream& o)const;
+    /// \brief The owner of the FaceElement
+    Element<2>* owner_;
 
-  uint_t id_;
+    /// \brief The neighbor of the FaceElement
+    Element<2>* neighbor_;
 
+    /// \detailed the boundary indicator of the edge
+    /// the default is KernelConsts::invalid_size_type()
+    uint_t boundary_indicator_;
+
+    /// ink with the print_mesh_entity_info
+    std::ostream& print_(std::ostream& o)const;
+
+    /// \brief The global id of the face
+    uint_t id_;
+
+    /// \brief Number of nodes by default is two
+    uint_t n_nodes_;
 
 };
 
 
 inline
 std::ostream& 
-FaceElement<2,1>::print_mesh_entity_info(std::ostream &out)const
-{
-
+FaceElement<2,1>::print_mesh_entity_info(std::ostream &out)const{
   return print_(out);
 }
 
@@ -408,16 +264,15 @@ FaceElement<2,1>::print_mesh_entity_info(std::ostream &out)const
 class Face;
 
 template<>
-class FaceElement<3,1>/*: public BaseElement<element_traits<FaceElement<3,1> > >*/
+class FaceElement<3,1>
 {
 
  protected:
  
 
   FaceElement();
-  
-  
   FaceElement(uint_t id,uint_t pid=0);
+  FaceElement(uint_t id, uint_t nnodes, uint_t pid);
   
  public:
  
@@ -427,69 +282,21 @@ class FaceElement<3,1>/*: public BaseElement<element_traits<FaceElement<3,1> > >
  typedef EdgeSelector<3>::ptr_t   edge_ptr_t;
  typedef EdgeSelector<3>::ptr_t face_ptr_t;
  
-     /**
-       *\detailed dtor
-       */
      virtual ~FaceElement(){}
 
 
-     /**
-       *  set the pointer to the
-       *  element that holds the side.
-       */
      void set_owner_element(Face* o){owner_ = o;}
-
-
-     /**
-       * set the pointer to the element that
-       * shares this side. It also sets the old sharing element
-       * to the element we use before calling this function
-       */
      void set_shared_element(Face* n){neighbor_ = n;}
-
-
-     /**
-       * set the pointers for the shared and owner of this side
-       */
      void set_owner_shared_elements(Face* o, Face* n)
      {owner_ = o; neighbor_ = n;}
-
- 
-     /**
-       *\detailed set the boundary indicator for the FaceElement
-       */
       void set_boundary_indicator(uint_t bind){boundary_indicator_=bind;}
-
-     /**
-       *\detailed read/write access to the owner of this
-       * face. May return NULL
-       */
      Face* owner(){return owner_;}
-
-
-     /**
-       *\detailed read/write access to the neighbor of this
-       * face may return NULL in this case the face is on the
-       * boundary
-       */
      Face* neighbor(){return neighbor_;}
-
- 
-     /**
-       * @returns \p true iff a boundary indicator has been set
-       */
      bool on_boundary () const {return true;/*boundary_indicator_!=LibSimPP::internal_mesh_entity_id();*/}
-
-
-      /**
-       *\detailed get the boundary indicator of the face
-       */
      uint_t boundary_indicator()const{return boundary_indicator_;}
 
 
-     /**
-       *\detailed print the information for the MeshEntity
-       */
+
       virtual std::ostream& print_mesh_entity_info(std::ostream &out)const;
 
      /// \brief
@@ -507,27 +314,17 @@ class FaceElement<3,1>/*: public BaseElement<element_traits<FaceElement<3,1> > >
 private:
  
  
- /**
-   *\detailed the owner of the FaceElement
-   */
+
   Face* owner_;
  
  
- /**
-   *\detailed the neighbor of the FaceElement
-   */
+
   Face* neighbor_;
   
    
-  /**
-    *\detailed the boundary indicator of the edge
-    *the default is LibSimPP::internal_mesh_entity_id()
-    */
+
   uint_t boundary_indicator_;
-  
-  /**
-    *\detailed we fail to link with the print_mesh_entity_info
-    */
+
   std::ostream& print_(std::ostream& o)const;
 
   uint_t id_;
@@ -553,7 +350,7 @@ FaceElement<3,1>::print_mesh_entity_info(std::ostream &out)const
   */
   
 template<>
-class FaceElement<3,2>/*: public BaseElement<element_traits<FaceElement<3,2> > >*/
+class FaceElement<3,2>
 {
 
  protected:
@@ -646,6 +443,12 @@ class FaceElement<3,2>/*: public BaseElement<element_traits<FaceElement<3,2> > >
     /// \brief Returns the centroid of the face element
     /// \brief The centroid is the point itself
     GeomPoint<3> centroid()const{return GeomPoint<3>(0.0);}
+
+    /// \brief computes a reference distance between the
+    /// centroids of the two elements sharing the FaceElement
+    /// If this lies on the the boundary then the centroid of
+    /// the FaceElementis used
+    real_t owner_neighbor_distance()const{return 0.0;}
   
    bool is_active()const{return true;}
 

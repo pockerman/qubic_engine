@@ -9,9 +9,7 @@
 namespace kernel
 {
 
-/**
- * @brief Exchange the rows of the matrix
- */
+/// \brief Exchange the rows of the matrix
 template<typename MatType>
 void exchange_rows(MatType& mat, uint_t r1, uint_t r2){
 
@@ -23,9 +21,7 @@ void exchange_rows(MatType& mat, uint_t r1, uint_t r2){
     }
 }
 
-/**
- * @brief Shuffle the rows of the matrix. Returns a set with the rows that have been shuffled
- */
+/// \brief Shuffle the rows of the matrix. Returns a set with the rows that have been shuffled
 template<typename MatType>
 std::set<uint_t> shuffle_matrix_rows(MatType& mat){
 
