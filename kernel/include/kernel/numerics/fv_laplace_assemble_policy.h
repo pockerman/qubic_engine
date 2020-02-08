@@ -53,8 +53,6 @@ public:
     void apply_boundary_conditions(const  std::vector<uint_t>& bfaces, TrilinosEpetraMatrix& mat,
                                    TrilinosEpetraVector& x, TrilinosEpetraVector& b )const;
 
-    void apply_boundary_conditions(const Mesh<dim>& mesh, TrilinosEpetraMatrix& mat,
-                                   TrilinosEpetraVector& x, TrilinosEpetraVector& b )const;
 #endif
 
     /// \brief Compute the fluxes over the cell last

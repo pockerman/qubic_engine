@@ -194,21 +194,11 @@ FVLaplaceAssemblyPolicy<dim>::apply_boundary_conditions(const  std::vector<uint_
         }
 }
 
-template<int dim>
-void
-FVLaplaceAssemblyPolicy<dim>::apply_boundary_conditions(const Mesh<dim>& mesh, TrilinosEpetraMatrix& mat,
-                                                        TrilinosEpetraVector& x, TrilinosEpetraVector& b )const{
-
-
-}
-
-
 #endif
 
 template class FVLaplaceAssemblyPolicy<1>;
 template class FVLaplaceAssemblyPolicy<2>;
 template class FVLaplaceAssemblyPolicy<3>;
-
 
 }
 }
