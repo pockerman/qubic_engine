@@ -39,7 +39,6 @@ VtkWriter::write_solution(const Mesh<1>& mesh, const TrilinosEpetraVector& data,
 void
 VtkWriter::write_solution(const Mesh<2>& mesh, const TrilinosEpetraVector& data, const FVDoFManager<2>& manager){
 
-    this->write_header();
     this->write_mesh(mesh);
 
     //get the number of active (this should be) elements
@@ -50,12 +49,10 @@ VtkWriter::write_solution(const Mesh<2>& mesh, const TrilinosEpetraVector& data,
     this->file_<<"SCALARS "<<manager.var_name()<<" double "<<std::endl;
     this->file_<<"LOOKUP_TABLE default"<<std::endl;
 
-
     ConstElementMeshIterator<Active, Mesh<2>> filter(mesh);
 
     auto elem_it     = filter.begin();
     auto elem_it_end = filter.end();
-
 
     for(; elem_it != elem_it_end; elem_it++){
 
@@ -64,6 +61,7 @@ VtkWriter::write_solution(const Mesh<2>& mesh, const TrilinosEpetraVector& data,
         manager.get_dofs(*e, dofs);
         this->file_<<data[dofs[0].id]<<std::endl;
     }
+    this->file_<<"\n";
 }
 
 #endif

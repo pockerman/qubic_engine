@@ -16,8 +16,10 @@ namespace numerics {
 /// forward declarations
 template<int dim> class FVGradBase;
 template<int dim> class Element;
+template<int dim> class Mesh;
 template<int dim> class FVDoFManager;
 template<int dim> class BoundaryFunctionBase;
+template<int dim> class NumericScalarFunction;
 
 #ifdef USE_TRILINOS
 class TrilinosEpetraMatrix;
@@ -43,17 +45,35 @@ public:
     void reinit(const Element<dim>& element, std::vector<real_t>&& qvals);
 
 #ifdef USE_TRILINOS
+
     /// \brief Assemble the data
     void assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b )const;
 
     /// \brief Apply the boundary conditions
-    void apply_boundary_conditions(const  std::vector<boost::any>& bfaces, TrilinosEpetraMatrix& mat,
+    void apply_boundary_conditions(const  std::vector<uint_t>& bfaces, TrilinosEpetraMatrix& mat,
+                                   TrilinosEpetraVector& x, TrilinosEpetraVector& b )const;
+
+    void apply_boundary_conditions(const Mesh<dim>& mesh, TrilinosEpetraMatrix& mat,
                                    TrilinosEpetraVector& x, TrilinosEpetraVector& b )const;
 #endif
 
     /// \brief Compute the fluxes over the cell last
     /// reinitialized
     void compute_fluxes();
+
+    /// \brief Set the function that describes the boundary conditions
+    void set_boundary_function(const BoundaryFunctionBase<dim>& func){boundary_func_ = &func;}
+
+    /// \brief Set the function that describes the boundary conditions
+    void set_rhs_function(const NumericScalarFunction<dim>& func){rhs_func_ = &func;}
+
+    /// \brief Set the object that describes the dofs
+    void set_dof_manager(const FVDoFManager<dim>& dof_manager){dof_manager_ = &dof_manager;}
+
+    /// \brief Build gradient
+    template<typename Factory>
+    void build_gradient(const Factory& factory);
+
 private:
 
     /// \brief Pointer to the FV gradient approximation
@@ -80,10 +100,21 @@ private:
     /// \brief The boundary function used
     const BoundaryFunctionBase<dim>* boundary_func_;
 
+    /// \brief Pointer to the function object that describes the
+    /// rhs
+    const NumericScalarFunction<dim>* rhs_func_;
+
     /// \brief initialize dofs
     void initialize_dofs_();
 };
 
+template<int dim>
+template<typename Factory>
+void
+FVLaplaceAssemblyPolicy<dim>::build_gradient(const Factory& factory){
+
+    fv_grads_ = factory();
+}
 
 }
 

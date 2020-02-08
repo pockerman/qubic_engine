@@ -29,7 +29,6 @@ FVDoFManager<dim>::distribute_dofs(Mesh<dim>& mesh, const ScalarVar& var){
 
     invalidate_dofs(mesh);
     do_distribute_dofs(mesh);
-
 }
 
 template<int dim>
@@ -37,7 +36,6 @@ void
 FVDoFManager<dim>::invalidate_dofs(Mesh<dim>& mesh){
 
     n_dofs_ = 0;
-
     ElementMeshIterator<Active, Mesh<dim>> filter(mesh);
     auto begin = filter.begin();
     auto end = filter.end();
@@ -47,7 +45,6 @@ FVDoFManager<dim>::invalidate_dofs(Mesh<dim>& mesh){
         auto* elem = *begin;
         elem->invalidate_dofs(var_name_);
     }
-
 }
 
 template<int dim>

@@ -201,7 +201,7 @@ public:
     uint_t boundary_indicator()const{return boundary_indicator_;}
 
     /// \brief
-    real_t volume()const{return 0.0;}
+    real_t volume()const;
 
     /// \brief computes a reference distance between the
     /// centroids of the two elements sharing the FaceElement

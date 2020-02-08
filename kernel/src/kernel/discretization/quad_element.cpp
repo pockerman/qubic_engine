@@ -76,11 +76,20 @@ Quad<2>::cface_ref_t
 Quad<2>::get_face(uint_t f)const{
 
     if(f >= n_faces()){
-        throw std::logic_error("Invalid node index: " +
+        throw std::logic_error("Invalid face index: " +
                                std::to_string(f) +
                                " not in [0," +
                                std::to_string(n_faces()) +
                                ")");
+    }
+
+    if(faces_.empty()){
+        throw std::logic_error("Faces have not been initialized for element: " +
+                               std::to_string(this->get_id()));
+    }
+
+    if(faces_[f] == nullptr){
+        throw std::logic_error("Face requested is NULL");
     }
 
     return *faces_[f];
@@ -98,7 +107,16 @@ Quad<2>::get_face(uint_t f){
                                ")");
     }
 
-     return *faces_[f];
+    if(faces_.empty()){
+        throw std::logic_error("Faces have not been initialized for element: " +
+                               std::to_string(this->get_id()));
+    }
+
+    if(faces_[f] == nullptr){
+        throw std::logic_error("Face requested is NULL");
+    }
+
+    return *faces_[f];
 }
 
 void

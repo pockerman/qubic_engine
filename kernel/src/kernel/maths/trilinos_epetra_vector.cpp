@@ -80,7 +80,16 @@ TrilinosEpetraVector::zero(){
 void
 TrilinosEpetraVector::init(uint_t n, bool fast){
 
-    epetra_map_.reset(new Epetra_Map(static_cast<int>(n),static_cast<int>(n), 0, comm_));
+    /// Epetra_Map constructor for a user-defined linear distribution of elements.
+    /// Creates a map that puts NumMyElements on the calling processor. If
+    ///   NumGlobalElements=-1, the number of global elements will be
+    ///   the computed sum of NumMyElements across all processors in the
+    ///   Epetra_Comm communicator.
+
+    auto NumMyElements = static_cast<int>(n);
+    auto NumGlobalElements = static_cast<int>(n);
+    auto index_start = 0;
+    epetra_map_.reset(new Epetra_Map(NumGlobalElements, NumMyElements,  index_start, comm_));
 
     //reser the map that the vector holds
     vec_.reset(new Epetra_Vector(*epetra_map_.get()));
@@ -94,13 +103,21 @@ TrilinosEpetraVector::init(uint_t n, bool fast){
 void
 TrilinosEpetraVector::init(uint_t n, real_t val){
 
-    epetra_map_.reset(new Epetra_Map(static_cast<int>(n),static_cast<int>(n), 0, comm_));
+    /// Epetra_Map constructor for a user-defined linear distribution of elements.
+    /// Creates a map that puts NumMyElements on the calling processor. If
+    ///   NumGlobalElements=-1, the number of global elements will be
+    ///   the computed sum of NumMyElements across all processors in the
+    ///   Epetra_Comm communicator.
+
+    auto NumMyElements = static_cast<int>(n);
+    auto NumGlobalElements = static_cast<int>(n);
+    auto index_start = 0;
+    epetra_map_.reset(new Epetra_Map(NumGlobalElements, NumMyElements,  index_start, comm_));
 
     //reser the map that the vector holds
     vec_.reset(new Epetra_Vector(*epetra_map_.get()));
     vec_->PutScalar(val);
 }
-
 
 
 void
@@ -120,7 +137,7 @@ TrilinosEpetraVector::set_entry(uint_t i, real_t val){
 
 
 void
-TrilinosEpetraVector::add(uint_t i,real_t val){
+TrilinosEpetraVector::add(uint_t i, real_t val){
 
     if(!vec_){
         throw std::logic_error("Vector has not been initialized");
@@ -171,6 +188,17 @@ TrilinosEpetraVector::compress(){
     //const int ierr = vec_->GlobalAssemble(mode);
 
     last_action_ = Zero;
+}
+
+std::ostream&
+TrilinosEpetraVector::print(std::ostream& out)const{
+
+    for(uint_t e=0; e<size(); ++e){
+
+        out<<(*this)[e]<<std::endl;
+    }
+
+    return out;
 }
 
 }

@@ -11,6 +11,8 @@
 #include <Epetra_SerialComm.h>
 #include <Epetra_Map.h>
 
+#include <ostream>
+
 namespace kernel{
 namespace numerics{
 
@@ -74,6 +76,9 @@ public:
 
     /// get one past the end of the vector
     iterator end();
+
+    /// \brief Print the vector
+    std::ostream& print(std::ostream& out)const;
 
 protected:
 

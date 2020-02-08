@@ -14,6 +14,7 @@ FVGradFactory<dim>::build(FVGradType type){
         case FVGradType::GAUSS:
         {
             ptr.reset(new FVGaussGrad<dim>());
+            break;
         }
         default:
         {

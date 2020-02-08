@@ -18,14 +18,15 @@ public:
     typedef GeomPoint<dim> input_t;
     typedef typename FunctionBase<real_t, GeomPoint<dim>>::output_t output_t;
 
-    /// \brief Constructor
-    BoundaryFunctionBase();
+    /// \brief Destructor
+    virtual ~BoundaryFunctionBase()
+    {}
 
     /// \brief Returns the value of the function
-    virtual output_t value(const GeomPoint<dim>&  input)const=0;
+    virtual output_t value(const GeomPoint<dim>&  input)const override{return 0.0;}
 
     /// \brief Returns the gradients of the function
-    virtual DynVec<real_t> gradients(const GeomPoint<dim>&  input)const=0;
+    virtual DynVec<real_t> gradients(const GeomPoint<dim>&  input)const{return DynVec<real_t>();}
 
     /// \brief Returns the number of coefficients
     virtual uint_t n_coeffs()const{return 0;}
@@ -50,6 +51,9 @@ public:
     bool has_condition(BCType type)const{return !get_boundaries(type).empty();}
 
 protected:
+
+    /// \brief Constructor
+    BoundaryFunctionBase();
 
     /// \brief map that holds the boundary condition type
     /// at the given boundary indicator

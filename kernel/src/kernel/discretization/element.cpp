@@ -1,4 +1,5 @@
 #include "kernel/discretization/element.h"
+#include "kernel/discretization/node.h"
 
 namespace kernel
 {
@@ -20,7 +21,6 @@ Element<dim>::~Element()
 template<int dim>
 void
 Element<dim>::invalidate_dofs(const std::string_view name){
-
     dofs_.invalidate_dofs(name);
 }
 
@@ -29,6 +29,14 @@ template<int dim>
 void
 Element<dim>::insert_dof(DoF&& dof){
     dofs_.insert_dof(std::move(dof));
+}
+
+template<int dim>
+void
+Element<dim>::get_dofs(std::string_view name, std::vector<DoF>& dofs)const{
+
+    dofs.clear();
+    dofs.push_back(dofs_.get_dof(name));
 }
 
 
@@ -92,7 +100,6 @@ void
 Element<dim>::append_node(typename Element<dim>::node_ptr_t node){
 
     if(!node){
-
         throw std::logic_error("Cannot add null node pointer");
     }
 
@@ -171,7 +178,37 @@ Element<dim>::which_neighbor_am_i(const Element<dim>& element)const{
 template<int dim>
 GeomPoint<dim>
 Element<dim>::centroid()const{
-    return GeomPoint<dim>(0.0);
+
+    auto vertices = get_vertices();
+    GeomPoint<dim> centroid(0.0);
+
+    for(auto* vertex:vertices){
+        centroid += *vertex;
+    }
+
+    return centroid /= n_vertices();
+}
+
+template<int dim>
+std::vector<typename Element<dim>::node_ptr_t>
+Element<dim>::get_vertices()const{
+
+    if(nodes_.empty()){
+        throw std::logic_error("Nodes list is not initialized");
+    }
+
+
+    std::vector<typename Element<dim>::node_ptr_t> vertices;
+    vertices.reserve(n_vertices());
+
+    for(uint_t n=0; n < n_nodes(); ++n){
+        if(nodes_[n] && nodes_[n]->is_vertex()){
+            vertices.push_back(nodes_[n]);
+        }
+    }
+
+    return vertices;
+
 }
 
 
