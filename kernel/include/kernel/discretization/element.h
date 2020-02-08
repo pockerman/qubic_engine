@@ -111,11 +111,14 @@ public:
     void insert_dof(DoF&& dof);
 
     /// \brief Return the dofs for the given variable
-    void get_dofs(std::string_view name, std::vector<DoF>& dofs)const{}
+    void get_dofs(std::string_view name, std::vector<DoF>& dofs)const;
 
     /// \brief Returns the local id relevant to the calling object
     /// of the  passed  object
     uint_t which_neighbor_am_i(const Element<dim>& element)const;
+
+    /// \brief Return the vertices of the element
+    std::vector<node_ptr_t> get_vertices()const;
 
 protected:
 

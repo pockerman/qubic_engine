@@ -83,66 +83,6 @@ FaceElement<spacedim,0>::owner_neighbor_distance()const{
     return owner_->centroid().distance(neighbor_->centroid());
 }
 
-/*FaceElement<1,0>::FaceElement()
-                        :
-                        GeomPoint<1>(),                       
-                        is_vertex_(false),
-                        boundary_indicator_(KernelConsts::invalid_size_type())
-                        {}
-               
-FaceElement<1,0>::FaceElement(uint_t global_id,
-                                     real_t val,
-                                     uint_t pid)
-                                     :
-                                     GeomPoint<1>(val),
-                                     is_vertex_(false),
-                                     boundary_indicator_(KernelConsts::invalid_size_type())
-                                     {}
-
-FaceElement<1,0>::FaceElement(uint_t global_id,
-                                     const std::vector<real_t>& data,
-                                     uint_t pid)
-                                     :
-                                     GeomPoint<1>(data),                                    
-                                     is_vertex_(false),
-                                     boundary_indicator_(KernelConsts::invalid_size_type())
-                                     {}
-                
-FaceElement<1,0>::FaceElement(const GeomPoint<1>& point, 
-                                     uint_t global_id,
-                                     uint_t pid)
-                                     :
-                                     GeomPoint<1>(point),
-
-                                     is_vertex_(false),
-                                     boundary_indicator_(KernelConsts::invalid_size_type())
-                                     {}
-                
-FaceElement<1,0>::FaceElement(const FaceElement<1,0>& t)
-                        :
-                       GeomPoint<1>(t.coordinates()),                       
-                       is_vertex_(t.is_vertex_),
-                       boundary_indicator_(t.boundary_indicator_)
-                       {}
-                       
-FaceElement<1,0>::~FaceElement()
-{}
-
-
-FaceElement<1,0>& 
-FaceElement<1,0>::operator=(const FaceElement<1,0>& o)
-{
-
-  if(this==&o)return *this;
-  
-  this->GeomPoint<1>::operator=(o);
-  is_vertex_ = o.is_vertex_;
-  boundary_indicator_ = o.boundary_indicator_;
-  
-  return *this;
-
-}
-*/
 
 FaceElement<2,1>::FaceElement()
                         :
@@ -242,7 +182,16 @@ FaceElement<2,1>::owner_neighbor_distance()const{
     }
 
     return owner_->centroid().distance(neighbor_->centroid());
+}
 
+real_t
+FaceElement<2,1>::volume()const{
+
+    if(this->nodes_.empty()){
+        throw std::logic_error("Nodes list has not been initialized");
+    }
+
+    return (*nodes_[0]).distance(*nodes_[1]);
 }
 
 const GeomPoint<2>
