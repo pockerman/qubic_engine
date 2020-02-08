@@ -12,6 +12,7 @@ namespace numerics {
 class TrilinosEpetraMatrix;
 class TrilinosEpetraVector;
 class TrilinosKrylovSolver;
+struct KrylovSolverResult;
 
 /// \brief A solution policy should
 /// expose the type of the matrix and vector
@@ -21,6 +22,7 @@ struct TrilinosSolutionPolicy
     typedef TrilinosEpetraMatrix matrix_t;
     typedef TrilinosEpetraVector vector_t;
     typedef TrilinosKrylovSolver solver_t;
+    typedef KrylovSolverResult solver_output_t;
 };
 
 }
