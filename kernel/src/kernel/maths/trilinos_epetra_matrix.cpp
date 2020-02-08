@@ -4,6 +4,7 @@
 
 #include <exception>
 #include <algorithm>
+#include <iostream>
 
 namespace kernel{
 namespace numerics{
@@ -20,12 +21,21 @@ TrilinosEpetraMatrix::~TrilinosEpetraMatrix()
 
 uint_t
 TrilinosEpetraMatrix::m () const{
- return mat_->NumGlobalRows();
+
+    if(! mat_){
+        throw std::logic_error("Matrix pointer has not been initialized");
+    }
+    return mat_->NumGlobalRows();
 }
 
 uint_t
 TrilinosEpetraMatrix::n() const{
- return mat_->NumGlobalCols();
+
+    if(! mat_){
+        throw std::logic_error("Matrix pointer has not been initialized");
+    }
+
+    return mat_->NumGlobalCols();
 }
 
 void
@@ -52,7 +62,7 @@ TrilinosEpetraMatrix::set_entry(uint_t i,uint_t j,real_t val){
     }
 
     if(success != 0){
-        throw std::logic_error("An error occured whilst setting the matrix entry");
+        throw std::logic_error("An error occured whilst setting the matrix entry ");
     }
 }
 
@@ -67,7 +77,6 @@ TrilinosEpetraMatrix::entry(uint_t i,  uint_t j)const{
     // the matrix.
     int trilinos_i = mat_->GRID(static_cast<int>(i));
     int trilinos_j = mat_->GCID(static_cast<int>(j));
-
 
     // If the data is not on the
     // present processor, we can't
@@ -228,6 +237,7 @@ TrilinosEpetraMatrix::add_entry(uint_t i, uint_t j, real_t val){
                throw std::logic_error("An error occured whilst adding the matrix entry");
            }
 
+          // we found the column so we can return
           return;
         }
       }
@@ -240,8 +250,6 @@ TrilinosEpetraMatrix::add_entry(uint_t i, uint_t j, real_t val){
 
     }
 }
-
-
 
 void
 TrilinosEpetraMatrix::add_row_entries(TrilinosEpetraMatrix::RowIndices& indices,
@@ -266,44 +274,86 @@ TrilinosEpetraMatrix::add_row_entries(TrilinosEpetraMatrix::RowIndices& indices,
 
     int success = 0;
     int numIndices=0;
-    int* idxs = nullptr;
+    int* idxs_ptr = nullptr;
 
-     graph.ExtractGlobalRowView(row,numIndices,idxs);
+     success = graph.ExtractGlobalRowView(row, numIndices, idxs_ptr);
 
-     if(numIndices==0){
+     if(success != 0){
+         throw std::logic_error("An error occured whilst extracting global row view. Error code is: " + std::to_string(success));
+     }
 
-       int Idxs[indices.size()];
+     if(numIndices == 0){
 
-       for(uint_t i=0; i<indices.size(); ++i){
-            Idxs[i] = static_cast<int>(indices[i]);
+       if(mat_->IndicesAreLocal()){
+           throw std::logic_error("Matrix indices should be not local");
        }
 
-       success = mat_->InsertGlobalValues (row, num_entries, &entries[0],Idxs); //(int *)&indices[0]);
+       if(mat_->IndicesAreContiguous()){
+           throw std::logic_error("Matrix indices should be not contiguous");
+       }
+
+       /// Insert a list of elements in a given global row of the matrix.
+       ///
+       /// This method is used to construct a matrix for the first time.  It cannot
+       /// be used if the matrix structure has already been fixed (via a call to FillComplete()).
+       /// If multiple values are inserted for the same matrix entry, the values are initially
+       /// stored separately, so memory use will grow as a result.  However, when FillComplete is called
+       /// the values will be summed together and the additional memory will be released.
+       ///
+       /// For example, if the values 2.0, 3.0 and 4.0 are all inserted in Row 1, Column 2, extra storage
+       /// is used to store each of the three values separately.  In this way, the insert process does not
+       /// require any searching and can be faster.  However, when FillComplete() is called, the values
+       /// will be summed together to equal 9.0 and only a single entry will remain in the matrix for
+       /// Row 1, Column 2.
+       ///
+       /// \param GlobalRow - (In) Row number (in global coordinates) to put elements.
+       /// \param NumEntries - (In) Number of entries.
+       /// \param Values - (In) Values to enter.
+       /// \param Indices - (In) Global column indices corresponding to values.
+       ///
+       /// \return Integer error code, set to 0 if successful. Note that if the
+       /// allocated length of the row has to be expanded, a positive warning code
+       /// will be returned.
+       ///
+       /// \warning This method may not be called once FillComplete() has been called.
+       ///
+       /// \pre IndicesAreLocal()==false && IndicesAreContiguous()==false
+       ///
+       ///
+       success = mat_->InsertGlobalValues (row, num_entries, &entries[0], (int*)&indices[0]);
 
        if(success != 0){
-           throw std::logic_error("An error occured whilst adding the matrix entry");
+           throw std::logic_error("An error occured whilst adding the matrix entry. Error code is: " + std::to_string(success));
        }
 
        return;
      }
-
-     if(numIndices!=0){
-
+     else{
 
         success = mat_->SumIntoGlobalValues(row, num_entries, &entries[0], (int *)&indices[0]);
         if(success != 0){
-          throw std::logic_error("An error occured whilst adding the matrix entry");
+          throw std::logic_error("An error occured whilst adding the matrix entry. Error code is: " + std::to_string(success));
         }
 
         return;
      }
 }
 
-void TrilinosEpetraMatrix::init(uint_t m, uint_t n, uint_t nz)
-{
+void TrilinosEpetraMatrix::init(uint_t m , uint_t n, uint_t nz){
+
+    /// Epetra_Map constructor for a user-defined linear distribution of elements.
+    /// Creates a map that puts NumMyElements on the calling processor. If
+    ///   NumGlobalElements=-1, the number of global elements will be
+    ///   the computed sum of NumMyElements across all processors in the
+    ///   Epetra_Comm communicator.
+
+    auto NumMyElements = static_cast<int>(m);
+    auto NumGlobalElements = static_cast<int>(m);
+    auto index_start = 0;
+    epetra_map_.reset(new Epetra_Map(NumGlobalElements, NumMyElements,  index_start, comm_));
 
    //zero based (C-style) indexing
-   epetra_map_.reset(new Epetra_Map(static_cast<int>(m), static_cast<int>(n),0,comm_));
+   //epetra_map_.reset(new Epetra_Map(NumGlobalElements, static_cast<int>(n), 0, comm_));
 
    //create the matrix
    mat_.reset(new Epetra_CrsMatrix (Copy, *epetra_map_.get(), static_cast<int>(nz)));
@@ -322,11 +372,20 @@ TrilinosEpetraMatrix::init(const Epetra_CrsGraph& graph)
 
 void
 TrilinosEpetraMatrix::zero(){
+
+ if(! mat_){
+     throw std::logic_error("Matrix pointer has not been initialized");
+ }
+
   mat_->Scale(0.0);
 }
 
 std::ostream&
 TrilinosEpetraMatrix::print(std::ostream& out)const{
+
+  if(! mat_){
+     throw std::logic_error("Matrix pointer has not been initialized");
+  }
 
   mat_->Print(out);
   return out;
