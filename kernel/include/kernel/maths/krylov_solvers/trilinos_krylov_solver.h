@@ -9,6 +9,8 @@
 #include "kernel/base/kernel_consts.h"
 #include "kernel/maths/krylov_solvers/krylov_solver_type.h"
 #include "kernel/maths/krylov_solvers/preconditioner_type.h"
+#include "kernel/maths/krylov_solvers/krylov_solver_output.h"
+#include "kernel/maths/krylov_solvers/krylov_solver_data.h"
 
 // Trilinos include files.
 #include <AztecOO.h>
@@ -23,89 +25,70 @@ namespace numerics{
 class TrilinosEpetraMatrix;
 class TrilinosEpetraVector;
 
-
+/// \brief Class that models a Krylov type solver
 class TrilinosKrylovSolver
 {
 
 public:
 
-  /// default ctor
-  TrilinosKrylovSolver();
-  
-  ///
-  /// \brief construct by passing in the preconditioner and solver types
-  ///
-  TrilinosKrylovSolver(PreconditionerType t,  KrylovSolverType kst,
-                        uint_t n_itrs, real_t tol);
-  
-  /// \brief dtor
-  ~TrilinosKrylovSolver();
-  
-  /// \brief set the preconditioner that the solver uses
-  void set_preconditioner(PreconditionerType t);
-  
-  /// set the solver type we want to use
-  void set_krylov_solver(KrylovSolverType t);
+  typedef KrylovSolverResult output_t;
 
-  /// set the solver iterations
-  void set_solver_iterations(uint_t nitrs){n_itrs_ = nitrs;}
+    /// default ctor
+    TrilinosKrylovSolver();
 
-  /// set the solver tolerance
-  ///
-  void set_solver_tolerance(real_t tol){tol_ = tol;}
+    /// \brief construct by passing in the preconditioner and solver types
+    TrilinosKrylovSolver(const KrylovSolverData& data);
 
-  /// set the data of the solver
-  void set_solver_data(PreconditionerType t, KrylovSolverType kst, uint_t n_itrs, real_t tol);
-  
-  /// \brief Solve the given system
-  std::pair<uint_t,real_t> solve(const TrilinosEpetraMatrix& A,
-                                       TrilinosEpetraVector& x,
-                                       const TrilinosEpetraVector& b);
+    /// \brief dtor
+    ~TrilinosKrylovSolver();
+
+    /// set the solver iterations
+    void set_solver_iterations(uint_t nitrs){data_.n_iterations = nitrs;}
+
+    /// set the solver tolerance
+    void set_solver_tolerance(real_t tol){data_.tolerance = tol;}
+
+    /// set the data of the solver
+    void set_solver_data(const KrylovSolverData& data);
+
+    /// \brief Solve the given system
+    output_t solve(const TrilinosEpetraMatrix& A,
+                 TrilinosEpetraVector& x, const TrilinosEpetraVector& b);
+
+protected:
+
+    /// \brief set the preconditioner that the solver uses
+    void set_preconditioner();
+
+    /// set the solver type we want to use
+    void set_krylov_solver();
   
 private:
   
-  /// \brief the preconditioner type we use
-  PreconditionerType prec_type_;
-  
-  /// \brief the solver type we use
-  KrylovSolverType kst_;
-
-  /// \brief number of iterations that the iterative solver is using
-  uint_t n_itrs_;
-
-  /// \brief the tolerance the solver is using
-  real_t tol_;
+  /// \brief the data the solver is using
+  KrylovSolverData data_;
   
   /// \brief Iplement the Krylov solver by using Trilinos::AztecOO
   AztecOO  linear_solver_;
 
 };
 
-//inline members
-
 inline
 TrilinosKrylovSolver::TrilinosKrylovSolver()
                             :
-                            prec_type_(PreconditionerType::INVALID_PREC),
-                            kst_(KrylovSolverType::INVALID_SOLVER),
-                            n_itrs_(0),
-                            tol_(std::numeric_limits<real_t>::max()),
+                            data_(),
                             linear_solver_()
                             {} 
                             
 
 inline
-TrilinosKrylovSolver::TrilinosKrylovSolver(PreconditionerType t, KrylovSolverType kst,
-                                          uint_t n_itrs,  real_t tol)
+TrilinosKrylovSolver::TrilinosKrylovSolver(const KrylovSolverData& data)
                             :
-                            prec_type_(t),
-                            kst_(kst),
-                            n_itrs_(n_itrs),
-                            tol_(tol),
-                            linear_solver_()
+                           data_(data),
+                           linear_solver_()
 {
-  set_preconditioner(t);
-  set_krylov_solver(kst);
+    set_preconditioner();
+    set_krylov_solver();
 }
 
 
