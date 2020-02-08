@@ -1,14 +1,18 @@
 #include "kernel/numerics/fv_laplace_assemble_policy.h"
 #include "kernel/numerics/fv_grad_base.h"
-#include "kernel/discretization/element.h"
-#include "kernel/discretization/face_element.h"
 #include "kernel/numerics/dof_manager.h"
-#include "kernel/base/types.h"
 #include "kernel/numerics/boundary_function_base.h"
 #include "kernel/numerics/boundary_conditions_type.h"
+#include "kernel/discretization/element.h"
+#include "kernel/discretization/face_element.h"
+#include "kernel/discretization/mesh.h"
+#include "kernel/discretization/element_mesh_iterator.h"
+#include "kernel/discretization/mesh_predicates.h"
+#include "kernel/base/types.h"
 #include "kernel/maths/functions/numeric_scalar_function.h"
 #include "kernel/maths/trilinos_epetra_matrix.h"
 #include "kernel/maths/trilinos_epetra_vector.h"
+
 
 #include "boost/any.hpp"
 #include <exception>
@@ -28,7 +32,8 @@ FVLaplaceAssemblyPolicy<dim>::FVLaplaceAssemblyPolicy()
       cell_dofs_(),
       dof_manager_(nullptr),
       boundary_func_(nullptr),
-      rhs_func_(nullptr)
+      rhs_func_(nullptr),
+      m_ptr_(nullptr)
 {}
 
 template<int dim>
@@ -106,7 +111,26 @@ FVLaplaceAssemblyPolicy<dim>::reinit(const Element<dim>& element, std::vector<re
 
 template<int dim>
 void
-FVLaplaceAssemblyPolicy<dim>::assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b )const{
+FVLaplaceAssemblyPolicy<dim>::assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b ){
+
+    // loop over the elements
+    ConstElementMeshIterator<Active, Mesh<dim>> filter(*m_ptr_);
+
+    auto elem_itr = filter.begin();
+    auto elem_itr_e = filter.end();
+
+    for(; elem_itr != elem_itr_e; ++elem_itr){
+
+        auto* elem = *elem_itr;
+
+        reinit(*elem);
+        assemble_one_element(mat, x, b);
+    }
+}
+
+template<int dim>
+void
+FVLaplaceAssemblyPolicy<dim>::assemble_one_element(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b ){
 
     auto n_dofs = cell_dofs_.size() + neigh_dofs_.size();
 
@@ -161,12 +185,13 @@ FVLaplaceAssemblyPolicy<dim>::assemble(TrilinosEpetraMatrix& mat, TrilinosEpetra
     if(!boundary_faces.empty() && boundary_func_ != nullptr){
         apply_boundary_conditions(boundary_faces, mat, x, b);
     }
+
 }
 
 template<int dim>
 void
 FVLaplaceAssemblyPolicy<dim>::apply_boundary_conditions(const  std::vector<uint_t>& bfaces, TrilinosEpetraMatrix& mat,
-                                                        TrilinosEpetraVector& x, TrilinosEpetraVector& b )const{
+                                                        TrilinosEpetraVector& x, TrilinosEpetraVector& b ){
 
         bool added=false;
 
@@ -194,21 +219,11 @@ FVLaplaceAssemblyPolicy<dim>::apply_boundary_conditions(const  std::vector<uint_
         }
 }
 
-template<int dim>
-void
-FVLaplaceAssemblyPolicy<dim>::apply_boundary_conditions(const Mesh<dim>& mesh, TrilinosEpetraMatrix& mat,
-                                                        TrilinosEpetraVector& x, TrilinosEpetraVector& b )const{
-
-
-}
-
-
 #endif
 
 template class FVLaplaceAssemblyPolicy<1>;
 template class FVLaplaceAssemblyPolicy<2>;
 template class FVLaplaceAssemblyPolicy<3>;
-
 
 }
 }

@@ -195,23 +195,11 @@ ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy>::assemble_system(){
         assembly_.set_rhs_function(*rhs_func_);
     }
 
-    // loop over the elements
-    ConstElementMeshIterator<Active, Mesh<dim>> filter(*m_ptr_);
-
-    auto elem_itr = filter.begin();
-    auto elem_itr_e = filter.end();
-
-    for(; elem_itr != elem_itr_e; ++elem_itr){
-
-        auto* elem = *elem_itr;
-
-        assembly_.reinit(*elem);
-        assembly_.assemble(matrix_, solution_, rhs_);
-    }
-
+    assembly_.set_mesh(*m_ptr_);
+    assembly_.assemble(matrix_, solution_, rhs_);
     matrix_.fill_completed();
-    //solution_.compress();
-    //rhs_.compress();
+    solution_.compress();
+    rhs_.compress();
 }
 
 template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
