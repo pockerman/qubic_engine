@@ -47,11 +47,14 @@ public:
 #ifdef USE_TRILINOS
 
     /// \brief Assemble the data
-    void assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b )const;
+    void assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b );
 
     /// \brief Apply the boundary conditions
     void apply_boundary_conditions(const  std::vector<uint_t>& bfaces, TrilinosEpetraMatrix& mat,
-                                   TrilinosEpetraVector& x, TrilinosEpetraVector& b )const;
+                                   TrilinosEpetraVector& x, TrilinosEpetraVector& b );
+
+    /// \brief assemble one element contribution
+    void assemble_one_element(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b );
 
 #endif
 
@@ -68,7 +71,10 @@ public:
     /// \brief Set the object that describes the dofs
     void set_dof_manager(const FVDoFManager<dim>& dof_manager){dof_manager_ = &dof_manager;}
 
-    /// \brief Build gradient
+    /// \brief Set the mesh pointer
+    void set_mesh(const Mesh<dim>& mesh){m_ptr_ = &mesh;}
+
+    /// \brief Build the  gradient scheme
     template<typename Factory>
     void build_gradient(const Factory& factory);
 
@@ -101,6 +107,9 @@ private:
     /// \brief Pointer to the function object that describes the
     /// rhs
     const NumericScalarFunction<dim>* rhs_func_;
+
+    /// \brief The Mesh over which the policy is working
+    const Mesh<dim>* m_ptr_;
 
     /// \brief initialize dofs
     void initialize_dofs_();
