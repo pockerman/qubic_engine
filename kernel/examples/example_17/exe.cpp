@@ -4,6 +4,8 @@
 #include "kernel/parallel/threading/stoppable_task.h"
 #include "kernel/parallel/data_structs/lockable_queue.h"
 #include "kernel/vehicles/difd_drive_vehicle.h"
+#include "kernel/geometry/geom_point.h"
+#include "kernel/utilities/csv_file_writer.h"
 
 
 #include <iostream>
@@ -24,6 +26,7 @@ using kernel::ThreadPool;
 using kernel::ThreadPoolOptions;
 using kernel::DiffDriveVehicle;
 using kernel::LockableQueue;
+using kernel::GeomPoint;
 
 const real_t DT = 0.5;
 
@@ -34,7 +37,6 @@ struct StopSimulation
     bool condition{false};
 };
 
-enum class RequestType{CMD, PLOT, PRINT};
 
 struct CMD
 {
@@ -74,13 +76,17 @@ public:
     /// \brief Returns the state of the vehicle as string
     std::string get_state_as_string()const;
 
+    /// \brief Returns the state of the vehicle as string
+    std::tuple<real_t, real_t> get_position()const;
+
+    /// \brief Returns the state of the vehicle as string
+    std::tuple<real_t, real_t, real_t, real_t> get_state()const;
+
 private:
 
     mutable std::mutex integrate_mutex_;
     DiffDriveVehicle* vehicle_ptr_;
-
     CMD cmd_;
-
 };
 
 DiffDriveVehicleWrapper::DiffDriveVehicleWrapper(DiffDriveVehicle& vehicle)
@@ -103,6 +109,7 @@ DiffDriveVehicleWrapper::integrate(){
 
 std::string
 DiffDriveVehicleWrapper::get_state_as_string()const{
+
     std::lock_guard<std::mutex> lock(integrate_mutex_);
 
     auto x = vehicle_ptr_->get_x_position();
@@ -110,6 +117,28 @@ DiffDriveVehicleWrapper::get_state_as_string()const{
     auto theta = vehicle_ptr_->get_orientation();
     auto velocity = vehicle_ptr_->get_velcoty();
     return std::to_string(x)+","+std::to_string(y)+","+std::to_string(theta)+","+std::to_string(velocity)+"\n";
+
+}
+
+std::tuple<real_t, real_t>
+DiffDriveVehicleWrapper::get_position()const{
+
+    std::lock_guard<std::mutex> lock(integrate_mutex_);
+
+    auto x = vehicle_ptr_->get_x_position();
+    auto y = vehicle_ptr_->get_y_position();
+    return {x,y};
+}
+
+std::tuple<real_t, real_t, real_t, real_t>
+DiffDriveVehicleWrapper::get_state()const{
+
+    auto x = vehicle_ptr_->get_x_position();
+    auto y = vehicle_ptr_->get_y_position();
+    auto theta = vehicle_ptr_->get_orientation();
+    auto velocity = vehicle_ptr_->get_velcoty();
+
+    return {x, y, theta, velocity};
 
 }
 
@@ -227,8 +256,10 @@ protected:
     LockableQueue<CMD>& cmds_;
     LockableQueue<std::string>& responses_;
     DiffDriveVehicleWrapper& vwrapper_;
+    GeomPoint<2> position_;
 
     void serve_request(const std::string& request);
+    void save_solution(kernel::CSVWriter& writer);
 };
 
 ServerThread::RequestTask::RequestTask(const StopSimulation& stop_condition,
@@ -249,11 +280,13 @@ ServerThread::RequestTask::RequestTask(const StopSimulation& stop_condition,
 void
 ServerThread::RequestTask::run(){
 
+    // the object that handles the solution output
+    kernel::CSVWriter writer("vehicle_state.csv");
+
+
     while(!this->should_stop()){
 
-        while(requests_.empty()){
-            std::this_thread::yield();
-        }
+        save_solution(writer);
 
         // otherwise create the input
         while(!requests_.empty()){
@@ -279,24 +312,76 @@ ServerThread::RequestTask::serve_request(const std::string& request){
         strings.push_back(s);
     }
 
-    if(strings[0] == "CMD"){
+    if(!strings.empty()){
+        if(strings[0] == "CMD"){
 
-        CMD cmd;
-        cmds_.push_item(cmd);
+            //we have a CMD
+            if(strings[1] == "S"){
+                auto [x, y, theta, velocity]  = vwrapper_.get_state();
+                cmds_.push_item(CMD::generate_cmd(0.0, theta, strings[1]));
+            }
+            else if(strings[1] == "V"){
+
+                    auto vel_str = strings[2];
+                    real_t vel = std::atof(vel_str.c_str());
+
+                    auto [x, y, theta, velocity]  = vwrapper_.get_state();
+                    real_t w = theta;
+
+                    if(strings.size() == 5 && strings[3] == "W" ){
+
+                        auto w_str = strings[4];
+                        w = std::atof(w_str.c_str());
+                    }
+
+                    cmds_.push_item(CMD::generate_cmd(vel*DT, w*DT, strings[1]));
+            }
+            else if(strings[1] == "W"){
+
+                    auto w_str = strings[2];
+                    real_t w = std::atof(w_str.c_str());
+
+                    auto [x, y, theta, velocity]  = vwrapper_.get_state();
+                    real_t v = velocity;
+
+                    if(strings.size() == 5 && strings[3] == "V" ){
+
+                        auto v_str = strings[4];
+                        v = std::atof(v_str.c_str());
+                    }
+
+                    cmds_.push_item(CMD::generate_cmd(v*DT, w*DT, strings[1]));
+
+            }
+        }
+        else if(strings[0] == "EXIT"){
+
+            this->get_condition().set_condition(true);
+            CMD exit(0.0, 0.0, "EXIT");
+            cmds_.push_item(exit);
+        }
+        else if(strings[0] == "PRINT"){
+            responses_.push_item(vwrapper_.get_state_as_string());
+        }
     }
-    else if(strings[0] == "EXIT"){
+}
 
-        this->get_condition().set_condition(true);
-        CMD exit(0.0, 0.0, "EXIT");
-        cmds_.push_item(exit);
-    }
-    else if(strings[0] == "PRINT"){
+void
+ServerThread::RequestTask::save_solution(kernel::CSVWriter& writer){
 
-        //std::lock_guard<std::mutex> lock(msg_mutex);
-        //std::cout<<"MESSAGE: Task "+this->get_name()<<" servicing PRINT..."<<std::endl;
-        //std::cout<<"MESSAGE: State is: "<<vwrapper_.get_state_as_string()<<std::endl;
 
-        responses_.push_item(vwrapper_.get_state_as_string());
+    auto [x, y]  = vwrapper_.get_position();
+    std::vector<real_t> row(2);
+    GeomPoint<2> current(std::vector<real_t>({x,y}));
+
+    if(position_.distance(current) > 100.0){
+        writer.open(std::ios_base::app);
+
+        row[0] = x;
+        row[1] = y;
+        writer.write_row(row);
+        writer.close();
+        position_ = current;
     }
 }
 
@@ -352,11 +437,6 @@ ServerThread::ClientTask::run(){
             requests_.push_item(request);
         }
 
-        // sleep until we get a response
-        while(responses_.empty()){
-           std::this_thread::yield();
-        }
-
         while(!responses_.empty()){
             //empty what is comming from the server
             auto response = responses_.pop_wait();
@@ -371,10 +451,8 @@ ServerThread::ClientTask::run(){
 void
 ServerThread::run(){
 
-
     // create the tasks and assign them
     // to the queue
-
     tasks_.reserve(3);
     tasks_.push_back(std::make_unique<ServerThread::SimulatorTask>(this->get_condition(), vwrapper_));
     tasks_.push_back(std::make_unique<ServerThread::RequestTask>(this->get_condition(), requests_, cmds_, responses_, vwrapper_));
@@ -423,7 +501,7 @@ int main(){
     using namespace example;
 
     const uint_t N_THREADS = 4;
-    const real_t RADIUS = 2.0;
+    const real_t RADIUS = 2.0/100.0;
 
     // the shared object that
     // controls when to stop
