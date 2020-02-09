@@ -22,8 +22,7 @@ template<int spacedim>
 class Mesh
 {
 
-
-  public:
+public:
 
     typedef typename MeshTopology<spacedim>::edge_ptr_t edge_ptr_t;
     typedef typename MeshTopology<spacedim>::face_ptr_t face_ptr_t;
@@ -55,24 +54,24 @@ class Mesh
     virtual ~Mesh();
 
 
-   void reserve_n_nodes(uint_t n){topology_.reserve_n_nodes(n);}
-   void reserve_n_elements(uint_t n){topology_.reserve_n_elements(n);}
-   void reserve_n_edges(uint_t n){topology_.reserve_n_edges(n);}
-   void reserve_n_faces(uint_t n){topology_.reserve_n_faces(n);}
+    void reserve_n_nodes(uint_t n){topology_.reserve_n_nodes(n);}
+    void reserve_n_elements(uint_t n){topology_.reserve_n_elements(n);}
+    void reserve_n_edges(uint_t n){topology_.reserve_n_edges(n);}
+    void reserve_n_faces(uint_t n){topology_.reserve_n_faces(n);}
 
    /**
      *\detailed create a vertex by passing in the coordinates
      *of the vertex. This will create a Node so optionally we can
      *pass in the global id and the processor id of the created node
      */
-   Node<spacedim>* create_vertex(const GeomPoint<spacedim, real_t>& point,
+    Node<spacedim>* create_vertex(const GeomPoint<spacedim, real_t>& point,
                                  uint_t global_id=KernelConsts::invalid_size_type(),
                                  uint_t pid = 0);
 
    /**
      *\detailed create a Node
      */
-   Node<spacedim>* create_node(const GeomPoint<spacedim, real_t>& point,
+    Node<spacedim>* create_node(const GeomPoint<spacedim, real_t>& point,
                                uint_t global_id=KernelConsts::invalid_size_type(),
                                uint_t pid = 0);
 
@@ -80,7 +79,7 @@ class Mesh
    /**
      *\detailed create an Element and get back the pointer
      */
-   Element<spacedim>* create_element(ElementType::sub_type t,
+    Element<spacedim>* create_element(ElementType::sub_type t,
                                      uint_t global_id=KernelConsts::invalid_size_type(),
                                      uint_t pid = 0);
 
@@ -88,7 +87,7 @@ class Mesh
    /**
      *\detailed create an edge and get back the pointer
      */
-   edge_ptr_t  create_edge(ElementType::sub_type t,
+    edge_ptr_t  create_edge(ElementType::sub_type t,
                          uint_t global_id=KernelConsts::invalid_size_type(),
                          uint_t pid = 0);
 
@@ -96,7 +95,7 @@ class Mesh
   /**
      *\detailed create a face and get back the pointer
      */
-  face_ptr_t create_face(ElementType::sub_type t,
+    face_ptr_t create_face(ElementType::sub_type t,
                        uint_t global_id=KernelConsts::invalid_size_type(),
                        uint_t pid=0);
 
@@ -104,72 +103,70 @@ class Mesh
   /**
     * \detailed set the number of boundaries for the mesh
     */
-  void set_n_boundaries(uint_t nb){n_boundaries_ = nb;}
+    void set_n_boundaries(uint_t nb){n_boundaries_ = nb;}
 
 
  /**
    *\detailed read/write acces to the n-th node
    */
-   Node<spacedim>* node(uint_t n){return topology_.node(n);}
+    Node<spacedim>* node(uint_t n){return topology_.node(n);}
 
 
  /**
    *\detailed read acces to the n-th node
    */
-
-  const Node<spacedim>* node(uint_t n)const{return topology_.node(n);}
-
+    const Node<spacedim>* node(uint_t n)const{return topology_.node(n);}
 
   /**
     *\detailed read/write access to the n-th element
     */
-  Element<spacedim>* element(uint_t e){return topology_.element(e);}
+    Element<spacedim>* element(uint_t e){return topology_.element(e);}
 
 
   /**
     *\detailed read access to the n-th element
     */
-  const Element<spacedim>* element(uint_t e)const{return topology_.element(e);}
+    const Element<spacedim>* element(uint_t e)const{return topology_.element(e);}
 
 
    /**
      *\detailed how many vertices the mesh has
      */
-   uint_t n_vertices()const;
+    uint_t n_vertices()const;
 
    /**
      *\detailed how many nodes the mesh has
      */
-   uint_t n_nodes()const{return topology_.n_nodes();}
+    uint_t n_nodes()const{return topology_.n_nodes();}
 
 
    /**
      *\detailed how many elements the mesh has
      */
-   uint_t n_elements()const{return topology_.n_elements();}
+    uint_t n_elements()const{return topology_.n_elements();}
 
 
    /**
      *\detailed how many edges the mesh has
      */
-   uint_t n_edges()const; //{return topology_.n_edges();}
+    uint_t n_edges()const; //{return topology_.n_edges();}
 
 
    /**
      *\detailed how many faces the mesh has
      */
-   uint_t n_faces()const; //{return topology_.n_faces();}
+    uint_t n_faces()const; //{return topology_.n_faces();}
 
 
    /**
      * get the active faces of the mesh
      */
-   uint_t n_active_faces()const;
+    uint_t n_active_faces()const;
 
    /**
      *\detailed return read/write access to the topology of the mesh
      */
-   MeshTopology<spacedim>* topology(){return &topology_;}
+    MeshTopology<spacedim>* topology(){return &topology_;}
 
     ///
     /// \brief Read access to the topology of the mesh
@@ -221,14 +218,10 @@ class Mesh
 
 private:
 
-    ///
     /// \brief The number of boundaries of the mesh
-    ///
     uint_t n_boundaries_;
 
-    ///
     /// \brief Describes how the various mesh entities are connected
-    ///
     MeshTopology<spacedim> topology_;
 };
 

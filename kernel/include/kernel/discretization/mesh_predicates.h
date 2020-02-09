@@ -28,6 +28,24 @@ struct OnProc
 
 };
 
+struct ActiveOnProc
+{
+
+  ActiveOnProc(uint_t pid=0)
+  :
+  pid_(pid)
+  {}
+
+  template<typename ITERATOR>
+  bool operator()(const ITERATOR* itr)const{
+    return itr->get_pid()==pid_ && itr->is_active();
+
+  }
+
+  uint_t pid_;
+
+};
+
 struct IsVertex
 {
 

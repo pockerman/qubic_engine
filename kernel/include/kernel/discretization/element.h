@@ -9,6 +9,12 @@
 #include "kernel/discretization/element_traits.h"
 #include "kernel/geometry/geom_point.h"
 
+#include "boost/any.hpp"
+
+#include <functional>
+#include <map>
+#include <string>
+
 namespace kernel{
 namespace numerics{
 
@@ -120,10 +126,13 @@ public:
     /// \brief Return the vertices of the element
     std::vector<node_ptr_t> get_vertices()const;
 
+    /// \brief Get the option with the given name
+    boost::any get_property(const std::string& name)const;
+
 protected:
 
     /// \brief Constructor
-    Element()=default;
+    Element();
 
     /// \brief Constructor
     Element(uint_t id, uint_t pid);
@@ -134,10 +143,12 @@ protected:
     /// \brief The nodes of the element
     std::vector<node_ptr_t> nodes_;
 
-
     /// \brief The object that handles
     /// the DoFs on the element
     DoFObject dofs_;
+
+    /// \brief Map of the accessor functions
+    std::map<std::string, std::function<boost::any()>> property_map_;
 };
 
 }
