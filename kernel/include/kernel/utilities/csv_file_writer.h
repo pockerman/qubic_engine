@@ -5,60 +5,41 @@
 #include "kernel/utilities/file_writer_base.h"
 #include <vector>
 
-namespace kernel
-{
+namespace kernel{
 
-/**
-  * \brief Handles writing into CSV file format
-  */
+/// \brief Handles writing into CSV file format
 class CSVWriter: public FileWriterBase
 {
 
 public:
 
-    /**
-     * @brief The default column delimiter
-     */
+    /// \brief  The default column delimiter
     static char default_delimiter(){return ',';}
 
-    /**
-     * @brief Constructor
-     */
-    CSVWriter(const std::string& filename, char delim=CSVWriter::default_delimiter(), bool open_file=false, const std::ios_base::openmode mode=std::ios_base::out);
+    /// \brief Constructor
+    CSVWriter(const std::string& filename, char delim=CSVWriter::default_delimiter(),
+              bool open_file=false, const std::ios_base::openmode mode=std::ios_base::out);
 
-    /**
-     * @brief Write the column names
-     */
+    /// \brief Write the column names
     void write_column_names(const std::vector<std::string>& col_names);
 
-    /**
-     * @brief Write a row of the file
-     */
+    /// \brief Write a row of the file
     template<typename T>
     void write_row(const std::vector<T>& vals);
 
-    /**
-     * @brief Write the given Vec as a row
-     */
+    /// \brief Write the given Vec as a row
     template<typename T>
     void write_row(const DynVec<T>& vals);
 
-    /**
-     * @brief Set the delimiter
-     */
+    /// \brief Set the delimiter
     void set_delimiter(char delim)noexcept{delim_=delim;}
 
-
-    /**
-     * @brief Returns the column delimiter
-     */
+    /// \brief Returns the column delimiter
     char get_delimiter()const noexcept{return delim_;}
 
 private:
 
-    /**
-     * @brief The delimiter used to separate the values
-     */
+    /// \brief The delimiter used to separate the values
     char delim_;
 
 };
@@ -73,10 +54,13 @@ CSVWriter::write_row(const std::vector<T>& vals){
 
     for(uint_t c=0; c<vals.size(); ++c){
 
-        file_<<vals[c]<<",";
+        file_<<vals[c];
 
         if(c == vals.size()-1){
             file_<<std::endl;
+        }
+        else{
+           file_<<",";
         }
     }
 }
@@ -92,10 +76,13 @@ CSVWriter::write_row(const DynVec<T>& vals){
 
     for(uint_t c=0; c<vals.size(); ++c){
 
-        file_<<vals[c]<<",";
+        file_<<vals[c];
 
         if(c == vals.size()-1){
             file_<<std::endl;
+        }
+        else{
+           file_<<",";
         }
     }
 

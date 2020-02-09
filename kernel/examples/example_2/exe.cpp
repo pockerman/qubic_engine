@@ -22,9 +22,9 @@ class Task: public kernel::StoppableTask<Condition>
 {
 public:
 
-    Task()
+    Task(Condition& condition)
         :
-    kernel::StoppableTask<Condition>()
+    kernel::StoppableTask<Condition>(condition)
     {}
 
 protected:
@@ -53,9 +53,12 @@ int main(){
     //create a pool and start it with two threads
     ThreadPool pool(2);
 
-    Task task_1;
-    auto& condition = task_1.get_condition();
-    pool.add_task(task_1); // add the task to execute
+    Condition condition;
+
+    Task task_1(condition);
+
+    // add the task to execute
+    pool.add_task(task_1);
 
     //simulate some long computaion
     {
