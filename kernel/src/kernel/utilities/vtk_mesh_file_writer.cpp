@@ -66,7 +66,6 @@ VtkMeshFileWriter::write_mesh(const Mesh<2>& mesh){
       }
 
       this->file_<<std::endl;
-
       this->file_<<"CELLS "<<n_elements<<" "<<n_elements*ele_n_nodes+n_elements<<std::endl;
 
       ConstElementMeshIterator<Active, Mesh<2>> filter(mesh);
@@ -98,6 +97,44 @@ VtkMeshFileWriter::write_mesh(const Mesh<2>& mesh){
       }
       this->file_<<std::endl;
       this->file_.flush();
+}
+
+void
+VtkMeshFileWriter::write_mesh(const Mesh<2>& mesh, const VtkMeshMeshCellOptions& options){
+
+    write_mesh(mesh);
+
+    // now let's write the options
+    for(const auto& option : options.options){
+        write_option(mesh, option);
+    }
+}
+
+void
+VtkMeshFileWriter::write_option(const Mesh<2>& mesh, const std::string& name){
+
+    //get the number of active (this should be) elements
+    const uint_t n_elements = mesh.n_elements();
+
+    this->file_<<std::endl;
+    this->file_<<"CELL_DATA"<<" "<<n_elements<<std::endl;
+    this->file_<<"SCALARS "<<name<<" double "<<std::endl;
+    this->file_<<"LOOKUP_TABLE default"<<std::endl;
+
+    ConstElementMeshIterator<Active, Mesh<2>> filter(mesh);
+
+    auto elem_it     = filter.begin();
+    auto elem_it_end = filter.end();
+
+    for(; elem_it != elem_it_end; elem_it++){
+
+        const Element<2>* e = *elem_it;
+        auto val = e->get_pid(); //boost::any_cast<real_t>(e->get_property(name));
+        this->file_<<val<<std::endl;
+    }
+    this->file_<<"\n";
+    this->file_.flush();
+
 }
 
 }
