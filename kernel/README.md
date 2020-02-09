@@ -91,9 +91,10 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 
 ### <a name="physics_simulation"></a> Physics Simulation
 
-- <a href="#">Example 7</a> Longitudinal Vehicle Model
+- <a href="#">Example 7: </a> Longitudinal Vehicle Model
 - <a href="examples/example_17/doc/exe.md">Example 17: </a>Simulate differential drive system
-- <a href="examples/example_19/doc/exe.md">Example 19: </a>Solve Laplace equation with collocated  finite volume method
+- <a href="examples/example_19/doc/exe.md">Example 19: </a>Solve Laplace equation with collocated  FVM
+- <a href="examples/example_20/doc/exe.md">Example 20: </a>Solve Laplace equation with collocated  FVM and multiple threads
 
 ### <a name="miscellaneous"></a> Miscellaneous
 
