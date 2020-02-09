@@ -1,6 +1,7 @@
 #include "kernel/discretization/element.h"
 #include "kernel/discretization/node.h"
 
+#include <functional>
 namespace kernel
 {
 
@@ -8,11 +9,27 @@ namespace numerics
 {
 
 template<int dim>
+Element<dim>::Element()
+    :
+      MeshEntity(KernelConsts::invalid_size_type(), KernelConsts::invalid_size_type()),
+      dofs_(),
+      property_map_()
+{
+    std::function<boost::any()> func = [this]()->boost::any{return this->get_pid();};
+    property_map_.insert({"pid", func});
+}
+
+template<int dim>
 Element<dim>::Element(uint_t id, uint_t pid)
     :
       MeshEntity(id, pid),
-      dofs_()
-{}
+      dofs_(),
+      property_map_()
+{
+
+    std::function<boost::any()> func = [this]()->boost::any{return this->get_pid();};
+    property_map_.insert({"pid", func});
+}
 
 template<int dim>
 Element<dim>::~Element()
@@ -209,6 +226,19 @@ Element<dim>::get_vertices()const{
 
     return vertices;
 
+}
+
+template<int dim>
+boost::any
+Element<dim>::get_property(const std::string& name)const{
+
+    auto itr = property_map_.find(name);
+
+    if(itr != property_map_.end()){
+        return (itr->second)();
+    }
+
+    throw std::logic_error("Property: " + name + " was not found");
 }
 
 

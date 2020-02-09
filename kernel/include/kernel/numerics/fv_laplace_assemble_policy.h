@@ -5,8 +5,6 @@
 #include "kernel/base/config.h"
 #include "kernel/numerics/dof.h"
 
-#include "boost/any.hpp"
-#include <memory>
 #include <vector>
 #include <string>
 

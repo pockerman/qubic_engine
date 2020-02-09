@@ -9,8 +9,6 @@ void partition_range(uint_t begin, uint_t end,
 
     uint_t total_work = end - begin;
 
-#ifdef KERNEL_DEBUG
-
     if(n_parts == 0){
         throw std::invalid_argument("Cannot partition range into zero parts");
     }
@@ -19,9 +17,8 @@ void partition_range(uint_t begin, uint_t end,
         throw std::invalid_argument("Cannot partition a range with equal start and end points");
     }
 
-#endif
 
-#ifdef KERNEL_LOG
+#ifdef USE_LOG
     std::chrono::time_point<std::chrono::system_clock> start_timing = std::chrono::system_clock::now();
 #endif
 
@@ -54,11 +51,12 @@ void partition_range(uint_t begin, uint_t end,
 
     partitions.push_back(range1d<uint_t>(start, end));
 
-#ifdef KERNEL_LOG
+#ifdef USE_LOG
     std::chrono::time_point<std::chrono::system_clock> end_timing = std::chrono::system_clock::now();
     std::chrono::duration<real_t> dur = end_timing-start_timing;
     std::ostringstream message;
-    message<<"SimplePartitioner::partition run time: "<<dur.count();
+    message<<"partition_range run time: "<<dur.count();
+    Logger::log_info(message.str());
 #endif
 
 

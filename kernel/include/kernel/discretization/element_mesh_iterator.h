@@ -1,13 +1,11 @@
 #ifndef ELEMENT_ITERATOR_H
 #define ELEMENT_ITERATOR_H
 
+#include "kernel/base/types.h"
 #include "kernel/utilities/filtered_iterator.h"
 
-namespace kernel
-{
-
-namespace numerics
-{
+namespace kernel{
+namespace numerics{
 
 template<typename Predicate, typename  MeshTp>
 class ElementMeshIterator
@@ -29,6 +27,14 @@ public:
 
     /// \brief end the iteration
     result_t end();
+
+    /// \brief begin iteration
+    template<typename T>
+    result_t begin(const T& item);
+
+    /// \brief end iteration
+    template<typename T>
+    result_t end(const T& item);
 
 protected:
 
@@ -59,6 +65,23 @@ ElementMeshIterator<Predicate, MeshTp>::end(){
 
 
 template<typename Predicate, typename  MeshTp>
+template<typename T>
+typename ElementMeshIterator<Predicate, MeshTp>::result_t
+ElementMeshIterator<Predicate, MeshTp>::begin(const T& item){
+    Predicate p(item);
+    return ElementMeshIterator<Predicate, MeshTp>::result_t(p, mesh_.elements_begin(), mesh_.elements_end() );
+}
+
+template<typename Predicate, typename  MeshTp>
+template<typename T>
+typename ElementMeshIterator<Predicate, MeshTp>::result_t
+ElementMeshIterator<Predicate, MeshTp>::end(const T& item){
+    Predicate p(item);
+    return ElementMeshIterator<Predicate, MeshTp>::result_t(p, mesh_.elements_end(), mesh_.elements_end() );
+}
+
+
+template<typename Predicate, typename  MeshTp>
 class ConstElementMeshIterator
 {
 
@@ -78,6 +101,14 @@ public:
 
     /// \brief end the iteration
     result_t end()const;
+
+    /// \brief begin iteration
+    template<typename T>
+    result_t begin(const T& item)const;
+
+    /// \brief end iteration
+    template<typename T>
+    result_t end(const T& item)const;
 
 protected:
 
@@ -103,6 +134,22 @@ template<typename Predicate, typename  MeshTp>
 typename ConstElementMeshIterator<Predicate, MeshTp>::result_t
 ConstElementMeshIterator<Predicate, MeshTp>::end()const{
     Predicate p;
+    return ConstElementMeshIterator<Predicate, MeshTp>::result_t(p, mesh_.elements_end(), mesh_.elements_end() );
+}
+
+template<typename Predicate, typename  MeshTp>
+template<typename T>
+typename ConstElementMeshIterator<Predicate, MeshTp>::result_t
+ConstElementMeshIterator<Predicate, MeshTp>::begin(const T& item)const{
+    Predicate p(item);
+    return ConstElementMeshIterator<Predicate, MeshTp>::result_t(p, mesh_.elements_begin(), mesh_.elements_end() );
+}
+
+template<typename Predicate, typename  MeshTp>
+template<typename T>
+typename ConstElementMeshIterator<Predicate, MeshTp>::result_t
+ConstElementMeshIterator<Predicate, MeshTp>::end(const T& item)const{
+    Predicate p(item);
     return ConstElementMeshIterator<Predicate, MeshTp>::result_t(p, mesh_.elements_end(), mesh_.elements_end() );
 }
 
