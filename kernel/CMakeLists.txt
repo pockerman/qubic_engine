@@ -36,10 +36,12 @@ ENDIF()
 
 SET(BUILD_SHARED_LIBS ON)
 SET(CMAKE_BUILD_TYPE "Debug")
-SET(ENABLE_TESTING "OFF")
+SET(ENABLE_TESTING "ON")
 SET(USE_OPENMP "ON")
 SET(USE_LOG "ON")
-SET(CMAKE_INSTALL_PREFIX ${PWD}/install)
+SET(USE_FVM "ON")
+SET(USE_TRILINOS "ON")
+SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install)
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/kernel)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
@@ -58,6 +60,13 @@ SET(BLAZE_INCL_DIR " ")
 
 IF( BLAZE_INCL_DIR MATCHES " " )
     MESSAGE( FATAL_ERROR  "Blaze include directory has not been specified")
+ENDIF()
+
+IF(USE_TRILINOS MATCHES "ON")
+SET(TRILINOS_INCL_DIR " ")
+SET(TRILINOS_LIB_DIR " ")
+INCLUDE_DIRECTORIES(${TRILINOS_INCL_DIR})
+LINK_DIRECTORIES(${TRILINOS_LIB_DIR})
 ENDIF()
 
 
@@ -116,7 +125,12 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/utilities/*.cpp
                  ${PROJECT_SRC_DIR}/vehicles/*.cpp
                  ${PROJECT_SRC_DIR}/maths/functions/*.cpp
-                 ${PROJECT_SRC_DIR}/dynamics/*.cpp)
+                 ${PROJECT_SRC_DIR}/maths/krylov_solvers/*.cpp
+                 ${PROJECT_SRC_DIR}/maths/*.cpp
+                 ${PROJECT_SRC_DIR}/dynamics/*.cpp
+                 ${PROJECT_SRC_DIR}/numerics/*.cpp
+                 ${PROJECT_SRC_DIR}/discretization/*.cpp
+                 ${PROJECT_SRC_DIR}/geometry/*.cpp)
 
 
 ADD_LIBRARY(${LIB_NAME} SHARED ${SRCS})

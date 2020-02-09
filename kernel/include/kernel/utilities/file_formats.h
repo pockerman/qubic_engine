@@ -16,7 +16,7 @@ struct FileFormats
   /**
     *@brief File formats types
     */
-  enum class Type{CSV=0, INVALID_TYPE};
+  enum class Type{CSV=0, VTK=1, INVALID_TYPE};
 
   /**
     *@brief Return an std::string representation of the given file format type

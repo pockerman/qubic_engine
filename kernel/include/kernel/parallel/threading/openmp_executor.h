@@ -40,6 +40,8 @@ class OMPExecutor: private boost::noncopyable
 
 public:
 
+    /// \brief Default options to use when assigning tasks;
+    typedef OMPOptions default_options_t;
 
     /// \brief Constructor. Set the number of threads
     /// to be used by calling omp_set_num_threads
