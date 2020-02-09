@@ -5,14 +5,12 @@
 #include "kernel/base/types.h"
 #include "kernel/utilities/range_1d.h"
 
-#ifdef KERNEL_LOG
+#ifdef USE_LOG
+#include "kernel/utilities/logger.h"
 #include <chrono>
 #include <sstream>
 #endif
 
-#ifdef KERNEL_DEBUG
-#include <stdexcept> //for std::invalid_argument
-#endif
 
 namespace kernel
 {
@@ -23,8 +21,6 @@ void partition_range(IteratorTp begin, const IteratorTp end,
 
     uint_t total_work = std::distance(begin, end);
 
-#ifdef KERNEL_DEBUG
-
     if(n_parts == 0){
         throw std::invalid_argument("Cannot partition range into zero parts");
     }
@@ -33,9 +29,7 @@ void partition_range(IteratorTp begin, const IteratorTp end,
         throw std::invalid_argument("Cannot partition a range with equal start and end points");
     }
 
-#endif
-
-#ifdef KERNEL_LOG
+#ifdef USE_LOG
     std::chrono::time_point<std::chrono::system_clock> start_timing = std::chrono::system_clock::now();
 #endif
 
@@ -68,12 +62,12 @@ void partition_range(IteratorTp begin, const IteratorTp end,
 
     partitions.push_back(range1d<IteratorTp>(start, end));
 
-#ifdef KERNEL_LOG
+#ifdef USE_LOG
     std::chrono::time_point<std::chrono::system_clock> end_timing = std::chrono::system_clock::now();
     std::chrono::duration<real_t> dur = end_timing-start_timing;
     std::ostringstream message;
-    message<<"SimplePartitioner::partition run time: "<<dur.count();
-    //rt_root::log_info(message.str());
+    message<<"partition_range run time: "<<dur.count();
+    Logger::log_info(message.str());
 #endif
 
 }

@@ -30,6 +30,9 @@ class ThreadPool: private boost::noncopyable
 {
 public:
 
+    /// \brief Default options to use when assigning tasks;
+    typedef Null default_options_t;
+
     /// \brief Type of task this pool handles
     typedef TaskBase task_t;
 
