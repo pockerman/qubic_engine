@@ -1,5 +1,7 @@
 #include "kernel/maths/trilinos_epetra_vector.h"
 
+#ifdef USE_TRILINOS
+
 #include <exception>
 
 namespace kernel{
@@ -203,3 +205,4 @@ TrilinosEpetraVector::print(std::ostream& out)const{
 
 }
 }
+#endif
