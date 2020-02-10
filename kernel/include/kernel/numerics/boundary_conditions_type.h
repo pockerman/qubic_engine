@@ -4,7 +4,9 @@
 namespace kernel {
 namespace numerics {
 
-enum class BCType{DIRICHLET,  NEUMANN, INVALID_BC_TYPE};
+enum class BCType{DIRICHLET,  ZERO_DIRICHLET,
+                  NEUMANN, ZERO_NEUMANN,
+                  INVALID_BC_TYPE};
 
 }
 
