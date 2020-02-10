@@ -36,6 +36,18 @@ public:
     /// the distance Dk and orientation. It also uses error terms
     void integrate(real_t distance, real_t orientation, const std::array<real_t, 2>& errors);
 
+    /// \brief Read access to the state
+    const state_t& get_state()const{return state_;}
+
+    /// \brief Read the x-coordinate
+    real_t get_x_position()const{return state_.get("X");}
+
+    /// \brief Read the y-coordinate
+    real_t get_y_position()const{return state_.get("Y");}
+
+    /// \brief Read the y-coordinate
+    real_t get_orientation()const{return state_.get("Theta");}
+
 private:
 
     /// \brief Object describing the state of the dynamics

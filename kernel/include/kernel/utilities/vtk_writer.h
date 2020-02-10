@@ -2,6 +2,7 @@
 #define VTK_WRITER_H
 
 #include "kernel/base/config.h"
+#include "kernel/base/types.h"
 #include "kernel/utilities/file_writer_base.h"
 #include "kernel/utilities/vtk_mesh_file_writer.h"
 
@@ -30,6 +31,10 @@ public:
     /// constructor of this class
     void write_solution(const Mesh<2>& mesh, const TrilinosEpetraVector& data, const FVDoFManager<2>& manager);
 #endif
+
+    /// \brief Write the mesh into the file specified in
+    /// constructor of this class
+    void write_solution(const Mesh<2>& mesh, const DynVec<real_t>& data, const FVDoFManager<2>& manager);
 
 
 };
