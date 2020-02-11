@@ -2,7 +2,8 @@
 
 ## Contents
 
-* [Overview](#overview) 
+* [Overview](#overview)
+* [Upwind scheme](#upwind_scheme)
 * [Include files](#include_files)
 * [The main function](#m_func)
 * [Results](#results)
@@ -10,9 +11,13 @@
 
 ## <a name="overview"></a> Overview
 
+## <a name="upwind_scheme"></a> Upwind scheme
+
 ## <a name="include_files"></a> Include files
 
 ```
+#include "kernel/base/config.h"
+
 #include "kernel/base/config.h"
 
 #ifdef USE_TRILINOS
@@ -25,20 +30,24 @@
 #include "kernel/utilities/filtered_iterator.h"
 #include "kernel/discretization/element_mesh_iterator.h"
 #include "kernel/discretization/mesh_predicates.h"
-#include "kernel/numerics/scalar_fv_system.h"
-#include "kernel/numerics/trilinos_solution_policy.h"
-#include "kernel/numerics/fv_laplace_assemble_policy.h"
+
 #include "kernel/maths/trilinos_epetra_matrix.h"
 #include "kernel/maths/trilinos_epetra_vector.h"
 #include "kernel/maths/krylov_solvers/trilinos_krylov_solver.h"
-#include "kernel/numerics/scalar_dirichlet_bc_function.h"
 #include "kernel/maths/krylov_solvers/krylov_solver_data.h"
 #include "kernel/maths/krylov_solvers/krylov_solver_type.h"
 #include "kernel/maths/krylov_solvers/preconditioner_type.h"
-#include "kernel/numerics/fv_grad_factory.h"
-#include "kernel/numerics/fv_grad_types.h"
 #include "kernel/maths/functions/numeric_scalar_function.h"
+#include "kernel/maths/functions/numeric_vector_function.h"
+
+#include "kernel/numerics/scalar_dirichlet_bc_function.h"
+#include "kernel/numerics/fv_interpolation_factory.h"
+#include "kernel/numerics/fv_interpolation_types.h"
+#include "kernel/numerics/scalar_fv_system.h"
+#include "kernel/numerics/trilinos_solution_policy.h"
+#include "kernel/numerics/fv_convection_assemble_policy.h"
 #include "kernel/numerics/boundary_function_base.h"
+#include "kernel/numerics/fv_ud_interpolation.h"
 
 #include <cmath>
 #include <iostream>
@@ -55,7 +64,8 @@ using kernel::numerics::Mesh;
 using kernel::GeomPoint;
 using kernel::numerics::ScalarFVSystem;
 using kernel::numerics::TrilinosSolutionPolicy;
-using kernel::numerics::FVLaplaceAssemblyPolicy;
+using kernel::numerics::FVConvectionAssemblyPolicy;
+using kernel::numerics::FVInterpolationFactory;
 using kernel::numerics::ScalarDirichletBCFunc;
 using kernel::numerics::KrylovSolverData;
 
@@ -69,8 +79,53 @@ public:
 
 real_t
 RhsVals::value(const GeomPoint<2>& /*point*/)const{
-    return 1.0;
+    return 0.0;
 }
+
+
+class VelocityVals: public kernel::numerics::NumericVectorFunctionBase<2>
+{
+public:
+
+    /// \brief Returns the value of the function
+    virtual kernel::DynVec<real_t> value(const GeomPoint<2>&  input)const override final;
+};
+
+kernel::DynVec<real_t>
+VelocityVals::value(const GeomPoint<2>&  /*input*/)const{
+
+   return kernel::DynVec<real_t>(2, 1.0);
+
+}
+
+// The BC description
+class AdvectionBC: public kernel::numerics::BoundaryFunctionBase<2>
+{
+public:
+
+    typedef kernel::numerics::BoundaryFunctionBase<2>::input_t input_t;
+    typedef kernel::numerics::BoundaryFunctionBase<2>::output_t output_t;
+
+    // constructor
+    AdvectionBC();
+
+    //
+    // \brief Returns the value of the function on the Dirichlet boundary
+    virtual output_t value(const GeomPoint<2>&  /*input*/)const override{return 1.0;}
+
+};
+
+AdvectionBC::AdvectionBC()
+    :
+    kernel::numerics::BoundaryFunctionBase<2>()
+{
+    this->set_bc_type(0, kernel::numerics::BCType::ZERO_DIRICHLET);
+    this->set_bc_type(1, kernel::numerics::BCType::ZERO_NEUMANN);
+    this->set_bc_type(2, kernel::numerics::BCType::ZERO_NEUMANN);
+    this->set_bc_type(3, kernel::numerics::BCType::DIRICHLET);
+}
+
+
 
 }
 
@@ -89,9 +144,6 @@ int main(){
             GeomPoint<2> start(0.0);
             GeomPoint<2> end(1.0);
 
-            std::cout<<"Starting point: "<<start<<std::endl;
-            std::cout<<"Ending point: "<<end<<std::endl;
-
             // generate the mesh
             kernel::numerics::build_quad_mesh(mesh, nx, ny, start, end);
         }
@@ -100,35 +152,43 @@ int main(){
         KrylovSolverData data;
         data.tolerance = kernel::KernelConsts::tolerance();
         data.n_iterations = 1000;
-        data.solver_type = kernel::numerics::KrylovSolverType::CG;
+        data.solver_type = kernel::numerics::KrylovSolverType::GMRES;
         data.precondioner_type = kernel::numerics::PreconditionerType::ILU;
 
         // description of the BC the system is using
-        ScalarDirichletBCFunc<2> bc_func(0.0, mesh.n_boundaries());
+        AdvectionBC bc_func;
 
+        // description of the RHS
         RhsVals rhs;
 
+        // description of the Velocity field
+        VelocityVals velocity;
+
         // laplace system
-        ScalarFVSystem<2, FVLaplaceAssemblyPolicy<2>, TrilinosSolutionPolicy> laplace("Laplace", "U", mesh);
+        ScalarFVSystem<2, FVConvectionAssemblyPolicy<2>, TrilinosSolutionPolicy> convection("Convection", "U", mesh);
 
         // system configuration
-        laplace.set_boundary_function(bc_func);
-        laplace.set_rhs_function(rhs);
-        laplace.set_solver_data(data);
+        convection.set_boundary_function(bc_func);
+        convection.set_rhs_function(rhs);
+        convection.set_solver_data(data);
 
-        auto grad_builder = [](){
-            return kernel::numerics::FVGradFactory<2>::build(kernel::numerics::FVGradType::GAUSS);
+        auto interpolate_builder = [](){
+            return kernel::numerics::FVInterpolationFactory<2>::build(kernel::numerics::FVInterpolationType::UD);
         };
 
-        laplace.get_assembly_policy().build_gradient(grad_builder);
+        convection.get_assembly_policy().build_interpolate_scheme(interpolate_builder);
+
+        std::shared_ptr<kernel::numerics::FVInterpolateBase<2>> interpolation = convection.get_assembly_policy().get_interpolation();
+        dynamic_cast<kernel::numerics::FVUDInterpolate<2>*>(interpolation.get())->set_velocity(velocity);
+
 
         // distribute the dofs
-        laplace.distribute_dofs();
-        std::cout<<"Number of dofs: "<<laplace.n_dofs()<<std::endl;
+        convection.distribute_dofs();
+        std::cout<<"Number of dofs: "<<convection.n_dofs()<<std::endl;
 
-        laplace.assemble_system();
-        laplace.solve();
-        laplace.save_solution("laplace_system.vtk");
+        convection.assemble_system();
+        convection.solve();
+        convection.save_solution("convection_system.vtk");
 
     }
     catch(std::logic_error& error){
@@ -155,112 +215,35 @@ int main(){
 ## <a name="results"></a> Results
 
 ```
-Starting point: ( 0,0 )
-Ending point: ( 1,1 )
 Number of dofs: 10000
 
                 *******************************************************
                 ***** Problem: Epetra::CrsMatrix
-                ***** Preconditioned CG solution
+                ***** Preconditioned GMRES solution
                 ***** ILU(0) domain decomp. without overlap
                 ***** No scaling
                 ***** NOTE: convergence VARIES when the total number of
                 *****       processors is changed.
                 *******************************************************
 
-AZ_check_options: WARNING: Preconditioned matrix may not be symmetric.
-
-
-*********************************************************************
-*****  Condition number estimate for subdomain preconditioner on PE 0 = 1.7071e+00
-*********************************************************************
                 iter:    0           residual = 1.000000e+00
-                iter:    1           residual = 4.800774e+00
-                iter:    2           residual = 4.300148e+00
-                iter:    3           residual = 3.839278e+00
-                iter:    4           residual = 3.543250e+00
-                iter:    5           residual = 3.376338e+00
-                iter:    6           residual = 3.267088e+00
-                iter:    7           residual = 3.078987e+00
-                iter:    8           residual = 2.773267e+00
-                iter:    9           residual = 2.451940e+00
-                iter:   10           residual = 2.186527e+00
-                iter:   11           residual = 1.964334e+00
-                iter:   12           residual = 1.747849e+00
-                iter:   13           residual = 1.524745e+00
-                iter:   14           residual = 1.306708e+00
-                iter:   15           residual = 1.101180e+00
-                iter:   16           residual = 9.052410e-01
-                iter:   17           residual = 7.174600e-01
-                iter:   18           residual = 5.381350e-01
-                iter:   19           residual = 3.705766e-01
-                iter:   20           residual = 2.300593e-01
-                iter:   21           residual = 1.347870e-01
-                iter:   22           residual = 9.050665e-02
-                iter:   23           residual = 8.960784e-02
-                iter:   24           residual = 9.210915e-02
-                iter:   25           residual = 5.514978e-02
-                iter:   26           residual = 3.161312e-02
-                iter:   27           residual = 3.110760e-02
-                iter:   28           residual = 2.241342e-02
-                iter:   29           residual = 1.380230e-02
-                iter:   30           residual = 1.348746e-02
-                iter:   31           residual = 7.879729e-03
-                iter:   32           residual = 5.985208e-03
-                iter:   33           residual = 4.102000e-03
-                iter:   34           residual = 2.476748e-03
-                iter:   35           residual = 1.805104e-03
-                iter:   36           residual = 1.047876e-03
-                iter:   37           residual = 7.969008e-04
-                iter:   38           residual = 5.143099e-04
-                iter:   39           residual = 5.088492e-04
-                iter:   40           residual = 5.269661e-04
-                iter:   41           residual = 6.419753e-04
-                iter:   42           residual = 6.016462e-04
-                iter:   43           residual = 4.251268e-04
-                iter:   44           residual = 2.779335e-04
-                iter:   45           residual = 1.557795e-04
-                iter:   46           residual = 1.029964e-04
-                iter:   47           residual = 5.524558e-05
-                iter:   48           residual = 3.245886e-05
-                iter:   49           residual = 2.130091e-05
-                iter:   50           residual = 1.669330e-05
-                iter:   51           residual = 1.300442e-05
-                iter:   52           residual = 9.095541e-06
-                iter:   53           residual = 7.434643e-06
-                iter:   54           residual = 4.823674e-06
-                iter:   55           residual = 2.621504e-06
-                iter:   56           residual = 1.837715e-06
-                iter:   57           residual = 1.321035e-06
-                iter:   58           residual = 1.077122e-06
-                iter:   59           residual = 1.064417e-06
-                iter:   60           residual = 8.392690e-07
-                iter:   61           residual = 5.583901e-07
-                iter:   62           residual = 3.338056e-07
-                iter:   63           residual = 2.309393e-07
-                iter:   64           residual = 1.769351e-07
-                iter:   65           residual = 1.401823e-07
-                iter:   66           residual = 1.055187e-07
-                iter:   67           residual = 7.731635e-08
-                iter:   68           residual = 9.196692e-08
-                iter:   69           residual = 1.085794e-07
-                iter:   70           residual = 1.223716e-07
-                iter:   71           residual = 9.632674e-08
-                iter:   72           residual = 8.904028e-08
-                iter:   73           residual = 6.697396e-08
-                iter:   74           residual = 4.398745e-08
-                iter:   75           residual = 2.564682e-08
-                iter:   76           residual = 1.892250e-08
-                iter:   77           residual = 1.327325e-08
-                iter:   78           residual = 8.844003e-09
+
+*********************************************************************
+*****  Condition number estimate for subdomain preconditioner on PE 0 = 9.4365e+03
+*********************************************************************
+                iter:    1           residual = 1.390809e-15
 
 
-                Solution time: 0.036388 (sec.)
-                total iterations: 78
+                Solution time: 0.014045 (sec.)
+                total iterations: 1
 ```
 
-<img src="laplace.png"
-     alt="Laplace view"
+<img src="2d_view.png"
+     alt="Solution view 2D"
+     style="float: left; margin-right: 10px;" />
+
+<img src="3d_view.png"
+     alt="Solution view 3D"
      style="float: left; margin-right: 10px;" />
 
 

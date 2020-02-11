@@ -10,20 +10,24 @@
 #include "kernel/utilities/filtered_iterator.h"
 #include "kernel/discretization/element_mesh_iterator.h"
 #include "kernel/discretization/mesh_predicates.h"
-#include "kernel/numerics/scalar_fv_system.h"
-#include "kernel/numerics/trilinos_solution_policy.h"
-#include "kernel/numerics/fv_convection_assemble_policy.h"
+
 #include "kernel/maths/trilinos_epetra_matrix.h"
 #include "kernel/maths/trilinos_epetra_vector.h"
 #include "kernel/maths/krylov_solvers/trilinos_krylov_solver.h"
-#include "kernel/numerics/scalar_dirichlet_bc_function.h"
-
 #include "kernel/maths/krylov_solvers/krylov_solver_data.h"
 #include "kernel/maths/krylov_solvers/krylov_solver_type.h"
 #include "kernel/maths/krylov_solvers/preconditioner_type.h"
 #include "kernel/maths/functions/numeric_scalar_function.h"
 #include "kernel/maths/functions/numeric_vector_function.h"
+
+#include "kernel/numerics/scalar_dirichlet_bc_function.h"
+#include "kernel/numerics/fv_interpolation_factory.h"
+#include "kernel/numerics/fv_interpolation_types.h"
+#include "kernel/numerics/scalar_fv_system.h"
+#include "kernel/numerics/trilinos_solution_policy.h"
+#include "kernel/numerics/fv_convection_assemble_policy.h"
 #include "kernel/numerics/boundary_function_base.h"
+#include "kernel/numerics/fv_ud_interpolation.h"
 
 #include <cmath>
 #include <iostream>
@@ -37,6 +41,7 @@ using kernel::GeomPoint;
 using kernel::numerics::ScalarFVSystem;
 using kernel::numerics::TrilinosSolutionPolicy;
 using kernel::numerics::FVConvectionAssemblyPolicy;
+using kernel::numerics::FVInterpolationFactory;
 using kernel::numerics::ScalarDirichletBCFunc;
 using kernel::numerics::KrylovSolverData;
 
@@ -50,7 +55,7 @@ public:
 
 real_t
 RhsVals::value(const GeomPoint<2>& /*point*/)const{
-    return 1.0;
+    return 0.0;
 }
 
 
@@ -115,9 +120,6 @@ int main(){
             GeomPoint<2> start(0.0);
             GeomPoint<2> end(1.0);
 
-            std::cout<<"Starting point: "<<start<<std::endl;
-            std::cout<<"Ending point: "<<end<<std::endl;
-
             // generate the mesh
             kernel::numerics::build_quad_mesh(mesh, nx, ny, start, end);
         }
@@ -145,13 +147,16 @@ int main(){
         convection.set_boundary_function(bc_func);
         convection.set_rhs_function(rhs);
         convection.set_solver_data(data);
-        convection.get_assembly_policy().set_velocity_function(velocity);
 
         auto interpolate_builder = [](){
-            return kernel::numerics::FVGradFactory<2>::build(kernel::numerics::FVGradType::GAUSS);
+            return kernel::numerics::FVInterpolationFactory<2>::build(kernel::numerics::FVInterpolationType::UD);
         };
 
-        convection.get_assembly_policy().build_interpolate_scheme(grad_builder);
+        convection.get_assembly_policy().build_interpolate_scheme(interpolate_builder);
+
+        std::shared_ptr<kernel::numerics::FVInterpolateBase<2>> interpolation = convection.get_assembly_policy().get_interpolation();
+        dynamic_cast<kernel::numerics::FVUDInterpolate<2>*>(interpolation.get())->set_velocity(velocity);
+
 
         // distribute the dofs
         convection.distribute_dofs();
