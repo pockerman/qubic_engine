@@ -29,13 +29,18 @@ public:
 
     /// \brief Returns the matrix contibutions
     /// that should be used on the given element
-    virtual void compute_matrix_contributions(const Element<dim>& element, std::vector<real_t>& values)const override;
+    virtual void compute_matrix_contributions(const Element<dim>& element,  std::map<uint_t, real_t>& values)const override;
 
     /// \brief Compute the dot product of the
     /// velocity computed on the given face and
     /// the face normal vector
     template<typename FaceTp>
     real_t compute_flux(const FaceTp& face)const;
+
+
+    /// \brief Set the object that calculates the velocity
+    /// field needed for the calculation of fluxes
+    void set_velocity(const NumericVectorFunctionBase<dim>& vel){velocity_  =&vel;}
 
 protected:
 
@@ -55,9 +60,9 @@ FVUDInterpolate<dim>::compute_flux(const FaceTp& face)const{
         throw std::logic_error("Velocity pointer is NULL");
     }
 
-    auto velocity_value = velocity_->value(face.centroid());
+    const DynVec<real_t> velocity_value = velocity_->value(face.centroid());
 
-    return velocity_value*face.normal_vector();
+    return dot(velocity_value, face.normal_vector());
 }
 
 }

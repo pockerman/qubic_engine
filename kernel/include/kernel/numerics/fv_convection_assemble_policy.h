@@ -70,6 +70,9 @@ public:
     /// \brief Set the velocity function
     void set_velocity_function(const NumericVectorFunctionBase<dim>& velocity){velocity_func_ = &velocity;}
 
+    /// \brief Return the interpolation pointer
+    std::shared_ptr<FVInterpolateBase<dim>> get_interpolation(){return fv_interpolate_;}
+
     /// \brief Build the  gradient scheme
     template<typename Factory>
     void build_interpolate_scheme(const Factory& factory);

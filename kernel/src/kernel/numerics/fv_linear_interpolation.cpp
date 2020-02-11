@@ -36,5 +36,9 @@ FVLinearInterpolate<dim>::compute_fluxes(const Element<dim>& elem, std::vector<r
 
 }
 
+template class FVLinearInterpolate<1>;
+template class FVLinearInterpolate<2>;
+template class FVLinearInterpolate<3>;
+
 }
 }

@@ -4,6 +4,8 @@
 #include "kernel/base/types.h"
 #include "kernel/numerics/fv_interpolation_types.h"
 
+#include <map>
+
 namespace kernel {
 namespace numerics{
 
@@ -23,7 +25,7 @@ public:
 
     /// \brief Returns the matrix contibutions
     /// that should be used on the given element
-    virtual void compute_matrix_contributions(const Element<dim>& element, std::vector<real_t>& values)const=0;
+    virtual void compute_matrix_contributions(const Element<dim>& element, std::map<uint_t, real_t>&)const=0;
 
     /// \brief Returns the type of the approximation
     FVInterpolationType type()const{return type_;}

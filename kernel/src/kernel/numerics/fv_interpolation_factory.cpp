@@ -17,8 +17,10 @@ FVInterpolationFactory<dim>::build(FVInterpolationType type){
     switch (type) {
     case FVInterpolationType::UD:
         ptr.reset(new FVUDInterpolate<dim>());
+        break;
     case FVInterpolationType::LINEAR:
         ptr.reset(new FVLinearInterpolate<dim>());
+        break;
     default:
         throw std::logic_error("Invalid FVInterpolationType type");
     }
@@ -26,6 +28,10 @@ FVInterpolationFactory<dim>::build(FVInterpolationType type){
 
     return ptr;
 }
+
+template class FVInterpolationFactory<1>;
+template class FVInterpolationFactory<2>;
+template class FVInterpolationFactory<3>;
 
 }
 }

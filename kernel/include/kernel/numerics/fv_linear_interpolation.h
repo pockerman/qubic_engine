@@ -27,6 +27,9 @@ public:
     /// \brief Compute the fluxes for the given element
     virtual void compute_fluxes(const Element<dim>& elem, std::vector<real_t>& values)const override;
 
+    /// \brief Returns the matrix contibutions
+    /// that should be used on the given element
+    virtual void compute_matrix_contributions(const Element<dim>& element,  std::map<uint_t, real_t>& values)const override{throw std::logic_error("Not implemented");}
 
 protected:
 

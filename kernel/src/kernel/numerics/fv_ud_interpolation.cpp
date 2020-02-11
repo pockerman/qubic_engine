@@ -28,26 +28,36 @@ FVUDInterpolate<dim>::~FVUDInterpolate()
 
 template<int dim>
 void
-FVUDInterpolate<dim>::compute_fluxes(const Element<dim>& elem, std::vector<real_t>& values)const{
-
-    if(!velocity_){
-        throw std::logic_error("Velocity pointer is NULL");
-    }
-}
-
-template<int dim>
-void
-FVUDInterpolate<dim>::compute_matrix_contributions(const Element<dim>& element,
-                                                   std::vector<real_t>& values)const{
+FVUDInterpolate<dim>::compute_fluxes(const Element<dim>& element, std::vector<real_t>& values)const{
 
     if(!velocity_){
         throw std::logic_error("Velocity pointer is NULL");
     }
 
     {
-        std::vector<real_t> zero(values.size(), 0.0);
+        std::vector<real_t> zero(element.n_faces(), 0.0);
         values.swap(zero);
     }
+
+    for(uint_t f=0; f<element.n_faces(); ++f){
+        auto& face = element.get_face(f);
+        values[f] = compute_flux(face);
+    }
+}
+
+template<int dim>
+void
+FVUDInterpolate<dim>::compute_matrix_contributions(const Element<dim>& element,
+                                                    std::map<uint_t, real_t>& values)const{
+
+    if(!velocity_){
+        throw std::logic_error("Velocity pointer is NULL");
+    }
+
+    /*{
+        std::vector<real_t> zero(values.size(), 0.0);
+        values.swap(zero);
+    }*/
 
     // loop over the element faces
     for(uint_t f=0; f<element.n_faces(); ++f){
@@ -64,32 +74,46 @@ FVUDInterpolate<dim>::compute_matrix_contributions(const Element<dim>& element,
 
                     // the contribution goes to the
                     // diagonal
-                    values[0] += flux;
+                    values[element.get_id()] += flux;
                 }
                 else{
                     // it goes to the off diagonal
-                    // which neighbor this is
                     auto& neighbor = face.get_neighbor();
-                    auto idx = element.which_neighbor_am_i(neighbor);
-                    values[idx] += flux;
 
+                    // which neighbor this is
+                    auto idx = element.which_neighbor_am_i(neighbor);
+                    values[neighbor.get_id()] += flux;
                 }
             }
-            else
-            {
+            else{
+
                if(flux >= 0.0){
 
                    // it goes to the off diagonal
+                   auto& neighbor = face.get_owner();
+
                    // which neighbor this is
-                   auto& neighbor = face.get_neighbor();
                    auto idx = element.which_neighbor_am_i(neighbor);
-                   values[idx] -= flux;
+
+                   /*if(idx == KernelConsts::invalid_size_type()){
+                       throw std::logic_error("Invalid neighbor index computed");
+                   }
+
+                   if(idx >= values.size()){
+                        throw std::logic_error("Neighbor index computed does not fit fluxes container " +
+                                               std::to_string(idx) +
+                                               " not in [0, " +
+                                               std::to_string(values.size())+
+                                               ")");
+                    }*/
+
+                   values[neighbor.get_id()] -= flux;
 
                }
              else{
                    // the contribution goes to the
                    // diagonal
-                   values[0] -= flux;
+                   values[element.get_id()] -= flux;
                }
             }
         }

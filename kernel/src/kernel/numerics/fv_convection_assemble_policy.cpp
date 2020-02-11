@@ -51,7 +51,8 @@ FVConvectionAssemblyPolicy<dim>::initialize_dofs_(){
     if(cell_dofs_.empty()){
         throw std::logic_error("Cell without dofs is used");
     }
-    else if (cell_dofs_[0].id == KernelConsts::invalid_size_type()) {
+
+    if (cell_dofs_[0].id == KernelConsts::invalid_size_type()) {
         throw std::logic_error("Invalid DoF index");
     }
 
@@ -73,7 +74,8 @@ FVConvectionAssemblyPolicy<dim>::initialize_dofs_(){
             if(tmp.empty()){
                 throw std::logic_error("Cell without dofs is used");
             }
-            else if (tmp[0].id == KernelConsts::invalid_size_type()) {
+
+            if (tmp[0].id == KernelConsts::invalid_size_type()) {
                 throw std::logic_error("Invalid DoF index");
             }
 
@@ -156,28 +158,26 @@ FVConvectionAssemblyPolicy<dim>::assemble_one_element(TrilinosEpetraMatrix& mat,
 
     //a dummy index to start counting from 1
     uint_t dummy_idx =1;
+    std::map<uint_t, real_t> fluxes;
+
+    for(uint_t dof=0; dof<n_dofs; ++dof){
+        fluxes[row_dofs[dof]] = 0.0;
+    }
+
+    fv_interpolate_->compute_matrix_contributions(*elem_, fluxes);
 
     for(uint_t f=0; f < elem_->n_faces(); ++f){
 
         const auto& face = elem_->get_face(f);
 
-        if(!face.on_boundary()){
-          //for every face we add to the diagonal entry
-          real_t qval = qvals_.empty() ? 1.0 : qvals_[f];
-
-          row_entries[0] += qval*fluxes_[f];
-          row_entries[dummy_idx] = -qval*fluxes_[f];
-          dummy_idx++;
-        }
-        else{
-
+        if(face.on_boundary()){
             boundary_faces.push_back(f);
         }
     }
 
-    mat.set_entry(row_dofs[0], row_dofs[0], row_entries[0]);
-    for(u_int idx=1; idx<row_dofs.size(); ++idx){
-        mat.set_entry(row_dofs[0], row_dofs[idx], row_entries[idx]);
+    mat.set_entry(row_dofs[0], row_dofs[0], fluxes[row_dofs[0]]);
+    for(uint_t idx=1; idx<row_dofs.size(); ++idx){
+        mat.set_entry(row_dofs[0], row_dofs[idx], fluxes[row_dofs[idx]]);
     }
 
     real_t rhs_val = 0.0;
@@ -198,8 +198,6 @@ void
 FVConvectionAssemblyPolicy<dim>::apply_boundary_conditions(const  std::vector<uint_t>& bfaces, TrilinosEpetraMatrix& mat,
                                                         TrilinosEpetraVector& x, TrilinosEpetraVector& b ){
 
-        bool added=false;
-
         for(uint_t f=0; f<bfaces.size(); ++f){
 
             auto& face = elem_->get_face(bfaces[f]);
@@ -207,20 +205,42 @@ FVConvectionAssemblyPolicy<dim>::apply_boundary_conditions(const  std::vector<ui
             //get the boundary condition type
             BCType type = boundary_func_->bc_type(face.boundary_indicator());
 
-            if(type == BCType::DIRICHLET)
+            switch(type){
+
+            case BCType::DIRICHLET:
             {
                 real_t bc_val = boundary_func_->value(face.centroid());
                 uint_t var_dof = cell_dofs_[0].id;
-                real_t qval = qvals_.empty() ? 1.0 : qvals_[bfaces[f]];
+                auto flux = fluxes_[bfaces[f]];
 
-                //add the boundary condition type
-                b.add(var_dof, bc_val*fluxes_[bfaces[f]]);
-                auto flux_val = fluxes_[bfaces[f]];
+                //add to the rhs vector
+                b.add(var_dof, -flux*bc_val);
+                break;
 
-                //add to the diagonal of the matrix
-                mat.add_entry(var_dof, var_dof, qval*flux_val);
+            }
+            case BCType::ZERO_DIRICHLET:
+            {
+                real_t bc_val = 0.0;
+                uint_t var_dof = cell_dofs_[0].id;
+                auto flux = fluxes_[bfaces[f]];
 
-            }//Dirichlet
+                //add to the rhs vector
+                b.add(var_dof, -flux*bc_val);
+                break;
+
+            }
+            case BCType::ZERO_NEUMANN:
+            {
+                uint_t var_dof = cell_dofs_[0].id;
+                auto flux = fluxes_[bfaces[f]];
+                mat.add_entry(var_dof, var_dof, flux);
+                break;
+            }
+            default:
+            {
+                throw std::logic_error("Invalid boundary condition type");
+            }
+            }
         }
 }
 
