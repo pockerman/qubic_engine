@@ -1,5 +1,6 @@
-#include "kernel/numerics/fv_laplace_assemble_policy.h"
-#include "kernel/numerics/fv_grad_base.h"
+#include "kernel/numerics/fv_convection_assemble_policy.h"
+
+#include "kernel/numerics/fv_interpolate_base.h"
 #include "kernel/numerics/dof_manager.h"
 #include "kernel/numerics/boundary_function_base.h"
 #include "kernel/numerics/boundary_conditions_type.h"
@@ -10,22 +11,25 @@
 #include "kernel/discretization/mesh_predicates.h"
 #include "kernel/base/types.h"
 #include "kernel/maths/functions/numeric_scalar_function.h"
+#include "kernel/maths/functions/numeric_vector_function.h"
+
+#ifdef USE_TRILINOS
 #include "kernel/maths/trilinos_epetra_matrix.h"
 #include "kernel/maths/trilinos_epetra_vector.h"
+#endif
 
 
-#include "boost/any.hpp"
+
 #include <exception>
 #include <iostream>
 
 namespace kernel{
 namespace numerics{
 
-
 template<int dim>
-FVLaplaceAssemblyPolicy<dim>::FVLaplaceAssemblyPolicy()
+FVConvectionAssemblyPolicy<dim>::FVConvectionAssemblyPolicy()
     :
-      fv_grads_(),
+      fv_interpolate_(),
       elem_(nullptr),
       qvals_(),
       neigh_dofs_(),
@@ -33,12 +37,13 @@ FVLaplaceAssemblyPolicy<dim>::FVLaplaceAssemblyPolicy()
       dof_manager_(nullptr),
       boundary_func_(nullptr),
       rhs_func_(nullptr),
+      velocity_func_(nullptr),
       m_ptr_(nullptr)
 {}
 
 template<int dim>
 void
-FVLaplaceAssemblyPolicy<dim>::initialize_dofs_(){
+FVConvectionAssemblyPolicy<dim>::initialize_dofs_(){
 
 
     dof_manager_->get_dofs(*elem_, cell_dofs_);
@@ -81,18 +86,18 @@ FVLaplaceAssemblyPolicy<dim>::initialize_dofs_(){
 
 template<int dim>
 void
-FVLaplaceAssemblyPolicy<dim>::compute_fluxes(){
+FVConvectionAssemblyPolicy<dim>::compute_fluxes(){
 
-    if(!fv_grads_){
-        throw  std::logic_error("FV gradient pointer has not been set");
+    if(!fv_interpolate_){
+        throw  std::logic_error("FV interpolation pointer has not been set");
     }
 
-    fv_grads_->compute_gradients(*elem_, fluxes_);
+    fv_interpolate_->compute_fluxes(*elem_, fluxes_);
 }
 
 template<int dim>
 void
-FVLaplaceAssemblyPolicy<dim>::reinit(const Element<dim>& element){
+FVConvectionAssemblyPolicy<dim>::reinit(const Element<dim>& element){
 
     elem_ = &element;
     initialize_dofs_();
@@ -101,7 +106,7 @@ FVLaplaceAssemblyPolicy<dim>::reinit(const Element<dim>& element){
 
 template<int dim>
 void
-FVLaplaceAssemblyPolicy<dim>::reinit(const Element<dim>& element, std::vector<real_t>&& qvals){
+FVConvectionAssemblyPolicy<dim>::reinit(const Element<dim>& element, std::vector<real_t>&& qvals){
     elem_ = &element;
     qvals_ = qvals;
     qvals.clear();
@@ -113,7 +118,7 @@ FVLaplaceAssemblyPolicy<dim>::reinit(const Element<dim>& element, std::vector<re
 
 template<int dim>
 void
-FVLaplaceAssemblyPolicy<dim>::assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b ){
+FVConvectionAssemblyPolicy<dim>::assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b ){
 
     // loop over the elements
     ConstElementMeshIterator<Active, Mesh<dim>> filter(*m_ptr_);
@@ -132,7 +137,7 @@ FVLaplaceAssemblyPolicy<dim>::assemble(TrilinosEpetraMatrix& mat, TrilinosEpetra
 
 template<int dim>
 void
-FVLaplaceAssemblyPolicy<dim>::assemble_one_element(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b ){
+FVConvectionAssemblyPolicy<dim>::assemble_one_element(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b ){
 
     auto n_dofs = cell_dofs_.size() + neigh_dofs_.size();
 
@@ -153,28 +158,26 @@ FVLaplaceAssemblyPolicy<dim>::assemble_one_element(TrilinosEpetraMatrix& mat, Tr
 
     //a dummy index to start counting from 1
     uint_t dummy_idx =1;
+    std::map<uint_t, real_t> fluxes;
+
+    for(uint_t dof=0; dof<n_dofs; ++dof){
+        fluxes[row_dofs[dof]] = 0.0;
+    }
+
+    fv_interpolate_->compute_matrix_contributions(*elem_, fluxes);
 
     for(uint_t f=0; f < elem_->n_faces(); ++f){
 
         const auto& face = elem_->get_face(f);
 
-        if(!face.on_boundary()){
-          //for every face we add to the diagonal entry
-          real_t qval = qvals_.empty() ? 1.0 : qvals_[f];
-
-          row_entries[0] += qval*fluxes_[f];
-          row_entries[dummy_idx] = -qval*fluxes_[f];
-          dummy_idx++;
-        }
-        else{
-
+        if(face.on_boundary()){
             boundary_faces.push_back(f);
         }
     }
 
-    mat.set_entry(row_dofs[0], row_dofs[0], row_entries[0]);
+    mat.set_entry(row_dofs[0], row_dofs[0], fluxes[row_dofs[0]]);
     for(uint_t idx=1; idx<row_dofs.size(); ++idx){
-        mat.set_entry(row_dofs[0], row_dofs[idx], row_entries[idx]);
+        mat.set_entry(row_dofs[0], row_dofs[idx], fluxes[row_dofs[idx]]);
     }
 
     real_t rhs_val = 0.0;
@@ -192,10 +195,8 @@ FVLaplaceAssemblyPolicy<dim>::assemble_one_element(TrilinosEpetraMatrix& mat, Tr
 
 template<int dim>
 void
-FVLaplaceAssemblyPolicy<dim>::apply_boundary_conditions(const  std::vector<uint_t>& bfaces, TrilinosEpetraMatrix& mat,
+FVConvectionAssemblyPolicy<dim>::apply_boundary_conditions(const  std::vector<uint_t>& bfaces, TrilinosEpetraMatrix& mat,
                                                         TrilinosEpetraVector& x, TrilinosEpetraVector& b ){
-
-        bool added=false;
 
         for(uint_t f=0; f<bfaces.size(); ++f){
 
@@ -204,28 +205,50 @@ FVLaplaceAssemblyPolicy<dim>::apply_boundary_conditions(const  std::vector<uint_
             //get the boundary condition type
             BCType type = boundary_func_->bc_type(face.boundary_indicator());
 
-            if(type == BCType::DIRICHLET)
+            switch(type){
+
+            case BCType::DIRICHLET:
             {
                 real_t bc_val = boundary_func_->value(face.centroid());
                 uint_t var_dof = cell_dofs_[0].id;
-                real_t qval = qvals_.empty() ? 1.0 : qvals_[bfaces[f]];
+                auto flux = fluxes_[bfaces[f]];
 
-                //add the boundary condition type
-                b.add(var_dof, bc_val*fluxes_[bfaces[f]]);
-                auto flux_val = fluxes_[bfaces[f]];
+                //add to the rhs vector
+                b.add(var_dof, -flux*bc_val);
+                break;
 
-                //add to the diagonal of the matrix
-                mat.add_entry(var_dof, var_dof, qval*flux_val);
+            }
+            case BCType::ZERO_DIRICHLET:
+            {
+                real_t bc_val = 0.0;
+                uint_t var_dof = cell_dofs_[0].id;
+                auto flux = fluxes_[bfaces[f]];
 
-            }//Dirichlet
+                //add to the rhs vector
+                b.add(var_dof, -flux*bc_val);
+                break;
+
+            }
+            case BCType::ZERO_NEUMANN:
+            {
+                uint_t var_dof = cell_dofs_[0].id;
+                auto flux = fluxes_[bfaces[f]];
+                mat.add_entry(var_dof, var_dof, flux);
+                break;
+            }
+            default:
+            {
+                throw std::logic_error("Invalid boundary condition type");
+            }
+            }
         }
 }
 
 #endif
 
-template class FVLaplaceAssemblyPolicy<1>;
-template class FVLaplaceAssemblyPolicy<2>;
-template class FVLaplaceAssemblyPolicy<3>;
+template class FVConvectionAssemblyPolicy<1>;
+template class FVConvectionAssemblyPolicy<2>;
+template class FVConvectionAssemblyPolicy<3>;
 
 }
 }

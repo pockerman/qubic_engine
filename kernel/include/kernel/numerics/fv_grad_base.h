@@ -4,16 +4,15 @@
 #include "kernel/base/types.h"
 #include "kernel/numerics/fv_grad_types.h"
 #include <vector>
-namespace kernel
-{
-namespace numerics
-{
 
+namespace kernel{
+namespace numerics{
+
+/// forward declarations
 template<int dim> class Element;
 
 /// \brief Base class for deriving rules for
 /// gradient approximations
-
 template<int dim>
 class FVGradBase
 {

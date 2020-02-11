@@ -108,6 +108,13 @@ public:
     /// vertices of the element
     virtual GeomPoint<dim> centroid()const;
 
+    /// \brief Returns the local id relevant to the calling object
+    /// of the  passed  object
+    virtual uint_t which_face_am_i(cface_ref_t face)const = 0;
+
+    /// \brief Returns the face normal vector
+    virtual const DynVec<real_t> face_normal_vector(uint_t f)const=0;
+
     /// \brief Invalidate the dofs associated with
     /// the given variable
     void invalidate_dofs(const std::string_view name);
@@ -122,6 +129,8 @@ public:
     /// \brief Returns the local id relevant to the calling object
     /// of the  passed  object
     uint_t which_neighbor_am_i(const Element<dim>& element)const;
+
+
 
     /// \brief Return the vertices of the element
     std::vector<node_ptr_t> get_vertices()const;

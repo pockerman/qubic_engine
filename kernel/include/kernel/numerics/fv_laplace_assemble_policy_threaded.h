@@ -264,7 +264,8 @@ FVLaplaceAssemblyPolicyThreaded<dim, Executor>::AssembleTask<MatrixTp,VectorTp>:
     if(cell_dofs_.empty()){
         throw std::logic_error("Cell without dofs is used");
     }
-    else if (cell_dofs_[0].id == KernelConsts::invalid_size_type()) {
+
+    if (cell_dofs_[0].id == KernelConsts::invalid_size_type()) {
         throw std::logic_error("Invalid DoF index");
     }
 
@@ -286,7 +287,8 @@ FVLaplaceAssemblyPolicyThreaded<dim, Executor>::AssembleTask<MatrixTp,VectorTp>:
             if(tmp.empty()){
                 throw std::logic_error("Cell without dofs is used");
             }
-            else if (tmp[0].id == KernelConsts::invalid_size_type()) {
+
+            if (tmp[0].id == KernelConsts::invalid_size_type()) {
                 throw std::logic_error("Invalid DoF index");
             }
 
@@ -383,7 +385,7 @@ FVLaplaceAssemblyPolicyThreaded<dim, Executor>::AssembleTask<MatrixTp,VectorTp>:
     }
 
     mat_.set_entry(row_dofs[0], row_dofs[0], row_entries[0]);
-    for(u_int idx=1; idx<row_dofs.size(); ++idx){
+    for(uint_t idx=1; idx<row_dofs.size(); ++idx){
         mat_.set_entry(row_dofs[0], row_dofs[idx], row_entries[idx]);
     }
 
