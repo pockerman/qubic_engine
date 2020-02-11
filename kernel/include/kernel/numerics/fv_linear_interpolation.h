@@ -30,7 +30,9 @@ public:
 
 protected:
 
-
+    /// \brief The weight used for the interpolation
+    /// the default is 0.5 that corresponds to central
+    /// differencing
     real_t gamma_;
 
 };

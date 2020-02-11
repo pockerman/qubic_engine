@@ -2,6 +2,7 @@
 #define FV_UD_INTERPOLATION_H
 
 #include "kernel/numerics/fv_interpolate_base.h"
+#include "kernel/maths/functions/numeric_vector_function.h"
 
 namespace kernel{
 namespace numerics{
@@ -26,6 +27,15 @@ public:
     /// \brief Compute the fluxes for the given element
     virtual void compute_fluxes(const Element<dim>& elem, std::vector<real_t>& values)const override;
 
+    /// \brief Returns the matrix contibutions
+    /// that should be used on the given element
+    virtual void compute_matrix_contributions(const Element<dim>& element, std::vector<real_t>& values)const override;
+
+    /// \brief Compute the dot product of the
+    /// velocity computed on the given face and
+    /// the face normal vector
+    template<typename FaceTp>
+    real_t compute_flux(const FaceTp& face)const;
 
 protected:
 
@@ -35,6 +45,20 @@ protected:
     const NumericVectorFunctionBase<dim>* velocity_;
 
 };
+
+template<int dim>
+template<typename FaceTp>
+real_t
+FVUDInterpolate<dim>::compute_flux(const FaceTp& face)const{
+
+    if(!velocity_){
+        throw std::logic_error("Velocity pointer is NULL");
+    }
+
+    auto velocity_value = velocity_->value(face.centroid());
+
+    return velocity_value*face.normal_vector();
+}
 
 }
 }
