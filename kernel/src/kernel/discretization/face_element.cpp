@@ -83,6 +83,57 @@ FaceElement<spacedim,0>::owner_neighbor_distance()const{
     return owner_->centroid().distance(neighbor_->centroid());
 }
 
+template<int spacedim>
+bool
+FaceElement<spacedim,0>::is_owner(uint_t id)const{
+
+    if(!owner_ ){
+        throw std::logic_error("Owner pointer is NULL");
+    }
+
+    return owner_->get_id() == id;
+}
+
+template<int spacedim>
+const Element<spacedim>&
+FaceElement<spacedim,0>::get_neighbor()const{
+    if(!neighbor_){
+        throw std::logic_error("NULL neighbor pointer requested");
+    }
+
+    return *neighbor_;
+}
+
+template<int spacedim>
+Element<spacedim>&
+FaceElement<spacedim,0>::get_neighbor(){
+    if(!neighbor_){
+        throw std::logic_error("NULL neighbor pointer requested");
+    }
+
+    return *neighbor_;
+}
+
+
+template<int spacedim>
+const Element<spacedim>&
+FaceElement<spacedim,0>::get_owner()const{
+    if(!owner_){
+        throw std::logic_error("NULL owner pointer requested");
+    }
+
+    return *owner_;
+}
+
+template<int spacedim>
+Element<spacedim>&
+FaceElement<spacedim,0>::get_owner(){
+    if(!owner_){
+        throw std::logic_error("NULL owner pointer requested");
+    }
+
+    return *owner_;
+}
 
 FaceElement<2,1>::FaceElement()
                         :
@@ -207,6 +258,72 @@ FaceElement<2,1>::centroid()const{
     return GeomPoint<2>(coords);
 }
 
+
+
+bool
+FaceElement<2,1>::is_owner(uint_t id)const{
+
+    if(!owner_ ){
+        throw std::logic_error("Owner pointer is NULL");
+    }
+
+    return owner_->get_id() == id;
+}
+
+Element<2>&
+FaceElement<2,1>::get_neighbor(){
+
+    if(!neighbor_){
+        throw std::logic_error("NULL neighbor pointer requested");
+    }
+
+    return *neighbor_;
+}
+
+const Element<2>&
+FaceElement<2,1>::get_neighbor()const{
+
+    if(!neighbor_){
+        throw std::logic_error("NULL neighbor pointer requested");
+    }
+
+    return *neighbor_;
+
+}
+
+
+
+Element<2>&
+FaceElement<2,1>::get_owner(){
+
+    if(!owner_){
+        throw std::logic_error("NULL owner pointer requested");
+    }
+
+    return *owner_;
+}
+
+const Element<2>&
+FaceElement<2,1>::get_owner()const{
+    if(!owner_){
+        throw std::logic_error("NULL owner pointer requested");
+    }
+
+    return *owner_;
+}
+
+const DynVec<real_t>
+FaceElement<2,1>::normal_vector()const{
+
+    if(!owner_){
+        throw std::logic_error("NULL owner pointer requested");
+    }
+
+    uint_t fidx = owner_->which_face_am_i(*this);
+    return owner_->face_normal_vector(fidx);
+
+}
+
 FaceElement<3,1>::FaceElement()
                         :
 
@@ -245,7 +362,7 @@ FaceElement<3,1>::print_(std::ostream &out)const
   return out;
 
 }
-                        
+
 
 FaceElement<3,2>::FaceElement()
                  :

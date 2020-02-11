@@ -211,5 +211,75 @@ Quad<2>::volume()const{
      }
 }
 
+
+/// \brief Returns the local id relevant to the calling object
+/// of the  passed  object
+uint_t
+Quad<2>::which_face_am_i(Quad<2>::cface_ref_t face)const{
+
+    auto foreign_vertices = face.get_vertices_ids();
+    for(uint_t f=0; f<n_faces(); ++f){
+
+        auto& localface = *faces_[f];
+        auto vertices = localface.get_vertices_ids();
+
+        if(vertices.empty() || foreign_vertices.empty()){
+            throw std::logic_error("Empty vertices list found");
+        }
+
+        if(vertices.size() != foreign_vertices.size()){
+            throw std::logic_error("Invalid face type comparison requested");
+        }
+
+        if(vertices[0] == foreign_vertices[0] && vertices[1] == foreign_vertices[1]){
+            return f;
+        }
+    }
+
+    return KernelConsts::invalid_size_type();
+}
+
+const DynVec<real_t>
+Quad<2>::face_normal_vector(uint_t f)const {
+
+    switch(f){
+
+       case 0:  //bottom side of the quadrilateral
+       {
+           const GeomPoint<2> n0 = *this->nodes_[0];
+           const GeomPoint<2> n1 = *this->nodes_[1];
+           auto values = {n1[1]-n0[1],n0[0]-n1[0]};
+           return DynVec<real_t>(values);
+       }
+      case 1: ///right side of the quadrilateral
+      {
+           const GeomPoint<2> n1 = *this->nodes_[1];
+           const GeomPoint<2> n2 = *this->nodes_[2];
+           auto values  = {n2[1]-n1[1],n1[0]-n2[0]};
+           return DynVec<real_t>(values);
+       }
+      case 2: ///top side of the quadrilateral
+      {
+           const GeomPoint<2> n2 = *this->nodes_[2];
+           const GeomPoint<2> n3 = *this->nodes_[3];
+           auto values  = {n3[1]-n2[1],n2[0]-n3[0]};
+           return DynVec<real_t>(values);
+       }
+      case 3: ///left side of the quadrilateral
+      {
+           const GeomPoint<2> n0 = *this->nodes_[0];
+           const GeomPoint<2> n3 = *this->nodes_[3];
+           auto values = {n0[1]-n3[1],n3[0]-n0[0]};
+           return DynVec<real_t>(values);
+       }
+       default:
+       {
+        throw std::logic_error("Invalid face index: "+std::to_string(f)+ "not in [0," +std::to_string(n_faces()) + ")");
+       }
+     }
+
+    return DynVec<real_t>(2, 0.0);
+}
+
 }
 }
