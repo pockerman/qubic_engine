@@ -61,6 +61,9 @@ public:
     /// \brief Set the function that describes the boundary conditions
     void set_rhs_function(const NumericScalarFunction<dim>& func){rhs_func_ = &func;}
 
+    /// \brief Set the function that describes the boundary conditions
+    void set_volume_term_function(const NumericScalarFunction<dim>& func){volume_func_ = &func;}
+
     /// \brief Set the object that describes the dofs
     void set_dof_manager(const FVDoFManager<dim>& dof_manager){dof_manager_ = &dof_manager;}
 
@@ -106,6 +109,10 @@ private:
     /// \brief Pointer to the function object that describes the
     /// rhs
     const NumericScalarFunction<dim>* rhs_func_;
+
+    /// \brief Pointer to the function object that describes the
+    /// any volume terms to assemble
+    const NumericScalarFunction<dim>* volume_func_;
 
     /// \brief The object responsible for calculating the velocity term
     const NumericVectorFunctionBase<dim>* velocity_func_;
