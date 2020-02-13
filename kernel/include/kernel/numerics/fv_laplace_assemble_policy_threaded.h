@@ -70,6 +70,9 @@ public:
     /// \brief Set the function that describes the boundary conditions
     void set_rhs_function(const NumericScalarFunction<dim>& func){rhs_func_ = &func;}
 
+    /// \brief Set the function that describes the boundary conditions
+    void set_volume_term_function(const NumericScalarFunction<dim>& func){volume_func_ = &func;}
+
     /// \brief Set the object that describes the dofs
     void set_dof_manager(const FVDoFManager<dim>& dof_manager){dof_manager_ = &dof_manager;}
 
@@ -100,6 +103,10 @@ private:
     /// \brief Pointer to the function object that describes the
     /// rhs
     const NumericScalarFunction<dim>* rhs_func_;
+
+    /// \brief Pointer to the function object that describes the
+    /// any volume terms to assemble
+    const NumericScalarFunction<dim>* volume_func_;
 
     /// \brief The Mesh over which the policy is working
     const Mesh<dim>* m_ptr_;
@@ -134,7 +141,8 @@ public:
                  std::shared_ptr<FVGradBase<dim>> fv_grads, const FVDoFManager<dim>& dof_manager,
                  const Mesh<dim>& mesh,
                  const BoundaryFunctionBase<dim>* boundary_func,
-                 const NumericScalarFunction<dim>* rhs_func);
+                 const NumericScalarFunction<dim>* rhs_func,
+                 const NumericScalarFunction<dim>* vol_func);
 
     /// \brief Compute the fluxes over the cell last
     /// reinitialized
@@ -178,6 +186,10 @@ protected:
     /// rhs
     const NumericScalarFunction<dim>* rhs_func_;
 
+    /// \brief Pointer to the function object that describes the
+    /// any volume terms to assemble
+    const NumericScalarFunction<dim>* volume_func_;
+
     /// \brief The Mesh over which the policy is working
     const Mesh<dim>* m_ptr_;
 
@@ -204,7 +216,8 @@ FVLaplaceAssemblyPolicyThreaded<dim, Executor>::AssembleTask<MatrixTp,VectorTp>:
                                                                                               std::shared_ptr<FVGradBase<dim>> fv_grads, const FVDoFManager<dim>& dof_manager,
                                                                                               const Mesh<dim>& mesh,
                                                                                               const BoundaryFunctionBase<dim>* boundary_func,
-                                                                                              const NumericScalarFunction<dim>* rhs_func)
+                                                                                              const NumericScalarFunction<dim>* rhs_func,
+                                                                                              const NumericScalarFunction<dim>* vol_func)
     :
     SimpleTaskBase<Null>(t),
     mat_(mat),
@@ -215,6 +228,7 @@ FVLaplaceAssemblyPolicyThreaded<dim, Executor>::AssembleTask<MatrixTp,VectorTp>:
     m_ptr_(&mesh),
     boundary_func_(boundary_func),
     rhs_func_(rhs_func),
+    volume_func_(vol_func),
     elem_(nullptr),
     qvals_(),
     neigh_dofs_(),
@@ -324,7 +338,7 @@ FVLaplaceAssemblyPolicyThreaded<dim, Executor>::AssembleTask<MatrixTp,VectorTp>:
         //get the boundary condition type
         BCType type = boundary_func_->bc_type(face.boundary_indicator());
 
-        if(type == BCType::DIRICHLET)
+        if(type == BCType::DIRICHLET || type == BCType::ZERO_DIRICHLET)
         {
             real_t bc_val = boundary_func_->value(face.centroid());
             uint_t var_dof = cell_dofs_[0].id;
@@ -338,6 +352,16 @@ FVLaplaceAssemblyPolicyThreaded<dim, Executor>::AssembleTask<MatrixTp,VectorTp>:
             mat_.add_entry(var_dof, var_dof, qval*flux_val);
 
         }//Dirichlet
+        else if (type == BCType::NEUMANN) {
+
+            auto gradient = boundary_func_->gradients(face.centroid());
+            auto normal_comp = dot(gradient, face.normal_vector());
+            uint_t var_dof = cell_dofs_[0].id;
+            b_.add(var_dof, normal_comp);
+        }
+        else if(type == BCType::ZERO_NEUMANN){
+            // nothing to do here.
+        }
     }
 }
 
@@ -382,6 +406,10 @@ FVLaplaceAssemblyPolicyThreaded<dim, Executor>::AssembleTask<MatrixTp,VectorTp>:
 
             boundary_faces.push_back(f);
         }
+    }
+
+    if(volume_func_){
+        row_entries[0] += volume_func_->value(elem_->centroid())*elem_->volume();
     }
 
     mat_.set_entry(row_dofs[0], row_dofs[0], row_entries[0]);

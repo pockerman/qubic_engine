@@ -96,6 +96,7 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 - <a href="examples/example_19/doc/exe.md">Example 19: </a>Solve Laplace equation with collocated  FVM
 - <a href="examples/example_20/doc/exe.md">Example 20: </a>Solve Laplace equation with collocated  FVM and multiple threads
 - <a href="examples/example_21/doc/exe.md">Example 21: </a>Solve Convection Equation With FVM
+- <a href="examples/example_22/doc/exe.md">Example 22: </a>Use Volume Terms With FVM
 
 ### <a name="miscellaneous"></a> Miscellaneous
 

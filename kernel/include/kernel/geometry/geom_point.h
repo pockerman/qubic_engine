@@ -128,6 +128,9 @@ public:
     /// \brief Return the distance from the origin
     T L2_norm()const{return distance(GeomPoint(static_cast<T>(0)));}
 
+    /// \brief Returns the square sum of the compontents
+    T square_sum()const;
+
     ///
     /// \brief print the point
     ///
@@ -296,6 +299,19 @@ GeomPoint<spacedim,T>::scale(const std::vector<T>& factors){
   for(int i=0; i<spacedim; ++i){
         data_[i] *= factors[i];
     }
+}
+
+template<int spacedim,typename T>
+T
+GeomPoint<spacedim,T>::square_sum()const{
+    T result = T(0);
+
+    std::for_each(data_.begin(), data_.end(),
+                  [&](const T& value){
+        result += value*value;
+    });
+
+    return result;
 }
 
 template<int spacedim,typename T>

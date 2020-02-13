@@ -68,6 +68,9 @@ public:
     /// \brief Set the function that describes the rhs
     void set_rhs_function(const NumericScalarFunction<dim>& func){rhs_func_ = &func;}
 
+    /// \brief Set the function that describes the volume term
+    void set_volume_term_function(const NumericScalarFunction<dim>& func){volume_func_ = &func;}
+
     /// \brief Set the  solver data
     template<typename SolverDataTp>
     void set_solver_data(const SolverDataTp& data){solver_.set_solver_data(data);}
@@ -117,6 +120,10 @@ protected:
     /// \brief The object that describes the rhs
     const NumericScalarFunction<dim>* rhs_func_;
 
+    /// \brief Pointer to the function object that describes the
+    /// any volume terms to assemble
+    const NumericScalarFunction<dim>* volume_func_;
+
 };
 
 
@@ -133,7 +140,8 @@ ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy >::ScalarFVSystem(std::string
       assembly_(),
       solver_(),
       boundary_func_(nullptr),
-      rhs_func_(nullptr)
+      rhs_func_(nullptr),
+      volume_func_(nullptr)
 {}
 
 
@@ -150,7 +158,8 @@ ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy>::ScalarFVSystem(std::string&
       assembly_(),
       solver_(),
       boundary_func_(nullptr),
-      rhs_func_(nullptr)
+      rhs_func_(nullptr),
+      volume_func_(nullptr)
 {}
 
 template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
@@ -193,6 +202,10 @@ ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy>::assemble_system(){
 
     if(rhs_func_){
         assembly_.set_rhs_function(*rhs_func_);
+    }
+
+    if(volume_func_){
+        assembly_.set_volume_term_function(*volume_func_);
     }
 
     assembly_.set_mesh(*m_ptr_);
