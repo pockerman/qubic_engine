@@ -1,18 +1,3 @@
-# Example 22: Create a graph from a ```Mesh```
-
-## Contents
-
-* [Overview](#overview) 
-* [Include files](#include_files)
-* [The main function](#m_func)
-* [Results](#results)
-* [Source Code](#source_code)
-
-## <a name="overview"></a> Overview
-
-## <a name="include_files"></a> Include files
-
-```
 #include "kernel/base/types.h"
 #include "kernel/discretization/mesh.h"
 #include "kernel/discretization/quad_mesh_generation.h"
@@ -20,11 +5,7 @@
 #include "kernel/data_structs/serial_graph_builder.h"
 
 #include <iostream>
-```
 
-## <a name="m_func"></a> The main function
-
-```
 namespace example
 {
 using kernel::real_t;
@@ -74,8 +55,6 @@ int main(){
 
         std::cout<<"Number of vertices: "<<graph.n_vertices()<<std::endl;
         std::cout<<"Number of edges: "<<graph.n_edges()<<std::endl;
-
-
     }
     catch(std::logic_error& error){
 
@@ -87,27 +66,7 @@ int main(){
 
     return 0;
 }
-```
 
-## <a name="results"></a> Results
-
-```
-Starting point: ( 0,0 )
-Ending point: ( 1,1 )
-MESH STATISTICS
-Number of elements: 4
-Number of nodes: 9
-Number of faces: 12
-Number of edges: 12
-Number of boundaries: 4
-
-Number of vertices: 4
-Number of edges: 8
-```
-
-## <a name="source_code"></a> Source Code
-
-<a href="../exe.cpp">exc.cpp</a>
 
 
 
