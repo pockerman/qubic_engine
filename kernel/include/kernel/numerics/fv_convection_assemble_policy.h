@@ -1,40 +1,35 @@
-#ifndef FV_LAPLACE_ASSEMBLE_POLICY_H
-#define FV_LAPLACE_ASSEMBLE_POLICY_H
+#ifndef FV_CONVECTION_ASSEMBLE_POLICY_H
+#define FV_CONVECTION_ASSEMBLE_POLICY_H
 
-#include "kernel/base/types.h"
 #include "kernel/base/config.h"
+#include "kernel/base/types.h"
 #include "kernel/numerics/dof.h"
 
-#include <vector>
-#include <string>
-
-namespace kernel {
-namespace numerics {
+namespace kernel{
+namespace numerics{
 
 /// forward declarations
-template<int dim> class FVGradBase;
+template<int dim> class FVInterpolateBase;
 template<int dim> class Element;
 template<int dim> class Mesh;
 template<int dim> class FVDoFManager;
 template<int dim> class BoundaryFunctionBase;
 template<int dim> class NumericScalarFunction;
+template<int dim> class NumericVectorFunctionBase;
 
 #ifdef USE_TRILINOS
 class TrilinosEpetraMatrix;
 class TrilinosEpetraVector;
 #endif
 
-/// \brief Policy that assembles Laplaces terms
-/// on a user specified mesh using user specified
-/// gradient scheme
-
 template<int dim>
-class FVLaplaceAssemblyPolicy
+class FVConvectionAssemblyPolicy
 {
+
 public:
 
     /// \brief Constructor
-    FVLaplaceAssemblyPolicy();
+    FVConvectionAssemblyPolicy();
 
     /// \brief Reinitialize the policy
     void reinit(const Element<dim>& element);
@@ -53,6 +48,7 @@ public:
 
     /// \brief assemble one element contribution
     void assemble_one_element(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b );
+
 
 #endif
 
@@ -75,14 +71,20 @@ public:
     /// \brief Set the mesh pointer
     void set_mesh(const Mesh<dim>& mesh){m_ptr_ = &mesh;}
 
+    /// \brief Set the velocity function
+    void set_velocity_function(const NumericVectorFunctionBase<dim>& velocity){velocity_func_ = &velocity;}
+
+    /// \brief Return the interpolation pointer
+    std::shared_ptr<FVInterpolateBase<dim>> get_interpolation(){return fv_interpolate_;}
+
     /// \brief Build the  gradient scheme
     template<typename Factory>
-    void build_gradient(const Factory& factory);
+    void build_interpolate_scheme(const Factory& factory);
 
 private:
 
     /// \brief Pointer to the FV gradient approximation
-    std::shared_ptr<FVGradBase<dim>> fv_grads_;
+    std::shared_ptr<FVInterpolateBase<dim>> fv_interpolate_;
 
     /// \brief The element over which the policy is working
     const Element<dim>* elem_;
@@ -113,6 +115,9 @@ private:
     /// any volume terms to assemble
     const NumericScalarFunction<dim>* volume_func_;
 
+    /// \brief The object responsible for calculating the velocity term
+    const NumericVectorFunctionBase<dim>* velocity_func_;
+
     /// \brief The Mesh over which the policy is working
     const Mesh<dim>* m_ptr_;
 
@@ -123,13 +128,12 @@ private:
 template<int dim>
 template<typename Factory>
 void
-FVLaplaceAssemblyPolicy<dim>::build_gradient(const Factory& factory){
+FVConvectionAssemblyPolicy<dim>::build_interpolate_scheme(const Factory& factory){
 
-    fv_grads_ = factory();
+    fv_interpolate_ = factory();
 }
 
 }
-
 }
 
-#endif // FV_LAPLACE_ASSEMBLE_POLICY_H
+#endif // FV_CONVECTION_ASSEMBLE_POLICY_H

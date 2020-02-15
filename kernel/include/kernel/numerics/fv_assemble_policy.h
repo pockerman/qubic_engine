@@ -1,60 +1,30 @@
-#ifndef FV_LAPLACE_ASSEMBLE_POLICY_H
-#define FV_LAPLACE_ASSEMBLE_POLICY_H
+#ifndef FV_ASSEMBLE_POLICY_H
+#define FV_ASSEMBLE_POLICY_H
 
 #include "kernel/base/types.h"
-#include "kernel/base/config.h"
 #include "kernel/numerics/dof.h"
 
 #include <vector>
-#include <string>
 
 namespace kernel {
-namespace numerics {
+namespace numerics{
 
 /// forward declarations
-template<int dim> class FVGradBase;
+template<int dim> class FVInterpolateBase;
 template<int dim> class Element;
 template<int dim> class Mesh;
 template<int dim> class FVDoFManager;
 template<int dim> class BoundaryFunctionBase;
 template<int dim> class NumericScalarFunction;
+template<int dim> class NumericVectorFunctionBase;
 
-#ifdef USE_TRILINOS
-class TrilinosEpetraMatrix;
-class TrilinosEpetraVector;
-#endif
 
-/// \brief Policy that assembles Laplaces terms
-/// on a user specified mesh using user specified
-/// gradient scheme
-
+/// \brief Base class for deriving
+/// assemble policies for FVM
 template<int dim>
-class FVLaplaceAssemblyPolicy
+class FVAssemblyPolicy
 {
 public:
-
-    /// \brief Constructor
-    FVLaplaceAssemblyPolicy();
-
-    /// \brief Reinitialize the policy
-    void reinit(const Element<dim>& element);
-
-    /// \brief Reinitialize the policy
-    void reinit(const Element<dim>& element, std::vector<real_t>&& qvals);
-
-#ifdef USE_TRILINOS
-
-    /// \brief Assemble the data
-    void assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b );
-
-    /// \brief Apply the boundary conditions
-    void apply_boundary_conditions(const  std::vector<uint_t>& bfaces, TrilinosEpetraMatrix& mat,
-                                   TrilinosEpetraVector& x, TrilinosEpetraVector& b );
-
-    /// \brief assemble one element contribution
-    void assemble_one_element(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b );
-
-#endif
 
     /// \brief Compute the fluxes over the cell last
     /// reinitialized
@@ -75,14 +45,10 @@ public:
     /// \brief Set the mesh pointer
     void set_mesh(const Mesh<dim>& mesh){m_ptr_ = &mesh;}
 
-    /// \brief Build the  gradient scheme
-    template<typename Factory>
-    void build_gradient(const Factory& factory);
+protected:
 
-private:
-
-    /// \brief Pointer to the FV gradient approximation
-    std::shared_ptr<FVGradBase<dim>> fv_grads_;
+    /// \brief Constructor
+    FVAssemblyPolicy();
 
     /// \brief The element over which the policy is working
     const Element<dim>* elem_;
@@ -113,23 +79,19 @@ private:
     /// any volume terms to assemble
     const NumericScalarFunction<dim>* volume_func_;
 
+    /// \brief The object responsible for calculating the velocity term
+    const NumericVectorFunctionBase<dim>* velocity_func_;
+
     /// \brief The Mesh over which the policy is working
     const Mesh<dim>* m_ptr_;
 
     /// \brief initialize dofs
     void initialize_dofs_();
+
 };
 
-template<int dim>
-template<typename Factory>
-void
-FVLaplaceAssemblyPolicy<dim>::build_gradient(const Factory& factory){
-
-    fv_grads_ = factory();
-}
 
 }
-
 }
 
-#endif // FV_LAPLACE_ASSEMBLE_POLICY_H
+#endif // FV_ASSEMBLE_POLICY_H

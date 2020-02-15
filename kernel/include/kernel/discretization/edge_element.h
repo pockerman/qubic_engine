@@ -90,6 +90,13 @@ public:
     /// \brief Returns the volume of the element
     virtual real_t volume()const override final;
 
+    /// \brief Returns the local id relevant to the calling object
+    /// of the  passed  object
+    virtual uint_t which_face_am_i(cface_ref_t face)const override final{throw std::logic_error("Not implemented");}
+
+    /// \brief Returns the face normal vector
+    virtual const DynVec<real_t> face_normal_vector(uint_t f)const override final{throw std::logic_error("Not implemented");}
+
 };
 
 }

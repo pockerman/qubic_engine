@@ -30,7 +30,6 @@ template<int dim,int topodim> class FaceElement;
 /// There is a specialization for 1D that provides some extended functionality like
 /// inquiring if the point is on the boundary and on which boundary, which Element
 /// owns the point and if it is an internal point who is the neighbor
-
 template<int spacedim>
 class FaceElement<spacedim, 0>: public GeomPoint<spacedim>,
                                DoFObject
@@ -85,6 +84,25 @@ public:
     /// If this lies on the the boundary then the centroid of
     /// the FaceElementis used
     real_t owner_neighbor_distance()const;
+
+    /// \brief Returns true if the owner of the cell has
+    /// the given id
+    bool is_owner(uint_t id)const;
+
+    /// \brief Read/write access to the neighbor element
+    Element<spacedim>& get_neighbor();
+
+    /// \brief Read reference to the neighbor of the side
+    const Element<spacedim>& get_neighbor()const;
+
+    /// \brief Read/write access to the neighbor element
+    Element<spacedim>& get_owner();
+
+    /// \brief Read reference to the neighbor of the side
+    const Element<spacedim>& get_owner()const;
+
+    /// \brief Returns the normal vector to the face
+    const DynVec<real_t> normal_vector()const{return DynVec<real_t>((*this)[0]);}
   
     uint_t get_id()const{return id_;}
     void set_id(uint_t id){id_ = id;}
@@ -92,6 +110,9 @@ public:
 
     bool on_boundary () const {return boundary_indicator_!=KernelConsts::invalid_size_type();}
     uint_t boundary_indicator()const{return boundary_indicator_;}
+
+
+
 
 
 private:
@@ -215,6 +236,25 @@ public:
     /// \brief Returns the centroid of the face element
     const GeomPoint<2> centroid()const;
 
+    /// \brief Returns true if the owner of the cell has
+    /// the given id
+    bool is_owner(uint_t id)const;
+
+    /// \brief Read/write access to the neighbor element
+    Element<2>& get_neighbor();
+
+    /// \brief Read reference to the neighbor of the side
+    const Element<2>& get_neighbor()const;
+
+    /// \brief Read/write access to the neighbor element
+    Element<2>& get_owner();
+
+    /// \brief Read reference to the neighbor of the side
+    const Element<2>& get_owner()const;
+
+    /// \brief Returns the normal vector to the face
+    const DynVec<real_t> normal_vector()const;
+
     bool is_active()const{return true;}
     uint_t get_id()const{return id_;}
     void set_id(uint_t id){id_ = id;}
@@ -305,6 +345,22 @@ class FaceElement<3,1>
      /// \brief Returns the centroid of the face element
      GeomPoint<3> centroid()const{return GeomPoint<3>(0.0);}
 
+     /// \brief Returns true if the owner of the cell has
+     /// the given id
+     bool is_owner(uint_t id)const{return  true;}
+
+     /// \brief Read/write access to the neighbor element
+     Element<3>& get_neighbor(){}
+
+     /// \brief Read reference to the neighbor of the side
+     const Element<3>& get_neighbor()const{}
+
+     /// \brief Read/write access to the neighbor element
+     Element<3>& get_owner(){}
+
+     /// \brief Read reference to the neighbor of the side
+     const Element<3>& get_owner()const{}
+
        bool is_active()const{return true;}
 
        uint_t get_id()const{return id_;}
@@ -313,16 +369,8 @@ class FaceElement<3,1>
 
 private:
  
- 
-
   Face* owner_;
- 
- 
-
   Face* neighbor_;
-  
-   
-
   uint_t boundary_indicator_;
 
   std::ostream& print_(std::ostream& o)const;
@@ -451,6 +499,26 @@ class FaceElement<3,2>
     real_t owner_neighbor_distance()const{return 0.0;}
   
    bool is_active()const{return true;}
+
+   /// \brief Returns true if the owner of the cell has
+   /// the given id
+   bool is_owner(uint_t id)const{throw std::logic_error("Not implemented");}
+
+   /// \brief Read/write access to the neighbor element
+   Element<3>& get_neighbor(){throw std::logic_error("Not implemented");}
+
+   /// \brief Read reference to the neighbor of the side
+   const Element<3>& get_neighbor()const{throw std::logic_error("Not implemented");}
+
+
+   /// \brief Read/write access to the neighbor element
+   Element<3>& get_owner(){throw std::logic_error("Not implemented");}
+
+   /// \brief Read reference to the neighbor of the side
+   const Element<3>& get_owner()const{throw std::logic_error("Not implemented");}
+
+   /// \brief Returns the normal vector to the face
+   const DynVec<real_t> normal_vector()const{throw std::logic_error("Not implemented");}
 
    uint_t get_id()const{return id_;}
    void set_id(uint_t id){id_ = id;}

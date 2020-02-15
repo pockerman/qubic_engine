@@ -25,7 +25,6 @@ private:
 
     std::string name_;
 
-
 };
 
 

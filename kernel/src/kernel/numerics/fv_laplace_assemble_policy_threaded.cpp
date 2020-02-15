@@ -14,6 +14,7 @@ FVLaplaceAssemblyPolicyThreaded<dim, Executor>::FVLaplaceAssemblyPolicyThreaded(
     dof_manager_(nullptr),
     boundary_func_(nullptr),
     rhs_func_(nullptr),
+    volume_func_(nullptr),
     m_ptr_(nullptr),
     tasks_(),
     executor_(nullptr)
@@ -43,7 +44,7 @@ FVLaplaceAssemblyPolicyThreaded<dim, Executor>::assemble(TrilinosEpetraMatrix& m
 
         for(uint_t t=0; t<executor_->n_processing_elements(); ++t){
             tasks_.push_back(std::make_unique<task_t>(t, mat, b, x, fv_grads_, *dof_manager_,
-                                                      *m_ptr_, boundary_func_, rhs_func_));
+                                                      *m_ptr_, boundary_func_, rhs_func_, volume_func_));
         }
 
     }
