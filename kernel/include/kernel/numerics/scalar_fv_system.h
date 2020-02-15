@@ -78,6 +78,9 @@ public:
     /// \brief Returns the assembly policy
     assembly_policy_t& get_assembly_policy(){return assembly_;}
 
+    /// \brief Access the solution vector
+    vector_t& get_solution(){return solution_;}
+
     /// \brief Print the matrix
     std::ostream& print_system_matrix(std::ostream& out)const;
 

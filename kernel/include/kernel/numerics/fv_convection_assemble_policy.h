@@ -49,6 +49,7 @@ public:
     /// \brief assemble one element contribution
     void assemble_one_element(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b );
 
+
 #endif
 
     /// \brief Compute the fluxes over the cell last
@@ -131,6 +132,7 @@ FVConvectionAssemblyPolicy<dim>::build_interpolate_scheme(const Factory& factory
 
     fv_interpolate_ = factory();
 }
+
 }
 }
 

@@ -33,6 +33,7 @@ FVLaplaceAssemblyPolicy<dim>::FVLaplaceAssemblyPolicy()
       dof_manager_(nullptr),
       boundary_func_(nullptr),
       rhs_func_(nullptr),
+      volume_func_(nullptr),
       m_ptr_(nullptr)
 {}
 
@@ -172,6 +173,10 @@ FVLaplaceAssemblyPolicy<dim>::assemble_one_element(TrilinosEpetraMatrix& mat, Tr
         }
     }
 
+    if(volume_func_){
+        row_entries[0] += volume_func_->value(elem_->centroid())*elem_->volume();
+    }
+
     mat.set_entry(row_dofs[0], row_dofs[0], row_entries[0]);
     for(uint_t idx=1; idx<row_dofs.size(); ++idx){
         mat.set_entry(row_dofs[0], row_dofs[idx], row_entries[idx]);
@@ -195,8 +200,6 @@ void
 FVLaplaceAssemblyPolicy<dim>::apply_boundary_conditions(const  std::vector<uint_t>& bfaces, TrilinosEpetraMatrix& mat,
                                                         TrilinosEpetraVector& x, TrilinosEpetraVector& b ){
 
-        bool added=false;
-
         for(uint_t f=0; f<bfaces.size(); ++f){
 
             auto& face = elem_->get_face(bfaces[f]);
@@ -204,7 +207,7 @@ FVLaplaceAssemblyPolicy<dim>::apply_boundary_conditions(const  std::vector<uint_
             //get the boundary condition type
             BCType type = boundary_func_->bc_type(face.boundary_indicator());
 
-            if(type == BCType::DIRICHLET)
+            if(type == BCType::DIRICHLET || type == BCType::ZERO_DIRICHLET)
             {
                 real_t bc_val = boundary_func_->value(face.centroid());
                 uint_t var_dof = cell_dofs_[0].id;
@@ -218,6 +221,18 @@ FVLaplaceAssemblyPolicy<dim>::apply_boundary_conditions(const  std::vector<uint_
                 mat.add_entry(var_dof, var_dof, qval*flux_val);
 
             }//Dirichlet
+            else if (type == BCType::NEUMANN) {
+
+                auto gradient = boundary_func_->gradients(face.centroid());
+                auto normal_vector = face.normal_vector();
+                normal_vector /= norm(normal_vector);
+                auto normal_comp = dot(normal_vector , gradient);
+                uint_t var_dof = cell_dofs_[0].id;
+                b.add(var_dof, normal_comp);
+            }
+            else if(type == BCType::ZERO_NEUMANN){
+                // nothing to do here.
+            }
         }
 }
 
