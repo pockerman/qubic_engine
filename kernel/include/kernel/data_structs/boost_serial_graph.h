@@ -17,8 +17,7 @@ namespace kernel
 /// The underlying implementation uses Boost Graph library.
 /// This wrapper is introduced to simplify the creation
 /// and handling of the graph.
-
-template<typename VertexData,typename EdgeData>
+template<typename VertexData, typename EdgeData>
 class BoostSerialGraph
 {
 
@@ -34,7 +33,10 @@ public:
         uint_t  id;
 
         node_t();
+        node_t(const vertex_data_t& data);
+        node_t(vertex_data_t&& data);
         node_t(const node_t& o);
+
         node_t& operator=(const node_t& o);
         bool operator==(const node_t& o)const{return this->id==o.id;}
         bool operator!=(const node_t& o)const{return !(*this==o);}
@@ -264,6 +266,20 @@ template<typename VertexData,typename EdgeData>
 BoostSerialGraph<VertexData,EdgeData>::node_t::node_t()
 :
 data(),
+id()
+{}
+
+template<typename VertexData,typename EdgeData>
+BoostSerialGraph<VertexData,EdgeData>::node_t::node_t(const typename BoostSerialGraph<VertexData,EdgeData>::vertex_data_t& data)
+:
+data(data),
+id()
+{}
+
+template<typename VertexData,typename EdgeData>
+BoostSerialGraph<VertexData,EdgeData>::node_t::node_t(typename BoostSerialGraph<VertexData,EdgeData>::vertex_data_t&& data)
+:
+data(data),
 id()
 {}
 

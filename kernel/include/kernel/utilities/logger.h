@@ -65,18 +65,18 @@ private:
   /// \brief Destructor
   ~Logger();
 
-  //the mutex to lock
+  /// \brief the mutex to lock
   std::mutex mutex_;
 
-  //the log file
+  /// \brief The log file
   std::ofstream log_;
 
   //flag indicating that the file has date info
   bool has_been_opened_;
 
- /**
-   * the file name that keeps the log. The default is "log_file.log"
-   */
+  ///
+  /// \brief The log file name. The default is "log_file.log"
+  ///
   std::string file_name_;
 
   /// \brief Log the start/end time points

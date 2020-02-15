@@ -2,17 +2,16 @@
 #define SYSTEM_STATE_H
 
 #include "kernel/base/types.h"
-#include <vector>
-#include <map>
+
+
 #include <string>
 #include <array>
 #include <utility>
 #include <algorithm>
-namespace kernel
-{
+#include <ostream>
 
-namespace dynamics
-{
+namespace kernel{
+namespace dynamics{
 
 /// \brief SysState utility class describing the state of a system
 template<int dim>
@@ -32,7 +31,10 @@ public:
     SysState(std::array<std::string, dim>&& names, real_t val);
 
     /// \brief Copy constructor
-    //SysState(const SysState<dim>& other);
+    SysState(const SysState<dim>& other);
+
+    /// \brief Move copy constructor
+    SysState& operator=(const SysState<dim>& other);
 
     /// \brief Move copy constructor
     SysState(SysState&& other);
@@ -70,6 +72,12 @@ public:
     /// \brief clear the state
     void clear();
 
+    /// \brief Print the state at the given stream
+    std::ostream& print(std::ostream& out)const;
+
+    /// \brief Return the state as string
+    const std::string as_string()const;
+
 private:
 
     std::array<std::pair<std::string, real_t>, dim> values_;
@@ -80,7 +88,14 @@ template<int dim>
 SysState<dim>::SysState()
     :
    values_()
-{}
+{
+    std::for_each(values_.begin(), values_.end(),
+                  [](std::pair<std::string, real_t>& item){
+
+        item.first= "NO NAME";
+        item.second = 0.0;
+    });
+}
 
 template<int dim>
 SysState<dim>::SysState(std::array<std::pair<std::string, real_t>, dim>&& values)
@@ -100,6 +115,24 @@ SysState<dim>::SysState(std::array<std::string, dim>&& names, real_t val)
     names.clear();
 }
 
+template<int dim>
+SysState<dim>::SysState(const SysState<dim>& other)
+    :
+      values_(other.values_)
+{}
+
+
+template<int dim>
+SysState<dim>&
+SysState<dim>::operator=(const SysState<dim>& other){
+
+    if(this == &other){
+        return *this;
+    }
+
+    this->values_ = other.values_;
+    return *this;
+}
 
 template<int dim>
 SysState<dim>::SysState(SysState&& other)
@@ -118,6 +151,7 @@ SysState<dim>::operator=(SysState&& other){
     }
 
     this->values_ = other.values_;
+    other.clear();
     return *this;
 }
 
@@ -162,7 +196,6 @@ SysState<dim>::set(uint_t i, const std::pair<std::string, real_t>& value){
     values_[i] = value;
 
 }
-
 
 template<int dim>
 real_t&
@@ -227,6 +260,45 @@ SysState<dim>::get_values()const{
                    copy.begin(), [](const std::pair<std::string, real_t>& item){
        return item.second;
     });
+}
+
+template<int dim>
+std::ostream&
+SysState<dim>::print(std::ostream& out)const{
+
+    out<<std::fixed << std::setprecision(4);
+
+    std::for_each(values_.begin(), values_.end(),
+              [&](const std::pair<std::string, real_t>& vals){
+       out<<vals.first<<":"<<vals.second<<std::endl;
+    });
+
+    return out;
+}
+
+template<int dim>
+const std::string
+SysState<dim>::as_string()const{
+
+    std::string result;
+
+    std::for_each(values_.begin(), values_.end(),
+              [&](const std::pair<std::string, real_t>& vals){
+       result += vals.first;
+       result += ":";
+       result += std::to_string(vals.second);
+       result += ",";
+    });
+
+    return result;
+
+}
+
+
+template<int dim>
+inline
+std::ostream& operator<<(std::ostream& out, const SysState<dim>& state){
+    return state.print(out);
 }
 
 }

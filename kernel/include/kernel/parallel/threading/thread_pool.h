@@ -78,6 +78,12 @@ public:
     /// \brief Returns the number of threads
     uint_t n_processing_elements()const{return get_n_threads();}
 
+    /// \brief Query the pool about the start state
+    bool is_started()const{return is_started_;}
+
+    /// \brief query the pool about the stop state
+    bool is_closed()const{return is_closed_;}
+
 private:
 
     typedef detail::kernel_thread thread_type;
@@ -90,6 +96,12 @@ private:
 
     /// \brief The options used
     ThreadPoolOptions options_;
+
+    /// \brief flag indicating if the pool is started
+    bool is_started_;
+
+    /// \brief flag indicating if the pool is closed
+    bool is_closed_;
 };
 
 
