@@ -1,14 +1,11 @@
-/***
- *
- * Implementation of a task that can be stopped
- * Initial implementation is taken from
- * https://thispointer.com/c11-how-to-stop-or-terminate-a-thread/
- *
- *
- **/
-
 #ifndef STOPPABLE_TASK_H
 #define STOPPABLE_TASK_H
+
+#include "kernel/base/config.h"
+
+#ifdef USE_LOG
+#include "kernel/utilities/logger.h"
+#endif
 
 #include "kernel/parallel/threading/task_base.h"
 
@@ -79,8 +76,20 @@ StoppableTask<StopCondition>::operator()(){
         else{
            this->set_state(TaskBase::TaskState::STOPPED);
         }
+
+#ifdef USE_LOG
+        std::ostringstream message;
+        message<<"Task: "<<get_name()<<" finished successfully";
+        Logger::log_info(message.str());
+#endif
     }
     catch (...) {
+
+#ifdef USE_LOG
+        std::ostringstream message;
+        message<<"An exception occured whilst running task: "<<this->get_name();
+        Logger::log_error(message.str());
+#endif
 
         // whatever caused this, we assume that the task was interrupted
         // by an exception

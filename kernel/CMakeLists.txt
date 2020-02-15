@@ -36,11 +36,11 @@ ENDIF()
 
 SET(BUILD_SHARED_LIBS ON)
 SET(CMAKE_BUILD_TYPE "Debug")
-SET(ENABLE_TESTING "ON")
+SET(ENABLE_TESTING "OFF")
 SET(USE_OPENMP "ON")
 SET(USE_LOG "ON")
 SET(USE_FVM "ON")
-SET(USE_TRILINOS "ON")
+SET(USE_TRILINOS "OFF")
 SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install)
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/kernel)
@@ -72,7 +72,7 @@ ENDIF()
 
 IF( ENABLE_TESTING MATCHES "ON")
     SET(GTEST_INC_DIR " ")
-		SET(GTEST_LIB_DIR " ")
+    SET(GTEST_LIB_DIR " ")
     INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
 ENDIF()
 
@@ -130,7 +130,8 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/dynamics/*.cpp
                  ${PROJECT_SRC_DIR}/numerics/*.cpp
                  ${PROJECT_SRC_DIR}/discretization/*.cpp
-                 ${PROJECT_SRC_DIR}/geometry/*.cpp)
+                 ${PROJECT_SRC_DIR}/geometry/*.cpp
+                 ${PROJECT_SRC_DIR}/patterns/*.cpp)
 
 
 ADD_LIBRARY(${LIB_NAME} SHARED ${SRCS})

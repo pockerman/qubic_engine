@@ -2,7 +2,7 @@
 #define LP_METRIC_H
 
 #include "kernel/base/types.h"
-
+#include "kernel/geometry/geom_point.h"
 
 namespace kernel
 {
@@ -32,10 +32,24 @@ public:
    /// \brief Overload operator()
    real_t operator()(const DynVec<real_t>& v1, const DynVec<real_t>& v2)const;
 
+   /// \brief Overload operator
+   template<int dim>
+   real_t operator()(const GeomPoint<dim>& v1, const GeomPoint<dim>& v2  )const;
+
    /// \brief evaluate
    static real_t evaluate(const DynVec<real_t>& v1, const DynVec<real_t>& v2);
+
+   /// \brief Evaluate for points
+   template<int dim>
+   static real_t evaluate(const GeomPoint<dim>& v1, const GeomPoint<dim>& v2);
 };
 
+template<int P, bool TTakeRoot>
+template<int dim>
+real_t
+LpMetric<P,TTakeRoot>::operator()(const GeomPoint<dim>& v1, const GeomPoint<dim>& v2  )const{
+    return LpMetric<P,TTakeRoot>::evaluate(v1, v2);
+}
 
 /// \brief some useful shortcuts
 using ManhattanMetric = LpMetric<1, false> ;

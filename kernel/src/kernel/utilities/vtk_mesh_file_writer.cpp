@@ -111,6 +111,32 @@ VtkMeshFileWriter::write_mesh(const Mesh<2>& mesh, const VtkMeshMeshCellOptions&
 }
 
 void
+VtkMeshFileWriter::write_mesh(const Mesh<2>& mesh, const std::vector<real_t>& cell_values, const std::string& option_name){
+     write_mesh(mesh);
+
+     //get the number of active (this should be) elements
+     const uint_t n_elements = mesh.n_elements();
+
+     this->file_<<std::endl;
+     this->file_<<"CELL_DATA"<<" "<<n_elements<<std::endl;
+     this->file_<<"SCALARS "<<option_name<<" double "<<std::endl;
+     this->file_<<"LOOKUP_TABLE default"<<std::endl;
+
+     ConstElementMeshIterator<Active, Mesh<2>> filter(mesh);
+
+     auto elem_it     = filter.begin();
+     auto elem_it_end = filter.end();
+
+     for(; elem_it != elem_it_end; elem_it++){
+
+         const Element<2>* e = *elem_it;
+         this->file_<<cell_values[e->get_id()]<<std::endl;
+     }
+     this->file_<<"\n";
+     this->file_.flush();
+}
+
+void
 VtkMeshFileWriter::write_option(const Mesh<2>& mesh, const std::string& name){
 
     //get the number of active (this should be) elements

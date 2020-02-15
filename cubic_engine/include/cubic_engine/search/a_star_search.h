@@ -145,7 +145,7 @@ astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp:
 
 template<typename IdTp>
 std::vector<IdTp>
-reconstruct_a_star_path(const std::multimap<IdTp,IdTp>& map, const IdTp& start){
+reconstruct_a_star_path(const std::multimap<IdTp, IdTp>& map, const IdTp& start){
 
     if(map.empty()){
         return std::vector<IdTp>();

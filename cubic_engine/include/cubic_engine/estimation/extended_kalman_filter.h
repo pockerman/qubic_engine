@@ -1,15 +1,9 @@
-/***
- * Implementation of Extended Kalman Filter algorithm
- *
- */
-
 #ifndef EXTENDED_KALMAN_FILTER_H
 #define	EXTENDED_KALMAN_FILTER_H
 
 #include "cubic_engine/estimation/kalman_filter.h"
 
-namespace cengine
-{
+namespace cengine{
 
 //TODO: The following don't look nice!!!!
 
