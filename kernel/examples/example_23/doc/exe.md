@@ -3,7 +3,6 @@
 ## Contents
 
 * [Overview](#overview)
-* [Upwind scheme](#upwind_scheme)
 * [Include files](#include_files)
 * [The main function](#m_func)
 * [Results](#results)
@@ -39,13 +38,15 @@
 #include "kernel/maths/functions/numeric_vector_function.h"
 
 #include "kernel/numerics/scalar_dirichlet_bc_function.h"
-#include "kernel/numerics/fv_grad_factory.h"
-#include "kernel/numerics/fv_grad_types.h"
-#include "kernel/numerics/scalar_fv_system.h"
-#include "kernel/numerics/trilinos_solution_policy.h"
-#include "kernel/numerics/fv_laplace_assemble_policy.h"
-#include "kernel/numerics/boundary_function_base.h"
+#include "kernel/numerics/fv_convection_assemble_policy.h"
+#include "kernel/numerics/fv_ud_interpolation.h"
+#include "kernel/numerics/fv_scalar_timed_system.h"
+#include "kernel/numerics/simple_fv_time_stepper.h"
+#include "kernel/numerics/fv_interpolation_factory.h"
+#include "kernel/numerics/fv_interpolation_types.h"
 
+#include "kernel/numerics/trilinos_solution_policy.h"
+#include "kernel/numerics/boundary_function_base.h"
 
 #include <cmath>
 #include <iostream>
@@ -61,37 +62,12 @@ using kernel::uint_t;
 using kernel::DynVec;
 using kernel::numerics::Mesh;
 using kernel::GeomPoint;
-using kernel::numerics::ScalarFVSystem;
+using kernel::numerics::FVScalarTimedSystem;
 using kernel::numerics::TrilinosSolutionPolicy;
-using kernel::numerics::FVLaplaceAssemblyPolicy;
+using kernel::numerics::FVConvectionAssemblyPolicy;
+using kernel::numerics::SimpleFVTimeAssemblyPolicy;
 using kernel::numerics::ScalarDirichletBCFunc;
 using kernel::numerics::KrylovSolverData;
-
-const real_t width = 1.0/8.0;
-
-GeomPoint<2> source_center(uint_t i){
-
-  std::vector<real_t> values(2, 0.0);
-  switch(i)
-  {
-    case 0:
-       values[0] = -0.5;
-       values[1] = 0.5;
-      break;
-    case 1:
-       values[0] = -0.5;
-       values[1] = -0.5;
-      break;
-    case 2:
-       values[0] = 0.5;
-       values[1] = -0.5;
-      break;
-
-  }
-
- return GeomPoint<2>(values);
-
-}
 
 class RhsVals: public kernel::numerics::NumericScalarFunction<2>
 {
@@ -102,36 +78,25 @@ public:
 };
 
 real_t
-RhsVals::value(const GeomPoint<2>& point)const{
-
-    real_t value=0.0;
-
-    for(uint_t i=0; i<3; i++){
-
-      const GeomPoint<2> x_minus_xi = point - source_center(i);
-
-      value += ((2*2 - 4*x_minus_xi.square_sum()/(width *width)) /(width *width) *std::exp(-x_minus_xi.square_sum() /(width *width)));
-      value += std::exp(-x_minus_xi.square_sum()/(width*width));
-    }
-
-    return value;
-
-
+RhsVals::value(const GeomPoint<2>& /*point*/)const{
+    return 0.0;
 }
 
-class VolumeVals: public kernel::numerics::NumericScalarFunction<2>
+
+class VelocityVals: public kernel::numerics::NumericVectorFunctionBase<2>
 {
 public:
 
     /// \brief Returns the value of the function
-    virtual real_t value(const GeomPoint<2>&  input)const override final;
+    virtual kernel::DynVec<real_t> value(const GeomPoint<2>&  input)const override final;
 };
 
-real_t
-VolumeVals::value(const GeomPoint<2>& /*point*/)const{
-    return 1.0;
-}
+kernel::DynVec<real_t>
+VelocityVals::value(const GeomPoint<2>&  /*input*/)const{
 
+   return kernel::DynVec<real_t>(2, 1.0);
+
+}
 
 // The BC description
 class BoundaryValues: public kernel::numerics::BoundaryFunctionBase<2>
@@ -146,8 +111,7 @@ public:
 
     //
     // \brief Returns the value of the function on the Dirichlet boundary
-    virtual output_t value(const GeomPoint<2>&  p)const override;
-    virtual DynVec<real_t> gradients(const GeomPoint<2> & p)const override;
+    virtual output_t value(const GeomPoint<2>&  /*input*/)const override{return 0.0;}
 
 };
 
@@ -155,48 +119,18 @@ BoundaryValues::BoundaryValues()
     :
     kernel::numerics::BoundaryFunctionBase<2>()
 {
-    this->set_bc_type(0, kernel::numerics::BCType::NEUMANN);
-    this->set_bc_type(1, kernel::numerics::BCType::DIRICHLET);
-    this->set_bc_type(2, kernel::numerics::BCType::DIRICHLET);
-    this->set_bc_type(3, kernel::numerics::BCType::NEUMANN);
+    this->set_bc_type(0, kernel::numerics::BCType::ZERO_DIRICHLET);
+    this->set_bc_type(1, kernel::numerics::BCType::ZERO_NEUMANN);
+    this->set_bc_type(2, kernel::numerics::BCType::ZERO_NEUMANN);
+    this->set_bc_type(3, kernel::numerics::BCType::ZERO_DIRICHLET);
 }
 
-BoundaryValues::output_t
-BoundaryValues::value(const GeomPoint<2>&  p)const{
+struct TimeData
+{
+    uint_t n_itrs = 200;
+    real_t dt = 0.005;
 
-    real_t return_value = 0;
-
-    for (uint_t i=0; i<3; i++)
-    {
-       const GeomPoint<2> x_minus_xi = p - source_center(i);
-       return_value += std::exp(-x_minus_xi.square_sum() /(width*width));
-    }
-
-    return return_value;
-}
-
-DynVec<real_t>
-BoundaryValues::gradients(const GeomPoint<2> & p)const{
-
-    DynVec<real_t>  return_value(2, 0.0);
-
-    for (unsigned int i=0; i<3; i++)
-     {
-          const GeomPoint<2> x_minus_xi = p - source_center(i);
-
-           return_value[0] += (-2 /(width*width) *
-                            std::exp(-x_minus_xi.square_sum() /
-                           (width*width)) *x_minus_xi[0]);
-
-           return_value[1] += (-2 /(width*width) *
-                            std::exp(-x_minus_xi.square_sum() /
-                           (width*width)) *x_minus_xi[1]);
-
-
-    }
-
-    return return_value;
-}
+};
 
 }
 
@@ -226,37 +160,85 @@ int main(){
         data.solver_type = kernel::numerics::KrylovSolverType::GMRES;
         data.precondioner_type = kernel::numerics::PreconditionerType::ILU;
 
+        TimeData time_data;
+
         // description of the BC the system is using
         BoundaryValues bc_func;
 
         // description of the RHS
         RhsVals rhs;
 
-        // description of the volume term
-        VolumeVals vol_vals;
+        // the velocity
+        VelocityVals velocity;
 
         // laplace system
-        ScalarFVSystem<2, FVLaplaceAssemblyPolicy<2>, TrilinosSolutionPolicy> helm("Helm", "U", mesh);
+        FVScalarTimedSystem<2, SimpleFVTimeAssemblyPolicy<2>,
+                           FVConvectionAssemblyPolicy<2>, TrilinosSolutionPolicy> convection("Convection", "U", mesh);
 
         // system configuration
-        helm.set_boundary_function(bc_func);
-        helm.set_rhs_function(rhs);
-        helm.set_solver_data(data);
-        helm.set_volume_term_function(vol_vals);
+        convection.set_boundary_function(bc_func);
+        convection.set_rhs_function(rhs);
+        convection.set_solver_data(data);
+        convection.set_time_step(time_data.dt);
+        convection.set_n_old_solution_vectors(1);
 
-        auto grad_builder = [](){
-            return kernel::numerics::FVGradFactory<2>::build(kernel::numerics::FVGradType::GAUSS);
+        auto interpolate_builder = [](){
+            return kernel::numerics::FVInterpolationFactory<2>::build(kernel::numerics::FVInterpolationType::UD);
         };
 
-        helm.get_assembly_policy().build_gradient(grad_builder);
+        convection.get_assembly_policy().build_interpolate_scheme(interpolate_builder);
+
+        std::shared_ptr<kernel::numerics::FVInterpolateBase<2>> interpolation = convection.get_assembly_policy().get_interpolation();
+        dynamic_cast<kernel::numerics::FVUDInterpolate<2>*>(interpolation.get())->set_velocity(velocity);
 
         // distribute the dofs
-        helm.distribute_dofs();
-        std::cout<<"Number of dofs: "<<helm.n_dofs()<<std::endl;
+        convection.distribute_dofs();
+        std::cout<<"Number of dofs: "<<convection.n_dofs()<<std::endl;
 
-        helm.assemble_system();
-        helm.solve();
-        helm.save_solution("helm_system.vtk");
+        auto& old_sol = convection.get_old_solution_vector(0);
+
+        // initialize the old solution
+        kernel::numerics::ElementMeshIterator<kernel::numerics::Active, Mesh<2>> filter(mesh);
+
+        auto begin = filter.begin();
+        auto end = filter.end();
+
+        for(; begin != end; ++begin){
+
+          //get the element
+          const auto* elem = *begin;
+          const GeomPoint<2> centroid = elem->centroid();
+
+          if(centroid[0]>=-0.35 && centroid[0]<=0.35){
+             if(centroid[1]>=-0.35 && centroid[1]<=0.35){
+               old_sol[elem->get_id()] = 1.0;
+             }
+             else{
+                old_sol[elem->get_id()] = 0.0;
+             }
+          }
+          else{
+              old_sol[elem->get_id()] = 0.0;
+          }
+        }
+
+        auto& sol = convection.get_solution();
+        real_t time=0;
+        for(uint_t itr=0; itr<time_data.n_itrs; ++itr){
+
+            std::cout<<"At time: "<<time<<std::endl;
+            convection.assemble_system();
+            convection.solve();
+
+            if(itr % 10 == 0){
+                convection.save_solution("square_system" + std::to_string(itr)+ ".vtk");
+            }
+            time += time_data.dt;
+
+            for(uint_t s=0; s<old_sol.size(); ++s){
+                old_sol[s] = sol[s];
+            }
+        }
 
     }
     catch(std::logic_error& error){
@@ -283,82 +265,8 @@ int main(){
 
 ## <a name="results"></a> Results
 
-```
-Number of dofs: 10000
 
-                *******************************************************
-                ***** Problem: Epetra::CrsMatrix
-                ***** Preconditioned GMRES solution
-                ***** ILU(0) domain decomp. without overlap
-                ***** No scaling
-                ***** NOTE: convergence VARIES when the total number of
-                *****       processors is changed.
-                *******************************************************
-
-                iter:    0           residual = 1.000000e+00
-
-*********************************************************************
-*****  Condition number estimate for subdomain preconditioner on PE 0 = 2.6422e+00
-*********************************************************************
-                iter:    1           residual = 4.308928e-01
-                iter:    2           residual = 2.432915e-01
-                iter:    3           residual = 1.565491e-01
-                iter:    4           residual = 1.093301e-01
-                iter:    5           residual = 8.228524e-02
-                iter:    6           residual = 6.334569e-02
-                iter:    7           residual = 5.080178e-02
-                iter:    8           residual = 3.897126e-02
-                iter:    9           residual = 3.064067e-02
-                iter:   10           residual = 2.475900e-02
-                iter:   11           residual = 2.028881e-02
-                iter:   12           residual = 1.650773e-02
-                iter:   13           residual = 1.349504e-02
-                iter:   14           residual = 1.114470e-02
-                iter:   15           residual = 9.273215e-03
-                iter:   16           residual = 7.862394e-03
-                iter:   17           residual = 6.768251e-03
-                iter:   18           residual = 5.954197e-03
-                iter:   19           residual = 5.302563e-03
-                iter:   20           residual = 4.773384e-03
-                iter:   21           residual = 4.393021e-03
-                iter:   22           residual = 4.058150e-03
-                iter:   23           residual = 3.823872e-03
-                iter:   24           residual = 3.619573e-03
-                iter:   25           residual = 3.432935e-03
-                iter:   26           residual = 3.260906e-03
-                iter:   27           residual = 3.095444e-03
-                iter:   28           residual = 2.897686e-03
-                iter:   29           residual = 2.709338e-03
-                iter:   30           residual = 2.563793e-03
-                iter:   31           residual = 2.502839e-03
-                iter:   32           residual = 2.433820e-03
-                iter:   33           residual = 2.370586e-03
-                iter:   34           residual = 2.312857e-03
-                iter:   35           residual = 2.259541e-03
-                iter:   36           residual = 2.200854e-03
-                iter:   37           residual = 2.134791e-03
-                iter:   38           residual = 2.045236e-03
-                iter:   39           residual = 1.939797e-03
-                iter:   40           residual = 1.829937e-03
-                iter:   41           residual = 1.724259e-03
-                iter:   42           residual = 1.626939e-03
-                iter:   43           residual = 1.531708e-03
-                iter:   44           residual = 1.436591e-03
-                iter:   45           residual = 1.334549e-03
-                iter:   46           residual = 1.244729e-03
-                iter:   47           residual = 1.148736e-03
-                iter:   48           residual = 1.062544e-03
-                iter:   49           residual = 9.761766e-04
-                iter:   50           residual = 8.911580e-04
-
-...
-```
-
-<img src="2d_helm.png"
-     alt="Solution view 2D"
-     style="float: left; margin-right: 10px;" />
-
-<img src="3d_helm.png"
+<img src="movie.gif"
      alt="Solution view 3D"
      style="float: left; margin-right: 10px;" />
 
