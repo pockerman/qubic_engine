@@ -11,7 +11,9 @@ ThreadPool::ThreadPool(uint_t n_threads, bool start_)
     :
 pool_(),
 n_threads_(n_threads),
-next_thread_available_ (kernel::KernelConsts::invalid_size_type())
+next_thread_available_ (kernel::KernelConsts::invalid_size_type()),
+is_started_(false),
+is_closed_(true)
 {
     // TODO: perhaps we could request the system
     // using std::thread::hardware_concurrency()
@@ -30,7 +32,9 @@ ThreadPool::ThreadPool(const ThreadPoolOptions& options)
 pool_(),
 n_threads_(),
 next_thread_available_ (kernel::KernelConsts::invalid_size_type()),
-options_(options)
+options_(options),
+is_started_(false),
+is_closed_(true)
  {
           // TODO: perhaps we could request the system
           // using std::thread::hardware_concurrency()
@@ -50,14 +54,21 @@ ThreadPool::~ThreadPool(){
 
 
 void
-ThreadPool::start()
-{
+ThreadPool::start(){
+
+
+    if(is_started_){
+        throw std::logic_error("Pool is already running. You need to stop is first");
+    }
+
     pool_.reserve(options_.n_threads);
     for(uint_t t=0; t < options_.n_threads; ++t){
         pool_.push_back( std::make_unique<detail::kernel_thread>(t) );
         pool_[t]->start();
     }
 
+    is_started_ = true;
+    is_closed_ = false;
     if(options_.msg_on_start_up){
         std::cout<<"MESSAGE:  Start up thread pool with "+std::to_string(options_.n_threads)<<" threads "<<std::endl;
     }
@@ -93,6 +104,10 @@ ThreadPool::add_tasks(const std::vector<std::unique_ptr<task_t>>& tasks){
 void
 ThreadPool::close(){
 
+    if(!is_started_ || is_closed_){
+        return;
+    }
+
     for(uint_t t=0; t<pool_.size(); ++t){
         if(pool_[t]){
             pool_[t]->stop();
@@ -100,6 +115,8 @@ ThreadPool::close(){
         }
     }
 
+    is_started_ = false;
+    is_closed_ = true;
     if(options_.msg_on_shut_down){
         std::cout<<"MESSAGE:  Shut down  thread pool with "+std::to_string(options_.n_threads)<<" threads "<<std::endl;
     }
