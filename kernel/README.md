@@ -104,3 +104,4 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 ### <a name="miscellaneous"></a> Miscellaneous
 
 - <a href="examples/example_18/doc/exe.md">Example 18: </a> Create a rectangular grid
+- <a href="examples/example_24/doc/exe.md">Example 24: </a> Create a ```SerialBoostGraph``` from a ```Mesh``` 
