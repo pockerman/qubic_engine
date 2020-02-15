@@ -140,7 +140,7 @@ int main(){
         // description of the Velocity field
         VelocityVals velocity;
 
-        // laplace system
+        // convection system
         ScalarFVSystem<2, FVConvectionAssemblyPolicy<2>, TrilinosSolutionPolicy> convection("Convection", "U", mesh);
 
         // system configuration
