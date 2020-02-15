@@ -37,6 +37,7 @@ FVConvectionAssemblyPolicy<dim>::FVConvectionAssemblyPolicy()
       dof_manager_(nullptr),
       boundary_func_(nullptr),
       rhs_func_(nullptr),
+      volume_func_(nullptr),
       velocity_func_(nullptr),
       m_ptr_(nullptr)
 {}

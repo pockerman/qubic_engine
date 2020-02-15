@@ -3,11 +3,8 @@
 
 #include "kernel/utilities/predicates.h"
 
-namespace kernel
-{
-namespace numerics
-{
-
+namespace kernel{
+namespace numerics{
 
 struct Active: public IsActive{};
 

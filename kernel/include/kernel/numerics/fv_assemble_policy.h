@@ -1,11 +1,12 @@
-#ifndef FV_CONVECTION_ASSEMBLE_POLICY_H
-#define FV_CONVECTION_ASSEMBLE_POLICY_H
+#ifndef FV_ASSEMBLE_POLICY_H
+#define FV_ASSEMBLE_POLICY_H
 
-#include "kernel/base/config.h"
 #include "kernel/base/types.h"
 #include "kernel/numerics/dof.h"
 
-namespace kernel{
+#include <vector>
+
+namespace kernel {
 namespace numerics{
 
 /// forward declarations
@@ -17,40 +18,13 @@ template<int dim> class BoundaryFunctionBase;
 template<int dim> class NumericScalarFunction;
 template<int dim> class NumericVectorFunctionBase;
 
-#ifdef USE_TRILINOS
-class TrilinosEpetraMatrix;
-class TrilinosEpetraVector;
-#endif
 
+/// \brief Base class for deriving
+/// assemble policies for FVM
 template<int dim>
-class FVConvectionAssemblyPolicy
+class FVAssemblyPolicy
 {
-
 public:
-
-    /// \brief Constructor
-    FVConvectionAssemblyPolicy();
-
-    /// \brief Reinitialize the policy
-    void reinit(const Element<dim>& element);
-
-    /// \brief Reinitialize the policy
-    void reinit(const Element<dim>& element, std::vector<real_t>&& qvals);
-
-#ifdef USE_TRILINOS
-
-    /// \brief Assemble the data
-    void assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b );
-
-    /// \brief Apply the boundary conditions
-    void apply_boundary_conditions(const  std::vector<uint_t>& bfaces, TrilinosEpetraMatrix& mat,
-                                   TrilinosEpetraVector& x, TrilinosEpetraVector& b );
-
-    /// \brief assemble one element contribution
-    void assemble_one_element(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b );
-
-
-#endif
 
     /// \brief Compute the fluxes over the cell last
     /// reinitialized
@@ -71,20 +45,10 @@ public:
     /// \brief Set the mesh pointer
     void set_mesh(const Mesh<dim>& mesh){m_ptr_ = &mesh;}
 
-    /// \brief Set the velocity function
-    void set_velocity_function(const NumericVectorFunctionBase<dim>& velocity){velocity_func_ = &velocity;}
+protected:
 
-    /// \brief Return the interpolation pointer
-    std::shared_ptr<FVInterpolateBase<dim>> get_interpolation(){return fv_interpolate_;}
-
-    /// \brief Build the  gradient scheme
-    template<typename Factory>
-    void build_interpolate_scheme(const Factory& factory);
-
-private:
-
-    /// \brief Pointer to the FV gradient approximation
-    std::shared_ptr<FVInterpolateBase<dim>> fv_interpolate_;
+    /// \brief Constructor
+    FVAssemblyPolicy();
 
     /// \brief The element over which the policy is working
     const Element<dim>* elem_;
@@ -123,17 +87,11 @@ private:
 
     /// \brief initialize dofs
     void initialize_dofs_();
+
 };
 
-template<int dim>
-template<typename Factory>
-void
-FVConvectionAssemblyPolicy<dim>::build_interpolate_scheme(const Factory& factory){
-
-    fv_interpolate_ = factory();
-}
 
 }
 }
 
-#endif // FV_CONVECTION_ASSEMBLE_POLICY_H
+#endif // FV_ASSEMBLE_POLICY_H

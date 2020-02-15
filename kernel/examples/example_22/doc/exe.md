@@ -3,15 +3,12 @@
 ## Contents
 
 * [Overview](#overview)
-* [Upwind scheme](#upwind_scheme)
 * [Include files](#include_files)
 * [The main function](#m_func)
 * [Results](#results)
 * [Source Code](#source_code)
 
 ## <a name="overview"></a> Overview
-
-## <a name="upwind_scheme"></a> Upwind scheme
 
 ## <a name="include_files"></a> Include files
 
