@@ -8,8 +8,7 @@
 #endif
 
 
-namespace kernel
-{
+namespace kernel{
 
 TaskBase::TaskBase(uint_t id)
     :
@@ -42,6 +41,20 @@ TaskBase::operator()(){
         Logger::log_info(message.str());
 #endif
     }
+    catch(std::logic_error& error){
+
+#ifdef USE_LOG
+        std::ostringstream message;
+        message<<"An logic occured whilst running task: "<<this->get_name();
+        message<<" what() says: "<<error.what();
+        Logger::log_error(message.str());
+#endif
+
+        // whatever caused this, we assume that the task was interrupted
+        // by an exception
+        set_state(TaskBase::TaskState::INTERRUPTED_BY_EXCEPTION);
+
+    }
     catch (...) {
 
         //whatever caused this, we assume that the task was interrupted
@@ -62,9 +75,9 @@ TaskBase::finished()const{
     if(!has_children()){
 
       return (state_ != TaskBase::TaskState::PENDING &&
-              state_ != TaskBase::TaskState::STARTED &&
+              state_ != TaskBase::TaskState::STARTED /*&&
               state_ != TaskBase::TaskState::INTERRUPTED &&
-              state_ != TaskBase::TaskState::INTERRUPTED_BY_EXCEPTION );
+              state_ != TaskBase::TaskState::INTERRUPTED_BY_EXCEPTION*/ );
     }
 
     return false;
