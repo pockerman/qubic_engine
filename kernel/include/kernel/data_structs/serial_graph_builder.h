@@ -52,7 +52,6 @@ void build_mesh_graph(const numerics::Mesh<dim>& mesh, BoostSerialGraph<VertexDa
             }
         }
     }
-
 }
 
 }

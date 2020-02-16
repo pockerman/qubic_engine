@@ -146,16 +146,15 @@ public:
     uint_t n_elements()const{return topology_.n_elements();}
 
 
-   /**
-     *\detailed how many edges the mesh has
-     */
+   ///
+   /// \brief How many edges the mesh has
+   ///
     uint_t n_edges()const; //{return topology_.n_edges();}
 
-
-   /**
-     *\detailed how many faces the mesh has
-     */
-    uint_t n_faces()const; //{return topology_.n_faces();}
+   ///
+   /// \brief how many faces the mesh has
+   ///
+   uint_t n_faces()const; //{return topology_.n_faces();}
 
 
    /**
@@ -163,25 +162,19 @@ public:
      */
     uint_t n_active_faces()const;
 
-   /**
-     *\detailed return read/write access to the topology of the mesh
-     */
+   ///
+   /// \brief Return read/write access to the topology of the mesh
+   ///
     MeshTopology<spacedim>* topology(){return &topology_;}
 
-    ///
     /// \brief Read access to the topology of the mesh
-    ///
     const MeshTopology<spacedim>* topology()const{return &topology_;}
 
-    ///
     /// \brief Get the pointers to the faces described by the given MeshConnectivity
-    ///
     void faces(const MeshConnectivity& faces_idx,std::vector<cface_ptr_t>& faces_ptr)const
     {topology_.faces(faces_idx,faces_ptr);}
 
-    ///
     /// \brief Get the number of boundaries of the mesh
-    ///
     uint_t n_boundaries()const{return n_boundaries_;}
 
     /// \brief Raw node iteration

@@ -4,12 +4,52 @@
 #include "kernel/geometry/geom_point.h"
 #include "kernel/discretization/edge_element.h"
 #include "kernel/discretization/node.h"
+#include "kernel/data_structs/boost_serial_graph.h"
+#include "kernel/geometry/geom_point.h"
 
 #include <vector>
 #include <gtest/gtest.h>
 
-namespace{
+namespace test_data
+{
+    using real_t = kernel::real_t;
+    using unit_t = kernel::uint_t;
+    using kernel::GeomPoint;
 
+
+    //vertex data to apply A*
+    struct astar_node
+    {
+        real_t gcost;
+        real_t fcost;
+        GeomPoint<2> position;
+
+        astar_node();
+        astar_node(const GeomPoint<2>& p);
+        astar_node(const astar_node& o);
+
+    };
+
+    astar_node::astar_node()
+    :
+    gcost(std::numeric_limits<real_t>::max()),
+    fcost(std::numeric_limits<real_t>::max()),
+    position()
+    {}
+
+    astar_node::astar_node(const GeomPoint<2>& p)
+    :
+    gcost(std::numeric_limits<real_t>::max()),
+    fcost(std::numeric_limits<real_t>::max()),
+    position(p)
+    {}
+
+    astar_node::astar_node(const astar_node& o)
+    :
+    gcost(o.gcost),
+    fcost(o.fcost),
+    position(o.position)
+    {}
 }
 
 TEST(TestLineMesh, TestZeroElements) {
@@ -22,7 +62,7 @@ TEST(TestLineMesh, TestZeroElements) {
     using kernel::uint_t;
     using kernel::numerics::LineMesh;
     using kernel::GeomPoint;
-    LineMesh mesh;
+    LineMesh<1> mesh;
     uint_t elements = 0;
     GeomPoint<1> start;
     GeomPoint<1> end;
@@ -49,7 +89,7 @@ TEST(TestLineMesh, TestEqualEndPoints) {
     using kernel::uint_t;
     using kernel::numerics::LineMesh;
     using kernel::GeomPoint;
-    LineMesh mesh;
+    LineMesh<1> mesh;
     uint_t elements = 1;
     GeomPoint<1> start;
     GeomPoint<1> end;
@@ -75,7 +115,7 @@ TEST(TestLineMesh, TestMeshGeneration) {
     using kernel::uint_t;
     using kernel::numerics::LineMesh;
     using kernel::GeomPoint;
-    LineMesh mesh;
+    LineMesh<1> mesh;
     uint_t elements = 3;
     GeomPoint<1> start(0.0);
     GeomPoint<1> end(10.0);
@@ -86,7 +126,7 @@ TEST(TestLineMesh, TestMeshGeneration) {
 
     // test the elemen-element connectivity
 
-    auto elem = mesh.get_elem(0);
+    auto* elem = mesh.get_elem(0);
 
     ASSERT_EQ(elem->neighbor_ptr(0), nullptr);
     ASSERT_EQ(elem->neighbor_ptr(1)->get_id(),  1);
@@ -108,8 +148,11 @@ TEST(TestLineMesh, TestMeshGeneration) {
     ASSERT_EQ(mesh.n_nodes(), elements + 1);
 
     elem = mesh.get_elem(0);
-    auto node0 = elem->get_node(0);
-    auto node1 = elem->get_node(1);
+    auto* node0 = elem->get_node(0);
+    auto* node1 = elem->get_node(1);
+
+    ASSERT_TRUE(node0);
+    ASSERT_TRUE(node1);
 
     ASSERT_EQ(node0->get_id(), 0);
     ASSERT_EQ(node1->get_id(), 1);
@@ -128,8 +171,51 @@ TEST(TestLineMesh, TestMeshGeneration) {
     ASSERT_EQ(node0->get_id(), 2);
     ASSERT_EQ(node1->get_id(), 3);
 
-
 }
+
+TEST(TestLineMesh, TestCreateFromGraph) {
+
+    /***
+       * Test Scenario:   The application attempts to create a LineMesh<2> from a BoostSerialGraph
+       * Expected Output: The mesh should be created
+     **/
+
+    using kernel::uint_t;
+    using kernel::numerics::LineMesh;
+    using kernel::GeomPoint;
+    LineMesh<2> mesh;
+
+    using test_data::astar_node;
+    kernel::BoostSerialGraph<astar_node, void > graph;
+
+    graph.add_vertex(astar_node(GeomPoint<2>(0.0)));
+    graph.add_vertex(astar_node(GeomPoint<2>(1.0)));
+    graph.add_vertex(astar_node(GeomPoint<2>(2.0)));
+    graph.add_vertex(astar_node(GeomPoint<2>(3.0)));
+    graph.add_vertex(astar_node(GeomPoint<2>(4.0)));
+
+    graph.add_edge(0,1);
+    graph.add_edge(1,2);
+    graph.add_edge(2,3);
+    graph.add_edge(3,4);
+
+    std::vector<uint_t> vertices(5);
+    for(uint_t i=0; i<vertices.size(); ++i){
+        vertices[i] = i;
+    }
+
+    try {
+        kernel::numerics::build_mesh(mesh, graph, vertices);
+        ASSERT_EQ(mesh.n_nodes(), vertices.size());
+        ASSERT_EQ(mesh.n_elements(), vertices.size() - 1);
+    }
+    catch (std::logic_error& e) {
+
+        const std::string expected("Cannot generate a LineMesh with the same start and ending points");
+        ASSERT_EQ(e.what(), expected);
+    }
+}
+
 
 
 

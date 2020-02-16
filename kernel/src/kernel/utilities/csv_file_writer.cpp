@@ -1,4 +1,8 @@
 #include "kernel/utilities/csv_file_writer.h"
+#include "kernel/discretization/line_mesh.h"
+#include "kernel/discretization/node.h"
+#include "kernel/discretization/node_mesh_iterator.h"
+#include "kernel/discretization/mesh_predicates.h"
 
 namespace kernel
 {
@@ -31,4 +35,29 @@ CSVWriter::write_column_names(const std::vector<std::string>& col_names){
         }
     }
 }
+
+void
+CSVWriter::write_mesh(const numerics::LineMesh<2>& mesh ){
+
+    //if the file is not open
+    if(!is_open()){
+        throw std::logic_error("File "+this->file_name_+" is not open");
+    }
+
+    numerics::ConstNodeMeshIterator<numerics::Active, numerics::LineMesh<2>> filter(mesh);
+
+    auto begin = filter.begin();
+    auto end = filter.end();
+
+    for(; begin != end; ++begin){
+        auto* node  = *begin;
+
+        this->file_<<(*node)[0]<<","<<(*node)[1]<<std::endl;
+    }
+
+    this->file_.flush();
+    this->file_.close();
+
+}
+
 }

@@ -8,6 +8,7 @@
 #include <cmath>
 #include <ostream>
 #include <algorithm>
+#include <string>
 
 namespace kernel{
 
@@ -21,14 +22,10 @@ public:
    typedef T value_type;
    static const int dimension = spacedim;
 
-   ///
    /// \brief ctor all dim data are assigned the given value
-   ///
    explicit GeomPoint(T val =  T());
 
-   ///
    /// \brief Create by passing a vector of data
-   ///
    template<typename Container>
    explicit GeomPoint(const Container& data);
 
@@ -51,21 +48,15 @@ public:
    ///
    GeomPoint & operator -= (const GeomPoint &);
 
-   ///
    /// \detailed Scale the vector by
    /// <tt>factor</tt>, i.e. multiply all
    /// coordinates by <tt>factor</tt>.
-   ///
    GeomPoint & operator *= (T factor);
 
-   ///
    /// Scale the vector by <tt>1/factor</tt>.
-   ///
    GeomPoint & operator /= (T factor);
 
-   ///
    /// \detailed scale with a given factor
-   ///
    void scale(T factor);
 
    ///
@@ -74,27 +65,19 @@ public:
    ///
    void scale(const std::vector<T>& factors);
 
-   ///
    /// detailed zero the entries of the tensor
-   ///
    void zero();
 
    /// \brief Add the coordinates of the given point to this scaled by factor
    void add_scaled(const GeomPoint& p, T factor);
 
-   ///
    /// \brief Access the i-th coordinate of the point
-   ///
    T& operator[](uint_t i);
 
-   ///
    /// \brief  Access the i-th coordinate of the point read-only
-   ///
    T operator[](uint_t i)const;
 
-   ///
    /// \brief access the i-th coordinate of the point read-only
-   ///
    T entry(uint_t i)const{return (*this)[i];}
 
    ///
@@ -102,9 +85,7 @@ public:
    ///
    auto coordinates()const{return data_;}
 
-   ///
    /// \brief Get the max element in the point
-   ///
    T max()const;
 
    ///
@@ -118,11 +99,14 @@ public:
    /// \brief Return the distance from the origin
    T L2_norm()const{return distance(GeomPoint(static_cast<T>(0)));}
 
-	 /// \brief Returns the square sum of the compontents
+   /// \brief Returns the square sum of the compontents
    T square_sum()const;
 
    /// \brief print the point
    std::ostream& print_point_info(std::ostream &out)const;
+
+   /// \brief Returns s string representation of the point
+   const std::string to_string()const;
   
 private:
 
@@ -326,6 +310,23 @@ GeomPoint<spacedim,T>::print_point_info(std::ostream &out)const
 
  out<<" )";
  return out;
+}
+
+template<int spacedim,typename T>
+const std::string
+GeomPoint<spacedim,T>::to_string()const{
+
+    std::string rslt("");
+    auto end = data_.begin();
+    std::advance(end, spacedim-1);
+    std::for_each(data_.begin(), end,
+                  [&](const T& value){
+        rslt += std::to_string(value);
+        rslt +=",";
+    });
+
+    rslt  += std::to_string(data_[spacedim - 1]);
+    return rslt;
 }
 
 //free functions that work on the GeomPoint<spacedim,T> class

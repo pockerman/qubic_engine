@@ -10,11 +10,10 @@ namespace kernel
 namespace numerics
 {
 
-void build_mesh(LineMesh& mesh, uint_t n_elements,
+void build_mesh(LineMesh<1>& mesh, uint_t n_elements,
                 const GeomPoint<1, real_t>& start, const GeomPoint<1, real_t>& end){
 
     if(n_elements == 0){
-
         throw std::logic_error("Cannot generate a LineMesh without elements");
     }
 
@@ -40,12 +39,12 @@ void build_mesh(LineMesh& mesh, uint_t n_elements,
         node->make_vertex();
     }
 
-    typedef LineMesh::elem_ptr_t elem_ptr_t;
+    typedef LineMesh<1>::elem_ptr_t elem_ptr_t;
 
     // element-element connectivity
-    auto element = mesh.get_elem(0);
+    auto* element = mesh.get_elem(0);
     element->resize_neighbors();
-    element->set_neighbor(0, elem_ptr_t());
+    element->set_neighbor(0, nullptr);
     element->set_neighbor(1, mesh.get_elem(1));
 
     uint_t e=1;
