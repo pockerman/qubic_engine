@@ -1,3 +1,18 @@
+# Example 9:  A* Path finding
+
+## Contents
+* [Overview](#overview) 
+* [Include files](#include_files)
+* [The main function](#m_func)
+* [Results](#results)
+* [Source Code](#source_code)
+
+## <a name="overview"></a> Overview
+
+
+## <a name="include_files"></a> Include files
+
+```
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/search/a_star_search.h"
 
@@ -13,8 +28,11 @@
 #include "kernel/discretization/element.h"
 #include "kernel/discretization/mesh_generation.h"
 #include "kernel/discretization/quad_mesh_generation.h"
+```
 
+## <a name="m_func"></a> The main function
 
+```
 namespace example{
 
 using cengine::real_t;
@@ -282,7 +300,14 @@ int main(){
    constructor.run();
    return 0;
 }
+```
 
+## <a name="results"></a> Results
 
+<img src="path.png"
+     alt="Path view"
+     style="float: left; margin-right: 10px;" />
 
+## <a name="source_code"></a> Source Code
 
+<a href="../exe.cpp">exe.cpp</a>
