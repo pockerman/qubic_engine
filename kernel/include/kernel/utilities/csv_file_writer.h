@@ -6,6 +6,10 @@
 #include <vector>
 
 namespace kernel{
+namespace numerics {
+template<int dim> class LineMesh;
+}
+
 
 /// \brief Handles writing into CSV file format
 class CSVWriter: public FileWriterBase
@@ -36,6 +40,9 @@ public:
 
     /// \brief Returns the column delimiter
     char get_delimiter()const noexcept{return delim_;}
+
+    /// \brief Write the given LineMesh into csv format
+    void write_mesh(const numerics::LineMesh<2>& mesh );
 
 private:
 

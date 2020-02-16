@@ -1,12 +1,9 @@
 #include "kernel/discretization/edge_element.h"
 #include "kernel/discretization/node.h"
 #include <exception>
-namespace kernel
-{
 
-namespace numerics
-{
-
+namespace kernel{
+namespace numerics{
 
 EdgeElem<1>::EdgeElem(uint_t id, uint_t pid)
     :
@@ -20,7 +17,7 @@ EdgeElem<1>::set_node(uint_t n, EdgeElem<1>::node_ptr_t node){
         throw std::logic_error("Invalid node index "+std::to_string(n)+" not in [0, "+std::to_string(n_nodes())+")");
     }
 
-    this->nodes_.push_back(node);
+    this->nodes_[n] = node;
 }
 
 EdgeElem<1>::node_ptr_t

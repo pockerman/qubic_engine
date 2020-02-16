@@ -16,7 +16,7 @@ TEST(TestLineMesh, TestDefaultInitialization) {
      **/
 
     using kernel::numerics::LineMesh;
-    LineMesh mesh;
+    LineMesh<1> mesh;
     ASSERT_EQ(mesh.n_nodes(), 0);
     ASSERT_EQ(mesh.n_elements(), 0);
 }
@@ -30,7 +30,7 @@ TEST(TestLineMesh, TestInsertElement) {
      **/
 
     using kernel::numerics::LineMesh;
-    LineMesh mesh;
+    LineMesh<1> mesh;
     ASSERT_EQ(mesh.n_nodes(), 0);
     ASSERT_EQ(mesh.n_elements(), 0);
     auto ptr = mesh.add_element();
@@ -41,15 +41,6 @@ TEST(TestLineMesh, TestInsertElement) {
 
 }
 
-TEST(TestLineMesh, TestReInsertDof) {
-
-    /***
-       * Test Scenario:   The application attempts to insert a  DoF ithat already exists into DoFObject
-       * Expected Output: std::logic_error should be thrown
-     **/
-
-
-}
 
 
 
