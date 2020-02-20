@@ -63,6 +63,8 @@ ELSE()
     SET(KERNEL_LIB_DIR ${PROJECT_SOURCE_DIR}/../kernel/install/lib/opt)
 ENDIF()
 
+SET(KERNEL_INCL_DIR ${PROJECT_SOURCE_DIR}/../kernel/include)
+
 
 if(${KERNEL_INCL_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " kernel directory not set")
@@ -70,7 +72,7 @@ else()
     INCLUDE_DIRECTORIES(${KERNEL_INCL_DIR})
 endif()
 
-SET(BLAZE_INCL_DIR "/home/david/MyProjects/cubic_engine/chrono_lib/blaze-3.4/install/include")
+SET(BLAZE_INCL_DIR " ")
 
 if(${BLAZE_INCL_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " Blaze directory not set")
@@ -79,8 +81,8 @@ else()
 endif()
 
 IF( ENABLE_TESTING MATCHES "ON")
-    SET(GTEST_INC_DIR "/home/david/MySoftware/gtest/install/include")
-    SET(GTEST_LIB_DIR "/home/david/MySoftware/gtest/install/lib")
+    SET(GTEST_INC_DIR " ")
+    SET(GTEST_LIB_DIR " ")
     INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
 ENDIF()
 
