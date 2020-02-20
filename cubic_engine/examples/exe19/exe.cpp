@@ -1,14 +1,20 @@
 #include "exe.h"
 
+
 #include "cubic_engine/search/a_star_search.h"
 #include "kernel/data_structs/serial_graph_builder.h"
 #include "kernel/utilities/vtk_mesh_file_writer.h"
-#include "cubic_engine/search/a_star_search.h"
 #include "kernel/maths/lp_metric.h"
+#include "kernel/data_structs/boost_graph_utils.h"
+#include "kernel/discretization/mesh_generation.h"
+#include "kernel/utilities/csv_file_writer.h"
+#include "kernel/discretization/mesh.h"
+#include "kernel/discretization/element_mesh_iterator.h"
+#include "kernel/discretization/mesh_predicates.h"
+#include "kernel/discretization/element.h"
 
 
-namespace example
-{
+namespace example{
 
 void
 StateObserver::update(const StateObserver::state_resource_t& r){
@@ -139,45 +145,162 @@ ServerThread::PathConstructorThread::update_path_observers(){
 }
 
 void
+ServerThread::PathConstructorThread::save_path(real_t duration){
+
+    std::string dur = std::to_string(duration);
+
+    std::vector<std::string> strings;
+    std::istringstream f(dur);
+    std::string s;
+    while (std::getline(f, s, '.')) {
+        strings.push_back(s);
+    }
+
+
+    kernel::CSVWriter writer("path_" + strings[1] + ".csv", ',', true);
+    writer.write_mesh(path_);
+
+}
+
+void
 ServerThread::PathConstructorThread::run(){
 
-    // the goal or the state
-    // or both has not been updated wait here until
-    // we get new info
-    /*while(!gobserver.is_updated() || !sobserver.is_updated()){
+    std::chrono::time_point<std::chrono::system_clock> start;
+    std::chrono::time_point<std::chrono::system_clock> end;
+    start = std::chrono::system_clock::now();
+
+    // the state provides the current position
+    // the goal provides the target position
+    // the goal or the state or both have not been updated wait here until
+    while((!gobserver.is_updated() || !sobserver.is_updated()) && !threads_should_stop){
         std::this_thread::yield();
-    }*/
+    }
+
+    // both are updated so try to establish the path
+    // path should be publiched every ???
 
     typedef Map::vertex_type vertex_t;
-    std::vector<real_t> pos(2);
+
+    // metric for A*
     kernel::LpMetric<2> h;
+
+    Goal goal;
+    State state;
+    Goal position;
+
+    Goal previous_position(-1.0);
+    Goal previous_goal;
+
+
+    static auto closest_start_vertex_pred = [&](const vertex_t& vertex){
+        auto distance = vertex.data.position.distance(position);
+
+        if( distance < 0.1){
+            return true;
+        }
+        return false;
+    };
+
+    static auto closest_goal_vertex_pred = [&](const vertex_t& vertex){
+        auto distance = vertex.data.position.distance(goal);
+        if( distance < 0.1){
+            return true;
+        }
+        return false;
+    };
 
     while(!this->should_stop()){
 
-        /*Goal goal;
+        // read bot goal and state
         gobserver.read(goal);
-
-        State state;
         sobserver.read(state);
 
-        pos[0] = state.get("y");
-        pos[1] = state.get("y");
-        GeomPoint<2> current(pos);
+        position[0] = state.get("x");
+        position[1] = state.get("y");
+
+        // if position has not changed
+        // then the robot for some reason does not move
+        // maybe it is waiting for a new goal
+        // if the position is the same and the goal
+        // does not change then we don't need to do anything
+        if(previous_goal.distance(goal) < 1.0e-3 &&
+           previous_position.distance(position) < 1.0e-3){
+#ifdef USE_LOG
+            kernel::Logger::log_warning("Previous goal is the same with current goal");
+            kernel::Logger::log_warning("Previous state is the same with state goal");
+            kernel::Logger::log_warning("Skipping computation...");
+#endif
+            continue;
+        }
+
+        // we need to find the starting node with the position
+        // closest to the robot position
+        uint_t start_vertex_id = kernel::find_vertex(*map_, closest_start_vertex_pred);
+        uint_t goal_vertex_id = kernel::find_vertex(*map_, closest_goal_vertex_pred);
+
+        // if this is an invalid id then throw?
+        if(start_vertex_id == kernel::KernelConsts::invalid_size_type() ||
+            goal_vertex_id == kernel::KernelConsts::invalid_size_type()    ){
+
+#ifdef USE_LOG
+        kernel::Logger::log_info("Using starting vertex: "+std::to_string(start_vertex_id));
+        kernel::Logger::log_info("Using ending vertex: "+std::to_string(goal_vertex_id));
+#endif
+            throw std::logic_error("Invalid vertex id for path finding");
+        }
 
         vertex_t start_pos;
-        start_pos.data.position = GeomPoint<2>(pos);
+        start_pos.data.position = position;
+        start_pos.id = start_vertex_id;
+
         vertex_t goal_pos;
         goal_pos.data.position = goal;
-
+        goal_pos.id = goal_vertex_id;
 
         // find the path we need the goal
         auto path_connections = cengine::astar_search(const_cast<Map&>(*map_), start_pos, goal_pos, h );
 
+        if(path_connections.empty()){
+
+#ifdef USE_LOG
+        kernel::Logger::log_error("Path connections are empty");
+#endif
+            throw std::logic_error("Path connections are empty");
+        }
+#ifdef USE_LOG
+        else{
+            kernel::Logger::log_info("There are: "+std::to_string(path_connections.size())+" path connections");
+        }
+#endif
+
         // update the line mesh that represents the path
-        //std::vector<uint_t> mesh_data = cengine::reconstruct_a_star_path(path_connections, start_node_id);
+        std::vector<uint_t> mesh_data = cengine::reconstruct_a_star_path(path_connections, goal_vertex_id);
+
+#ifdef USE_LOG
+        kernel::Logger::log_info("Reconstructed path from A*");
+#endif
+
+        // now that we have the connections let's update the path
+        kernel::numerics::build_mesh(path_, *map_, mesh_data);
+
+#ifdef USE_LOG
+        kernel::Logger::log_info("Updated Path");
+#endif
 
         // update the observers
-        update_path_observers();*/
+        update_path_observers();
+
+        end = std::chrono::system_clock::now();
+        std::chrono::duration<real_t> duration = end - start;
+
+        // save the path
+        save_path(duration.count());
+
+        previous_position = position;
+        previous_goal = goal;
+
+        // sleep for some time
+        std::this_thread::sleep_for(std::chrono::seconds(PATH_CONSTRUCTOR_CYCLE));
     }
 
 
@@ -211,6 +334,7 @@ ServerThread::PathFollowerThread::run(){
 void
 ServerThread::RequestTask::update_goal_observers(const Goal& goal){
 
+    // update self
     gobserver.update(goal);
 
     // loop over the observers and update them
@@ -231,10 +355,7 @@ ServerThread::RequestTask::run(){
 
         // otherwise create the input
         while(!requests_.empty()){
-
             auto request = requests_.pop_wait();
-
-            // if the request is a CMD
             serve_request(request);
         }
     }
@@ -301,11 +422,7 @@ ServerThread::RequestTask::serve_request(const std::string& request){
             responses_.push_item(SET_GOAL);
         }
         else if(strings[0] == GOAL){
-
-            //std::lock_guard<std::mutex> lock(msg_mutex);
-            //std::cout<<"Received GOAL request"<<std::endl;
             kernel::Logger::log_info("Received GOAL request");
-            //std::cout<<"Logged..."<<std::endl;
 
             if(strings.size() != 3){
                 responses_.push_item("You want to update the goal. 2 coordinates are required separated by ;.");
@@ -313,23 +430,23 @@ ServerThread::RequestTask::serve_request(const std::string& request){
             }
             else{
                 // this is a new goal
-                //auto x = std::atof(strings[1].c_str());
-                //auto y = std::atof(strings[2].c_str());
+                auto x = std::atof(strings[1].c_str());
+                auto y = std::atof(strings[2].c_str());
 
-                //std::vector<real_t> coords(2);
-                //coords[0] = x;
-                //coords[1] = y;
-                //Goal g(coords);
-                kernel::Logger::log_info("Update coordinates");
-                //update_goal_observers(g);
+                std::vector<real_t> coords(2);
+                coords[0] = x;
+                coords[1] = y;
+                Goal g(coords);
+                kernel::Logger::log_info("Update goal: " + g.to_string());
+                update_goal_observers(g);
             }
         }
         else if(strings[0] == EXIT){
+            kernel::Logger::log_info("Received EXIT request");
 
-            this->get_condition().set_condition(true);
-            //CMD exit(0.0, 0.0, "EXIT");
-            //cmds_.push_item(exit);
+            // notify the others that we stop
             threads_should_stop = true;
+            this->get_condition().set_condition(true);   
         }
         else if(strings[0] == PRINT){
             kernel::Logger::log_info("Received PRINT request");
@@ -381,11 +498,9 @@ ServerThread::ClientTask::ClientTask(const StopSimulation& stop_condition,
 void
 ServerThread::ClientTask::run(){
 
-
-
     // wait for a while until
     // the server responses are ready
-    while(responses_.empty()){
+    while(responses_.empty() || responses_.size() != 2){
         std::this_thread::yield();
     }
 
@@ -419,34 +534,39 @@ ServerThread::ClientTask::run(){
         }
     }
 
+    request = ENTER_CMD;
     while(!this->should_stop()){
 
-        request = "";
-        std::cout<<"MESSAGE: Enter CMD for robot..."<<std::endl;
+        if(request == ENTER_CMD /*|| request == EMPTY_CMD*/){
 
-        // Read the CMD
-        std::getline(std::cin, request);
+            std::cout<<"MESSAGE: Enter CMD for robot..."<<std::endl;
 
-        //std::cout<<"MESSAGE: CMD entered..."<<request<<std::endl;
-
-        if(request == EXIT){
-
+            // Read the CMD
+            std::getline(std::cin, request);
+        }
+        else if(request == EXIT){
             std::cout<<"MESSAGE: CMD requested: "<<request<<std::endl;
             this->get_condition().set_condition(true);
             requests_.push_item(request);
             break;
         }
         else if(request == EMPTY_CMD){
-            std::cout<<"MESSAGE: CMD requested: EMPTY_CMD"<<std::endl;
-            std::cout<<EMPTY_CMD<<std::endl;
+            request = ENTER_CMD;
         }
         else if(request == PRINT){
            std::cout<<"MESSAGE: CMD requested: "<<PRINT<<std::endl;
            requests_.push_item(request);
+
+           auto response = responses_.pop_wait();
+           std::cout<<RESPONSE<<response<<std::endl;
+           request = ENTER_CMD;
         }
         else if(request == PRINT_GOAL){
             std::cout<<"MESSAGE: CMD requested: "<<PRINT_GOAL<<std::endl;
             requests_.push_item(request);
+            auto response = responses_.pop_wait();
+            std::cout<<RESPONSE<<response<<std::endl;
+            request = ENTER_CMD;
         }
         else if(request == SET_GOAL){
 
@@ -463,18 +583,20 @@ ServerThread::ClientTask::run(){
 
             request = "GOAL;" + std::to_string(values[0]) + ";"+std::to_string(values[1]);
             requests_.push_item(request);
+            request = ENTER_CMD;
 
         }
         else{
             std::cout<<"You entered an unknown CMD. Try again"<<std::endl;
-            //requests_.push_item(request);
+            //goto try_again;
+            request = ENTER_CMD;
         }
 
-        while(!responses_.empty()){
+        /*while(!responses_.empty()){
             //empty what is comming from the server
             auto response = responses_.pop_wait();
             std::cout<<RESPONSE<<response<<std::endl;
-        }
+        }*/
     }
 
     std::lock_guard<std::mutex> lock(msg_mutex);
@@ -502,15 +624,14 @@ ServerThread::run(){
     tasks_.push_back(std::make_unique<path_cstr_task_t>(this->get_condition(), *map_));
     tasks_.push_back(std::make_unique<path_follow_task_t>(this->get_condition(), vwrapper_));
 
-
     tasks_.push_back(std::make_unique<request_task_t>(this->get_condition(), requests_, cmds_, responses_));
     tasks_.push_back(std::make_unique<client_task_t>(this->get_condition(), requests_, responses_));
 
     //assign the observers
     {
-//        request_task_t* req_task = static_cast<request_task_t*>(tasks_[3].get());
-//        req_task->attach_goal_observer(static_cast< path_cstr_task_t*>(tasks_[1].get())->gobserver);
-//        req_task->attach_goal_observer(static_cast<path_follow_task_t*>(tasks_[4].get())->gobserver);
+        request_task_t* req_task = static_cast<request_task_t*>(tasks_[3].get());
+        req_task->attach_goal_observer(static_cast< path_cstr_task_t*>(tasks_[1].get())->gobserver);
+        req_task->attach_goal_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->gobserver);
 
         state_est_task_t* state_thread = static_cast<state_est_task_t*>(tasks_[0].get());
         state_thread->attach_state_observer(static_cast<path_cstr_task_t*>(tasks_[1].get())->sobserver);
@@ -520,18 +641,9 @@ ServerThread::run(){
         //ask the state thread to update the state observers
         state_thread->update_state_observers();
 
-//        // create a request so that we print the state
-//        // when the ClientTask starts
-//        requests_.push_item(PRINT);
-
-//        // we also need to add a response so that the
-//        // ClientTask asks  the user to set the goal
-//        // enters the goal
-//        requests_.push_item(SET_GOAL_SERVER);
-
-//        path_cstr_task_t* pconstruct_thread = static_cast< path_cstr_task_t*>(tasks_[1].get());
-//        pconstruct_thread->attach_path_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->pobserver);
-//        pconstruct_thread->attach_path_observer(static_cast<request_task_t*>(tasks_[3].get())->pobserver);
+        path_cstr_task_t* pconstruct_thread = static_cast< path_cstr_task_t*>(tasks_[1].get());
+        pconstruct_thread->attach_path_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->pobserver);
+        pconstruct_thread->attach_path_observer(static_cast<request_task_t*>(tasks_[3].get())->pobserver);
 
     }
 
@@ -639,10 +751,20 @@ int main(){
         occupamcy_prob[83] = 1.0;
         occupamcy_prob[84] = 1.0;
 
-        //writer.write_mesh(mesh, occupamcy_prob, "OccupancyProb");
+        writer.write_mesh(mesh, occupamcy_prob, "OccupancyProb");
 
         // build the mesh graph
         kernel::build_mesh_graph(mesh, map);
+
+        for(uint_t v=0; v<map.n_vertices(); ++v){
+           auto& vertex = map.get_vertex(v);
+
+           uint_t id = vertex.id;
+           auto* element = mesh.element(id);
+           vertex.data.position = element->centroid();
+           vertex.data.occumancy_prob = occupamcy_prob[id];
+        }
+
     }
 
     const uint_t N_THREADS = 5;
