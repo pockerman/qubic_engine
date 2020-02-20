@@ -113,7 +113,7 @@ void update_B_mat(){
 
 void initialize_ekf(){
 
-    u[0] = 1.0;
+    /*u[0] = 1.0;
     u[1] = 0.1;
 
     state_estimator.set_state_vector_ptr(state);
@@ -141,7 +141,7 @@ void initialize_ekf(){
     state_estimator.set_mat_ptr("Hjac", Hjac);
 
     state_estimator.set_motion_model(motion_model);
-    state_estimator.set_observation_model(h_func);
+    state_estimator.set_observation_model(h_func);*/
 }
 
 

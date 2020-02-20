@@ -13,12 +13,6 @@ namespace exe
 
 using cengine::uint_t;
 
-//forward declaration of the world model
-class WorldModel;
-
-// The state estimator of the robot
-cengine::ExtendedKalmanFilter ekf;
-
 }
     
 int main(int argc, char** argv) {
