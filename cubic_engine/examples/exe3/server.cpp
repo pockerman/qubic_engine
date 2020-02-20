@@ -55,7 +55,7 @@ Server::HandleConnectionsTask::run()
 void
 Server::HandleConnectionsTask::get_state(boost::asio::ip::tcp::socket& sock){
 
-    std::array<real_t, STATE_SIZE> state_;
+    /*std::array<real_t, STATE_SIZE> state_;
 
     update_F_mat();
     update_B_mat();
@@ -67,7 +67,7 @@ Server::HandleConnectionsTask::get_state(boost::asio::ip::tcp::socket& sock){
 
     auto num_bytes_written = sock.write_some(boost::asio::buffer(state_, sizeof(state_)));
     std::cout<<"Num of bytes written: "<<num_bytes_written<<std::endl;
-    std::cout<<"State raw bytes size: "<<sizeof(real_t)*state_.size()<<std::endl;
+    std::cout<<"State raw bytes size: "<<sizeof(real_t)*state_.size()<<std::endl;*/
 }
 
 Server::Server(uint_t port, uint_t nthreads)

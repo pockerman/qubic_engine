@@ -46,7 +46,7 @@ DynVec<real_t> u(2, 0.0);
 DynVec<real_t> y(2, 0.0);
 
 // The state estimator of the robot
-cengine::ExtendedKalmanFilter state_estimator;
+/*cengine::ExtendedKalmanFilter state_estimator;
 
 // The motion model the rovot is using
 typedef cengine::EKF_F_func MotionModel;
@@ -55,6 +55,8 @@ MotionModel motion_model;
 // The observation model the robot is using
 typedef cengine::EKF_H_func ObservationModel;
 ObservationModel h_func;
+
+*/
 
 // Helper functions
 void update_A_mat();

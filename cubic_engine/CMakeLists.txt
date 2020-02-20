@@ -3,9 +3,9 @@ MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
 
 PROJECT(CubicEngine CXX)
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Prevent in-source builds.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message( FATAL_ERROR  "In-source build is not possible and not recommended. Choose an empty directory for build output.")
@@ -57,14 +57,13 @@ ENDIF()
 # Currently fail the build if the user does not supply the
 # variables.
 # TODO: How to do it better
-SET(KERNEL_INCL_DIR ${PROJECT_SOURCE_DIR}/../kernel/include)
-<<<<<<< HEAD
-
 IF(CENGINE_DEBUG MATCHES "ON")
     SET(KERNEL_LIB_DIR  ${PROJECT_SOURCE_DIR}/../kernel/install/lib/dbg)
 ELSE()
     SET(KERNEL_LIB_DIR ${PROJECT_SOURCE_DIR}/../kernel/install/lib/opt)
 ENDIF()
+
+SET(KERNEL_INCL_DIR ${PROJECT_SOURCE_DIR}/../kernel/include)
 
 
 if(${KERNEL_INCL_DIR} MATCHES " ")
@@ -73,7 +72,7 @@ else()
     INCLUDE_DIRECTORIES(${KERNEL_INCL_DIR})
 endif()
 
-SET(BLAZE_INCL_DIR "/home/david/MyProjects/cubic_engine/chrono_lib/blaze-3.4/install/include")
+SET(BLAZE_INCL_DIR " ")
 
 if(${BLAZE_INCL_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " Blaze directory not set")
@@ -82,8 +81,8 @@ else()
 endif()
 
 IF( ENABLE_TESTING MATCHES "ON")
-    SET(GTEST_INC_DIR "/home/david/MySoftware/gtest/install/include")
-    SET(GTEST_LIB_DIR "/home/david/MySoftware/gtest/install/lib")
+    SET(GTEST_INC_DIR " ")
+    SET(GTEST_LIB_DIR " ")
     INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
 ENDIF()
 
