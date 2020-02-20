@@ -9,7 +9,8 @@
     * [Control](#control)
     * [Machine Learning](#machine_learning)
     * [Reinforcement Learning](#reinforcement_learning)
-    * [Using ROS](#using_ros)
+    * [Robotics Simulations](#using_ros)
+		* [Miscellaneous](#miscellaneous)
 
 ## <a name="dependencies"></a> Dependencies
 
@@ -68,7 +69,7 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 ### <a name="filtering_and_esitmation"></a> Filtering and Estimation
 
 - <a href="#">Example 1: </a> Using the ```KalmanFilter``` class
-- <a href="examples/exe2/doc/exe.md"">Example 2: </a> Using the ```ExtendedKalmanFilter``` class
+- <a href="examples/exe2/doc/exe.md">Example 2: </a> Using the ```ExtendedKalmanFilter``` class
 - <a href="#">Example 3:</a> Unscented Kalman Filter
 - <a href="#">Example 4:</a> Particle Filters
 
