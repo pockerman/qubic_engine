@@ -1,7 +1,6 @@
 #ifndef KNN_AVERAGE_REGRESSION_POLICY_H
 #define	KNN_AVERAGE_REGRESSION_POLICY_H
 
-
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/instance_learning/utils/knn_policy_base.h"
 #include <boost/scoped_array.hpp>

@@ -309,10 +309,9 @@ ResultHolder<T>::invalidate_result(bool reinit){
 }
 
 
-/**
- * @brief class ResultHolder<void>. Specialization that does not hold a
- * result. It simply signals if the execution was successful or not
- */
+
+/// \brief class ResultHolder<void>. Specialization that does not hold a
+/// result. It simply signals if the execution was successful or not
 template<>
 class ResultHolder<void>
 {
@@ -360,20 +359,10 @@ private:
 };
 
 
-
-///
-/// \brief With Null type is the same as with void type
-///
+/// With Null type is the same as with void type
 template<>
 class ResultHolder<Null>: public ResultHolder<void>
-{
-public:
-
-
-
-};
-
-
+{};
 
 }
 

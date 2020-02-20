@@ -1,4 +1,4 @@
-# Example 17: Differential Drive Robot Simulation
+# Example 19: Differential Drive Robot Simulation
 
 ## Contents
 
@@ -11,113 +11,75 @@
 * [Source Code](#source_code)
 
 
-
 ## <a name="overview"></a> Overview
 
 ### <a name="diff_drive_system"></a> Differential Drive System
 
+
 ## <a name="include_files"></a> Include files
 
 ```
-#include "kernel/base/types.h"
-#include "kernel/parallel/threading/thread_pool.h"
-#include "kernel/parallel/threading/simple_task.h"
-#include "kernel/parallel/threading/stoppable_task.h"
-#include "kernel/parallel/data_structs/lockable_queue.h"
-#include "kernel/vehicles/difd_drive_vehicle.h"
-#include "kernel/geometry/geom_point.h"
+```
+
+## <a name="m_func"></a> The main function
+
+```
+
+#include "exe.h"
+#include "cubic_engine/search/a_star_search.h"
+#include "kernel/data_structs/serial_graph_builder.h"
+#include "kernel/utilities/vtk_mesh_file_writer.h"
+#include "kernel/maths/lp_metric.h"
+#include "kernel/data_structs/boost_graph_utils.h"
+#include "kernel/discretization/mesh_generation.h"
 #include "kernel/utilities/csv_file_writer.h"
-
-
-#include <iostream>
-#include <memory>
-#include <mutex>
-#include <thread>
+#include "kernel/discretization/mesh.h"
+#include "kernel/discretization/element_mesh_iterator.h"
+#include "kernel/discretization/mesh_predicates.h"
+#include "kernel/discretization/element.h"
 ```
 
 ## <a name="prg_struct"></a> Program structure
 
 ```
-namespace example
-{
 
-std::mutex msg_mutex;
+namespace example{
 
-using kernel::real_t;
-using kernel::uint_t;
-using DynMat = kernel::DynMat<real_t>;
-using DynVec = kernel::DynVec<real_t>;
-using kernel::ThreadPool;
-using kernel::ThreadPoolOptions;
-using kernel::DiffDriveVehicle;
-using kernel::LockableQueue;
-using kernel::GeomPoint;
+void
+StateObserver::update(const StateObserver::state_resource_t& r){
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    this->ThreadedObserverBase<std::mutex, State>::update(r);
+}
 
-const real_t DT = 0.5;
-```
+void
+StateObserver::read(StateObserver::state_resource_t& r)const{
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    this->ThreadedObserverBase<std::mutex, State>::read(r);
+}
 
-```
-struct StopSimulation
-{
-    bool stop()const{return condition; }
-    void set_condition(bool cond){condition=cond;}
-    bool condition{false};
-};
+void
+GoalObserver::update(const GoalObserver::goal_resource_t& r){
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    this->ThreadedObserverBase<std::mutex, Goal>::update(r);
+}
 
-```
+void
+GoalObserver::read(GoalObserver::goal_resource_t& r)const{
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    this->ThreadedObserverBase<std::mutex, Goal>::read(r);
+}
 
-```
-struct CMD
-{
-    real_t velocity{0.0};
-    real_t orientation{0.0};
-    std::string name{"INVALID_CMD"};
+void
+PathObserver::update(const PathObserver::path_resource_t& r){
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    this->ThreadedObserverBase<std::mutex, Path*>::update(r);
+}
 
-    CMD()=default;
-
-    CMD(real_t v, real_t o, std::string n)
-        :
-          velocity(v),
-          orientation(o),
-          name(n)
-    {}
-
-    static CMD generate_cmd(real_t v, real_t o, std::string name){
-        return CMD(v, o, name);
-    }
-};
-```
-
-```
-class DiffDriveVehicleWrapper
-{
-
-public:
-
-    DiffDriveVehicleWrapper(DiffDriveVehicle& vehicle);
-
-    /// set the CMD to execute
-    void set_cmd(CMD cmd);
-
-    /// \brief integrate the diff drive system
-    /// account for errors also
-    std::string integrate();
-
-    /// \brief Returns the state of the vehicle as string
-    std::string get_state_as_string()const;
-
-    /// \brief Returns the state of the vehicle as string
-    std::tuple<real_t, real_t> get_position()const;
-
-    /// \brief Returns the state of the vehicle as string
-    std::tuple<real_t, real_t, real_t, real_t> get_state()const;
-
-private:
-
-    mutable std::mutex integrate_mutex_;
-    DiffDriveVehicle* vehicle_ptr_;
-    CMD cmd_;
-};
+void
+PathObserver::read(PathObserver::path_resource_t& r)const{
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    this->ThreadedObserverBase<std::mutex, Path*>::read(r);
+}
 
 DiffDriveVehicleWrapper::DiffDriveVehicleWrapper(DiffDriveVehicle& vehicle)
     :
@@ -167,7 +129,6 @@ DiffDriveVehicleWrapper::get_state()const{
     auto y = vehicle_ptr_->get_y_position();
     auto theta = vehicle_ptr_->get_orientation();
     auto velocity = vehicle_ptr_->get_velcoty();
-
     return {x, y, theta, velocity};
 
 }
@@ -177,138 +138,238 @@ DiffDriveVehicleWrapper::set_cmd(CMD cmd){
     std::lock_guard<std::mutex> lock(integrate_mutex_);
     cmd_ = cmd;
 }
-```
-
-```
-class ServerThread: public kernel::StoppableTask<StopSimulation>
-{
-public:
-
-    ServerThread(const StopSimulation& stop_condition,
-                 DiffDriveVehicleWrapper& vwrapper,
-                 ThreadPool& threads);
-
-protected:
-
-    virtual void run()override final;
-
-    DiffDriveVehicleWrapper& vwrapper_;
-
-    LockableQueue<std::string> requests_;
-    LockableQueue<std::string> responses_;
-    LockableQueue<CMD> cmds_;
 
 
-    ThreadPool& thread_pool_;
+void
+ServerThread::StateEstimationThread::update_state_observers(){
 
-    struct SimulatorTask;
-    struct RequestTask;
-    struct ClientTask;
-
-    // list of tasks the server handles
-    std::vector<std::unique_ptr<kernel::TaskBase>> tasks_;
-
-    // checks if all tasks are stopped
-    // if this is true the server is stopped as well
-    void tasks_stopped();
-
-};
-
-ServerThread::ServerThread(const StopSimulation& stop_condition,
-                           DiffDriveVehicleWrapper& vwrapper,
-                           ThreadPool& thread_pool)
-    :
-  kernel::StoppableTask<StopSimulation>(stop_condition),
-  vwrapper_(vwrapper),
-  requests_(),
-  responses_(),
-  cmds_(),
-  thread_pool_(thread_pool),
-  tasks_()
-{
-    this->set_name("ServerThread");
-}
-```
-
-```
-struct ServerThread::SimulatorTask: public kernel::StoppableTask<StopSimulation>
-{
-
-public:
-
-   SimulatorTask(const StopSimulation& stop_condition, DiffDriveVehicleWrapper& vwrapper );
-
-protected:
-
-    virtual void run()override final;
-    DiffDriveVehicleWrapper& vwrapper_;
-
-};
-
-ServerThread::SimulatorTask::SimulatorTask(const StopSimulation& stop_condition, DiffDriveVehicleWrapper& vwrapper)
-    :
-   kernel::StoppableTask<StopSimulation>(stop_condition),
-   vwrapper_(vwrapper)
-{
-    this->set_name("SimulatorTask");
+    for(uint_t o=0; o<sobservers_.size(); ++o){
+        sobservers_[o]->update(state_);
+    }
 }
 
 void
-ServerThread::SimulatorTask::run(){
+ServerThread::StateEstimationThread::run(){
 
-    // run as long as we are not told to stop
-    while (!this->should_stop()) {
+    while(!this->should_stop()){
 
-        auto cmd = vwrapper_.integrate();
+        // estimate the state
 
-        if(cmd == "EXIT"){
-            this->get_condition().set_condition(true);
-        }
+        //SysState<4> state;
+
+        // update the observers only if the
+        // we are at the update rate
+        //update_state_observers();
     }
 
     std::lock_guard<std::mutex> lock(msg_mutex);
     std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
 }
-```
 
-```
-struct ServerThread::RequestTask: public kernel::StoppableTask<StopSimulation>
-{
+void
+ServerThread::PathConstructorThread::update_path_observers(){
+    for(uint_t o =0; o<pobservers_.size(); ++o){
+        pobservers_[o]->update(path_);
+    }
+}
 
-public:
+void
+ServerThread::PathConstructorThread::save_path(real_t duration){
 
-    RequestTask(const StopSimulation& stop_condition,
-                LockableQueue<std::string>& requests,
-                LockableQueue<CMD>& cmds,
-                LockableQueue<std::string>& responses,
-                DiffDriveVehicleWrapper& vwrapper);
+    std::string dur = std::to_string(duration);
 
-protected:
+    std::vector<std::string> strings;
+    std::istringstream f(dur);
+    std::string s;
+    while (std::getline(f, s, '.')) {
+        strings.push_back(s);
+    }
 
-    virtual void run()override final;
-    LockableQueue<std::string>& requests_;
-    LockableQueue<CMD>& cmds_;
-    LockableQueue<std::string>& responses_;
-    DiffDriveVehicleWrapper& vwrapper_;
-    GeomPoint<2> position_;
 
-    void serve_request(const std::string& request);
-    void save_solution(kernel::CSVWriter& writer);
-};
+    kernel::CSVWriter writer("path_" + strings[1] + ".csv", ',', true);
+    writer.write_mesh(path_);
 
-ServerThread::RequestTask::RequestTask(const StopSimulation& stop_condition,
-                                       LockableQueue<std::string>& requests,
-                                       LockableQueue<CMD>& cmds,
-                                       LockableQueue<std::string>& responses,
-                                       DiffDriveVehicleWrapper& vwrapper)
-    :
-  kernel::StoppableTask<StopSimulation>(stop_condition),
-  requests_(requests),
-  cmds_(cmds),
-  responses_(responses),
-  vwrapper_(vwrapper)
-{
-    this->set_name("RequestTask");
+}
+
+void
+ServerThread::PathConstructorThread::run(){
+
+    std::chrono::time_point<std::chrono::system_clock> start;
+    std::chrono::time_point<std::chrono::system_clock> end;
+    start = std::chrono::system_clock::now();
+
+    // the state provides the current position
+    // the goal provides the target position
+    // the goal or the state or both have not been updated wait here until
+    while((!gobserver.is_updated() || !sobserver.is_updated()) && !threads_should_stop){
+        std::this_thread::yield();
+    }
+
+    // both are updated so try to establish the path
+    // path should be publiched every ???
+
+    typedef Map::vertex_type vertex_t;
+
+    // metric for A*
+    kernel::LpMetric<2> h;
+
+    Goal goal;
+    State state;
+    Goal position;
+
+    Goal previous_position(-1.0);
+    Goal previous_goal;
+
+
+    static auto closest_start_vertex_pred = [&](const vertex_t& vertex){
+        auto distance = vertex.data.position.distance(position);
+
+        if( distance < 0.1){
+            return true;
+        }
+        return false;
+    };
+
+    static auto closest_goal_vertex_pred = [&](const vertex_t& vertex){
+        auto distance = vertex.data.position.distance(goal);
+        if( distance < 0.1){
+            return true;
+        }
+        return false;
+    };
+
+    while(!this->should_stop()){
+
+        // read bot goal and state
+        gobserver.read(goal);
+        sobserver.read(state);
+
+        position[0] = state.get("x");
+        position[1] = state.get("y");
+
+        // if position has not changed
+        // then the robot for some reason does not move
+        // maybe it is waiting for a new goal
+        // if the position is the same and the goal
+        // does not change then we don't need to do anything
+        if(previous_goal.distance(goal) < 1.0e-3 &&
+           previous_position.distance(position) < 1.0e-3){
+#ifdef USE_LOG
+            kernel::Logger::log_warning("Previous goal is the same with current goal");
+            kernel::Logger::log_warning("Previous state is the same with state goal");
+            kernel::Logger::log_warning("Skipping computation...");
+#endif
+            continue;
+        }
+
+        // we need to find the starting node with the position
+        // closest to the robot position
+        uint_t start_vertex_id = kernel::find_vertex(*map_, closest_start_vertex_pred);
+        uint_t goal_vertex_id = kernel::find_vertex(*map_, closest_goal_vertex_pred);
+
+        // if this is an invalid id then throw?
+        if(start_vertex_id == kernel::KernelConsts::invalid_size_type() ||
+            goal_vertex_id == kernel::KernelConsts::invalid_size_type()    ){
+
+#ifdef USE_LOG
+        kernel::Logger::log_info("Using starting vertex: "+std::to_string(start_vertex_id));
+        kernel::Logger::log_info("Using ending vertex: "+std::to_string(goal_vertex_id));
+#endif
+            throw std::logic_error("Invalid vertex id for path finding");
+        }
+
+        vertex_t start_pos;
+        start_pos.data.position = position;
+        start_pos.id = start_vertex_id;
+
+        vertex_t goal_pos;
+        goal_pos.data.position = goal;
+        goal_pos.id = goal_vertex_id;
+
+        // find the path we need the goal
+        auto path_connections = cengine::astar_search(const_cast<Map&>(*map_), start_pos, goal_pos, h );
+
+        if(path_connections.empty()){
+
+#ifdef USE_LOG
+        kernel::Logger::log_error("Path connections are empty");
+#endif
+            throw std::logic_error("Path connections are empty");
+        }
+#ifdef USE_LOG
+        else{
+            kernel::Logger::log_info("There are: "+std::to_string(path_connections.size())+" path connections");
+        }
+#endif
+
+        // update the line mesh that represents the path
+        std::vector<uint_t> mesh_data = cengine::reconstruct_a_star_path(path_connections, goal_vertex_id);
+
+#ifdef USE_LOG
+        kernel::Logger::log_info("Reconstructed path from A*");
+#endif
+
+        // now that we have the connections let's update the path
+        kernel::numerics::build_mesh(path_, *map_, mesh_data);
+
+#ifdef USE_LOG
+        kernel::Logger::log_info("Updated Path");
+#endif
+
+        // update the observers
+        update_path_observers();
+
+        end = std::chrono::system_clock::now();
+        std::chrono::duration<real_t> duration = end - start;
+
+        // save the path
+        save_path(duration.count());
+
+        previous_position = position;
+        previous_goal = goal;
+
+        // sleep for some time
+        std::this_thread::sleep_for(std::chrono::seconds(PATH_CONSTRUCTOR_CYCLE));
+    }
+
+
+    std::lock_guard<std::mutex> lock(msg_mutex);
+    std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
+}
+
+void
+ServerThread::PathFollowerThread::run(){
+
+    while(!this->should_stop()){
+
+        vwrapper_.integrate();
+
+        // are we on the goal? if yes
+        // then notify server that notfies the client
+        // and sleep until a new mission arrives
+        // or exit has been signaled
+
+        // if we are not on the goal check
+        // are we on path? if yes continue
+        // else make the corrections
+
+    }
+
+
+    std::lock_guard<std::mutex> lock(msg_mutex);
+    std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
+}
+
+void
+ServerThread::RequestTask::update_goal_observers(const Goal& goal){
+
+    // update self
+    gobserver.update(goal);
+
+    // loop over the observers and update them
+    for(uint_t o=0; o<goal_observers_.size(); ++o){
+        goal_observers_[o]->update(goal);
+    }
 }
 
 void
@@ -317,17 +378,13 @@ ServerThread::RequestTask::run(){
     // the object that handles the solution output
     kernel::CSVWriter writer("vehicle_state.csv");
 
-
     while(!this->should_stop()){
 
         save_solution(writer);
 
         // otherwise create the input
         while(!requests_.empty()){
-
             auto request = requests_.pop_wait();
-
-            // if the request is a CMD
             serve_request(request);
         }
     }
@@ -349,8 +406,10 @@ ServerThread::RequestTask::serve_request(const std::string& request){
     if(!strings.empty()){
         if(strings[0] == "CMD"){
 
+            responses_.push_item("CMDs are not allowed yet");
+
             //we have a CMD
-            if(strings[1] == "S"){
+            /*if(strings[1] == "S"){
                 auto [x, y, theta, velocity]  = vwrapper_.get_state();
                 cmds_.push_item(CMD::generate_cmd(0.0, theta, strings[1]));
             }
@@ -386,16 +445,47 @@ ServerThread::RequestTask::serve_request(const std::string& request){
 
                     cmds_.push_item(CMD::generate_cmd(v*DT, w*DT, strings[1]));
 
+            }*/
+        }
+        else if(strings[0] == SET_GOAL_SERVER){
+            responses_.push_item(SET_GOAL);
+        }
+        else if(strings[0] == GOAL){
+            kernel::Logger::log_info("Received GOAL request");
+
+            if(strings.size() != 3){
+                responses_.push_item("You want to update the goal. 2 coordinates are required separated by ;.");
+                responses_.push_item(SET_GOAL);
+            }
+            else{
+                // this is a new goal
+                auto x = std::atof(strings[1].c_str());
+                auto y = std::atof(strings[2].c_str());
+
+                std::vector<real_t> coords(2);
+                coords[0] = x;
+                coords[1] = y;
+                Goal g(coords);
+                kernel::Logger::log_info("Update goal: " + g.to_string());
+                update_goal_observers(g);
             }
         }
-        else if(strings[0] == "EXIT"){
+        else if(strings[0] == EXIT){
+            kernel::Logger::log_info("Received EXIT request");
 
-            this->get_condition().set_condition(true);
-            CMD exit(0.0, 0.0, "EXIT");
-            cmds_.push_item(exit);
+            // notify the others that we stop
+            threads_should_stop = true;
+            this->get_condition().set_condition(true);   
         }
-        else if(strings[0] == "PRINT"){
-            responses_.push_item(vwrapper_.get_state_as_string());
+        else if(strings[0] == PRINT){
+            kernel::Logger::log_info("Received PRINT request");
+            State s;
+            sobserver.read(s);
+            kernel::Logger::log_info("Sendig PRINT request " + s.as_string());
+            responses_.push_item(s.as_string());
+        }
+        else{
+           responses_.push_item("You entered an unknown command. Try again");
         }
     }
 }
@@ -403,9 +493,11 @@ ServerThread::RequestTask::serve_request(const std::string& request){
 void
 ServerThread::RequestTask::save_solution(kernel::CSVWriter& writer){
 
+    //static State old;
+    //static State current;
+    //sobserver.read(current);
 
-    auto [x, y]  = vwrapper_.get_position();
-    std::vector<real_t> row(2);
+    /*std::vector<real_t> row(2);
     GeomPoint<2> current(std::vector<real_t>({x,y}));
 
     if(position_.distance(current) > 100.0){
@@ -416,28 +508,9 @@ ServerThread::RequestTask::save_solution(kernel::CSVWriter& writer){
         writer.write_row(row);
         writer.close();
         position_ = current;
-    }
+    }*/
 }
 
-```
-
-```
-struct ServerThread::ClientTask: public kernel::StoppableTask<StopSimulation>
-{
-
-public:
-
-    ClientTask(const StopSimulation& stop_condition,
-               LockableQueue<std::string>& request,
-               LockableQueue<std::string>& response);
-
-protected:
-
-    virtual void run()override final;
-
-    LockableQueue<std::string>& requests_;
-    LockableQueue<std::string>& responses_;
-};
 
 ServerThread::ClientTask::ClientTask(const StopSimulation& stop_condition,
                                      LockableQueue<std::string>& request,
@@ -454,101 +527,284 @@ ServerThread::ClientTask::ClientTask(const StopSimulation& stop_condition,
 void
 ServerThread::ClientTask::run(){
 
-    std::string request;
+    // wait for a while until
+    // the server responses are ready
+    while(responses_.empty() || responses_.size() != 2){
+        std::this_thread::yield();
+    }
+
+    std::string request("");
+
+    // on start up we want to catch what
+    // is coming from the server
+    while(!responses_.empty()){
+
+        //empty what is comming from the server
+        auto response = responses_.pop_wait();
+
+        if(response == SET_GOAL){
+
+            // then wait until we receive the new goal
+            std::vector<real_t> values = {0.0, 0.0};
+
+            std::cout<<RESPONSE<<"Enter new goal: "<<std::endl;
+            std::cout<<"Enter first coordinate of goal"<<std::endl;
+            std::cin>>values[0];
+            std::cout<<"Enter second coordinate of goal"<<std::endl;
+            std::cin>>values[1];
+
+            std::cout<<"Goal assigned: "<<values[0]<<","<<values[1]<<std::endl;
+            request = "GOAL;" + std::to_string(values[0]) + ";"+std::to_string(values[1]);
+
+            requests_.push_item(request);
+        }
+        else{
+            std::cout<<RESPONSE<<response<<std::endl;
+        }
+    }
+
+    request = ENTER_CMD;
     while(!this->should_stop()){
 
-        std::cout<<"MESSAGE: Enter CMD for robot..."<<std::endl;
+        if(request == ENTER_CMD /*|| request == EMPTY_CMD*/){
 
-        // Read the CMD
-        std::getline(std::cin, request);
+            std::cout<<"MESSAGE: Enter CMD for robot..."<<std::endl;
 
-        std::cout<<"MESSAGE: CMD entered..."<<request<<std::endl;
-
-        if(request == "EXIT"){
-
+            // Read the CMD
+            std::getline(std::cin, request);
+        }
+        else if(request == EXIT){
+            std::cout<<"MESSAGE: CMD requested: "<<request<<std::endl;
             this->get_condition().set_condition(true);
             requests_.push_item(request);
             break;
         }
-        else{
+        else if(request == EMPTY_CMD){
+            request = ENTER_CMD;
+        }
+        else if(request == PRINT){
+           std::cout<<"MESSAGE: CMD requested: "<<PRINT<<std::endl;
+           requests_.push_item(request);
+
+           auto response = responses_.pop_wait();
+           std::cout<<RESPONSE<<response<<std::endl;
+           request = ENTER_CMD;
+        }
+        else if(request == PRINT_GOAL){
+            std::cout<<"MESSAGE: CMD requested: "<<PRINT_GOAL<<std::endl;
             requests_.push_item(request);
+            auto response = responses_.pop_wait();
+            std::cout<<RESPONSE<<response<<std::endl;
+            request = ENTER_CMD;
+        }
+        else if(request == SET_GOAL){
+
+            std::cout<<"MESSAGE: CMD requested: "<<SET_GOAL<<std::endl;
+            // then wait until we receive the new goal
+            std::vector<real_t> values = {0.0, 0.0};
+
+            std::cout<<RESPONSE<<"Enter new goal: "<<std::endl;
+            std::cout<<"Enter first coordinate of goal"<<std::endl;
+            std::cin>>values[0];
+            std::cout<<"Enter second coordinate of goal"<<std::endl;
+            std::cin>>values[1];
+            std::cout<<"Goal assigned: "<<values[0]<<","<<values[1]<<std::endl;
+
+            request = "GOAL;" + std::to_string(values[0]) + ";"+std::to_string(values[1]);
+            requests_.push_item(request);
+            request = ENTER_CMD;
+
+        }
+        else{
+            std::cout<<"You entered an unknown CMD. Try again"<<std::endl;
+            //goto try_again;
+            request = ENTER_CMD;
         }
 
-        while(!responses_.empty()){
+        /*while(!responses_.empty()){
             //empty what is comming from the server
             auto response = responses_.pop_wait();
-            std::cout<<"RESPONSE: "<<response<<std::endl;
-        }
+            std::cout<<RESPONSE<<response<<std::endl;
+        }*/
     }
 
     std::lock_guard<std::mutex> lock(msg_mutex);
     std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
 }
 
-```
-
-```
 void
 ServerThread::run(){
 
+#ifdef USE_LOG
+    kernel::Logger::log_info("Starting Server Thread");
+#endif
+
     // create the tasks and assign them
     // to the queue
-    tasks_.reserve(3);
-    tasks_.push_back(std::make_unique<ServerThread::SimulatorTask>(this->get_condition(), vwrapper_));
-    tasks_.push_back(std::make_unique<ServerThread::RequestTask>(this->get_condition(), requests_, cmds_, responses_, vwrapper_));
-    tasks_.push_back(std::make_unique<ServerThread::ClientTask>(this->get_condition(), requests_, responses_));
+    tasks_.reserve(5);
 
-    // add the tasks
+    typedef ServerThread::RequestTask request_task_t;
+    typedef ServerThread::ClientTask client_task_t;
+    typedef ServerThread::StateEstimationThread state_est_task_t;
+    typedef ServerThread::PathConstructorThread path_cstr_task_t;
+    typedef ServerThread::PathFollowerThread path_follow_task_t;
+
+    tasks_.push_back(std::make_unique<state_est_task_t>(this->get_condition(), *map_));
+    tasks_.push_back(std::make_unique<path_cstr_task_t>(this->get_condition(), *map_));
+    tasks_.push_back(std::make_unique<path_follow_task_t>(this->get_condition(), vwrapper_));
+
+    tasks_.push_back(std::make_unique<request_task_t>(this->get_condition(), requests_, cmds_, responses_));
+    tasks_.push_back(std::make_unique<client_task_t>(this->get_condition(), requests_, responses_));
+
+    //assign the observers
+    {
+        request_task_t* req_task = static_cast<request_task_t*>(tasks_[3].get());
+        req_task->attach_goal_observer(static_cast< path_cstr_task_t*>(tasks_[1].get())->gobserver);
+        req_task->attach_goal_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->gobserver);
+
+        state_est_task_t* state_thread = static_cast<state_est_task_t*>(tasks_[0].get());
+        state_thread->attach_state_observer(static_cast<path_cstr_task_t*>(tasks_[1].get())->sobserver);
+        state_thread->attach_state_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->sobserver);
+        state_thread->attach_state_observer(static_cast<request_task_t*>(tasks_[3].get())->sobserver);
+
+        //ask the state thread to update the state observers
+        state_thread->update_state_observers();
+
+        path_cstr_task_t* pconstruct_thread = static_cast< path_cstr_task_t*>(tasks_[1].get());
+        pconstruct_thread->attach_path_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->pobserver);
+        pconstruct_thread->attach_path_observer(static_cast<request_task_t*>(tasks_[3].get())->pobserver);
+
+    }
+
+    // create a request so that we print the state
+    // when the ClientTask starts
+    requests_.push_item(PRINT);
+
+    // we also need to add a response so that the
+    // ClientTask asks  the user to set the goal
+    // enters the goal
+    requests_.push_item(SET_GOAL_SERVER);
+
+    // add the tasks... this is where tasks
+    // get executed
     thread_pool_.add_tasks(tasks_);
 
     while(!this->should_stop()){
-
-        while(!cmds_.empty()){
-            CMD cmd = cmds_.pop_wait();
-            vwrapper_.set_cmd(cmd);
-        }
-
         tasks_stopped();
     }
 
     std::lock_guard<std::mutex> lock(msg_mutex);
     std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
+
+#ifdef USE_LOG
+    kernel::Logger::log_info("Stopping Server Thread");
+#endif
 }
 
 void
 ServerThread::tasks_stopped(){
 
-    bool stop = true;
-    for(uint_t t=0; t<tasks_.size(); ++t){
+    if(threads_should_stop){
 
-        if(tasks_[t] && !dynamic_cast<StoppableTask<StopSimulation>*>(tasks_[t].get())->is_stopped()){
-            stop = false;
-            break;
-        }
-    }
-
-    if(stop){
         this->get_condition().set_condition(true);
+
+        for(uint_t t=0; t<tasks_.size(); ++t){
+           dynamic_cast<StoppableTask<StopSimulation>*>(tasks_[t].get())->get_condition().set_condition(true);
+        }
     }
 }
 
-}//example
-```
+}
 
-## <a name="m_func"></a> The main function
 
-```
-innt main(){
+int main(){
 
+#ifdef USE_LOG
+    kernel::Logger::set_log_file_name("log_file.log");
+#endif
 
     using namespace example;
 
-    const uint_t N_THREADS = 4;
+    // create the graph from the mesh
+    Map map;
+
+    {
+        uint_t nx = 10;
+        uint_t ny = 10;
+
+        GeomPoint<2> start(0.0);
+        GeomPoint<2> end(1.0);
+
+        Mesh<2> mesh;
+
+        // generate the mesh
+        kernel::numerics::build_quad_mesh(mesh, nx, ny, start, end);
+
+        kernel::numerics::VtkMeshFileWriter writer("map.vtk", true);
+        std::vector<real_t> occupamcy_prob(mesh.n_elements(), 0.0);
+
+        occupamcy_prob[4] = 1.0;
+        occupamcy_prob[8] = 1.0;
+        occupamcy_prob[9] = 1.0;
+        occupamcy_prob[18] = 1.0;
+        occupamcy_prob[19] = 1.0;
+        occupamcy_prob[14] = 1.0;
+        occupamcy_prob[24] = 1.0;
+        occupamcy_prob[11] = 1.0;
+        occupamcy_prob[12] = 1.0;
+        occupamcy_prob[21] = 1.0;
+        occupamcy_prob[22] = 1.0;
+
+        occupamcy_prob[42] = 1.0;
+        occupamcy_prob[43] = 1.0;
+        occupamcy_prob[52] = 1.0;
+        occupamcy_prob[53] = 1.0;
+
+        occupamcy_prob[36] = 1.0;
+        occupamcy_prob[37] = 1.0;
+        occupamcy_prob[46] = 1.0;
+        occupamcy_prob[47] = 1.0;
+
+        occupamcy_prob[65] = 1.0;
+        occupamcy_prob[66] = 1.0;
+        occupamcy_prob[75] = 1.0;
+        occupamcy_prob[76] = 1.0;
+
+        occupamcy_prob[91] = 1.0;
+        occupamcy_prob[92] = 1.0;
+        occupamcy_prob[93] = 1.0;
+        occupamcy_prob[94] = 1.0;
+
+        occupamcy_prob[81] = 1.0;
+        occupamcy_prob[82] = 1.0;
+        occupamcy_prob[83] = 1.0;
+        occupamcy_prob[84] = 1.0;
+
+        writer.write_mesh(mesh, occupamcy_prob, "OccupancyProb");
+
+        // build the mesh graph
+        kernel::build_mesh_graph(mesh, map);
+
+        for(uint_t v=0; v<map.n_vertices(); ++v){
+           auto& vertex = map.get_vertex(v);
+
+           uint_t id = vertex.id;
+           auto* element = mesh.element(id);
+           vertex.data.position = element->centroid();
+           vertex.data.occumancy_prob = occupamcy_prob[id];
+        }
+
+    }
+
+    const uint_t N_THREADS = 5;
     const real_t RADIUS = 2.0/100.0;
 
-    // the shared object that
-    // controls when to stop
+    // the object that controls when to stop
+    // the threads
     StopSimulation stop_sim;
+
+    // the initial system state
+    SysState<4> init_state;
 
     // the vehicle the simulator is simulating
     DiffDriveVehicle vehicle(RADIUS);
@@ -567,29 +823,27 @@ innt main(){
     ThreadPool pool(options);
 
     // the server instance
-    ServerThread server(stop_sim, vehicle_wrapper, pool);
+    ServerThread server(stop_sim, map, init_state, vehicle_wrapper, pool);
+
+    server.run();
 
     // add the server to the pool
-    pool.add_task(server);
+    //pool.add_task(server);
+
+    /*while(true){
+
+    }*/
 
     //this should block
     pool.close();
 
     return 0;
-
 }
 ```
 
 ## <a name="results"></a> Results
 
-<img src="movie.gif"
-     alt="Position view"
-     style="float: left; margin-right: 10px;" />
-
 ## <a name="source_code"></a> Source Code
 
 <a href="../exe.cpp">exc.cpp</a>
-
-
-
 

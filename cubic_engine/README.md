@@ -74,7 +74,7 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 
 ### <a name="control"></a> Control
 
-- <a href="#">Example 4</a> Using the ```PIDControl``` class
+- <a href="#">Example 4: </a> Using the ```PIDControl``` class
 - LQR Control
 
 ### <a name="machine_learning"></a> Machine Learning
@@ -85,18 +85,20 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 - <a href="examples/exe12/doc/exe.md">Example 12: </a> Linear regression
 - <a href="examples/exe13/doc/exe.md">Example 13: </a> Logistic regression classification
 - <a href="examples/exe14/doc/exe.md">Example 14: </a> Logistic regression with ```BatchGradientDescentWrapper```
-- <a href="examples/exe16/doc/exe.md">Example 16: </a> Compare Lasso, Ridge and ElasticNet Regularizers
 - <a href="examples/exe15/doc/exe.md">Example 15: </a> Linear Regression with ```PYLinearRegressor```
+- <a href="examples/exe16/doc/exe.md">Example 16: </a> Compare Lasso, Ridge and ElasticNet Regularizers
 - <a href="examples/exe17/doc/exe.md">Example 17: </a> KMeans clustering
 - <a href="examples/exe18/doc/exe.md">Example 18: </a> KNN classification
+- <a href="examples/exe20/doc/exe.md">Example 20: </a> KNN classification with multiple threads
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
 - <a href="#">Example 6: </a> Solving the State-Value Function Problem
 
-### <a name="using_ros"></a> Using ROS
+### <a name="using_ros"></a> Robotics Simulations
 
 - <a href="#">Example 3: </a> Create a simple server to comminicate with ROS
+- <a href="examples/exe19/doc/exe.md">Example 19</a> Differential drive system simulation
 
 ### <a name="miscellaneous"></a>Miscellaneous
 

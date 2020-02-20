@@ -1,25 +1,16 @@
-/* 
- * File:   knn_classification_policy.h
- * Author: david
- *
- * Created on October 17, 2016, 8:24 PM
- */
-
 #ifndef KNN_CLASSIFICATION_POLICY_H
 #define	KNN_CLASSIFICATION_POLICY_H
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/instance_learning/utils/knn_policy_base.h"
-#include <boost/scoped_array.hpp>
 
 namespace cengine
 {
     
    
-/**
- * @brief Class that performs classification using
- * K-nearest neighbors algorithm
- */
+
+/// \brief Class that performs classification using
+/// K-nearest neighbors algorithm
 class KnnClassificationPolicy: public knn_policy_base<false>
 {
     

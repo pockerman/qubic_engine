@@ -1,6 +1,4 @@
 #include "exe.h"
-
-
 #include "cubic_engine/search/a_star_search.h"
 #include "kernel/data_structs/serial_graph_builder.h"
 #include "kernel/utilities/vtk_mesh_file_writer.h"
@@ -691,7 +689,7 @@ ServerThread::tasks_stopped(){
 int main(){
 
 #ifdef USE_LOG
-    kernel::Logger::set_log_file_name("/home/david/CubicEngineering/cubic_engine_develop_branches/integrate_diff_drive_model/cubic_engine/build/examples/exe19/log_file.log");
+    kernel::Logger::set_log_file_name("log_file.log");
 #endif
 
     using namespace example;
@@ -810,7 +808,3 @@ int main(){
 
     return 0;
 }
-
-
-
-
