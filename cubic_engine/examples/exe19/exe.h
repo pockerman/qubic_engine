@@ -67,20 +67,27 @@ const std::string EXIT("EXIT");
 const std::string RESPONSE("RESPONSE: ");
 const std::string MESSAGE("MESSAGE: ");
 const std::string EMPTY_CMD("");
+const std::string ENTER_CMD("ENTER_CMD");
 
 /// gloabl variable to synchronize stop
 std::atomic<bool> threads_should_stop(false);
+
+/// cycle of each thread
+const uint_t PATH_CONSTRUCTOR_CYCLE = 1;
 
 //vertex data to apply A*
 struct AstarNodeData
 {
     real_t gcost;
     real_t fcost;
+    real_t occumancy_prob;
+
     GeomPoint<2> position;
 
     AstarNodeData();
     AstarNodeData(const GeomPoint<2>& p);
     AstarNodeData(const AstarNodeData& o);
+    bool can_move()const{return occumancy_prob != 1.0;}
 
 };
 
@@ -106,7 +113,7 @@ position(o.position)
 {}
 
 typedef BoostSerialGraph<AstarNodeData, Null> Map;
-typedef LineMesh Path;
+typedef LineMesh<2> Path;
 typedef SysState<4> State;
 typedef GeomPoint<2> Goal;
 
@@ -332,9 +339,10 @@ public:
                LockableQueue<std::string>& request,
                LockableQueue<std::string>& response);
 
+    virtual void run()override final;
 protected:
 
-    virtual void run()override final;
+    //virtual void run()override final;
     LockableQueue<std::string>& requests_;
     LockableQueue<std::string>& responses_;
 
@@ -365,7 +373,7 @@ private:
     State state_;
 
     // the EKF filter
-    ExtendedKalmanFilter ekf_;
+    //ExtendedKalmanFilter ekf_;
 
     /// \brief The observer list
     std::vector<StateObserver*> sobservers_;
@@ -379,7 +387,7 @@ ServerThread::StateEstimationThread::StateEstimationThread(const StopSimulation&
     :
     StoppableTask<StopSimulation>(stop),
     state_(),
-    ekf_(),
+    //ekf_(),
     sobservers_(),
     map_(&map)
 {
@@ -428,6 +436,9 @@ protected:
 
     // the observers to notify on the path update
     std::vector<PathObserver*> pobservers_;
+
+    // save the computed path
+    void save_path(real_t duration);
 
 };
 
