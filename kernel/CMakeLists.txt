@@ -48,13 +48,13 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(KERNEL_DEBUG "ON")
 ENDIF()
 
-configure_file(config.h.in include/kernel/base/config.h @ONLY)
+configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/kernel/base/config.h @ONLY)
 
 # TODO: Fix this
 # add this because config.h ends up in the build directory
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
-SET(BLAZE_INCL_DIR "")
+SET(BLAZE_INCL_DIR "/home/david/MyProjects/cubic_engine/chrono_lib/blaze-3.4/install/include")
 
 IF( BLAZE_INCL_DIR MATCHES " " )
     MESSAGE( FATAL_ERROR  "Blaze include directory has not been specified")
@@ -62,8 +62,8 @@ ENDIF()
 
 
 IF( ENABLE_TESTING MATCHES "ON")
-    SET(GTEST_INC_DIR " ")
-    SET(GTEST_LIB_DIR " ")
+    SET(GTEST_INC_DIR "/home/david/MySoftware/gtest/install/include")
+    SET(GTEST_LIB_DIR "/home/david/MySoftware/gtest/install/lib")
     INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
 ENDIF()
 
@@ -96,16 +96,12 @@ ELSE()
 ENDIF()
 
 SET(CMAKE_LINKER_FLAGS "-pthread")
-
-
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
-MESSAGE(STATUS "INSTALL DIR ${CMAKE_INSTALL_PREFIX}")
 
 # include dirs used by the project
 INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR}) 
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
-
 
 # use the Boost link directories
 LINK_DIRECTORIES(${BOOST_LIBRARYDIR})
