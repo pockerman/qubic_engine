@@ -10,7 +10,7 @@
     * [Machine Learning](#machine_learning)
     * [Reinforcement Learning](#reinforcement_learning)
     * [Robotics Simulations](#using_ros)
-		* [Miscellaneous](#miscellaneous)
+    * [Miscellaneous](#miscellaneous)
 
 ## <a name="dependencies"></a> Dependencies
 
