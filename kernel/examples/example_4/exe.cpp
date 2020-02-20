@@ -1,7 +1,3 @@
-/**
-  * Parallel Implementation of Jacobi Iteration
-  *
-  **/
 #include "kernel/parallel/threading/thread_pool.h"
 #include "kernel/parallel/threading/simple_task.h"
 #include "kernel/utilities/algorithm_info.h"

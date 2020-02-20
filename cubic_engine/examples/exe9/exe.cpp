@@ -1,237 +1,288 @@
-/**
- * This example demonstrates how to use Kalma filter
- */
+#include "cubic_engine/base/cubic_engine_types.h"
+#include "cubic_engine/search/a_star_search.h"
 
-#include "robosim/simulator/simulator_base.h"
+#include "kernel/data_structs/serial_graph_builder.h"
+#include "kernel/utilities/vtk_mesh_file_writer.h"
+#include "kernel/maths/lp_metric.h"
+#include "kernel/data_structs/boost_graph_utils.h"
 
-#include <iostream>
-#include <cmath>
+#include "kernel/utilities/csv_file_writer.h"
+#include "kernel/discretization/mesh.h"
+#include "kernel/discretization/element_mesh_iterator.h"
+#include "kernel/discretization/mesh_predicates.h"
+#include "kernel/discretization/element.h"
+#include "kernel/discretization/mesh_generation.h"
+#include "kernel/discretization/quad_mesh_generation.h"
 
-using namespace robosim;
 
-class AC: public NonLinSys
+namespace example{
+
+using cengine::real_t;
+using cengine::uint_t;
+
+using kernel::GeomPoint;
+using kernel::numerics::Mesh;
+using kernel::numerics::LineMesh;
+using kernel::BoostSerialGraph;
+using kernel::Null;
+
+
+//vertex data to apply A*
+struct AstarNodeData
 {
-    
-public:
-    
-    //constructor
-    AC();
-    
-    
-    //Make any updates to the system
-    virtual void update_AWQ_mats();
-    
-    //Update the state vector
-    virtual void update_x_vec();
-    
-    //Update the measurements vector
-    virtual void update_z_vec();
-    
-    //Update the H, V, R matrices of the system
-    virtual void update_HVR_mats();
-    
-    //set up the AC matrices
-    void ac_setup();
-    
-private:
-    
-    //update the state matrix A
-    void update_A_mat();
-    
-    //update the W matrix
-    void update_W_mat();
-    
-    //update the Q matrix
-    void update_Q_mat();
-    
-    //update the H matrix
-    void update_H_mat();
-    
-    //update the R matrix
-    void update_R_mat();
-    
-    real_type period_;
-    real_type mass_;
-    real_type bfriction_;
-    real_type portance_;
-    real_type gravity_;
-    
-    
+    real_t gcost;
+    real_t fcost;
+    real_t occumancy_prob;
+
+    GeomPoint<2> position;
+
+    AstarNodeData();
+    AstarNodeData(const GeomPoint<2>& p);
+    AstarNodeData(const AstarNodeData& o);
+
+    bool can_move()const{return occumancy_prob != 1.0;}
+
 };
 
-AC::AC()
+AstarNodeData::AstarNodeData()
 :
-NonLinSys(),
-period_(0.2),
-mass_(1000.),
-bfriction_(0.35),
-portance_(3.92),
-gravity_(9.8)
+gcost(std::numeric_limits<real_t>::max()),
+fcost(std::numeric_limits<real_t>::max()),
+position()
+{}
+
+AstarNodeData::AstarNodeData(const GeomPoint<2>& p)
+:
+gcost(std::numeric_limits<real_t>::max()),
+fcost(std::numeric_limits<real_t>::max()),
+position(p)
+{}
+
+AstarNodeData::AstarNodeData(const AstarNodeData& o)
+:
+gcost(o.gcost),
+fcost(o.fcost),
+position(o.position)
+{}
+
+typedef BoostSerialGraph<AstarNodeData, Null> Map;
+typedef LineMesh<2> Path;
+typedef GeomPoint<2> Goal;
+
+
+// Given the state produced by the
+// StateEstimationThread produce a Path
+// to be followed
+struct PathConstructor
+{
+public:
+
+    // constructor
+    PathConstructor(const Map& map);
+
+    // run the thread
+    void run();
+
+protected:
+
+    // the map used
+    const Map* map_;
+
+    // the path constructed
+    Path path_;
+
+    // save the computed path
+    void save_path(real_t duration);
+
+};
+
+inline
+PathConstructor::PathConstructor(const Map& map)
+    :
+    map_(&map),
+    path_()
 {}
 
 void
-AC::update_AWQ_mats(){
-    
-    update_A_mat();
-    update_W_mat();
-    update_Q_mat();
-}
+PathConstructor::save_path(real_t duration){
 
-void 
-AC::update_HVR_mats(){
-   update_H_mat();
-   update_R_mat();
-    
-}
+    std::string dur = std::to_string(duration);
 
-void
-AC::update_A_mat(){
-    
-    auto& A = this->get_A_mat();
-    auto& x = this->get_x_vec();
-    
-    A(0,0) = 1.0;
-    A(0,1) = period_ - period_*period_*bfriction_/mass_*x(1);
-    A(0,2) = 0.0;
-    A(0,3) = 0.0;
-
-    A(1,0) = 0.0;
-    A(1,1) = 1. - 2*period_*bfriction_/mass_*x(1);
-    A(1,2) = 0.0;
-    A(1,3) = 0.0;
-
-    A(2,0) = 0.0;
-    A(2,1) = period_*period_*portance_/mass_*x(1);
-    A(2,2) = 1.0;
-    A(2,3) = period_;
-
-    A(3,0) = 0.0;
-    A(3,1) = 2*period_*portance_/mass_*x(1);
-    A(3,2) = 0.0;
-    A(3,3) = 1.0;
-}
-
-void
-AC::update_W_mat(){
-    
-    auto& W = this->get_W_mat();
-    
-    W(0,0) = 0.0;
-    W(0,1) = 0.0;
-    W(1,0) = 1.0;
-    W(1,1) = 0.0;
-    W(2,0) = 0.0;
-    W(2,1) = 0.0;
-    W(3,0) = 0.0;
-    W(3,1) = 1.0;
-}
-
-void
-AC::update_Q_mat(){
-    
-    auto& Q = this->get_Q_mat();
-    
-    Q(0,0) = 0.01*0.01;
-    Q(0,1) = 0.01*0.01/10.0;
-    Q(1,0) = 0.01*0.01/10.0;
-    Q(1,1) = 0.01*0.01;
-}
-
-void
-AC::update_H_mat(){
-    
-    auto& H = this->get_H_mat();
-    auto& x = this->get_x_vec();
-    
-    H(0,0) = -x(2)/(x(0)*x(0)+x(2)*x(2));
-    H(0,1) = 0.0;
-    H(0,2) = x(0)/(x(0)*x(0)+x(2)*x(2));
-    H(0,3) = 0.0;
-
-    H(1,0) = x(0)/std::sqrt(x(0)*x(0)+x(2)*x(2));
-    H(1,1) = 0.0;
-    H(1,2) = x(2)/std::sqrt(x(0)*x(0)+x(2)*x(2));
-    H(1,3) = 0.0;
-}
-
-void
-AC::update_R_mat(){
-    
-    auto& R = this->get_R_mat();
-    
-    R(0,0) = 0.01*0.01;
-    R(0,1) = 0.01*0.01/10.0;
-    R(1,0) = 0.01*0.01/10.0;
-    R(1,1) = 0.01*0.01;
-}
-
-void 
-AC::update_x_vec(){
-    
-    auto tmpx = this->get_x_vec();
-    auto& x = this->get_x_vec();
-    auto& u = this->get_u_vec();
-    
-    tmpx(0) = x(0) + x(3)*period_ + (period_*period_)/2*(u(0)/mass_ - bfriction_/mass_*x(1)*x(1));
-    tmpx(1) = x(1) + (u(0)/mass_ - bfriction_/mass_*x(1)*x(1))*period_;
-    tmpx(2) = x(2) + x(3)*period_ + (period_*period_)/2*(portance_/mass_*x(1)*x(1)-gravity_);
-    tmpx(3) = x(3) + (portance_/mass_*x(1)*x(1)-gravity_)*period_;
-    
-    x = tmpx;
-}
-
-void 
-AC::update_z_vec(){ 
-    auto& z = this->get_z_vec();
-    z(0)= std::atan2(x(2), x(0));
-    z(1)= std::sqrt(x(0)*x(0)+x(2)*x(2));
-}
-
-void 
-AC::ac_setup(){ 
-    
-    const size_type n = 4;
-    const size_type m = 2;
-    const size_type p = 2;
-    const size_type l = 2;
-    
-    this->initialize(n,m,p,l);
-    this->set_P_matrix({{100.0*100.0, 0.0, 0.0, 0.0},{0.0, 10.0*10.0, 0.0, 0.0},
-                        {0.0, 0.0, 25.0*25.0, 0.0},{0.0, 0.0, 0.0, 10.0*10.0}});
-                        
-                        
-    
-}
-        
-int main(){
-    
-    //initialize constants etc
-    SimBase::init();
-    
-    const size_type nsteps = 100;
-    
-    //the system
-    AC sys;
-    
-    //set up the AC
-    sys.ac_setup();
-
-    //the filter we use
-    EKF kf;
-      
-#ifdef ROBOSIM_DEBUG
-    kf.set_show_iterations_flag(true);
-#endif
-    
-    for(size_type step=0; step<nsteps; ++step){
-        
-        std::cout<<"At iteration: "<<step<<std::endl;
-        kf.step(sys);   
+    std::vector<std::string> strings;
+    std::istringstream f(dur);
+    std::string s;
+    while (std::getline(f, s, '.')) {
+        strings.push_back(s);
     }
-    
-    //finalize
-    SimBase::finalize();
-    
-    return 0;
+
+
+    kernel::CSVWriter writer("path_" + strings[1]+ ".csv", ',', true);
+    writer.write_mesh(path_);
+
 }
+
+void
+PathConstructor::run(){
+
+    std::chrono::time_point<std::chrono::system_clock> start;
+    std::chrono::time_point<std::chrono::system_clock> end;
+    start = std::chrono::system_clock::now();
+
+    // both are updated so try to establish the path
+    // path should be publiched every ???
+    typedef Map::vertex_type vertex_t;
+    std::vector<real_t> pos(2);
+    kernel::LpMetric<2> h;
+    Goal goal(1.0);
+    Goal position(0.0);
+
+    static auto closest_start_vertex_pred = [&](const vertex_t& vertex){
+
+        auto distance = vertex.data.position.distance(position);
+
+        if( distance < 0.1){
+            return true;
+        }
+
+        return false;
+    };
+
+    static auto closest_goal_vertex_pred = [&](const vertex_t& vertex){
+
+        auto distance = vertex.data.position.distance(goal);
+
+        if( distance < 0.1){
+            return true;
+        }
+
+        return false;
+    };
+
+    // we need to find the starting node with the position
+    // closest to the robot position
+    uint_t start_vertex_id = kernel::find_vertex(*map_, closest_start_vertex_pred);
+    uint_t goal_vertex_id = kernel::find_vertex(*map_, closest_goal_vertex_pred);
+
+    // if this is an invalid id then throw?
+    if(start_vertex_id == kernel::KernelConsts::invalid_size_type() ||
+        goal_vertex_id == kernel::KernelConsts::invalid_size_type()    ){
+        throw std::logic_error("Invalid vertex id for path finding");
+    }
+
+    vertex_t start_pos;
+    start_pos.data.position = position;
+    start_pos.id = start_vertex_id;
+
+    vertex_t goal_pos;
+    goal_pos.data.position = goal;
+    goal_pos.id = goal_vertex_id;
+
+    // find the path we need the goal
+    auto path_connections = cengine::astar_search(const_cast<Map&>(*map_), start_pos, goal_pos, h );
+
+    if(path_connections.empty()){
+       throw std::logic_error("Path connections are empty");
+    }
+
+    // update the line mesh that represents the path
+    std::vector<uint_t> mesh_data = cengine::reconstruct_a_star_path(path_connections, goal_vertex_id);
+
+    // now that we have the connections let's update the path
+    kernel::numerics::build_mesh(path_, *map_, mesh_data);
+
+    end = std::chrono::system_clock::now();
+    std::chrono::duration<real_t> duration = end - start;
+    // save the path
+    save_path(duration.count());
+}
+
+}
+
+
+int main(){
+
+#ifdef USE_LOG
+    kernel::Logger::set_log_file_name("/home/david/CubicEngineering/cubic_engine_develop_branches/integrate_diff_drive_model/cubic_engine/build/examples/exe9/log_file.log");
+#endif
+
+    using namespace example;
+
+    // create the graph from the mesh
+    Map map;
+
+    {
+        uint_t nx = 10;
+        uint_t ny = 10;
+
+        GeomPoint<2> start(0.0);
+        GeomPoint<2> end(1.0);
+
+        Mesh<2> mesh;
+
+        // generate the mesh
+        kernel::numerics::build_quad_mesh(mesh, nx, ny, start, end);
+
+        kernel::numerics::VtkMeshFileWriter writer("map.vtk", true);
+        std::vector<real_t> occupamcy_prob(mesh.n_elements(), 0.0);
+
+        occupamcy_prob[4] = 1.0;
+        occupamcy_prob[8] = 1.0;
+        occupamcy_prob[9] = 1.0;
+        occupamcy_prob[18] = 1.0;
+        occupamcy_prob[19] = 1.0;
+        occupamcy_prob[14] = 1.0;
+        occupamcy_prob[24] = 1.0;
+        occupamcy_prob[11] = 1.0;
+        occupamcy_prob[12] = 1.0;
+        occupamcy_prob[21] = 1.0;
+        occupamcy_prob[22] = 1.0;
+
+        occupamcy_prob[42] = 1.0;
+        occupamcy_prob[43] = 1.0;
+        occupamcy_prob[52] = 1.0;
+        occupamcy_prob[53] = 1.0;
+
+        occupamcy_prob[36] = 1.0;
+        occupamcy_prob[37] = 1.0;
+        occupamcy_prob[46] = 1.0;
+        occupamcy_prob[47] = 1.0;
+
+        occupamcy_prob[65] = 1.0;
+        occupamcy_prob[66] = 1.0;
+        occupamcy_prob[75] = 1.0;
+        occupamcy_prob[76] = 1.0;
+
+        occupamcy_prob[91] = 1.0;
+        occupamcy_prob[92] = 1.0;
+        occupamcy_prob[93] = 1.0;
+        occupamcy_prob[94] = 1.0;
+
+        occupamcy_prob[81] = 1.0;
+        occupamcy_prob[82] = 1.0;
+        occupamcy_prob[83] = 1.0;
+        occupamcy_prob[84] = 1.0;
+
+        // write the occupancy grid
+        writer.write_mesh(mesh, occupamcy_prob, "OccupancyProb");
+
+        // build the mesh graph
+        kernel::build_mesh_graph(mesh, map);
+
+        for(uint_t v=0; v<map.n_vertices(); ++v){
+           auto& vertex = map.get_vertex(v);
+           uint_t id = vertex.id;
+           auto* element = mesh.element(id);
+           vertex.data.position = element->centroid();
+           vertex.data.occumancy_prob = occupamcy_prob[id];
+        }
+
+    }
+
+   PathConstructor constructor(map);
+   constructor.run();
+   return 0;
+}
+
+
+
 

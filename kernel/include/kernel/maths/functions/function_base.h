@@ -16,9 +16,7 @@ public:
 
     typedef OutputTp output_t;
 
-    /**
-      * Destructor
-      */
+    /// \brief Destructor
     virtual ~FunctionBase()
     {}
 
@@ -33,11 +31,8 @@ public:
 
 protected:
 
-    /**
-     * Constructor
-     */
+    /// \brief Constructor
     FunctionBase();
-
 };
 
 

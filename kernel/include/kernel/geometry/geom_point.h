@@ -8,141 +8,109 @@
 #include <cmath>
 #include <ostream>
 #include <algorithm>
+#include <string>
 
-namespace kernel
-{
+namespace kernel{
 
-/**
-  * A class that describes a point with spacedim spatial dimension space.
-  */
-
-
+/// A class that describes a point with spacedim spatial dimension space.
 template<int spacedim, typename T=real_t>
 class GeomPoint
 {
 
 public:
 
-    typedef T value_type;
-    static const int dimension = spacedim;
+   typedef T value_type;
+   static const int dimension = spacedim;
 
-   /**
-     * \detailed ctor all dim data are assigned the given value
-     */
+   /// \brief ctor all dim data are assigned the given value
    explicit GeomPoint(T val =  T());
 
-   /**
-     *\detailed create by passing a vector of data
-     */
+   /// \brief Create by passing a vector of data
    template<typename Container>
    explicit GeomPoint(const Container& data);
 
-   /**
-     * \detailed copy ctor
-     */
+   /// \brief copy ctor
    GeomPoint(const GeomPoint& t);
 
-   /**
-     *\detailed copy assignement operator
-     */
+   /// \brief copy assignement operator
    GeomPoint& operator=(const GeomPoint& t);
 
-   /**
-     *\detailed dtor
-     */
-  virtual ~GeomPoint(){}
+   /// \brief dtor
+   virtual ~GeomPoint(){}
 
-   /**
-     * \detailed Add another vector, i.e. move
-     * this point by the given
-     * offset.
-     */
-     GeomPoint & operator += (const GeomPoint &);
+   /// \detailed Add another vector, i.e. move
+   /// this point by the given
+   /// offset.
+   GeomPoint & operator += (const GeomPoint &);
 
-   /**
-     * \detailed Subtract another tensor.
-     */
-    GeomPoint & operator -= (const GeomPoint &);
+   ///
+   /// \detailed Subtract another tensor.
+   ///
+   GeomPoint & operator -= (const GeomPoint &);
 
-   /**
-     * \detailed Scale the vector by
-     * <tt>factor</tt>, i.e. multiply all
-     * coordinates by <tt>factor</tt>.
-     */
-    GeomPoint & operator *= (T factor);
+   /// \detailed Scale the vector by
+   /// <tt>factor</tt>, i.e. multiply all
+   /// coordinates by <tt>factor</tt>.
+   GeomPoint & operator *= (T factor);
 
-    /**
-      * Scale the vector by <tt>1/factor</tt>.
-      */
-    GeomPoint & operator /= (T factor);
+   /// Scale the vector by <tt>1/factor</tt>.
+   GeomPoint & operator /= (T factor);
 
-    /**
-      *\detailed scale with a given factor
-      */
-    void scale(T factor);
+   /// \detailed scale with a given factor
+   void scale(T factor);
 
-    /**
-      *\detailed scale this object by the given factors
-      *\p factors should have size at least \p spacedim
-      */
-    void scale(const std::vector<T>& factors);
+   ///
+   /// detailed scale this object by the given factors
+   /// p factors should have size at least \p spacedim
+   ///
+   void scale(const std::vector<T>& factors);
 
-    /**
-      *\detailed zero the entries of the tensor
-      */
-    void zero();
+   /// detailed zero the entries of the tensor
+   void zero();
 
-    /**
-      *\detailed add the coordinates of the given point to this
-      *scaled by factor
-      */
-    void add_scaled(const GeomPoint& p, T factor);
+   /// \brief Add the coordinates of the given point to this scaled by factor
+   void add_scaled(const GeomPoint& p, T factor);
 
-    /**
-      *\detailed access the i-th coordinate of the point
-      */
-    T& operator[](uint_t i);
+   /// \brief Access the i-th coordinate of the point
+   T& operator[](uint_t i);
 
-     /**
-      *\detailed access the i-th coordinate of the point read-only
-      */
-    T operator[](uint_t i)const;
+   /// \brief  Access the i-th coordinate of the point read-only
+   T operator[](uint_t i)const;
 
-     /**
-      *\detailed access the i-th coordinate of the point read-only
-      */
-    T entry(uint_t i)const{return (*this)[i];}
+   /// \brief access the i-th coordinate of the point read-only
+   T entry(uint_t i)const{return (*this)[i];}
 
-    /**
-      * \detailed get a copy of the data of this object
-      */
-    auto coordinates()const{return data_;}
+   ///
+   /// \brief Get a copy of the data of this object
+   ///
+   auto coordinates()const{return data_;}
 
-    /**
-      *\detailed get the max element in the point
-      */
-     T max()const;
+   /// \brief Get the max element in the point
+   T max()const;
 
-     /**
-       *\detailed get the min element in the point
-       */
-     T min()const;
+   ///
+   /// \brief Get the min element in the point
+   ///
+   T min()const;
 
-     /**
-       *\detailed get the distance from the given point
-       */
-     T distance(const GeomPoint&)const;
+   /// \brief Get the distance from the given point
+   T distance(const GeomPoint&)const;
 
-     /**
-       * \detailed print the point
-       */
-     std::ostream& print_point_info(std::ostream &out)const;
+   /// \brief Return the distance from the origin
+   T L2_norm()const{return distance(GeomPoint(static_cast<T>(0)));}
 
+   /// \brief Returns the square sum of the compontents
+   T square_sum()const;
+
+   /// \brief print the point
+   std::ostream& print_point_info(std::ostream &out)const;
+
+   /// \brief Returns s string representation of the point
+   const std::string to_string()const;
+  
 private:
 
-    /**
-      *\detailed hold the coordinates of the point
-      */
+    /// \brief Hold the coordinates of the point
     std::array<T, spacedim> data_;
 
 };
@@ -304,6 +272,19 @@ GeomPoint<spacedim,T>::scale(const std::vector<T>& factors){
 }
 
 template<int spacedim,typename T>
+T
+GeomPoint<spacedim,T>::square_sum()const{
+    T result = T(0);
+
+    std::for_each(data_.begin(), data_.end(),
+                  [&](const T& value){
+        result += value*value;
+    });
+
+    return result;
+}
+
+template<int spacedim,typename T>
 inline
 void
 GeomPoint<spacedim,T>::zero(){
@@ -329,6 +310,23 @@ GeomPoint<spacedim,T>::print_point_info(std::ostream &out)const
 
  out<<" )";
  return out;
+}
+
+template<int spacedim,typename T>
+const std::string
+GeomPoint<spacedim,T>::to_string()const{
+
+    std::string rslt("");
+    auto end = data_.begin();
+    std::advance(end, spacedim-1);
+    std::for_each(data_.begin(), end,
+                  [&](const T& value){
+        rslt += std::to_string(value);
+        rslt +=",";
+    });
+
+    rslt  += std::to_string(data_[spacedim - 1]);
+    return rslt;
 }
 
 //free functions that work on the GeomPoint<spacedim,T> class
@@ -368,10 +366,8 @@ const GeomPoint<spacedim,T> scale(const GeomPoint<spacedim,T>& t, const std::vec
   return GeomPoint<spacedim,T>(data);
 }
 
-/**
-  * \detailed get a point having the absolute values
-  * of the given point object
-  */
+/// \brief Return a point having the absolute values
+/// of the given point object
 template<int spacedim,typename T>
 const GeomPoint<spacedim,T> abs(const GeomPoint<spacedim,T>& t){
   auto data = t.coordinates();
@@ -382,10 +378,7 @@ const GeomPoint<spacedim,T> abs(const GeomPoint<spacedim,T>& t){
   return GeomPoint<spacedim,T>(data);
 }
 
-/**
-  *\detailed allow multiplication from left with a factor.
-  */
-
+/// Allow multiplication from left with a factor.
 template<int spacedim,typename T>
 const GeomPoint<spacedim,T> operator*(T factor,const GeomPoint<spacedim,T>& t){
 
@@ -434,7 +427,6 @@ template<int spacedim,typename T>
 bool operator!=(const GeomPoint<spacedim,T>& t1, const GeomPoint<spacedim,T>& t2){
  return !(t1==t2);
 }
-
 
 }
 

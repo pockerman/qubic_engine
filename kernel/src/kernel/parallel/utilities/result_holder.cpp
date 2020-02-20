@@ -1,7 +1,6 @@
 #include "kernel/parallel/utilities/result_holder.h"
 
-namespace kernel
-{
+namespace kernel{
 
 ResultHolder<void>::ResultHolder(bool valid)
     :

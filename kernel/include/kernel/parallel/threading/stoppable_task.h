@@ -1,14 +1,11 @@
-/***
- *
- * Implementation of a task that can be stopped
- * Initial implementation is taken from
- * https://thispointer.com/c11-how-to-stop-or-terminate-a-thread/
- *
- *
- **/
-
 #ifndef STOPPABLE_TASK_H
 #define STOPPABLE_TASK_H
+
+#include "kernel/base/config.h"
+
+#ifdef USE_LOG
+#include "kernel/utilities/logger.h"
+#endif
 
 #include "kernel/parallel/threading/task_base.h"
 
@@ -37,6 +34,9 @@ public:
     /// \brief Returns true if the task should stop
     bool should_stop()const{return stop_cond_.stop();}
 
+    /// \brief Returns true if the task is stopped
+    bool is_stopped()const{return stop_cond_.stop();}
+
     /// \brief Access the stop condition object. since the conditionals may change
     /// allow this to be accessed externally.
     stop_condition_t& get_condition(){return stop_cond_;}
@@ -44,7 +44,7 @@ public:
 protected:
 
     /// \brief Constructor
-    explicit StoppableTask(const stop_condition_t& condition = stop_condition_t());
+    explicit StoppableTask(const stop_condition_t& condition);
 
     /// \brief The object responsible for providing
     /// the information if the task should be stopped or not
@@ -74,10 +74,36 @@ StoppableTask<StopCondition>::operator()(){
             this->set_state(TaskBase::TaskState::FINISHED);
         }
         else{
-           this->set_state(TaskBase::TaskState::INTERRUPTED);
+           this->set_state(TaskBase::TaskState::STOPPED);
         }
+
+#ifdef USE_LOG
+        std::ostringstream message;
+        message<<"Task: "<<get_name()<<" finished successfully";
+        Logger::log_info(message.str());
+#endif
+    }
+    catch(std::logic_error& error){
+
+#ifdef USE_LOG
+        std::ostringstream message;
+        message<<"An logic occured whilst running task: "<<this->get_name();
+        message<<" what() says: "<<error.what();
+        Logger::log_error(message.str());
+#endif
+
+        // whatever caused this, we assume that the task was interrupted
+        // by an exception
+        set_state(TaskBase::TaskState::INTERRUPTED_BY_EXCEPTION);
+
     }
     catch (...) {
+
+#ifdef USE_LOG
+        std::ostringstream message;
+        message<<"An exception occured whilst running task: "<<this->get_name();
+        Logger::log_error(message.str());
+#endif
 
         // whatever caused this, we assume that the task was interrupted
         // by an exception

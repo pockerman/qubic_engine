@@ -23,12 +23,22 @@ class kernel_thread;
 
 }
 
-/**
- * @brief The ThreadPool class. Executes tasks using C++11 threading
- */
+struct ThreadPoolOptions
+{
+   uint_t n_threads{1};
+   bool start_on_construction{true};
+   bool msg_when_adding_tasks{false};
+   bool msg_on_start_up{false};
+   bool msg_on_shut_down{false};
+};
+
+/// \brief The ThreadPool class. Executes tasks using C++11 threading
 class ThreadPool: private boost::noncopyable
 {
 public:
+
+    /// \brief Default options to use when assigning tasks;
+    typedef Null default_options_t;
 
     /// \brief Type of task this pool handles
     typedef TaskBase task_t;
@@ -36,6 +46,9 @@ public:
     /// \brief Constructor. Initialize the pool with the given number
     /// of threads
     ThreadPool(uint_t n_threads, bool start_=true);
+
+    /// \brief Initialize with the given options
+    ThreadPool(const ThreadPoolOptions& options);
 
     /// Destructor
     ~ThreadPool();
@@ -65,6 +78,12 @@ public:
     /// \brief Returns the number of threads
     uint_t n_processing_elements()const{return get_n_threads();}
 
+    /// \brief Query the pool about the start state
+    bool is_started()const{return is_started_;}
+
+    /// \brief query the pool about the stop state
+    bool is_closed()const{return is_closed_;}
+
 private:
 
     typedef detail::kernel_thread thread_type;
@@ -74,6 +93,15 @@ private:
     pool_t pool_;
     uint_t n_threads_;
     uint_t next_thread_available_ {kernel::KernelConsts::invalid_size_type()};
+
+    /// \brief The options used
+    ThreadPoolOptions options_;
+
+    /// \brief flag indicating if the pool is started
+    bool is_started_;
+
+    /// \brief flag indicating if the pool is closed
+    bool is_closed_;
 };
 
 

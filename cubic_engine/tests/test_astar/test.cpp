@@ -23,6 +23,8 @@ namespace test_data
         astar_node(const Vec& p);
         astar_node(const astar_node& o);
 
+        bool can_move()const{return true;}
+
     };
 
     astar_node::astar_node()

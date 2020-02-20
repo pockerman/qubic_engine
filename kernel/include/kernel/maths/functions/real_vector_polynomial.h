@@ -61,28 +61,22 @@ public:
       */
     virtual real_t grad(uint_t i, const DynVec<real_t>& point)const override final;
 
-    /**
-      * Returns the gradients of the function
-      */
+    /// \brief Returns the gradients of the function
     virtual DynVec<real_t> gradients(const DynVec<real_t>& point)const override final;
 
     /// \brief Returns the coefficients of the underlying monomials
     std::vector<real_t> coeffs()const;
 
-    /**
-      * Returns the coefficients of the underlying monomials
-      */
+    /// \brief Returns the coefficients of the underlying monomials
     void set_coeffs(const std::vector<real_t>& coeffs);
 
     /// \brief Returns the i-th coefficient
     real_t coeff(uint_t c)const{return monomials_[c].coeff();}
 
-
 private:
 
-    /**
-     * The monomials representing the polynomial
-     */
+
+    /// \brief The monomials representing the polynomial
     std::vector<Monomial> monomials_;
 
 };

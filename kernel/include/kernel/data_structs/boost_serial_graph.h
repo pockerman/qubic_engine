@@ -2,6 +2,7 @@
 #define BOOST_SERIAL_GRAPH_H
 
 #include "kernel/base/types.h"
+#include "kernel/base/kernel_consts.h"
 #include "kernel/geometry/generic_line.h"
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -10,15 +11,13 @@
 #include <utility>
 #include <stdexcept>
 
-namespace kernel
-{
+namespace kernel{
 
-/// \detailed. Representation of a graph using adjacency lists.
+/// \brief. Representation of a graph using adjacency lists.
 /// The underlying implementation uses Boost Graph library.
 /// This wrapper is introduced to simplify the creation
 /// and handling of the graph.
-
-template<typename VertexData,typename EdgeData>
+template<typename VertexData, typename EdgeData>
 class BoostSerialGraph
 {
 
@@ -34,7 +33,10 @@ public:
         uint_t  id;
 
         node_t();
+        node_t(const vertex_data_t& data);
+        node_t(vertex_data_t&& data);
         node_t(const node_t& o);
+
         node_t& operator=(const node_t& o);
         bool operator==(const node_t& o)const{return this->id==o.id;}
         bool operator!=(const node_t& o)const{return !(*this==o);}
@@ -264,7 +266,21 @@ template<typename VertexData,typename EdgeData>
 BoostSerialGraph<VertexData,EdgeData>::node_t::node_t()
 :
 data(),
-id()
+id(KernelConsts::invalid_size_type())
+{}
+
+template<typename VertexData,typename EdgeData>
+BoostSerialGraph<VertexData,EdgeData>::node_t::node_t(const typename BoostSerialGraph<VertexData,EdgeData>::vertex_data_t& data)
+:
+data(data),
+id(KernelConsts::invalid_size_type())
+{}
+
+template<typename VertexData,typename EdgeData>
+BoostSerialGraph<VertexData,EdgeData>::node_t::node_t(typename BoostSerialGraph<VertexData,EdgeData>::vertex_data_t&& data)
+:
+data(data),
+id(KernelConsts::invalid_size_type())
 {}
 
 template<typename VertexData,typename EdgeData>

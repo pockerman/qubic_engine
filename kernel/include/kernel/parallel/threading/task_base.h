@@ -19,7 +19,7 @@ public:
 
     /// \brief A useful enumeration describing the state at which the
     /// task is at. Upon construction task is at PENDING state.
-    enum class TaskState{PENDING, STARTED, INTERRUPTED, INTERRUPTED_BY_EXCEPTION, FINISHED, UNDEFINED};
+    enum class TaskState{PENDING, STARTED, INTERRUPTED, STOPPED, INTERRUPTED_BY_EXCEPTION, FINISHED, UNDEFINED};
 
     /// \brief Destructor
     virtual ~TaskBase();

@@ -2,6 +2,12 @@
 #define A_STAR_SEARCH_H
 
 #include "cubic_engine/base/cubic_engine_types.h"
+#include "kernel/base/config.h"
+
+#ifdef USE_LOG
+#include "kernel/utilities/logger.h"
+#endif
+
 #include "kernel/data_structs/searchable_priority_queue.h"
 #include "kernel/utilities/map_utilities.h"
 
@@ -105,6 +111,21 @@ astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp:
       for(; itr != neighbors.second; itr++){
 
          node_t& nv = g.get_vertex(itr);
+
+         if(open.contains(nv)){
+             continue;
+         }
+         else{
+
+             // we cannot move to the neighbor
+             // so no reason checking
+             if(!nv.data.can_move()){
+                explored.insert(nv);
+                continue;
+             }
+         }
+
+
          uint_t nid = nv.id;
 
          //search explored set by id
@@ -115,6 +136,7 @@ astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp:
          if(itr != explored.end()){
             continue;
          }
+
 
          //this actually the cost of the path from the current node
          //to reach its neighbor
@@ -133,10 +155,9 @@ astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp:
          //acutally calculate f(nn) = g(nn)+h(nn)
          nv.data.fcost = nv.data.gcost + h(nv.data.position, end.data.position);
 
-         //update here the open as we copy
-         if(!open.contains(nv)){
-                 open.push(nv);
-         }
+         //if the neighbor not in open set add it
+         open.push(nv);
+
       }
    }
 
@@ -145,7 +166,7 @@ astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp:
 
 template<typename IdTp>
 std::vector<IdTp>
-reconstruct_a_star_path(const std::multimap<IdTp,IdTp>& map, const IdTp& start){
+reconstruct_a_star_path(const std::multimap<IdTp, IdTp>& map, const IdTp& start){
 
     if(map.empty()){
         return std::vector<IdTp>();
@@ -157,6 +178,10 @@ reconstruct_a_star_path(const std::multimap<IdTp,IdTp>& map, const IdTp& start){
     auto next_itr = map.find(start);
 
     if(next_itr == map.end()){
+
+#ifdef USE_LOG
+        kernel::Logger::log_error("Key: "+std::to_string(start)+" does not exist");
+#endif
         //such a key does not exist
         throw std::logic_error("Key: "+std::to_string(start)+" does not exist");
     }

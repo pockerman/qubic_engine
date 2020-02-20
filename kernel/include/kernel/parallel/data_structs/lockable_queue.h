@@ -26,7 +26,7 @@ class LockableQueue: private boost::noncopyable
 
  public:
 
-    typedef T value_type;
+    typedef T value_t;
 
     /// \brief Default ctor. Construct an empty queue
     LockableQueue();
@@ -38,35 +38,24 @@ class LockableQueue: private boost::noncopyable
     //pop an element from the queue. The thread
     //that calls this waits until the queue has
     //at least one element
-    value_type* pop_wait();
+    value_t pop_wait();
 
     //pop an element from the queue. Same as above
-    bool pop_wait(value_type*& element);
+    bool pop_wait(value_t& element);
 
     //pop an element from the queue. If the queue is empty
     //then return nullptr. This function does not cause the
     //calling thread to wait
-    value_type* pop();
+    //value_t pop();
 
      //pop an element from the queue. If the queue is empty
     //then return false. This function does not cause the
     //calling thread to wait
-    bool pop(value_type*& element);
+    bool pop(value_t& element);
 
     //push an element to the queue
-    void push_item(value_type& element);
+    void push_item(const value_t& element);
 
-    //push an element to the queue
-    void push_item(value_type* element);
-
-    //push the given list of tasks into the thread private
-    //task pool
-    template<typename C>
-    void push_items(const C& tasks);
-
-    //assign tasks to the private thread task pool.
-    //std::iterator_traits<Iterator>::value_type
-    //should resolve to T*
     template<typename Iterator>
     void push_items(Iterator begin,Iterator end);
 
@@ -81,22 +70,22 @@ class LockableQueue: private boost::noncopyable
     struct Node
     {
         //the data we hold are tasks
-        value_type* task_;
+        value_t value_;
 
         Node()
             :
-           task_(nullptr)
+           value_()
         {}
 
-        Node(value_type* t)
+        Node(const value_t& value)
             :
-            task_(t)
+            value_(value)
         {}
 
         //shallow copy ctor
         Node(const Node& other)
             :
-            task_(other.task_)
+            value_(other.value_)
         {}
 
         //shallow copy assignement
@@ -105,15 +94,15 @@ class LockableQueue: private boost::noncopyable
             if(this==&other){
                 return *this;
             }
-            this->task_ = other.task_;
+            this->value_ = other.value_;
             return *this;
         }
 
-        //comparison operator simply checks the memory
+
         bool operator==(const Node& other)const{
 
            //memory comparison
-           if(task_ == other.task_){
+           if(value_ == other.value_){
                return true;
            }
 
@@ -149,7 +138,7 @@ LockableQueue<T>::empty()const{
 
 template<typename T>
 inline
-T* 
+T
 LockableQueue<T>::pop_wait(){
 
     typedef typename LockableQueue<T>::Node node;
@@ -160,29 +149,29 @@ LockableQueue<T>::pop_wait(){
 
     node n = task_queue_.front();
     task_queue_.pop();
-    return n.task_;
+    return n.value_;
 }
 
 template<typename T>
 inline
 bool
-LockableQueue<T>::pop_wait(T*& ele){
+LockableQueue<T>::pop_wait(value_t& ele){
 
     typedef typename LockableQueue<T>::Node node;
     std::unique_lock<std::mutex> lk(mutex_);
 
     //tell the thread to wait until the queue has at least one element
-    cond_.wait(lk,[this]{ return !task_queue_.empty();});
+    cond_.wait(lk, [this]{ return !task_queue_.empty();});
 
     node n = task_queue_.front();
     task_queue_.pop();
-    ele = n.task_;
+    ele = n.value_;
     return true;
 }
 
-template<typename T>
+/*template<typename T>
 inline
-T* 
+T
 LockableQueue<T>::pop(){
 
     typedef typename LockableQueue<T>::Node node;
@@ -192,13 +181,13 @@ LockableQueue<T>::pop(){
 
     node n = task_queue_.front();
     task_queue_.pop();
-    return n.task_;
-}
+    return n.value_;
+}*/
 
 template<typename T>
 inline
 bool
-LockableQueue<T>::pop(T*& ele){
+LockableQueue<T>::pop(T& ele){
 
     typedef typename LockableQueue<T>::Node node;
     std::lock_guard<std::mutex> lk(mutex_);
@@ -207,26 +196,14 @@ LockableQueue<T>::pop(T*& ele){
 
     node n = task_queue_.front();
     task_queue_.pop();
-    ele = n.task_;
+    ele = n.value_;
     return true;
 }
 
 template<typename T>
 inline
 void 
-LockableQueue<T>::push_item(T& element){
-
-    typedef typename LockableQueue<T>::Node node;
-    std::lock_guard<std::mutex> lk(mutex_);
-
-    task_queue_.push(node(&element));
-    cond_.notify_one();
-}
-
-template<typename T>
-inline
-void 
-LockableQueue<T>::push_item(T* element){
+LockableQueue<T>::push_item(const T& element){
     
     typedef typename LockableQueue<T>::Node node;
     std::lock_guard<std::mutex> lk(mutex_);
@@ -237,31 +214,7 @@ LockableQueue<T>::push_item(T* element){
     cond_.notify_one();
 }
 
-template<typename T>
-template<typename C>
-void 
-LockableQueue<T>::push_items(const C& tasks){
 
-    if(tasks.empty()){
-        return;
-    }
-
-    typedef typename LockableQueue<T>::Node node;
-    std::lock_guard<std::mutex> lk(mutex_);
-
-    typedef typename C::const_iterator iterator;
-
-    iterator b = tasks.begin();
-    iterator e = tasks.end();
-
-    while(b!=e){
-
-      task_queue_.push(node((*b)));
-      b++;
-    }
-
-    cond_.notify_one();
-}
 
 template<typename T>
 template<typename Iterator>

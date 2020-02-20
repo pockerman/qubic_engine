@@ -67,11 +67,10 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 
 ### <a name="filtering_and_esitmation"></a> Filtering and Estimation
 
-- <a href="#">Example 1</a> Using the ```KalmanFilter``` class
-- <a href="#">Example 2</a> Using the ```ExtendedKalmanFilter``` class
-- <a href="#">Unscented Kalman Filter</a>
-- <a href="#">Particle Filters</a>
-- <a href="#">Ordinary Least Squares</a>
+- <a href="#">Example 1: </a> Using the ```KalmanFilter``` class
+- <a href="examples/exe2/doc/exe.md"">Example 2: </a> Using the ```ExtendedKalmanFilter``` class
+- <a href="#">Example 3:</a> Unscented Kalman Filter
+- <a href="#">Example 4:</a> Particle Filters
 
 ### <a name="control"></a> Control
 
@@ -86,6 +85,7 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 - <a href="examples/exe12/doc/exe.md">Example 12</a> Linear regression
 - <a href="examples/exe13/doc/exe.md">Example 13</a> Logistic regression classification
 - <a href="examples/exe14/doc/exe.md">Example 14</a> Logistic regression with ```BatchGradientDescentWrapper```
+- <a href="examples/exe15/doc/exe.md">Example 15: </a> Linear Regression with ```PYLinearRegressor```
 - <a href="examples/exe16/doc/exe.md">Example 16</a> Compare Lasso, Ridge and ElasticNet Regularizers
 - <a href="examples/exe17/doc/exe.md">Example 17</a> KMeans clustering
 - <a href="examples/exe18/doc/exe.md">Example 18</a> KNN classification
@@ -93,10 +93,14 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
-- <a href="#">Example 6</a> Solving the State-Value Function Problem
+- <a href="#">Example 6: </a> Solving the State-Value Function Problem
 
 ### <a name="using_ros"></a> Using ROS
 
-- <a href="#">Example 3</a> Create a simple server to comminicate with ROS
+- <a href="#">Example 3: </a> Create a simple server to comminicate with ROS
+
+### <a name="miscellaneous"></a>Miscellaneous
+
+- <a href="examples/exe9/doc/exe.md">Example 9: </a> A* search
 
 

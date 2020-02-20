@@ -364,8 +364,6 @@ template<>
 class ResultHolder<Null>: public ResultHolder<void>
 {};
 
-
-
 }
 
 #endif // RESULT_HOLDER_H
