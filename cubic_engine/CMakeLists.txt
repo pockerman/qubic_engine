@@ -3,9 +3,9 @@ MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
 
 PROJECT(CubicEngine CXX)
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Prevent in-source builds.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message( FATAL_ERROR  "In-source build is not possible and not recommended. Choose an empty directory for build output.")
@@ -57,9 +57,6 @@ ENDIF()
 # Currently fail the build if the user does not supply the
 # variables.
 # TODO: How to do it better
-SET(KERNEL_INCL_DIR ${PROJECT_SOURCE_DIR}/../kernel/include)
-<<<<<<< HEAD
-
 IF(CENGINE_DEBUG MATCHES "ON")
     SET(KERNEL_LIB_DIR  ${PROJECT_SOURCE_DIR}/../kernel/install/lib/dbg)
 ELSE()
