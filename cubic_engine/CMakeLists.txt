@@ -58,12 +58,12 @@ ENDIF()
 # Currently fail the build if the user does not supply the
 # variables.
 # TODO: How to do it better
-SET(KERNEL_INCL_DIR ${PWD}/../kernel/include)
+SET(KERNEL_INCL_DIR ${PROJECT_SOURCE_DIR}/../kernel/include)
 
 IF(CENGINE_DEBUG MATCHES "ON")
-    SET(KERNEL_LIB_DIR  ${PWD}../kernel/install/lib/dbg)
+    SET(KERNEL_LIB_DIR  ${PROJECT_SOURCE_DIR}/../kernel/install/lib/dbg)
 ELSE()
-	SET(KERNEL_LIB_DIR ${PWD}../kernel/install/lib/opt)
+    SET(KERNEL_LIB_DIR ${PROJECT_SOURCE_DIR}/../kernel/install/lib/opt)
 ENDIF()
 
 if(${KERNEL_INCL_DIR} MATCHES " ")
@@ -72,7 +72,7 @@ else()
     INCLUDE_DIRECTORIES(${KERNEL_INCL_DIR})
 endif()
 
-SET(BLAZE_INCL_DIR " ")
+SET(BLAZE_INCL_DIR "/home/david/MyProjects/cubic_engine/chrono_lib/blaze-3.4/install/include")
 
 if(${BLAZE_INCL_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " Blaze directory not set")
@@ -81,8 +81,8 @@ else()
 endif()
 
 IF( ENABLE_TESTING MATCHES "ON")
-    SET(GTEST_INC_DIR " ")
-    SET(GTEST_LIB_DIR " ")
+    SET(GTEST_INC_DIR "/home/david/MySoftware/gtest/install/include")
+    SET(GTEST_LIB_DIR "/home/david/MySoftware/gtest/install/lib")
     INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
 ENDIF()
 
@@ -129,6 +129,9 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
                  ${PROJECT_SRC_DIR}/systems/*.cpp
                  ${PROJECT_SRC_DIR}/control/*.cpp
                  ${PROJECT_SRC_DIR}/ml/instance_learning/*.cpp
+                 ${PROJECT_SRC_DIR}/ml/instance_learning/utils/*.cpp
+                 ${PROJECT_SRC_DIR}/ml/unsupervised_learning/*.cpp
+                 ${PROJECT_SRC_DIR}/ml/unsupervised_learning/utils/*.cpp
                  ${PROJECT_SRC_DIR}/optimization/utils/*.cpp
                  ${PROJECT_SRC_DIR}/maths/*.cpp)
 
