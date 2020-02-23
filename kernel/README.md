@@ -3,7 +3,6 @@
 * [Dependencies](#dependencies)
 * [Installation](#nstallation)
 * [How to use ](#how_to_use)
-* [Some Issues](#some_issues)
 * [Examples Map](#examples_map)
     * [Multi-threading](#multi_threading)
     * [Linear Algebra](#linear_algebra)
@@ -47,19 +46,6 @@ make tests
 ## <a name="dependencies"></a> How to use
 
 Checkout the [Examples Map](#examples_map). Documentation is well...underway.
-
-## Some Issues
-
-```
-undefined reference to `dgetri_'
-```
-
-This means that you need to link your executable to BLAS for example adding something like
-the following should resolve the issue
-
-```
-TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
-```
 
 ## <a name="examples_map"></a> Examples Map
 
