@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.6)
 MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
 
 PROJECT(kernellib CXX)
@@ -32,11 +32,20 @@ IF(Boost_FOUND)
         SET(BOOST_INCLUDEDIR ${Boost_INCLUDE_DIRS})
         SET(BOOST_LIBRARYDIR ${Boost_LIBRARY_DIRS})
         SET(Boost_USE_SHARED_LIBS ON)
+ELSE()
+MESSAGE( FATAL_ERROR  "Boost 1.65.0 is required but not found.")
+ENDIF()
+
+# find OpenBLAS
+FIND_PACKAGE(BLAS REQUIRED)
+
+IF(NOT BLAS_FOUND)
+MESSAGE( FATAL_ERROR  "Could not find OpenBLAS library.")
 ENDIF()
 
 SET(BUILD_SHARED_LIBS ON)
 SET(CMAKE_BUILD_TYPE "Debug")
-SET(ENABLE_TESTING "ON")
+SET(ENABLE_TESTING "OFF")
 SET(USE_OPENMP "ON")
 SET(USE_LOG "ON")
 SET(USE_FVM "ON")
@@ -51,6 +60,7 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
 ENDIF()
 
 configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/kernel/base/config.h @ONLY)
+configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/kernel/base/version.h @ONLY)
 
 # TODO: Fix this
 # add this because config.h ends up in the build directory
