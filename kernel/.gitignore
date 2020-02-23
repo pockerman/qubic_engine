@@ -1,2 +1,3 @@
 kernel/include/kernel/base/config.h
 config.h
+include/kernel/base/version.h
