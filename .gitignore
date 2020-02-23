@@ -1,3 +1,4 @@
 parframe/examples/build-example_1-*
 parframe/CMakeLists.txt.user
 cubic_engine/CMakeLists.txt.user
+cubic_engine/include/cubic_engine/base/version.h
