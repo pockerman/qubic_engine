@@ -10,7 +10,7 @@
 
 namespace kernel
 {
-    /// \brief Expose various shortcuts
+    /// \brief unsigned int type
     typedef std::size_t uint_t;
 
     /// \brief Configure the double precision type
