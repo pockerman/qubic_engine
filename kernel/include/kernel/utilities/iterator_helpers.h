@@ -4,8 +4,7 @@
 #include "kernel/base/types.h"
 #include <iterator>
 
-namespace kernel
-{
+namespace kernel{
 
 template<typename IteratorTp>
 struct iterator_value_accessor
@@ -16,9 +15,9 @@ struct iterator_value_accessor
 };
 
 template<typename T>
-struct iterator_value_accessor<blaze::DenseIterator<T, true>>
+struct iterator_value_accessor<blaze::DenseIterator<T, blaze::AlignmentFlag::aligned>>
 {
-    typedef typename blaze::DenseIterator<T, true> IteratorTp;
+    typedef typename blaze::DenseIterator<T, blaze::AlignmentFlag::aligned> IteratorTp;
     typedef T value_type;
     static value_type get( const IteratorTp& itr){return itr->value();}
     static value_type get( const T& itr){return itr;}
