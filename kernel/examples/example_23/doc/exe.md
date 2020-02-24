@@ -1,4 +1,4 @@
-# Example 22: Use Volume Terms With FVM
+# Example 23: Use Backward Euler Time Stepper
 
 ## Contents
 
@@ -41,7 +41,7 @@
 #include "kernel/numerics/fv_convection_assemble_policy.h"
 #include "kernel/numerics/fv_ud_interpolation.h"
 #include "kernel/numerics/fv_scalar_timed_system.h"
-#include "kernel/numerics/simple_fv_time_stepper.h"
+#include "kernel/numerics/backward_euler_fv_time_assembly_policy.h"
 #include "kernel/numerics/fv_interpolation_factory.h"
 #include "kernel/numerics/fv_interpolation_types.h"
 
@@ -171,9 +171,9 @@ int main(){
         // the velocity
         VelocityVals velocity;
 
-        // laplace system
-        FVScalarTimedSystem<2, SimpleFVTimeAssemblyPolicy<2>,
-                           FVConvectionAssemblyPolicy<2>, TrilinosSolutionPolicy> convection("Convection", "U", mesh);
+        // the timed scalar system
+        FVScalarTimedSystem<2, BackwardEulerFVTimeAssemblyPolicy<2, FVConvectionAssemblyPolicy<2>,
+                            TrilinosSolutionPolicy> convection("Convection", "U", mesh);
 
         // system configuration
         convection.set_boundary_function(bc_func);

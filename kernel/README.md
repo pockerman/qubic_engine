@@ -82,7 +82,7 @@ Checkout the [Examples Map](#examples_map). Documentation is well...underway.
 - <a href="examples/example_20/doc/exe.md">Example 20: </a>Solve Laplace equation with collocated  FVM and multiple threads
 - <a href="examples/example_21/doc/exe.md">Example 21: </a>Solve convection equation with FVM
 - <a href="examples/example_22/doc/exe.md">Example 22: </a>Use volume terms with FVM
-- <a href="examples/example_23/doc/exe.md">Example 23: </a>Transport unit square
+- <a href="examples/example_23/doc/exe.md">Example 23: </a>Use Backward Euler time stepper
 - <a href="#">Example 24: </a>Solve incompressible Stokes equations
 - <a href="#">Example 25: </a>Solve incompressible Navier-Stokes equations
 

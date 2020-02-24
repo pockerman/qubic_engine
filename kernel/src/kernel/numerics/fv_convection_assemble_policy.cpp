@@ -101,6 +101,7 @@ void
 FVConvectionAssemblyPolicy<dim>::reinit(const Element<dim>& element){
 
     elem_ = &element;
+    elem_volume_ = elem_->volume();
     initialize_dofs_();
     compute_fluxes();
 }
@@ -186,7 +187,7 @@ FVConvectionAssemblyPolicy<dim>::assemble_one_element(TrilinosEpetraMatrix& mat,
         rhs_val = rhs_func_->value(elem_->centroid());
     }
 
-    b.add(cell_dofs_[0].id, rhs_val*elem_->volume());
+    b.add(cell_dofs_[0].id, rhs_val*elem_volume_);
 
     if(!boundary_faces.empty() && boundary_func_ != nullptr){
         apply_boundary_conditions(boundary_faces, mat, x, b);
@@ -217,7 +218,6 @@ FVConvectionAssemblyPolicy<dim>::apply_boundary_conditions(const  std::vector<ui
                 //add to the rhs vector
                 b.add(var_dof, -flux*bc_val);
                 break;
-
             }
             case BCType::ZERO_DIRICHLET:
             {

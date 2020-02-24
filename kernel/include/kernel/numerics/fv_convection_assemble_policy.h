@@ -71,8 +71,22 @@ public:
     /// \brief Set the mesh pointer
     void set_mesh(const Mesh<dim>& mesh){m_ptr_ = &mesh;}
 
+    /// \brief Access the mesh
+    const Mesh<dim>& get_mesh()const{return *m_ptr_;}
+
+    /// \brief Access the DoFs associated with the cell
+    const std::vector<DoF>& get_element_dofs()const{return cell_dofs_;}
+
+    /// \brief Access the DoFs associated with the neighbors
+    /// of the cell
+    const std::vector<DoF>& get_neighbor_dofs()const{return neigh_dofs_;}
+
+    /// \brief Returns the computed elementvolume
+    real_t get_element_volume()const{return elem_volume_;}
+
     /// \brief Set the velocity function
-    void set_velocity_function(const NumericVectorFunctionBase<dim>& velocity){velocity_func_ = &velocity;}
+    void set_velocity_function(const NumericVectorFunctionBase<dim>& velocity)
+    {velocity_func_ = &velocity;}
 
     /// \brief Return the interpolation pointer
     std::shared_ptr<FVInterpolateBase<dim>> get_interpolation(){return fv_interpolate_;}
@@ -100,6 +114,9 @@ private:
 
     /// \brief The cell fluxes
     std::vector<real_t> fluxes_;
+
+    /// \brief the volume of the element
+    real_t elem_volume_;
 
     /// \brief The DoFManager that handles the dofs
     const FVDoFManager<dim>* dof_manager_;

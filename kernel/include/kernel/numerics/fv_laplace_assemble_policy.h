@@ -27,7 +27,6 @@ class TrilinosEpetraVector;
 /// \brief Policy that assembles Laplaces terms
 /// on a user specified mesh using user specified
 /// gradient scheme
-
 template<int dim>
 class FVLaplaceAssemblyPolicy
 {
@@ -75,9 +74,25 @@ public:
     /// \brief Set the mesh pointer
     void set_mesh(const Mesh<dim>& mesh){m_ptr_ = &mesh;}
 
+    /// \brief Access the mesh
+    const Mesh<dim>& get_mesh()const{return *m_ptr_;}
+
+    /// \brief Access the DoFs associated with the cell
+    const std::vector<DoF>& get_element_dofs()const{return cell_dofs_;}
+
+    /// \brief Access the DoFs associated with the neighbors
+    /// of the cell
+    const std::vector<DoF>& get_neighbor_dofs()const{return neigh_dofs_;}
+
+    /// \brief Returns the computed elementvolume
+    real_t get_element_volume()const{return elem_volume_;}
+
     /// \brief Build the  gradient scheme
     template<typename Factory>
     void build_gradient(const Factory& factory);
+
+    /// \brief initialize dofs
+    void initialize_dofs();
 
 private:
 
@@ -99,6 +114,9 @@ private:
     /// \brief The cell fluxes
     std::vector<real_t> fluxes_;
 
+    /// \brief the volume of the element
+    real_t elem_volume_;
+
     /// \brief The DoFManager that handles the dofs
     const FVDoFManager<dim>* dof_manager_;
 
@@ -116,8 +134,7 @@ private:
     /// \brief The Mesh over which the policy is working
     const Mesh<dim>* m_ptr_;
 
-    /// \brief initialize dofs
-    void initialize_dofs_();
+
 };
 
 template<int dim>
