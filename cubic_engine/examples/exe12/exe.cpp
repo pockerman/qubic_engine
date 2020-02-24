@@ -1,7 +1,7 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/supervised_learning/regressor.h"
-#include "cubic_engine/optimization/serial_batch_gradient_descent.h"
+#include "cubic_engine/optimization/serial_gradient_descent.h"
 #include "cubic_engine/optimization/utils/gd_control.h"
 
 #include "kernel/maths/functions/real_vector_polynomial.h"

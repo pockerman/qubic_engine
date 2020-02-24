@@ -85,7 +85,7 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 - <a href="examples/exe11/doc/exe.md">Example 11: </a> Neural Network with PyTorch
 - <a href="examples/exe12/doc/exe.md">Example 12: </a> Linear regression
 - <a href="examples/exe13/doc/exe.md">Example 13: </a> Logistic regression classification
-- <a href="examples/exe14/doc/exe.md">Example 14: </a> Logistic regression with ```BatchGradientDescentWrapper```
+- <a href="examples/exe14/doc/exe.md">Example 14: </a> Logistic regression with ```GradientDescentWrapper```
 - <a href="examples/exe15/doc/exe.md">Example 15: </a> Linear Regression with ```PYLinearRegressor```
 - <a href="examples/exe16/doc/exe.md">Example 16: </a> Compare Lasso, Ridge and ElasticNet Regularizers
 - <a href="examples/exe17/doc/exe.md">Example 17: </a> KMeans clustering

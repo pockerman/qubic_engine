@@ -1,4 +1,4 @@
-# Example 14: Logistic Regression With ```BatchGradientDescentWrapper```
+# Example 14: Logistic Regression With ```GradientDescentWrapper```
 
 ## Contents
 * [Overview](#overview) 
@@ -20,7 +20,7 @@ This may be useful when we want to compare the two implementations.
 ```
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/supervised_learning/logistic_regression.h"
-#include "cubic_engine/optimization/batch_gradient_descent_wrapper.h"
+#include "cubic_engine/optimization/gradient_descent_wrapper.h"
 #include "cubic_engine/optimization/utils/gd_control.h"
 
 #include "kernel/maths/functions/real_vector_polynomial.h"
@@ -42,7 +42,7 @@ int main(){
     using cengine::DynMat;
     using cengine::DynVec;
     using cengine::GDControl;
-    using cengine::BatchGradientDescentWrapper;
+    using cengine::GradientDescentWrapper;
     using cengine::LogisticRegression;
     using cengine::Null;
     using kernel::RealVectorPolynomialFunction;
@@ -81,7 +81,7 @@ int main(){
 
             Null executor;
             // this is a serial implmentation
-            BatchGradientDescentWrapper<Null, Null> gd(control, executor, Null() );
+            GradientDescentWrapper<Null, Null> gd(control, executor, Null() );
 
             auto result = classifier.train(dataset.first, dataset.second, gd, mse);
             std::cout<<result<<std::endl;
@@ -109,7 +109,7 @@ int main(){
             auto dataset = kernel::load_reduced_iris_data_set_with_partitions(executor.get_n_threads());
 
             // this is a serial implmentation
-            BatchGradientDescentWrapper<ThreadPool, Null> gd(control, executor, Null() );
+            GradientDescentWrapper<ThreadPool, Null> gd(control, executor, Null() );
 
             auto result = classifier.train(dataset.first, dataset.second, gd, mse);
             std::cout<<result<<std::endl;
