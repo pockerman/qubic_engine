@@ -4,8 +4,8 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/optimization/utils/gd_control.h"
 #include "cubic_engine/optimization/utils/gd_info.h"
-#include "cubic_engine/optimization/serial_batch_gradient_descent.h"
-#include "cubic_engine/optimization/threaded_batch_gradient_descent.h"
+#include "cubic_engine/optimization/serial_gradient_descent.h"
+#include "cubic_engine/optimization/threaded_gradient_descent.h"
 
 #include <boost/noncopyable.hpp>
 
@@ -13,7 +13,7 @@ namespace cengine
 {
 
 template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
-class BatchGradientDescentWrapper: private boost::noncopyable
+class GradientDescentWrapper: private boost::noncopyable
 {
 public:
 
@@ -31,7 +31,7 @@ public:
     typedef GDInfo output_t;
 
     /// \brief Constructor
-    BatchGradientDescentWrapper(const GDControl& input,
+    GradientDescentWrapper(const GDControl& input,
                                 executor_t& executor,
                                 const options_t& options);
 
@@ -61,10 +61,10 @@ private:
 };
 
 template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
-BatchGradientDescentWrapper<ErrorFunction, ExecutorType,
-                            OptionsType>::BatchGradientDescentWrapper(const GDControl& input,
-                                                                      typename BatchGradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::executor_t& executor,
-                                                                      const  typename BatchGradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::options_t& options)
+GradientDescentWrapper<ErrorFunction, ExecutorType,
+                            OptionsType>::GradientDescentWrapper(const GDControl& input,
+                                                                      typename GradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::executor_t& executor,
+                                                                      const  typename GradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::options_t& options)
     :
       input_(input),
       executor_(executor),
@@ -75,7 +75,7 @@ BatchGradientDescentWrapper<ErrorFunction, ExecutorType,
 template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
 template<typename MatType, typename VecType, typename HypothesisFuncType>
 GDInfo
-BatchGradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::solve(const MatType& mat,const VecType& v, HypothesisFuncType& h){
+GradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::solve(const MatType& mat,const VecType& v, HypothesisFuncType& h){
 
     ThreadedGd<ErrorFunction> gd(input_);
     return gd.solve(mat, v, h, executor_, options_);
@@ -85,7 +85,7 @@ template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
 template<typename MatType, typename VecType,
          typename HypothesisFuncType, typename RegularizerFuncType>
 GDInfo
-BatchGradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::solve(const MatType& mat, const VecType& v,
+GradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::solve(const MatType& mat, const VecType& v,
                                                                              HypothesisFuncType& h, const RegularizerFuncType& regularizer){
 
     ThreadedGd<ErrorFunction> gd(input_);
@@ -94,14 +94,14 @@ BatchGradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::solve(con
 
 template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
 void
-BatchGradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::reset_control(const GDControl& control){
+GradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::reset_control(const GDControl& control){
     input_.reset(control);
 }
 
 
 /// \brief Specialization for serial. Do I really need this?
 template<typename ErrorFunction>
-class BatchGradientDescentWrapper<ErrorFunction, Null, Null>: private boost::noncopyable
+class GradientDescentWrapper<ErrorFunction, Null, Null>: private boost::noncopyable
 {
 public:
 
@@ -119,7 +119,7 @@ public:
     typedef GDInfo output_t;
 
     /// \brief Constructor
-    BatchGradientDescentWrapper(const GDControl& input,
+    GradientDescentWrapper(const GDControl& input,
                                 executor_t& executor,
                                 const options_t& options);
 
@@ -148,9 +148,9 @@ private:
 };
 
 template<typename ErrorFunction>
-BatchGradientDescentWrapper<ErrorFunction, Null, Null>::BatchGradientDescentWrapper(const GDControl& input,
-                                                                      typename BatchGradientDescentWrapper<ErrorFunction, Null, Null>::executor_t& executor,
-                                                                      const  typename BatchGradientDescentWrapper<ErrorFunction, Null, Null>::options_t& options)
+GradientDescentWrapper<ErrorFunction, Null, Null>::GradientDescentWrapper(const GDControl& input,
+                                                                      typename GradientDescentWrapper<ErrorFunction, Null, Null>::executor_t& executor,
+                                                                      const  typename GradientDescentWrapper<ErrorFunction, Null, Null>::options_t& options)
     :
       input_(input),
       executor_(executor),
@@ -161,7 +161,7 @@ BatchGradientDescentWrapper<ErrorFunction, Null, Null>::BatchGradientDescentWrap
 template<typename ErrorFunction>
 template<typename MatType, typename VecType, typename HypothesisFuncType>
 GDInfo
-BatchGradientDescentWrapper<ErrorFunction, Null, Null>::solve(const MatType& mat,const VecType& v, HypothesisFuncType& h){
+GradientDescentWrapper<ErrorFunction, Null, Null>::solve(const MatType& mat,const VecType& v, HypothesisFuncType& h){
 
     Gd<ErrorFunction> gd(input_);
     return gd.solve(mat, v, h);
@@ -171,7 +171,7 @@ template<typename ErrorFunction>
 template<typename MatType, typename VecType,
          typename HypothesisFuncType, typename RegularizerFuncType>
 GDInfo
-BatchGradientDescentWrapper<ErrorFunction, Null, Null>::solve(const MatType& mat,const VecType& v,
+GradientDescentWrapper<ErrorFunction, Null, Null>::solve(const MatType& mat,const VecType& v,
                                                               HypothesisFuncType& h, const RegularizerFuncType& regularizer){
 
     Gd<ErrorFunction> gd(input_);
@@ -180,7 +180,7 @@ BatchGradientDescentWrapper<ErrorFunction, Null, Null>::solve(const MatType& mat
 
 template<typename ErrorFunction>
 void
-BatchGradientDescentWrapper<ErrorFunction, Null, Null>::reset_control(const GDControl& control){
+GradientDescentWrapper<ErrorFunction, Null, Null>::reset_control(const GDControl& control){
     input_.reset(control);
 }
 

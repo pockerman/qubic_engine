@@ -76,7 +76,7 @@ Specificity is one minus the false Positive Rate
 ```
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/supervised_learning/logistic_regression.h"
-#include "cubic_engine/optimization/serial_batch_gradient_descent.h"
+#include "cubic_engine/optimization/serial_gradient_descent.h"
 #include "cubic_engine/optimization/utils/gd_control.h"
 #include "cubic_engine/maths/confusion_matrix.h"
 

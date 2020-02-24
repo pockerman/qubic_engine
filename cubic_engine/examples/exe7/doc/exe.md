@@ -1,4 +1,4 @@
-# Example 7: Multithreaded Batch Gradient Descent 
+# Example 7: Multithreaded Gradient Descent 
 
 ## Contents
 * [Acknowledgements](#ackw)
@@ -29,7 +29,7 @@
 #include "kernel/utilities/data_set_loaders.h"
 
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/optimization/threaded_batch_gradient_descent.h"
+#include "cubic_engine/optimization/threaded_gradient_descent.h"
 #include "cubic_engine/optimization/utils/gd_control.h"
 
 #include <iostream>
