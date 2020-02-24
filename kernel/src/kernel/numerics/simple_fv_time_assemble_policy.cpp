@@ -1,5 +1,5 @@
 #include "kernel/numerics/simple_fv_time_stepper.h"
-#include "kernel/numerics/dof_manager.h"
+/*#include "kernel/numerics/dof_manager.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/discretization/element.h"
 #include "kernel/discretization/mesh.h"
@@ -12,13 +12,13 @@
 #endif
 
 #include <exception>
-#include <iostream>
+#include <iostream>*/
 
 
 namespace kernel{
 namespace numerics {
-template<int dim>
-SimpleFVTimeAssemblyPolicy<dim>::SimpleFVTimeAssemblyPolicy()
+/*template<int dim>
+BackwardEulerFVTimeAssemblyPolicy<dim>::BackwardEulerFVTimeAssemblyPolicy()
     :
       dt_(0.1),
       nsols_(0),
@@ -31,7 +31,7 @@ SimpleFVTimeAssemblyPolicy<dim>::SimpleFVTimeAssemblyPolicy()
 
 template<int dim>
 void
-SimpleFVTimeAssemblyPolicy<dim>::initialize_dofs_(){
+BackwardEulerFVTimeAssemblyPolicy<dim>::initialize_dofs_(){
 
 
     dof_manager_->get_dofs(*elem_, cell_dofs_);
@@ -74,15 +74,15 @@ SimpleFVTimeAssemblyPolicy<dim>::initialize_dofs_(){
 
 template<int dim>
 void
-SimpleFVTimeAssemblyPolicy<dim>::reinit(const Element<dim>& element){
+BackwardEulerFVTimeAssemblyPolicy<dim>::reinit(const Element<dim>& element){
 
     elem_ = &element;
     initialize_dofs_();
-}
+}*/
 
 #ifdef USE_TRILINOS
 
-template<int dim>
+/*template<int dim>
 void
 SimpleFVTimeAssemblyPolicy<dim>::assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x,
                                           TrilinosEpetraVector& b, const std::vector<TrilinosEpetraVector>& old_solutions ){
@@ -114,12 +114,12 @@ SimpleFVTimeAssemblyPolicy<dim>::assemble_one_element(TrilinosEpetraMatrix& mat,
     mat.set_entry(cell_dofs_[0].id, cell_dofs_[0].id, elem_->volume()/dt_);
     auto old_sol = old_solutions[0][cell_dofs_[0].id];
     b.add(cell_dofs_[0].id, (old_sol*elem_->volume())/dt_);
-}
+}*/
 
 #endif
 
-template class SimpleFVTimeAssemblyPolicy<1>;
+/*template class SimpleFVTimeAssemblyPolicy<1>;
 template class SimpleFVTimeAssemblyPolicy<2>;
-template class SimpleFVTimeAssemblyPolicy<3>;
+template class SimpleFVTimeAssemblyPolicy<3>;*/
 }
 }

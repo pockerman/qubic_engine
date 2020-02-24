@@ -39,7 +39,7 @@ FVLaplaceAssemblyPolicy<dim>::FVLaplaceAssemblyPolicy()
 
 template<int dim>
 void
-FVLaplaceAssemblyPolicy<dim>::initialize_dofs_(){
+FVLaplaceAssemblyPolicy<dim>::initialize_dofs(){
 
 
     dof_manager_->get_dofs(*elem_, cell_dofs_);
@@ -96,7 +96,8 @@ void
 FVLaplaceAssemblyPolicy<dim>::reinit(const Element<dim>& element){
 
     elem_ = &element;
-    initialize_dofs_();
+    elem_volume_ = elem_->volume();
+    initialize_dofs();
     compute_fluxes();
 }
 
@@ -106,7 +107,7 @@ FVLaplaceAssemblyPolicy<dim>::reinit(const Element<dim>& element, std::vector<re
     elem_ = &element;
     qvals_ = qvals;
     qvals.clear();
-    initialize_dofs_();
+    initialize_dofs();
     compute_fluxes();
 }
 
@@ -187,7 +188,7 @@ FVLaplaceAssemblyPolicy<dim>::assemble_one_element(TrilinosEpetraMatrix& mat, Tr
         rhs_val = rhs_func_->value(elem_->centroid());
     }
 
-    b.add(cell_dofs_[0].id, rhs_val*elem_->volume());
+    b.add(cell_dofs_[0].id, rhs_val*elem_volume_);
 
     if(!boundary_faces.empty() && boundary_func_ != nullptr){
         apply_boundary_conditions(boundary_faces, mat, x, b);
