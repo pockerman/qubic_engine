@@ -1,5 +1,5 @@
-#ifndef SIMPLE_FV_TIME_STEPPER_H
-#define SIMPLE_FV_TIME_STEPPER_H
+#ifndef BACKWARD_EULER_FV_TIME_ASSEMBLY_POLICY_H
+#define BACKWARD_EULER_FV_TIME_ASSEMBLY_POLICY_H
 
 #include "kernel/base/types.h"
 #include "kernel/base/config.h"
