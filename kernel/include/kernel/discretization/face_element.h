@@ -37,8 +37,6 @@ class FaceElement<spacedim, 0>: public GeomPoint<spacedim>,
 
 public:
 
-
-
     FaceElement();
 
     explicit FaceElement(uint_t global_id,
