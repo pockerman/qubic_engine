@@ -40,6 +40,7 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
 ENDIF()
 
 configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/cubic_engine/base/config.h @ONLY)
+configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cubic_engine/base/version.h @ONLY)
 
 # TODO: Fix this
 # add this because config.h ends up in the build directory
