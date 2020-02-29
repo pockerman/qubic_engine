@@ -62,6 +62,18 @@ RefVelocityObserver::read(RefVelocityObserver::ref_velocity_resource_t& r)const{
     this->ThreadedObserverBase<std::mutex, real_t>::read(r);
 }
 
+void
+MeasurmentObserver::update(const MeasurmentObserver::measurement_resource_t& r){
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    this->ThreadedObserverBase<std::mutex, DynVec>::update(r);
+}
+
+void
+MeasurmentObserver::read(MeasurmentObserver::measurement_resource_t& r)const{
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    this->ThreadedObserverBase<std::mutex, DynVec>::read(r);
+}
+
 DiffDriveVehicleWrapper::DiffDriveVehicleWrapper(DiffDriveVehicle& vehicle)
     :
    integrate_mutex_(),
@@ -147,12 +159,13 @@ ServerThread::StateEstimationThread::run(){
         ekf_.predict(motion_input);
 
         /// Read the measurement vector
+        typedef MeasurmentObserver::measurement_resource_t measurement_t;
+        measurement_t measurement;
+        mobserver.read(measurement);
 
+        ekf_.update(measurement);
 
-        //SysState<4> state;
-
-        // update the observers only if the
-        // we are at the update rate
+        // update the observers
         //update_state_observers();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(STATE_ESTIMATION_THREAD_CYCLE));
@@ -181,10 +194,8 @@ ServerThread::PathConstructorThread::save_path(real_t duration){
         strings.push_back(s);
     }
 
-
     kernel::CSVWriter writer("path_" + strings[1] + ".csv", ',', true);
     writer.write_mesh(path_);
-
 }
 
 void
@@ -201,12 +212,10 @@ ServerThread::PathConstructorThread::run(){
         std::this_thread::yield();
     }
 
-    // both are updated so try to establish the path
-    // path should be publiched every ???
-
+    /// both are updated so try to establish the path
     typedef Map::vertex_type vertex_t;
 
-    // metric for A*
+    /// metric for A*
     kernel::LpMetric<2> h;
 
     Goal goal;
@@ -215,7 +224,6 @@ ServerThread::PathConstructorThread::run(){
 
     Goal previous_position(-1.0);
     Goal previous_goal;
-
 
     static auto closest_start_vertex_pred = [&](const vertex_t& vertex){
         auto distance = vertex.data.position.distance(position);
@@ -240,8 +248,8 @@ ServerThread::PathConstructorThread::run(){
         gobserver.read(goal);
         sobserver.read(state);
 
-        position[0] = state.get("x");
-        position[1] = state.get("y");
+        position[0] = state.get("X");
+        position[1] = state.get("Y");
 
         // if position has not changed
         // then the robot for some reason does not move
@@ -328,7 +336,6 @@ ServerThread::PathConstructorThread::run(){
         std::this_thread::sleep_for(std::chrono::milliseconds(PATH_CONSTRUCTOR_CYCLE));
     }
 
-
     std::lock_guard<std::mutex> lock(msg_mutex);
     std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
 }
@@ -358,10 +365,10 @@ ServerThread::PathFollowerThread::run(){
 void
 ServerThread::RequestTask::update_goal_observers(const Goal& goal){
 
-    // update self
+    /// update self
     gobserver.update(goal);
 
-    // loop over the observers and update them
+    /// loop over the observers and update them
     for(uint_t o=0; o<goal_observers_.size(); ++o){
         goal_observers_[o]->update(goal);
     }
@@ -389,7 +396,6 @@ ServerThread::RequestTask::update_w_observers(real_t w){
     }
 }
 
-
 void
 ServerThread::RequestTask::run(){
 
@@ -407,7 +413,7 @@ ServerThread::RequestTask::run(){
         }
 
         // if the request is not empty put to sleep
-        std::this_thread::sleep_for(std::chrono::milliseconds(PATH_CONSTRUCTOR_CYCLE));
+        std::this_thread::sleep_for(std::chrono::milliseconds(REQUESTS_THREAD_CYCLE));
     }
 
     std::lock_guard<std::mutex> lock(msg_mutex);
@@ -543,24 +549,21 @@ ServerThread::RequestTask::save_solution(kernel::CSVWriter& writer){
     }*/
 }
 
-
-
-
 void
 ServerThread::ClientTask::run(){
 
-    // wait for a while until
-    // the server responses are ready
-    // the user should set the goal position, the velocity
-    // and the angular velocity of the robot
+    /// wait for a while until
+    /// the server responses are ready
+    /// the user should set the goal position, the velocity
+    /// and the angular velocity of the robot
     while(responses_.empty() || responses_.size() != 3){
         std::this_thread::yield();
     }
 
     std::string request("");
 
-    // on start up we want to catch what
-    // is coming from the server
+    /// on start up we want to catch what
+    /// is coming from the server
     while(!responses_.empty()){
 
         //empty what is comming from the server
@@ -707,28 +710,32 @@ ServerThread::run(){
         pconstruct_thread->attach_path_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->pobserver);
         pconstruct_thread->attach_path_observer(static_cast<request_task_t*>(tasks_[3].get())->pobserver);
 
+        this->attach_measurement_observer(state_thread->mobserver);
+
     }
 
     // create a request so that we print the state
     // when the ClientTask starts
     requests_.push_item(PRINT);
 
-    // we also need to add a response so that the
-    // ClientTask asks  the user to set the goal
-    // enters the goal
+    /// we also need to add a response so that the
+    /// ClientTask asks  the user to set the goal
+    /// enters the goal
     requests_.push_item(SET_GOAL_SERVER);
 
-    // set velocity request to start the simulation
+    /// set velocity request to start the simulation
     requests_.push_item(V_CMD);
 
-    // set angular velocity request to start the simulation
+    /// set angular velocity request to start the simulation
     requests_.push_item(W_CMD);
 
-    // add the tasks... this is where tasks
-    // get executed
+    /// add the tasks this is where tasks get executed
     thread_pool_.add_tasks(tasks_);
 
     while(!this->should_stop()){
+
+        auto measurement = get_measurement();
+        update_measurement_observers(measurement);
         tasks_stopped();
     }
 
@@ -738,6 +745,18 @@ ServerThread::run(){
 #ifdef USE_LOG
     kernel::Logger::log_info("Stopping Server Thread");
 #endif
+}
+
+void
+ServerThread::update_measurement_observers(MeasurmentObserver::measurement_resource_t& measurement){
+    for(uint_t o=0; o<m_observers_.size(); ++o){
+        m_observers_[o]->update(measurement);
+    }
+}
+
+const DynVec
+ServerThread::get_measurement()const{
+    return DynVec();
 }
 
 void

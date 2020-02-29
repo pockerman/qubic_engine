@@ -73,7 +73,6 @@ const std::string ENTER_CMD("ENTER_CMD");
 const std::string V_CMD("V_CMD");
 const std::string W_CMD("W_CMD");
 
-
 /// gloabl variable to synchronize stop
 std::atomic<bool> threads_should_stop(false);
 
@@ -187,6 +186,20 @@ public:
 
 };
 
+class MeasurmentObserver: public ThreadedObserverBase<std::mutex, DynVec>
+{
+public:
+
+    typedef ThreadedObserverBase<std::mutex, DynVec>::resource_t measurement_resource_t;
+
+    // update the reource
+    virtual void update(const measurement_resource_t& resource)override final;
+
+    // read the resource
+    virtual void read(measurement_resource_t&)const override final;
+
+};
+
 class StateObserver: public ThreadedObserverBase<std::mutex, State>
 {
 
@@ -286,19 +299,29 @@ public:
 
     GoalObserver gobserver;
 
-    // constructor
+    /// constructor
     ServerThread(const StopSimulation& stop_condition,
                  const Map& map,
                  const SysState<4>& state,
                  DiffDriveVehicleWrapper& vwrapper,
                  ThreadPool& threads);
 
-    // run the server
+    /// run the server
     virtual void run()override final;
+
+    /// Query the sensor interface for measurements
+    const DynVec get_measurement()const;
+
+    /// attach any measurement observers to update
+    /// when the measurement is taken
+    void attach_measurement_observer(MeasurmentObserver& observer){m_observers_.push_back(&observer);}
+
+    /// update the observers with the new measurement
+    void update_measurement_observers(MeasurmentObserver::measurement_resource_t& measurement);
 
 protected:
 
-    // The map used
+    /// The map used
     const Map* map_;
 
     // the initial state
@@ -311,19 +334,18 @@ protected:
     LockableQueue<std::string> responses_;
     LockableQueue<CMD> cmds_;
 
+    /// the thread pool
     ThreadPool& thread_pool_;
 
-    // The motion model the simulation is using
-    MotionModel m_model_;
-
-    // The observation model the simulation is using
-    ObservationModel o_model_;
-
-    // list of tasks the server handles
+    /// list of tasks the server handles
     std::vector<std::unique_ptr<kernel::TaskBase>> tasks_;
 
-    // checks if all tasks are stopped
-    // if this is true the server is stopped as well
+    /// observers that we should update when a measurement
+    /// of the sensor is taken
+    std::vector<MeasurmentObserver*> m_observers_;
+
+    /// checks if all tasks are stopped
+    /// if this is true the server is stopped as well
     void tasks_stopped();
 
     struct RequestTask;
@@ -340,13 +362,13 @@ struct ServerThread::RequestTask: public kernel::StoppableTask<StopSimulation>
 
 public:
 
-    //Goal Observer
+    /// Goal Observer
     GoalObserver gobserver;
 
-    //State observer
+    /// State observer
     StateObserver sobserver;
 
-    // Path observer for output
+    /// Path observer for output
     PathObserver pobserver;
 
     /// Reference velocity requested
@@ -355,6 +377,7 @@ public:
     /// Reference angular velocity requested
     RefVelocityObserver wobserver;
 
+    /// constructor
     RequestTask(const StopSimulation& stop_condition,
                 LockableQueue<std::string>& requests,
                 LockableQueue<CMD>& cmds,
@@ -461,32 +484,32 @@ public:
 
     RefVelocityObserver vobserver;
     RefVelocityObserver wobserver;
+    MeasurmentObserver  mobserver;
 
-    // Constructor
+    /// Constructor
     StateEstimationThread(const StopSimulation& stop, const Map& map);
 
-    // attach a state observer
+    /// attach a state observer
     void attach_state_observer(StateObserver& sobserver){sobservers_.push_back(&sobserver);}
 
-
-    // update the path observers that a new path is ready
+    /// update the path observers that a new path is ready
     void update_state_observers();
 
 private:
 
-    // run the thread
+    /// run the thread
     virtual void run()override final;
 
-    // the state of the system
+    /// the state of the system
     State state_;
 
-    // the motion model used by the state estimator is using
+    /// the motion model used by the state estimator is using
     MotionModel m_model_;
 
-    // the observation model the state estimator is using
+    /// the observation model the state estimator is using
     ObservationModel o_model_;
 
-    // the EKF filter
+    /// the EKF filter
     ExtendedKalmanFilter<MotionModel, ObservationModel> ekf_;
 
     /// \brief The observer list
@@ -500,6 +523,9 @@ inline
 ServerThread::StateEstimationThread::StateEstimationThread(const StopSimulation& stop, const Map& map)
     :
     StoppableTask<StopSimulation>(stop),
+    vobserver(),
+    wobserver(),
+    mobserver(),
     state_(),
     m_model_(),
     o_model_(),
@@ -509,12 +535,11 @@ ServerThread::StateEstimationThread::StateEstimationThread(const StopSimulation&
 {
     this->set_name("StateEstimationThread");
 
-    //create the requests and report the initial state
+    /// create the requests and report the initial state
     state_.set(0, {"x", 0.0});
     state_.set(1, {"y", 0.0});
     state_.set(2, {"V", 0.0});
     state_.set(3, {"W", 0.0});
-
 }
 
 
