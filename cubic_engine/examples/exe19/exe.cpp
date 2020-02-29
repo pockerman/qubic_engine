@@ -50,6 +50,18 @@ PathObserver::read(PathObserver::path_resource_t& r)const{
     this->ThreadedObserverBase<std::mutex, Path*>::read(r);
 }
 
+void
+RefVelocityObserver::update(const RefVelocityObserver::ref_velocity_resource_t& r){
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    this->ThreadedObserverBase<std::mutex, real_t>::update(r);
+}
+
+void
+RefVelocityObserver::read(RefVelocityObserver::ref_velocity_resource_t& r)const{
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    this->ThreadedObserverBase<std::mutex, real_t>::read(r);
+}
+
 DiffDriveVehicleWrapper::DiffDriveVehicleWrapper(DiffDriveVehicle& vehicle)
     :
    integrate_mutex_(),
@@ -77,7 +89,7 @@ DiffDriveVehicleWrapper::get_state_as_string()const{
     auto y = vehicle_ptr_->get_y_position();
     auto theta = vehicle_ptr_->get_orientation();
     auto velocity = vehicle_ptr_->get_velcoty();
-    return std::to_string(x)+","+std::to_string(y)+","+std::to_string(theta)+","+std::to_string(velocity)+"\n";
+    return std::to_string(x) + "," + std::to_string(y) + "," + std::to_string(theta) + "," + std::to_string(velocity)+"\n";
 
 }
 
@@ -99,7 +111,6 @@ DiffDriveVehicleWrapper::get_state()const{
     auto theta = vehicle_ptr_->get_orientation();
     auto velocity = vehicle_ptr_->get_velcoty();
     return {x, y, theta, velocity};
-
 }
 
 void
@@ -120,15 +131,31 @@ ServerThread::StateEstimationThread::update_state_observers(){
 void
 ServerThread::StateEstimationThread::run(){
 
+    std::array<real_t, 2> motion_control_error;
+    motion_control_error[0] = 0.0;
+    motion_control_error[1] = 0.0;
     while(!this->should_stop()){
 
         // estimate the state
+        real_t v=0.0;
+        vobserver.read(v);
+
+        real_t w=0.0;
+        wobserver.read(w);
+
+        auto motion_input = std::make_tuple(v*DT, w*DT, motion_control_error);
+        ekf_.predict(motion_input);
+
+        /// Read the measurement vector
+
 
         //SysState<4> state;
 
         // update the observers only if the
         // we are at the update rate
         //update_state_observers();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(STATE_ESTIMATION_THREAD_CYCLE));
     }
 
     std::lock_guard<std::mutex> lock(msg_mutex);
@@ -209,7 +236,7 @@ ServerThread::PathConstructorThread::run(){
 
     while(!this->should_stop()){
 
-        // read bot goal and state
+        // read both goal and state
         gobserver.read(goal);
         sobserver.read(state);
 
@@ -298,7 +325,7 @@ ServerThread::PathConstructorThread::run(){
         previous_goal = goal;
 
         // sleep for some time
-        std::this_thread::sleep_for(std::chrono::seconds(PATH_CONSTRUCTOR_CYCLE));
+        std::this_thread::sleep_for(std::chrono::milliseconds(PATH_CONSTRUCTOR_CYCLE));
     }
 
 
@@ -324,7 +351,6 @@ ServerThread::PathFollowerThread::run(){
 
     }
 
-
     std::lock_guard<std::mutex> lock(msg_mutex);
     std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
 }
@@ -342,6 +368,29 @@ ServerThread::RequestTask::update_goal_observers(const Goal& goal){
 }
 
 void
+ServerThread::RequestTask::update_v_observers(real_t v){
+
+    vobserver.update(v);
+
+    // loop over the observers and update them
+    for(uint_t o=0; o<v_observers_.size(); ++o){
+        v_observers_[o]->update(v);
+    }
+}
+
+void
+ServerThread::RequestTask::update_w_observers(real_t w){
+
+    wobserver.update(w);
+
+    // loop over the observers and update them
+    for(uint_t o=0; o<w_observers_.size(); ++o){
+        w_observers_[o]->update(w);
+    }
+}
+
+
+void
 ServerThread::RequestTask::run(){
 
     // the object that handles the solution output
@@ -356,6 +405,9 @@ ServerThread::RequestTask::run(){
             auto request = requests_.pop_wait();
             serve_request(request);
         }
+
+        // if the request is not empty put to sleep
+        std::this_thread::sleep_for(std::chrono::milliseconds(PATH_CONSTRUCTOR_CYCLE));
     }
 
     std::lock_guard<std::mutex> lock(msg_mutex);
@@ -439,6 +491,17 @@ ServerThread::RequestTask::serve_request(const std::string& request){
                 update_goal_observers(g);
             }
         }
+        else if(strings[0] == V_CMD){
+
+            kernel::Logger::log_info("Update ref velocity: " + strings[1]);
+            auto v = std::atof(strings[1].c_str());
+            update_v_observers(v);
+        }
+        else if(strings[0] == W_CMD){
+             kernel::Logger::log_info("Update ref angular velocity: " + strings[1]);
+            auto w = std::atof(strings[1].c_str());
+            update_w_observers(w);
+        }
         else if(strings[0] == EXIT){
             kernel::Logger::log_info("Received EXIT request");
 
@@ -481,24 +544,16 @@ ServerThread::RequestTask::save_solution(kernel::CSVWriter& writer){
 }
 
 
-ServerThread::ClientTask::ClientTask(const StopSimulation& stop_condition,
-                                     LockableQueue<std::string>& request,
-                                     LockableQueue<std::string>& response)
-    :
-  kernel::StoppableTask<StopSimulation>(stop_condition),
-  requests_(request),
-  responses_(response)
 
-{
-    this->set_name("ClientTask");
-}
 
 void
 ServerThread::ClientTask::run(){
 
     // wait for a while until
     // the server responses are ready
-    while(responses_.empty() || responses_.size() != 2){
+    // the user should set the goal position, the velocity
+    // and the angular velocity of the robot
+    while(responses_.empty() || responses_.size() != 3){
         std::this_thread::yield();
     }
 
@@ -527,6 +582,20 @@ ServerThread::ClientTask::run(){
 
             requests_.push_item(request);
         }
+        else if(response == V_CMD ){
+            real_t velocity = 0.0;
+            std::cout<<RESPONSE<<"Enter robot velocity: "<<std::endl;
+            std::cin>>velocity;
+            request = V_CMD + ";" + std::to_string(velocity);
+            requests_.push_item(request);
+        }
+        else if(response == W_CMD ){
+            real_t velocity = 0.0;
+            std::cout<<RESPONSE<<"Enter robot angular velocity: "<<std::endl;
+            std::cin>>velocity;
+            request = W_CMD + ";" + std::to_string(velocity);
+            requests_.push_item(request);
+        }
         else{
             std::cout<<RESPONSE<<response<<std::endl;
         }
@@ -535,7 +604,7 @@ ServerThread::ClientTask::run(){
     request = ENTER_CMD;
     while(!this->should_stop()){
 
-        if(request == ENTER_CMD /*|| request == EMPTY_CMD*/){
+        if(request == ENTER_CMD){
 
             std::cout<<"MESSAGE: Enter CMD for robot..."<<std::endl;
 
@@ -586,15 +655,8 @@ ServerThread::ClientTask::run(){
         }
         else{
             std::cout<<"You entered an unknown CMD. Try again"<<std::endl;
-            //goto try_again;
             request = ENTER_CMD;
         }
-
-        /*while(!responses_.empty()){
-            //empty what is comming from the server
-            auto response = responses_.pop_wait();
-            std::cout<<RESPONSE<<response<<std::endl;
-        }*/
     }
 
     std::lock_guard<std::mutex> lock(msg_mutex);
@@ -630,6 +692,8 @@ ServerThread::run(){
         request_task_t* req_task = static_cast<request_task_t*>(tasks_[3].get());
         req_task->attach_goal_observer(static_cast< path_cstr_task_t*>(tasks_[1].get())->gobserver);
         req_task->attach_goal_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->gobserver);
+        req_task->attach_v_observer(static_cast<state_est_task_t*>(tasks_[0].get())->vobserver);
+        req_task->attach_w_observer(static_cast<state_est_task_t*>(tasks_[0].get())->wobserver);
 
         state_est_task_t* state_thread = static_cast<state_est_task_t*>(tasks_[0].get());
         state_thread->attach_state_observer(static_cast<path_cstr_task_t*>(tasks_[1].get())->sobserver);
@@ -653,6 +717,12 @@ ServerThread::run(){
     // ClientTask asks  the user to set the goal
     // enters the goal
     requests_.push_item(SET_GOAL_SERVER);
+
+    // set velocity request to start the simulation
+    requests_.push_item(V_CMD);
+
+    // set angular velocity request to start the simulation
+    requests_.push_item(W_CMD);
 
     // add the tasks... this is where tasks
     // get executed
@@ -795,16 +865,6 @@ int main(){
     ServerThread server(stop_sim, map, init_state, vehicle_wrapper, pool);
 
     server.run();
-
-    // add the server to the pool
-    //pool.add_task(server);
-
-    /*while(true){
-
-    }*/
-
-    //this should block
     pool.close();
-
     return 0;
 }

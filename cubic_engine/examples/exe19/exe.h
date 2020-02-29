@@ -22,6 +22,7 @@
 #include "kernel/utilities/csv_file_writer.h"
 #include "kernel/patterns/threaded_observer_base.h"
 #include "kernel/dynamics/system_state.h"
+#include "kernel/dynamics/diff_drive_dynamics.h"
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/estimation/extended_kalman_filter.h"
@@ -56,6 +57,7 @@ using kernel::BoostSerialGraph;
 using kernel::Null;
 using kernel::ThreadedObserverBase;
 using kernel::dynamics::SysState;
+using kernel::dynamics::DiffDriveDynamics;
 
 const real_t DT = 0.5;
 const std::string SET_GOAL("SET_GOAL");
@@ -68,12 +70,27 @@ const std::string RESPONSE("RESPONSE: ");
 const std::string MESSAGE("MESSAGE: ");
 const std::string EMPTY_CMD("");
 const std::string ENTER_CMD("ENTER_CMD");
+const std::string V_CMD("V_CMD");
+const std::string W_CMD("W_CMD");
+
 
 /// gloabl variable to synchronize stop
 std::atomic<bool> threads_should_stop(false);
 
-/// cycle of each thread
-const uint_t PATH_CONSTRUCTOR_CYCLE = 1;
+/// cycle of path constructor thread
+/// in milliseconds
+const uint_t PATH_CONSTRUCTOR_CYCLE = 10;
+
+/// cycle of requests thread
+/// in milliseconds
+const uint_t REQUESTS_THREAD_CYCLE = 10;
+
+/// cycle of state estimation thread
+const uint_t STATE_ESTIMATION_THREAD_CYCLE = 10;
+
+/// cycle for client thread
+/// in milliseconds
+const uint_t CLIENT_THREAD_CYCLE = 10;
 
 //vertex data to apply A*
 struct AstarNodeData
@@ -112,10 +129,41 @@ fcost(o.fcost),
 position(o.position)
 {}
 
+// class that implements the observation model
+class ObservationModel
+{
+
+public:
+
+    typedef  DynVec input_t;
+
+    ObservationModel();
+
+    // simply return th
+    const DynVec evaluate(const DynVec& input)const{}
+
+    // get the H or M matrix
+    const DynMat& get_matrix(const std::string& name)const{}
+
+private:
+
+    DynMat H;
+    DynMat M;
+};
+
+inline
+ObservationModel::ObservationModel()
+    :
+      H(),
+      M()
+{}
+
 typedef BoostSerialGraph<AstarNodeData, Null> Map;
 typedef LineMesh<2> Path;
 typedef SysState<4> State;
 typedef GeomPoint<2> Goal;
+typedef DiffDriveDynamics MotionModel;
+
 
 // helper classes
 struct StopSimulation
@@ -123,6 +171,20 @@ struct StopSimulation
     bool stop()const{return condition; }
     void set_condition(bool cond){condition=cond;}
     bool condition{false};
+};
+
+class RefVelocityObserver: public ThreadedObserverBase<std::mutex, real_t>
+{
+public:
+
+    typedef ThreadedObserverBase<std::mutex, real_t>::resource_t ref_velocity_resource_t;
+
+    // update the reource
+    virtual void update(const ref_velocity_resource_t& resource)override final;
+
+    // read the resource
+    virtual void read(ref_velocity_resource_t&)const override final;
+
 };
 
 class StateObserver: public ThreadedObserverBase<std::mutex, State>
@@ -231,7 +293,6 @@ public:
                  DiffDriveVehicleWrapper& vwrapper,
                  ThreadPool& threads);
 
-
     // run the server
     virtual void run()override final;
 
@@ -252,6 +313,11 @@ protected:
 
     ThreadPool& thread_pool_;
 
+    // The motion model the simulation is using
+    MotionModel m_model_;
+
+    // The observation model the simulation is using
+    ObservationModel o_model_;
 
     // list of tasks the server handles
     std::vector<std::unique_ptr<kernel::TaskBase>> tasks_;
@@ -283,17 +349,35 @@ public:
     // Path observer for output
     PathObserver pobserver;
 
+    /// Reference velocity requested
+    RefVelocityObserver vobserver;
+
+    /// Reference angular velocity requested
+    RefVelocityObserver wobserver;
+
     RequestTask(const StopSimulation& stop_condition,
                 LockableQueue<std::string>& requests,
                 LockableQueue<CMD>& cmds,
                 LockableQueue<std::string>& responses);
 
-    // update the goal for the local
-    // gobserver and the observers subscribed
+    /// update the goal for the local
+    /// gobserver and the observers subscribed
     void update_goal_observers(const Goal& goal);
 
-    // attach a goal observer
+    /// attach a goal observer
     void attach_goal_observer(GoalObserver& observer){goal_observers_.push_back(&observer);}
+
+    /// update the velocity observers
+    void update_v_observers(real_t v);
+
+    /// attach a velocity observer
+    void attach_v_observer(RefVelocityObserver& observer){v_observers_.push_back(&observer);}
+
+    /// update the w velocity observers
+    void update_w_observers(real_t w);
+
+    /// attach a velocity observer
+    void attach_w_observer(RefVelocityObserver& observer){w_observers_.push_back(&observer);}
 
 protected:
 
@@ -302,9 +386,14 @@ protected:
     LockableQueue<CMD>& cmds_;
     LockableQueue<std::string>& responses_;
 
-    /// \brief The observer list for the goal
+    ///  The observer list for the goal
     std::vector<GoalObserver*> goal_observers_;
 
+    /// The observer list for the reference velocity
+    std::vector<RefVelocityObserver*> v_observers_;
+
+    /// The observer list for the angular velocity
+    std::vector<RefVelocityObserver*> w_observers_;
 
     void serve_request(const std::string& request);
     void save_solution(kernel::CSVWriter& writer);
@@ -320,6 +409,8 @@ kernel::StoppableTask<StopSimulation>(stop_condition),
 gobserver(),
 sobserver(),
 pobserver(),
+vobserver(),
+wobserver(),
 requests_(requests),
 cmds_(cmds),
 responses_(responses)
@@ -348,6 +439,19 @@ protected:
 
 };
 
+inline
+ServerThread::ClientTask::ClientTask(const StopSimulation& stop_condition,
+                                     LockableQueue<std::string>& request,
+                                     LockableQueue<std::string>& response)
+    :
+  kernel::StoppableTask<StopSimulation>(stop_condition),
+  requests_(request),
+  responses_(response)
+
+{
+    this->set_name("ClientTask");
+}
+
 // Uses EKF algorithm to provide an estimation
 // of the robot state
 struct ServerThread::StateEstimationThread: public kernel::StoppableTask<StopSimulation>
@@ -355,11 +459,15 @@ struct ServerThread::StateEstimationThread: public kernel::StoppableTask<StopSim
 {
 public:
 
+    RefVelocityObserver vobserver;
+    RefVelocityObserver wobserver;
+
     // Constructor
     StateEstimationThread(const StopSimulation& stop, const Map& map);
 
-    // attach a Path observer
+    // attach a state observer
     void attach_state_observer(StateObserver& sobserver){sobservers_.push_back(&sobserver);}
+
 
     // update the path observers that a new path is ready
     void update_state_observers();
@@ -372,8 +480,14 @@ private:
     // the state of the system
     State state_;
 
+    // the motion model used by the state estimator is using
+    MotionModel m_model_;
+
+    // the observation model the state estimator is using
+    ObservationModel o_model_;
+
     // the EKF filter
-    //ExtendedKalmanFilter ekf_;
+    ExtendedKalmanFilter<MotionModel, ObservationModel> ekf_;
 
     /// \brief The observer list
     std::vector<StateObserver*> sobservers_;
@@ -387,7 +501,9 @@ ServerThread::StateEstimationThread::StateEstimationThread(const StopSimulation&
     :
     StoppableTask<StopSimulation>(stop),
     state_(),
-    //ekf_(),
+    m_model_(),
+    o_model_(),
+    ekf_(m_model_, o_model_),
     sobservers_(),
     map_(&map)
 {
@@ -398,6 +514,7 @@ ServerThread::StateEstimationThread::StateEstimationThread(const StopSimulation&
     state_.set(1, {"y", 0.0});
     state_.set(2, {"V", 0.0});
     state_.set(3, {"W", 0.0});
+
 }
 
 
