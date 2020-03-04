@@ -3,6 +3,7 @@
 
 #include "kernel/base/types.h"
 #include "kernel/discretization/element_mesh_iterator.h"
+#include "kernel/discretization/face_mesh_iterator.h"
 #include "kernel/discretization/mesh_predicates.h"
 #include "kernel/numerics/dof.h"
 
@@ -11,6 +12,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 namespace kernel{
 namespace numerics {
@@ -94,7 +96,8 @@ public:
 
     /// \brief Calculates the sum-mag of the off diagonal entries
     /// for the interior sides
-    void sum_mag_off_diag(std::vector<real_t> &sum_Off_diag)const;
+    template<typename MeshTp>
+    void sum_mag_off_diag(const MeshTp& mesh, std::vector<real_t> &sum_Off_diag)const;
 
 private:
 
@@ -197,7 +200,7 @@ RelaxedFVMatrixAssemblyPolicy<MatrixPolicy>::relax(const MeshTp& mesh, const vec
 
     std::vector<real_t> sum_off(D_.size(), 0.0);
 
-    sum_mag_off_diag(sum_off,0);
+    sum_mag_off_diag(sum_off);
 
     std::vector<real_t> internal_coeffs;
 
@@ -222,12 +225,10 @@ RelaxedFVMatrixAssemblyPolicy<MatrixPolicy>::relax(const MeshTp& mesh, const vec
                if(face.on_boundary()){
 
                    get_internal_coefficients(face,internal_coeffs);
-                   D_.add(dofs[0].id,
-                                    (get_compt_mag(get_compt_minimum(internal_coeffs))
-                                           -get_compt_minimum(internal_coeffs)));
 
-                   sum_off[dofs[0].id] += (get_compt_mag(get_compt_minimum(internal_coeffs))-
-                                           get_compt_minimum(internal_coeffs));
+                   auto min_elem = std::min_element(internal_coeffs.begin(), internal_coeffs.end());
+                   D_.add(dofs[0].id, (std::fabs(*min_elem) - *min_elem));
+                   sum_off[dofs[0].id] += (std::fabs(*min_elem) - *min_elem);
                }
            }
 
@@ -244,9 +245,34 @@ RelaxedFVMatrixAssemblyPolicy<MatrixPolicy>::relax(const MeshTp& mesh, const vec
 }
 
 template<typename MatrixPolicy>
+template<typename MeshTp>
 void
-RelaxedFVMatrixAssemblyPolicy<MatrixPolicy>::sum_mag_off_diag(std::vector<real_t> &sum_Off_diag)const
+RelaxedFVMatrixAssemblyPolicy<MatrixPolicy>::sum_mag_off_diag(const MeshTp& mesh, std::vector<real_t> &sum_Off_diag)const
+{
 
+   ConstFaceMeshIterator<Active, MeshTp> filter(mesh);
+
+   auto begin = filter.begin();
+   auto end = filter.end();
+
+   std::vector<DoF> dofs;
+   std::vector<DoF> neigh_dofs;
+
+   for(; begin != end; ++begin){
+
+    auto* face = *begin;
+
+    if(face->on_boundary() == false){
+
+      face->owner_element()->get_dofs(var_name_, dofs);
+      face->shared_element()->get_dofs(var_name_, neigh_dofs);
+
+      sum_Off_diag[dofs[0].id]  += upper_D_entry(face->id());
+      sum_Off_diag[neigh_dofs[0].id] += lower_D_entry(face->id());
+    }
+
+  }
+}
 
 }
 }
