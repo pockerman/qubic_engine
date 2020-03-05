@@ -4,6 +4,9 @@
 #include "kernel/data_structs/boost_serial_graph.h"
 #include "kernel/data_structs/serial_graph_builder.h"
 
+#include "kernel/maths/functions/numeric_scalar_function.h"
+#include "kernel/numerics/boundary_function_base.h"
+
 #include <iostream>
 
 namespace example
@@ -14,6 +17,68 @@ using kernel::Null;
 using kernel::numerics::Mesh;
 using kernel::GeomPoint;
 using kernel::BoostSerialGraph;
+
+class UCompBC: public kernel::numerics::BoundaryFunctionBase<2>
+{
+public:
+
+    typedef kernel::numerics::BoundaryFunctionBase<2>::input_t input_t;
+    typedef kernel::numerics::BoundaryFunctionBase<2>::output_t output_t;
+
+    /// constructor
+    UCompBC();
+
+    /// \brief Returns the value of the function on the Dirichlet boundary
+    virtual output_t value(const GeomPoint<2>&  /*input*/)const override final;
+};
+
+UCompBC::UCompBC()
+    :
+    kernel::numerics::BoundaryFunctionBase<2>()
+{
+    this->set_bc_type(0, kernel::numerics::BCType::ZERO_DIRICHLET);
+    this->set_bc_type(1, kernel::numerics::BCType::ZERO_DIRICHLET);
+    this->set_bc_type(2, kernel::numerics::BCType::DIRICHLET);
+    this->set_bc_type(3, kernel::numerics::BCType::ZERO_DIRICHLET);
+}
+
+UCompBC::output_t
+UCompBC::value(const GeomPoint<2>&  p)const{
+
+    if(p[1] == 1.0){
+        return 2.0;
+    }
+
+    return 0.0;
+}
+
+class VCompBC: public kernel::numerics::BoundaryFunctionBase<2>
+{
+public:
+
+    typedef kernel::numerics::BoundaryFunctionBase<2>::input_t input_t;
+    typedef kernel::numerics::BoundaryFunctionBase<2>::output_t output_t;
+
+    /// constructor
+    VCompBC();
+
+    /// \brief Returns the value of the function on the Dirichlet boundary
+    virtual output_t value(const GeomPoint<2>&  /*input*/)const override final;
+};
+
+VCompBC::VCompBC()
+    :
+    kernel::numerics::BoundaryFunctionBase<2>()
+{
+    this->set_bc_type(0, kernel::numerics::BCType::ZERO_DIRICHLET);
+    this->set_bc_type(1, kernel::numerics::BCType::ZERO_DIRICHLET);
+    this->set_bc_type(2, kernel::numerics::BCType::ZERO_DIRICHLET);
+    this->set_bc_type(3, kernel::numerics::BCType::ZERO_DIRICHLET);
+}
+
+VCompBC::output_t
+VCompBC::value(const GeomPoint<2>&  p)const{return 0.0;}
+
 
 }
 
