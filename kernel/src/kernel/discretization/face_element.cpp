@@ -220,6 +220,47 @@ FaceElement<2,1>::get_vertices_ids()const{
     return {nodes_[0]->get_id(), nodes_[1]->get_id()};
 }
 
+
+FaceElement<2,1>::cnode_ref_t
+FaceElement<2,1>::get_vertex(uint_t v)const{
+
+    if(v >= n_vertices()){
+        throw std::logic_error("Invalid vertex index: " +
+                               std::to_string(v) +
+                               " not in [0," +
+                               std::to_string(n_vertices()) +
+                               ")");
+    }
+
+    if(nodes_.empty()){
+        throw std::logic_error("Nodes list has not been populated");
+    }
+
+
+    return *nodes_[v];
+}
+
+
+FaceElement<2,1>::node_ref_t
+FaceElement<2,1>::get_vertex(uint_t v){
+
+    if(v >= n_vertices()){
+        throw std::logic_error("Invalid vertex index: " +
+                               std::to_string(v) +
+                               " not in [0," +
+                               std::to_string(n_vertices()) +
+                               ")");
+    }
+
+    if(nodes_.empty()){
+        throw std::logic_error("Nodes list has not been populated");
+    }
+
+
+    return *nodes_[v];
+
+}
+
 real_t
 FaceElement<2,1>::owner_neighbor_distance()const{
 
