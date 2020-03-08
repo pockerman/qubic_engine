@@ -3,11 +3,8 @@
 
 #include "kernel/utilities/filtered_iterator.h"
 
-namespace kernel
-{
-
-namespace numerics
-{
+namespace kernel{
+namespace numerics{
 
 template<typename Predicate, typename  MeshTp>
 class NodeMeshIterator
