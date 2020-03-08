@@ -100,6 +100,8 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 
 - <a href="#">Example 3: </a> Create a simple server to comminicate with ROS
 - <a href="examples/exe19/doc/exe.md">Example 19</a> Differential drive system simulation
+- <a href="examples/exe21/doc/exe.md">Example 21</a> Pure persuit path tracking
+
 
 ### <a name="miscellaneous"></a>Miscellaneous
 
