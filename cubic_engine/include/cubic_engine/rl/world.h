@@ -7,7 +7,7 @@ namespace cengine {
 namespace rl {
 
 /// \brief
-template<typename ActionTp, typename StateTp,typename RewardTp>
+template<typename ActionTp, typename StateTp, typename RewardTp>
 class World: private boost::noncopyable
 {
 public:
@@ -28,7 +28,7 @@ public:
 
     /// \brief Returns the reward associated
     /// with the last state transition
-    virtual reward_t reward()const;
+    virtual reward_t reward()const=0;
 
 protected:
 
