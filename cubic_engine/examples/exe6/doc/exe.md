@@ -1,11 +1,8 @@
-# Example: Solving the State-Value Function Problem
+# Example 6: Temporal Difference Learning
 
 ## Contents
 * [Acknowledgements](#ackw)
 * [Overview](#overview) 
-	* [Basics of RL](#basics_rl)
-	* [Dynamic Programming](#dynamic_programming)
-	* [Monte Carlo](#monte_carlo)
 	* [Temporal Difference](#temporal_difference)
 * [Include files](#include_files)
 * [Program structure](#prg_struct)
@@ -19,7 +16,24 @@ The code is primarily an adaptation of the Python code from <a href="https://tow
 
 ## <a name="overview"></a> Overview
 
-### <a name="basics_rl"></a> Basics of RL
+### <a name="sarsa_algorithm"></a> SARSA Algorithm
+SARSA stands for State-Action-Reward-State-Action and it is an iterative algorithm
+for  learning a <a href="https://en.wikipedia.org/wiki/Markov_decision_process">Markov Decision Process</a>.
+
+As the name implies, the algorithm uses the current agent state say ```S_1```,
+the action the agent chooses ```A_1```, the reward ```R``` that the agent
+gets for choosing this action, the state ```S_2``` that the agent enters after
+taking action ```A_1``` and the next action ```A_2``` the agent chooses when in
+state ```S_2```.
+
+Hence, the update of the ```Q``` function is given by the equation below
+
+<img src="sarsa_update.svg"
+     alt="SARSA Update"
+     style="float: left; margin-right: 10px;" />
+
+The algorithm is described below
+
 
 ### <a name="dynamic_programming"></a> Dynamic Programming
 
