@@ -58,13 +58,16 @@ struct CliffWorldReward
 
 /// \brief CliffWorld class models the Environment
 /// for the cliff-world problem
-class CliffWorld: public World<CliffWorldAction, uint_t, real_t>
+class CliffWorld: public World<CliffWorldAction, int, real_t>
 {
 
 public:
 
-    typedef World<CliffWorldAction, uint_t, real_t>::state_t state_t;
-    typedef World<CliffWorldAction, uint_t, real_t>::reward_t reward_t;
+    typedef World<CliffWorldAction, int, real_t>::state_t state_t;
+    typedef World<CliffWorldAction, int, real_t>::reward_t reward_t;
+
+    /// \brief the starting state of the world
+    static const state_t  START = 0;
 
     /// \brief Constructor
     CliffWorld(uint_t xlength,  uint_t ylength);
@@ -87,6 +90,13 @@ public:
 
     /// \brief Execute any other step
     void do_step(const CliffWorld::action_t& action);
+
+    /// \brief Restart the world. This means that
+    /// the stare of the world will be that of...
+    void restart();
+
+    /// \brief Set the state of the world
+    void set_state(const state_t state);
 
     /// \brief Returns the reward associated
     /// with the last state transition
@@ -115,7 +125,7 @@ private:
     /// of the agent in the world describes
     /// the state of the world. Initially this is simply
     /// the starting position
-    uint_t agent_pos_{0};
+    state_t agent_pos_{0};
 
     /// \brief Object responsible for returning the rewards
     CliffWorldReward reward_;
@@ -123,9 +133,6 @@ private:
     /// \brief The reward that the agent should recieve
     /// after executing an action
     real_t r_;
-
-
-
 };
 
 }
