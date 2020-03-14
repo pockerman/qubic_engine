@@ -156,7 +156,7 @@ public:
     static const int topodim_ = 1;
 
     typedef Node<2>* node_ptr_t;
-    typedef const Node<2>* node_ptr_t;
+    typedef const Node<2>* cnode_ptr_t;
     typedef Node<2>& node_ref_t;
     typedef const Node<2>& cnode_ref_t;
     typedef EdgeSelector<2>::ptr_t  edge_ptr_t;
