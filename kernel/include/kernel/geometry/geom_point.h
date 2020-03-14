@@ -140,9 +140,16 @@ GeomPoint<spacedim,T>::GeomPoint(const std::initializer_list<T>& list)
         throw std::logic_error("Invalid initialization list size");
     }
 
-    for(uint_t i=0; i<data_.size(); ++i){
-        data_[i] = list[i];
+    auto start = list.begin();
+    auto end = list.end();
+
+    uint_t i = 0;
+    for(; start != end; ++start){
+        data_[i++] = *start;
     }
+    /*for(uint_t i=0; i<data_.size(); ++i){
+        data_[i] = list[i];
+    }*/
 }
 
 template<int spacedim,typename T>
