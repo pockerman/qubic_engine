@@ -19,9 +19,34 @@ For more details you can consult the original document <a href="https://www.ri.c
 ### <a name="pure_pursuit_tracking"></a> Pure pursuit path tracking
 
 Pure pursuit path tracking is a geometry based path following controller.
-It uses the current position of the robot along sidea selected point on the path to make adjustements
-if needed in the position and orientation of the vehicle such that the latter abides with following
-the specified path as closely as possible. This point is chosen as a specified look-ahead distacnce.
+It uses the current position of the robot and a selected point on the path (also known as the 
+lookahead point) to make adjustements
+if needed in the position and orientation of the vehicle such that the latter follows the 
+the specified path as closely as possible. This point is chosen at a specified lookahead distacnce.
+The definitions are illustrated in the figure below
+
+<img src="pure_pursuit_lookahead1.png"
+     alt="Pure Pursuit definitions"
+     style="float: left; margin-right: 10px;" />
+
+
+A path is simply a series of coordinates also called waypoints. There are various methods to generate a path.
+In this example we will assume that a path is already known to us and that this path does not change during the
+course of the simulation.
+
+The lookahead point is the point on the path that is lookahead distance from the robot. We can find the 
+lookahead point by finding the intersection point of the circle with radius lookahead distance centered at the robot's 
+location and the path segments.
+
+
+So how can we choose the lookahead distance? For curvy paths a shorter lookahead distance is better.
+Note that the lookahead distance could also change along the path based on the curvature of the path or the
+target velocity of the vehicle. The following figure shows the effect of different lookahead distances.
+
+<img src="pure_pursuit_lookahead2.png"
+     alt="Pure Pursuit definitions"
+     style="float: left; margin-right: 10px;" />
+
 
 
 
@@ -30,7 +55,7 @@ The workings of the alogorithm are as follows:
 - Determine the current location of the vehicle
 - Find the path point closest to the vehicle
 - Find the lookahead point
-- Transform the look ahead to vehicle coordinates
+- Transform the lookahead to vehicle coordinates
 - Calculate the curvature and request the vehicle to set the steering to curvature
 - Update the vehicle's position
 
