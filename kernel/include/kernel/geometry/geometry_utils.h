@@ -35,7 +35,8 @@ get_point_with_min_distance(const GeomPoint<dim>& p,
     for(uint_t i=1; i<c.size(); ++i){
 
         auto new_dist = p.distance(c[i]);
-        if( current_dist - new_dist < tol){
+
+        if( current_dist - new_dist > 0.0 ){
             current_dist = new_dist;
             current_point = c[i];
         }
