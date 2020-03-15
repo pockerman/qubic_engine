@@ -21,7 +21,6 @@ public:
     /// \brief Expose the type of the path
     typedef kernel::ObserverBase<kernel::numerics::LineMesh<2>*>::resource_t  path_t;
 
-
     /// \brief Constructor
     PurePursuit2DPathTracker();
 
@@ -33,6 +32,14 @@ public:
 
     /// \brief Set the goal radius
     void set_goal_radius(real_t r){goal_radius_ = r;}
+
+    /// \brief Set the goal position
+    void set_goal(const kernel::GeomPoint<2>& goal){goal_ = goal;}
+
+    /// \brief Set the number of sampling points to
+    /// use when computing the closest point from the
+    /// position to the path
+    void set_n_sampling_points(uint_t npoints){n_sampling_points_ = npoints; }
 
     /// \brief Update. Notify the observer that the
     /// resource is observing has been changed
@@ -53,6 +60,11 @@ private:
 
     /// \brief The goal location
     kernel::GeomPoint<2> goal_;
+
+    /// \brief number of sampling poinst to use
+    /// when computing the closest point from
+    /// position to the path
+    uint_t n_sampling_points_;
 
 
 };
