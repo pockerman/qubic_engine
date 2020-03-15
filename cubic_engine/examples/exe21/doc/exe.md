@@ -48,6 +48,8 @@ target velocity of the vehicle. The following figure shows the effect of differe
      style="float: left; margin-right: 10px;" />
 
 
+Once we establish the lookahead point, we need to drive the vehicle in an arc towards the lookahead point.
+Here is how we can calculate the curvature of that arc.
 
 
 The workings of the alogorithm are as follows:
