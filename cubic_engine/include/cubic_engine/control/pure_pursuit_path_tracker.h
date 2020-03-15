@@ -66,6 +66,10 @@ private:
     /// position to the path
     uint_t n_sampling_points_;
 
+    /// \brief The lookahed point calculated
+    /// by the controller
+    kernel::GeomPoint<2> lookahead_point_;
+
 
 };
 

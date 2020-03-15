@@ -1,6 +1,8 @@
 #include "cubic_engine/control/pure_pursuit_path_tracker.h"
 #include "kernel/discretization/utils/line_mesh_utils.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/geometry/shapes/circle.h"
+
 namespace cengine{
 namespace control{
 
@@ -42,9 +44,15 @@ PurePursuit2DPathTracker::execute(const kernel::dynamics::SysState<2>& state){
 
     /// find the closest point from the position to the
     /// path
-    const kernel::GeomPoint<2> point = kernel::numerics::find_closest_point_to(path, position, n_sampling_points_);
+    const kernel::GeomPoint<2> point = kernel::numerics::find_closest_point_to(path, position,
+                                                                               n_sampling_points_);
 
-    /// 2. Find the lookahead point
+    /// 2. Find the lookahead point. We can find the lookahead point
+    /// by finding the intersection point of the circle centered at
+    /// the robot's location and radius equal to the lookahead distance
+    /// and the path segment
+    auto intersections = kernel::numerics::find_intersections(path,
+                                                              kernel::Circle(lookahead_distance_, position));
 
     //3. calculate the curvature and return the steering
     //   request based on that curvature
