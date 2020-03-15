@@ -94,6 +94,10 @@ public:
    /// \brief Return the distance from the origin
    T L2_norm()const{return distance(GeomPoint(static_cast<T>(0)));}
 
+   /// \brief Returns the dot product of this point
+   /// and the given point
+   T dot(const GeomPoint& other)const;
+
    /// \brief Returns the square sum of the compontents
    T square_sum()const;
 
@@ -147,9 +151,6 @@ GeomPoint<spacedim,T>::GeomPoint(const std::initializer_list<T>& list)
     for(; start != end; ++start){
         data_[i++] = *start;
     }
-    /*for(uint_t i=0; i<data_.size(); ++i){
-        data_[i] = list[i];
-    }*/
 }
 
 template<int spacedim,typename T>
@@ -296,6 +297,19 @@ GeomPoint<spacedim,T>::square_sum()const{
                   [&](const T& value){
         result += value*value;
     });
+
+    return result;
+}
+
+template<int spacedim,typename T>
+T
+GeomPoint<spacedim,T>::dot(const GeomPoint<spacedim, T>& other)const{
+
+    T result = (*this)[0]*other[0];
+
+    for(uint_t i = 1; i<spacedim; ++i){
+        result += (*this)[i]*other[i];
+    }
 
     return result;
 }
