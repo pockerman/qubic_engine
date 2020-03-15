@@ -4,6 +4,7 @@
 #include "kernel/discretization/mesh_predicates.h"
 #include "kernel/discretization/edge_element.h"
 #include "kernel/discretization/node.h"
+#include "kernel/geometry/geometry_utils.h"
 
 #include <cmath>
 namespace kernel{
@@ -35,6 +36,8 @@ const GeomPoint<2> find_closest_point_to(const LineMesh<2>& mesh,
 
 
     std::vector<GeomPoint<2>> points_on_segment(nsamples + 2);
+    std::vector<GeomPoint<2>> min_points;
+    min_points.reserve(mesh.n_elements());
 
     ConstElementMeshIterator<Active, LineMesh<2>> filter(mesh);
     auto begin = filter.begin();
@@ -48,7 +51,9 @@ const GeomPoint<2> find_closest_point_to(const LineMesh<2>& mesh,
         auto v1 = element->get_vertex(1);
 
         real_t distance = v0.distance(v1);
-        real_t h = distance/(real_t) nsamples;
+
+        ///...plus 2 because we also account for the end poinst
+        real_t h = distance/(real_t) (nsamples + 2);
 
         /// the first point is the staring vertex
         points_on_segment[0] = v0;
@@ -68,9 +73,14 @@ const GeomPoint<2> find_closest_point_to(const LineMesh<2>& mesh,
         /// add the ending vertex of the line segment
         points_on_segment[nsamples + 1] = v1;
 
+        /// loop over the points and find the point with the minimum distance
+        auto min_point = get_point_with_min_distance(p, points_on_segment);
+        min_points.push_back(min_point);
+
     }
 
-
+    auto result = get_point_with_min_distance(p, min_points);
+    return result;
 }
 
 }
