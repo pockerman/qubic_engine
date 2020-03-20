@@ -6,9 +6,9 @@
 #include <limits>
 
 
-namespace kernel
-{
+namespace kernel{
 
+/// \brief Controller for iterative algorithms
 class IterativeAlgorithmController
 {
 public:
