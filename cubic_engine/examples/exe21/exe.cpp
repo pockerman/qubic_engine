@@ -40,19 +40,17 @@ int main(){
         element->set_node(0, node1);
         element->set_node(1, node2);
 
-        std::array<std::string, 2> names = {"X","Y"};
-        SysState<2> state(std::move(names), 0.0);
+        std::array<std::string, 3> names = {"X","Y","Theta"};
+        SysState<3> state(std::move(names), 0.0);
 
         PurePursuit2DPathTracker tracker;
         tracker.update(path);
         tracker.set_goal(*node2);
         tracker.set_n_sampling_points(4);
+        tracker.set_lookahead_dist(0.2);
 
         /// let's track
         tracker.execute(state);
-
-
-
 
     }
     catch(std::exception& e){
