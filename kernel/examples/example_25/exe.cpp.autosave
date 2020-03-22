@@ -1,0 +1,40 @@
+#include "kernel/base/types.h"
+
+#include <cmath>
+#include <iostream>
+
+namespace example
+{
+using kernel::real_t;
+using kernel::uint_t;
+
+real_t f(real_t x){
+    return 3.0*x + std::sin(x) - std::exp(x);
+}
+
+
+}
+
+int main(){
+
+    using namespace example;
+
+    try{
+
+
+    }
+    catch(std::logic_error& error){
+
+        std::cerr<<error.what()<<std::endl;
+    }
+    catch(...){
+        std::cerr<<"Unknown exception occured"<<std::endl;
+    }
+
+    return 0;
+}
+
+
+
+
+
