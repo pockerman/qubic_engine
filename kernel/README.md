@@ -73,6 +73,7 @@ Checkout the [Examples Map](#examples_map). Documentation is well...underway.
 - <a href="examples/example_15/doc/exe.md">Example 15: </a> Calculate MSE error with ```MSEFunction``` class
 - <a href="examples/example_16/doc/exe.md">Example 16: </a> Calculate SSE error with ```SSEFunction``` class
 - <a href="examples/example_25/doc/exe.md">Example 25: </a> Bisection Method
+- <a href="examples/example_26/doc/exe.md">Example 26: </a> Monte Carlo Simulation for the Monty Hall Problem
 
 
 ### <a name="physics_simulation"></a> Physics Simulation
