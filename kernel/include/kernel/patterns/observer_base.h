@@ -15,7 +15,6 @@ namespace kernel{
 
 /// \brief Base class for implementing
 /// the observer pattern
-
 template<typename ResourceTp>
 class ObserverBase
 {
