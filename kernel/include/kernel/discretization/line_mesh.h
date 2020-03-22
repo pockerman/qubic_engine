@@ -4,22 +4,20 @@
 #include "kernel/base/types.h"
 #include "kernel/geometry/geom_point.h"
 
+#include "boost/noncopyable.hpp"
 #include <memory>
 #include <vector>
 
 
-namespace kernel
-{
-
-namespace numerics
-{
+namespace kernel{
+namespace numerics{
 
 template<int dim> class Node;
 template<int dim> class EdgeElem;
 
 /// \brief Models a LineMesh in dim spatial dimensions
 template<int dim>
-class LineMesh
+class LineMesh: private boost::noncopyable
 {
 public:
 

@@ -125,7 +125,7 @@ public:
     virtual void update(const resource_t& resource)=0;
 
     /// \brief Read the resource
-    virtual void read(resource_t&)const=0;
+    virtual void read(resource_t*&)const=0;
 
     /// \brief Returns true if the resouce has been updated
     bool is_updated()const{return updated_;}
@@ -201,13 +201,13 @@ ObserverBase<ResourceTp*>::update(const resource_t& resource){
 
 template<typename ResourceTp>
 void
-ObserverBase<ResourceTp*>::read(typename ObserverBase<ResourceTp*>::resource_t& r)const{
+ObserverBase<ResourceTp*>::read(typename ObserverBase<ResourceTp*>::resource_t*& r)const{
 
     if(resource_ == nullptr){
         throw std::logic_error("Null resource ptr. Update resource");
     }
 
-    r =  *resource_;
+    r =  resource_;
     updated_  = false;
 }
 

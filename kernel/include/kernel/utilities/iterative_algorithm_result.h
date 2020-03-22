@@ -2,9 +2,10 @@
 #define ITERATIVE_ALGORITHM_RESULT_H
 
 #include "kernel/base/types.h"
+#include <ostream>
 
-namespace kernel
-{
+
+namespace kernel{
 
 struct IterativeAlgorithmResult  {
 
@@ -12,6 +13,14 @@ struct IterativeAlgorithmResult  {
     real_t tolerance;
     real_t residual;
     uint_t num_iterations;
+
+    virtual std::ostream& print(std::ostream& out)const;
 };
+
+
+inline
+std::ostream& operator<<(std::ostream& out, const IterativeAlgorithmResult& result){
+    return result.print(out);
+}
 }
 #endif // ITERATIVE_ALGORITHM_RESULT_H
