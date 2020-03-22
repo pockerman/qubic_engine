@@ -7,6 +7,7 @@
 #include "kernel/discretization/line_mesh.h"
 #include "kernel/patterns/observer_base.h"
 
+#include <tuple>
 #include "boost/noncopyable.hpp"
 
 namespace cengine {
@@ -25,7 +26,7 @@ public:
     PurePursuit2DPathTracker();
 
     /// \brief Execute the control
-    void execute(const kernel::dynamics::SysState<2>& state);
+    std::tuple<kernel::GeomPoint<2>, real_t> execute(const kernel::dynamics::SysState<3>& state);
 
     /// \brief Set the lookahead distance
     void set_lookahead_dist(real_t dist){lookahead_distance_ = dist;}
