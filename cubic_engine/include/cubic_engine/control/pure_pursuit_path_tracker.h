@@ -26,7 +26,7 @@ public:
     PurePursuit2DPathTracker();
 
     /// \brief Execute the control
-    std::tuple<kernel::GeomPoint<2>, real_t> execute(const kernel::dynamics::SysState<3>& state);
+    std::tuple<kernel::GeomPoint<2>, real_t, int> execute(const kernel::dynamics::SysState<3>& state);
 
     /// \brief Set the lookahead distance
     void set_lookahead_dist(real_t dist){lookahead_distance_ = dist;}
@@ -50,7 +50,7 @@ public:
 private:
 
     /// \brief Read the resource
-    virtual void read(path_t& r)const override final;
+    virtual const path_t& read()const override final;
 
     /// \brief The lookahead distance paramter
     real_t lookahead_distance_;
