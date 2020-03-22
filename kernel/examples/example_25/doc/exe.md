@@ -1,4 +1,4 @@
-# Example 25: Bisection Method
+# Example 26: Bisection Method
 
 ## Contents
 

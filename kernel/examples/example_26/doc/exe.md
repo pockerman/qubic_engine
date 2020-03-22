@@ -1,27 +1,25 @@
-# Example 26: Monte Carlo Simulation for the Monty Hall Problem
+# Example 26: Bisection Method
 
 ## Contents
 
-* [Acknowledgements](#acknowledgements) 
 * [Overview](#overview) 
 * [Include files](#include_files)
 * [The main function](#m_func)
 * [Results](#results)
 * [Source Code](#source_code)
 
-## <a name="acknowledgements"></a> Acknowledgements
-This example was taken from Lee Vaughan's book _Impractical Python Projects_.
 ## <a name="overview"></a> Overview
 
 ## <a name="include_files"></a> Include files
 
 ```
 #include "kernel/base/types.h"
+#include "kernel/maths/solvers/bisection_solver.h"
+#include "kernel/geometry/geom_point.h"
+#include "kernel/base/kernel_consts.h"
+
 #include <cmath>
 #include <iostream>
-#include <array>
-#include <random>
-
 ```
 
 ## <a name="m_func"></a> The main function
@@ -31,6 +29,8 @@ namespace example
 {
 using kernel::real_t;
 using kernel::uint_t;
+using kernel::GeomPoint;
+
 }
 
 int main(){
@@ -39,40 +39,25 @@ int main(){
 
     try{
 
-        std::array<std::string, 3> doors;
-        doors[0] = "A";
-        doors[1] = "B";
-        doors[2] = "C";
-
-        uint_t first_choice_wins = 0;
-        uint_t change_wins = 0;
-
         const uint_t N_ITRS = 1000;
+        const real_t TOL = kernel::KernelConsts::tolerance();
 
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<uint_t> distribution(0, 2);
+        auto f = [&](const kernel::GeomPoint<1> x){
+            return 3.0*x[0] + std::sin(x[0]) - std::exp(x[0]);
+        };
 
-        for(uint_t itr=0; itr<N_ITRS; ++itr){
+        kernel::maths::solvers::BisectionSolver<GeomPoint<1>, decltype (f)> bs(N_ITRS, TOL);
+        auto [output, solution] = bs.solve(kernel::GeomPoint<1>({0.0}),
+                                           kernel::GeomPoint<1>({1.0}), f);
 
-            auto winner_idx = distribution(gen);
-            auto pick_idx = distribution(gen);
+        std::cout<<output<<std::endl;
+        std::cout<<solution<<std::endl;
 
-            std::cout<<"You chose: "<<doors[pick_idx]<<" Winner door: "
-                    <<doors[winner_idx]<<std::endl;
 
-            if(winner_idx == pick_idx){
-                first_choice_wins++;
-            }
-            else{
-                change_wins++;
-            }
-        }
+    }
+    catch(std::logic_error& error){
 
-        std::cout<<"Wins with original choice: "<<first_choice_wins<<std::endl;
-        std::cout<<"Wins with change choice: "<<change_wins<<std::endl;
-        std::cout<<"Probability of winning with initial guess: "<<static_cast<real_t>(first_choice_wins)/N_ITRS<<std::endl;
-        std::cout<<"Probability of winning with change guess: "<<static_cast<real_t>(change_wins)/N_ITRS<<std::endl;
+        std::cerr<<error.what()<<std::endl;
     }
     catch(...){
         std::cerr<<"Unknown exception occured"<<std::endl;
@@ -85,31 +70,12 @@ int main(){
 ## <a name="results"></a> Results
 
 ```
-...
-You chose: A Winner door: A
-You chose: C Winner door: C
-You chose: B Winner door: A
-You chose: C Winner door: A
-You chose: C Winner door: B
-You chose: C Winner door: A
-You chose: A Winner door: A
-You chose: B Winner door: B
-You chose: B Winner door: C
-You chose: C Winner door: B
-You chose: B Winner door: B
-You chose: C Winner door: C
-You chose: B Winner door: C
-You chose: B Winner door: B
-You chose: A Winner door: A
-You chose: B Winner door: A
-You chose: C Winner door: A
-You chose: C Winner door: A
-You chose: C Winner door: B
-You chose: B Winner door: A
-Wins with original choice: 320
-Wins with change choice: 680
-Probability of winning with initial guess: 0.32
-Probability of winning with change guess: 0.68
+Converged...: true
+Tolerance...: 1e-08
+Residual....: 7.45058e-09
+Iterations..: 28
+
+( 0.360422 )
 ```
 
 ## <a name="source_code"></a> Source Code
