@@ -43,19 +43,23 @@ BisectionSolver<PointTp, FunctionTp>::solve(const BisectionSolver<PointTp, Funct
                                             const BisectionSolver<PointTp, FunctionTp>::function_t& function){
 
     typedef typename BisectionSolver<PointTp, FunctionTp>::output_t output_t;
+
+    auto f1 = function(p1);
+    auto f2 = function(p2);
+    /// quick return
+    if( f1 * f2 > 0){
+        return std::make_tuple(output_t(), point_t());
+    }
+
     BisectionSolver<PointTp, FunctionTp>::point_t p1_copy = p1;
     BisectionSolver<PointTp, FunctionTp>::point_t p2_copy = p2;
 
-    /// quick return
-    if(fuction(p2) * function(p1) > 0){
-        return std::make_tuple(output_t(), point_t());
-    }
 
     auto x = 0.5*(p1_copy + p2_copy);
 
     while(this->continue_iterations()){
 
-        if(fuction(x) * function(p1) < 0){
+        if(function(x) * function(p1) < 0){
             p2_copy = x;
         }
         else{

@@ -1,4 +1,4 @@
-# Example 24: Create a graph from a ```Mesh```
+# Example 25: Bisection Method
 
 ## Contents
 
@@ -14,11 +14,11 @@
 
 ```
 #include "kernel/base/types.h"
-#include "kernel/discretization/mesh.h"
-#include "kernel/discretization/quad_mesh_generation.h"
-#include "kernel/data_structs/boost_serial_graph.h"
-#include "kernel/data_structs/serial_graph_builder.h"
+#include "kernel/maths/solvers/bisection_solver.h"
+#include "kernel/geometry/geom_point.h"
+#include "kernel/base/kernel_consts.h"
 
+#include <cmath>
 #include <iostream>
 ```
 
@@ -29,10 +29,7 @@ namespace example
 {
 using kernel::real_t;
 using kernel::uint_t;
-using kernel::Null;
-using kernel::numerics::Mesh;
 using kernel::GeomPoint;
-using kernel::BoostSerialGraph;
 
 }
 
@@ -42,38 +39,19 @@ int main(){
 
     try{
 
-        Mesh<2> mesh;
+        const uint_t N_ITRS = 1000;
+        const real_t TOL = kernel::KernelConsts::tolerance();
 
-        {
-            uint_t nx = 2;
-            uint_t ny = 2;
+        auto f = [&](const kernel::GeomPoint<1> x){
+            return 3.0*x[0] + std::sin(x[0]) - std::exp(x[0]);
+        };
 
-            GeomPoint<2> start(0.0);
-            GeomPoint<2> end(1.0);
+        kernel::maths::solvers::BisectionSolver<GeomPoint<1>, decltype (f)> bs(N_ITRS, TOL);
+        auto [output, solution] = bs.solve(kernel::GeomPoint<1>({0.0}),
+                                           kernel::GeomPoint<1>({1.0}), f);
 
-            std::cout<<"Starting point: "<<start<<std::endl;
-            std::cout<<"Ending point: "<<end<<std::endl;
-
-            // generate the mesh
-            kernel::numerics::build_quad_mesh(mesh, nx, ny, start, end);
-
-            std::cout<<"MESH STATISTICS "<<std::endl;
-            std::cout<<"Number of elements: "<<mesh.n_elements()<<std::endl;
-            std::cout<<"Number of nodes: "<<mesh.n_nodes()<<std::endl;
-            std::cout<<"Number of faces: "<<mesh.n_faces()<<std::endl;
-            std::cout<<"Number of edges: "<<mesh.n_edges()<<std::endl;
-            std::cout<<"Number of boundaries: "<<mesh.n_boundaries()<<std::endl;
-            std::cout<<"\n";
-        }
-
-        // create the graph from the mesh
-        BoostSerialGraph<Null, Null> graph;
-
-        // build the mesh graph
-        build_mesh_graph(mesh, graph);
-
-        std::cout<<"Number of vertices: "<<graph.n_vertices()<<std::endl;
-        std::cout<<"Number of edges: "<<graph.n_edges()<<std::endl;
+        std::cout<<output<<std::endl;
+        std::cout<<solution<<std::endl;
 
 
     }
@@ -92,17 +70,12 @@ int main(){
 ## <a name="results"></a> Results
 
 ```
-Starting point: ( 0,0 )
-Ending point: ( 1,1 )
-MESH STATISTICS
-Number of elements: 4
-Number of nodes: 9
-Number of faces: 12
-Number of edges: 12
-Number of boundaries: 4
+Converged...: true
+Tolerance...: 1e-08
+Residual....: 7.45058e-09
+Iterations..: 28
 
-Number of vertices: 4
-Number of edges: 8
+( 0.360422 )
 ```
 
 ## <a name="source_code"></a> Source Code
