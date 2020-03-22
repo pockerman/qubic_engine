@@ -73,7 +73,7 @@ public:
    void set_motion_model(motion_model_t& motion_model){motion_model_ptr_ = &motion_model;}
 
    /// \brief Set the observation model
-   void set_observation_model(const observation_model_t& observation_model){observation_model_ = &observation_model;}
+   void set_observation_model(const observation_model_t& observation_model){observation_model_ptr_ = &observation_model;}
 
    /// \brief Set the matrix used by the filter
    void set_matrix(const std::string& name, const matrix_t& mat);
@@ -84,7 +84,7 @@ protected:
    motion_model_t* motion_model_ptr_;
 
    /// \brief pointer to the function that computes h
-   const observation_model_t* observation_model_;
+   const observation_model_t* observation_model_ptr_;
 
    /// \brief Matrices used by the filter internally
    std::map<std::string, matrix_t> matrices_;
@@ -95,7 +95,7 @@ template<typename MotionModelTp, typename ObservationModelTp>
 ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::ExtendedKalmanFilter()
     :
     motion_model_ptr_(nullptr),
-    observation_model_(nullptr)
+    observation_model_ptr_(nullptr)
 {}
 
 template<typename MotionModelTp, typename ObservationModelTp>
@@ -103,7 +103,7 @@ ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::ExtendedKalmanFilter(typ
                                                                              const typename ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::observation_model_t& observation_model)
     :
     motion_model_ptr_(&motion_model),
-    observation_model_(&observation_model)
+    observation_model_ptr_(&observation_model)
 {}
 
 template<typename MotionModelTp, typename ObservationModelTp>
@@ -151,14 +151,14 @@ ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::update(const typename Ex
     auto& P = matrices_["P"];
     auto& R = matrices_["R"];
 
-    auto zpred = observation_model_->evaluate(z);
+    auto zpred = observation_model_ptr_->evaluate(z);
 
-    auto& H = observation_model_->get_matrix("H");
+    auto& H = observation_model_ptr_->get_matrix("H");
     auto H_T = trans(H);
 
     // compute \partial{h}/\partial{v} the jacobian of the observation model
     // w.r.t the error vector
-    auto& M = observation_model_->get_matrix("M");
+    auto& M = observation_model_ptr_->get_matrix("M");
     auto M_T = trans(M);
     auto& K = matrices_["K"];
 

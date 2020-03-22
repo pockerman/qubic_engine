@@ -13,8 +13,25 @@
 
 
 ## <a name="overview"></a> Overview
+The locomotion systems of most ground vehicles and mobile robots, at least at the time of writing, are based
+on rolling wheels. When one imposes the constraint that rolling occurs without
+slipping this induces the so called nonholonomic constraints. Such constraints
+can cause difficulties in the control of such vehicles.
+
+The two most popular wheel arrangements are the two-wheeled differential drive and the 
+four-wheeled car-like structure.
+
+In this example we will develop a simple multi-threaded simulation of a differential drive system
 
 ### <a name="diff_drive_system"></a> Differential Drive System
+
+The kinematic equation model of a differential drive system is given below.
+
+
+v, and omega stand for the translational and angular velocities of the robot.
+The reference point is the the middle point of the axle connecting the two
+motorized wheels. 
+
 
 ## <a name="include_files"></a> Include files
 
