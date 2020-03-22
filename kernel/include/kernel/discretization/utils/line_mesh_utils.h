@@ -22,7 +22,8 @@ template<int dim> class LineMesh;
 /// vertices as well. It then out of the calculated points
 /// it picks the one with the smallest distance
 const GeomPoint<2> find_closest_point_to(const LineMesh<2>& mesh,
-                                         const GeomPoint<2>&p, uint_t nsamples);
+                                         const GeomPoint<2>&p, uint_t nsamples,
+                                         real_t tol);
 
 /// \brief Returns the intersection points of the
 /// Circle with the elements of the LineMesh.

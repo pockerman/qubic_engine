@@ -13,7 +13,8 @@ namespace kernel{
 namespace numerics{
 
 const GeomPoint<2> find_closest_point_to(const LineMesh<2>& mesh,
-                                         const GeomPoint<2>&p, uint_t nsamples){
+                                         const GeomPoint<2>&p, uint_t nsamples,
+                                         real_t tol){
 
     std::vector<GeomPoint<2>> points_on_segment(nsamples + 2);
     std::vector<GeomPoint<2>> min_points;
@@ -38,18 +39,30 @@ const GeomPoint<2> find_closest_point_to(const LineMesh<2>& mesh,
         /// the first point is the staring vertex
         points_on_segment[0] = v0;
 
-        /// calculate the coefficients of the line
-        /// connecting the two vertices
 
-        real_t alpha = (v1[1] - v0[1])/(v1[0] - v0[0]);
-        real_t beta = (v0[1]*v1[0] + v0[0]*v1[1])/(v1[0] - v0[0]);
+        if(std::fabs(v1[0] - v0[0]) < tol){
+            /// we have line that is perpendicular to the
+            /// x-axis and we need to act differently to avoid infinity
 
-        for(uint_t sp = 1; sp <=nsamples; ++sp){
+            for(uint_t sp = 1; sp <=nsamples; ++sp){
 
-            real_t xi = v0[0] + sp*h;
-            points_on_segment[sp] = GeomPoint<2>({xi, alpha*xi + beta});
+                real_t xi = v0[0];
+                points_on_segment[sp] = GeomPoint<2>({xi, v0[0] + sp*h});
+            }
         }
+        else{
 
+            /// calculate the coefficients of the line
+            /// connecting the two vertices
+            real_t alpha = (v1[1] - v0[1])/(v1[0] - v0[0]);
+            real_t beta = (v0[1]*v1[0] + v0[0]*v1[1])/(v1[0] - v0[0]);
+
+            for(uint_t sp = 1; sp <=nsamples; ++sp){
+
+                real_t xi = v0[0] + sp*h;
+                points_on_segment[sp] = GeomPoint<2>({xi, alpha*xi + beta});
+            }
+        }
         /// add the ending vertex of the line segment
         points_on_segment[nsamples + 1] = v1;
 
@@ -154,7 +167,6 @@ const std::vector<GeomPoint<2>> find_intersections(const LineMesh<2>& mesh,
     }
 
     return intersections;
-
 }
 
 }
