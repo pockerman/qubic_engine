@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.6)
 MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")
 
 PROJECT(CubicEngine CXX)
@@ -25,7 +25,7 @@ SET(CUBIC_ENGINE_VERSION "${CUBIC_ENGINE_VERSION_MAJOR}.${CUBIC_ENGINE_VERSION_M
 
 SET(BUILD_SHARED_LIBS ON)
 SET(CMAKE_BUILD_TYPE "Debug")
-SET(ENABLE_TESTING "ON")
+SET(ENABLE_TESTING "OFF")
 SET(USE_OPENMP "ON")
 SET(USE_LOG "ON")
 SET(USE_PYTORCH "OFF")
@@ -40,6 +40,7 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
 ENDIF()
 
 configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/cubic_engine/base/config.h @ONLY)
+configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cubic_engine/base/version.h @ONLY)
 
 # TODO: Fix this
 # add this because config.h ends up in the build directory
@@ -95,7 +96,7 @@ IF( ENABLE_TESTING MATCHES "ON" AND GTEST_LIB_DIR MATCHES " " )
 ENDIF()
 
 IF(USE_PYTORCH MATCHES "ON")
-        SET(CMAKE_PREFIX_PATH /home/david/CubicEngineering/cubic_engine_develop_branches/integrate_pytorch/libtorch)
+  #SET(CMAKE_PREFIX_PATH )
 	find_package(Torch REQUIRED)
 	INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})
 ENDIF()
@@ -134,6 +135,8 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
                  ${PROJECT_SRC_DIR}/ml/supervised_learning/utils/*.cpp
                  ${PROJECT_SRC_DIR}/ml/unsupervised_learning/*.cpp
                  ${PROJECT_SRC_DIR}/ml/unsupervised_learning/utils/*.cpp
+                 ${PROJECT_SRC_DIR}/rl/*.cpp
+                 ${PROJECT_SRC_DIR}/rl/*/*.cpp
                  ${PROJECT_SRC_DIR}/optimization/utils/*.cpp
                  ${PROJECT_SRC_DIR}/maths/*.cpp)
 
