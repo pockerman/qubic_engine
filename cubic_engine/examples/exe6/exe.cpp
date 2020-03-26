@@ -31,7 +31,14 @@ int main(int argc, char** argv) {
 
     /// simulation parameters
     const real_t EPSILON = 0.7;
+
+    /// number of episodes for the agent to
+    /// learn the Q-values.
     const uint_t N_ITERATIONS = 10000;
+
+    for(uint_t episode=0; episode < N_ITERATIONS; ++episode){
+        world.restart();
+    }
 
 
 
