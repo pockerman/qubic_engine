@@ -27,7 +27,6 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/estimation/extended_kalman_filter.h"
 
-
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -36,7 +35,6 @@
 #include <vector>
 
 namespace example{
-
 
 std::mutex msg_mutex;
 
@@ -128,7 +126,7 @@ fcost(o.fcost),
 position(o.position)
 {}
 
-// class that implements the observation model
+/// class that implements the observation model
 class ObservationModel
 {
 
@@ -138,10 +136,10 @@ public:
 
     ObservationModel();
 
-    // simply return th
+    /// simply return th
     const DynVec evaluate(const DynVec& input)const{}
 
-    // get the H or M matrix
+    /// get the H or M matrix
     const DynMat& get_matrix(const std::string& name)const{}
 
 private:
@@ -164,7 +162,7 @@ typedef GeomPoint<2> Goal;
 typedef DiffDriveDynamics MotionModel;
 
 
-// helper classes
+/// helper classes
 struct StopSimulation
 {
     bool stop()const{return condition; }
@@ -178,10 +176,7 @@ public:
 
     typedef ThreadedObserverBase<std::mutex, real_t>::resource_t ref_velocity_resource_t;
 
-    // update the reource
     virtual void update(const ref_velocity_resource_t& resource)override final;
-
-    // read the resource
     virtual void read(ref_velocity_resource_t&)const override final;
 
 };
@@ -192,10 +187,7 @@ public:
 
     typedef ThreadedObserverBase<std::mutex, DynVec>::resource_t measurement_resource_t;
 
-    // update the reource
     virtual void update(const measurement_resource_t& resource)override final;
-
-    // read the resource
     virtual void read(measurement_resource_t&)const override final;
 
 };
@@ -207,10 +199,7 @@ public:
 
     typedef ThreadedObserverBase<std::mutex, State>::resource_t state_resource_t;
 
-    // update the reource
     virtual void update(const state_resource_t& resource)override final;
-
-    // read the resource
     virtual void read(state_resource_t&)const override final;
 };
 
@@ -221,10 +210,7 @@ public:
 
     typedef ThreadedObserverBase<std::mutex, Goal>::resource_t goal_resource_t;
 
-    // update the reource
     virtual void update(const goal_resource_t& resource)override final;
-
-    // read the resource
     virtual void read(goal_resource_t&)const override final;
 };
 
@@ -234,11 +220,9 @@ public:
 
     typedef ThreadedObserverBase<std::mutex, Path*>::resource_t path_resource_t;
 
-    // update the reource
-    virtual void update(const path_resource_t& resource)override final;
 
-    // read the resource
-    virtual void read(path_resource_t&)const override final;
+    virtual void update(const path_resource_t& resource)override final;
+    virtual const path_resource_t& read()const override final;
 };
 
 struct CMD
@@ -262,37 +246,6 @@ struct CMD
 };
 
 
-class DiffDriveVehicleWrapper
-{
-
-public:
-
-    DiffDriveVehicleWrapper(DiffDriveVehicle& vehicle);
-
-    /// set the CMD to execute
-    void set_cmd(CMD cmd);
-
-    /// \brief integrate the diff drive system
-    /// account for errors also
-    std::string integrate();
-
-    /// \brief Returns the state of the vehicle as string
-    std::string get_state_as_string()const;
-
-    /// \brief Returns the state of the vehicle as string
-    std::tuple<real_t, real_t> get_position()const;
-
-    /// \brief Returns the state of the vehicle as string
-    std::tuple<real_t, real_t, real_t, real_t> get_state()const;
-
-private:
-
-    mutable std::mutex integrate_mutex_;
-    DiffDriveVehicle* vehicle_ptr_;
-    CMD cmd_;
-};
-
-
 class ServerThread: public kernel::StoppableTask<StopSimulation>
 {
 public:
@@ -303,7 +256,6 @@ public:
     ServerThread(const StopSimulation& stop_condition,
                  const Map& map,
                  const SysState<4>& state,
-                 DiffDriveVehicleWrapper& vwrapper,
                  ThreadPool& threads);
 
     /// run the server
@@ -324,11 +276,8 @@ protected:
     /// The map used
     const Map* map_;
 
-    // the initial state
+    /// the initial state
     State init_state_;
-
-    // wrapper to the vehicle model
-    DiffDriveVehicleWrapper& vwrapper_;
 
     LockableQueue<std::string> requests_;
     LockableQueue<std::string> responses_;
@@ -475,8 +424,8 @@ ServerThread::ClientTask::ClientTask(const StopSimulation& stop_condition,
     this->set_name("ClientTask");
 }
 
-// Uses EKF algorithm to provide an estimation
-// of the robot state
+/// Uses EKF algorithm to provide an estimation
+/// of the robot state
 struct ServerThread::StateEstimationThread: public kernel::StoppableTask<StopSimulation>
 
 {
@@ -512,10 +461,10 @@ private:
     /// the EKF filter
     ExtendedKalmanFilter<MotionModel, ObservationModel> ekf_;
 
-    /// \brief The observer list
+    ///  the observer list
     std::vector<StateObserver*> sobservers_;
 
-    // Pointer to the map
+    /// pointer to the map
     const Map* map_;
 };
 
@@ -543,43 +492,43 @@ ServerThread::StateEstimationThread::StateEstimationThread(const StopSimulation&
 }
 
 
-// Given the state produced by the
-// StateEstimationThread produce a Path
-// to be followed
+/// Given the state produced by the
+/// StateEstimationThread produce a Path
+/// to be followed using A* lagorithm
 struct ServerThread::PathConstructorThread: public StoppableTask<StopSimulation>
 {
 public:
 
-    // The observer for the goal
+    /// The observer for the goal
     GoalObserver gobserver;
 
-    // The observer for the state
+    /// The observer for the state
     StateObserver sobserver;
 
-    // constructor
+    /// constructor
     PathConstructorThread(const StopSimulation& stop, const Map& map);
 
-    // attach a Path observer
+    /// attach a Path observer
     void attach_path_observer(PathObserver& pobserver){pobservers_.push_back(&pobserver);}
 
-    // update the path observers that a new path is ready
+    /// update the path observers that a new path is ready
     void update_path_observers();
 
 protected:
 
-    // run the thread
+    /// run the thread
     virtual void run()override final;
 
-    // the map used
+    /// the map used
     const Map* map_;
 
-    // the path constructed
+    /// the path constructed
     Path path_;
 
-    // the observers to notify on the path update
+    /// the observers to notify on the path update
     std::vector<PathObserver*> pobservers_;
 
-    // save the computed path
+    /// save the computed path
     void save_path(real_t duration);
 
 };
@@ -607,36 +556,31 @@ ServerThread::PathConstructorThread::PathConstructorThread(const StopSimulation&
 struct ServerThread::PathFollowerThread: public StoppableTask<StopSimulation>
 {
 
-    // The observer for the goal
+    /// The observer for the goal
     GoalObserver gobserver;
 
-    // The observer for the Path
+    /// The observer for the Path
     PathObserver pobserver;
 
-    // The state observer
+    /// The state observer
     StateObserver sobserver;
 
     // constructor
-    PathFollowerThread(const StopSimulation& stop, DiffDriveVehicleWrapper& wrapper);
+    PathFollowerThread(const StopSimulation& stop);
 
 protected:
 
-    // run the thread
+    /// run the thread
     virtual void run()override final;
-
-    // wrapper to the vehicle model
-    DiffDriveVehicleWrapper& vwrapper_;
-
 };
 
 inline
-ServerThread::PathFollowerThread::PathFollowerThread(const StopSimulation& stop, DiffDriveVehicleWrapper& wrapper)
+ServerThread::PathFollowerThread::PathFollowerThread(const StopSimulation& stop)
     :
    StoppableTask<StopSimulation>(stop),
    gobserver(),
    pobserver(),
-   sobserver(),
-   vwrapper_(wrapper)
+   sobserver()
 {
     this->set_name("PathFollowerThread");
     gobserver.set_name("PathFollowerThread GOAL Observer");
@@ -649,13 +593,11 @@ inline
 ServerThread::ServerThread(const StopSimulation& stop_condition,
                            const Map& map,
                            const SysState<4>& init_state,
-                           DiffDriveVehicleWrapper& vwrapper,
                            ThreadPool& thread_pool)
     :
   kernel::StoppableTask<StopSimulation>(stop_condition),
   map_(&map),
   init_state_(init_state),
-  vwrapper_(vwrapper),
   requests_(),
   responses_(),
   cmds_(),
@@ -664,9 +606,6 @@ ServerThread::ServerThread(const StopSimulation& stop_condition,
 {
     this->set_name("ServerThread");
 }
-
-
-
 
 }
 
