@@ -44,10 +44,10 @@ PathObserver::update(const PathObserver::path_resource_t& r){
     this->ThreadedObserverBase<std::mutex, Path*>::update(r);
 }
 
-void
-PathObserver::read(PathObserver::path_resource_t& r)const{
+const PathObserver::path_resource_t&
+PathObserver::read()const{
     std::lock_guard<std::mutex> lock(this->mutex_);
-    this->ThreadedObserverBase<std::mutex, Path*>::read(r);
+    return this->ThreadedObserverBase<std::mutex, Path*>::read();
 }
 
 void
@@ -73,64 +73,6 @@ MeasurmentObserver::read(MeasurmentObserver::measurement_resource_t& r)const{
     std::lock_guard<std::mutex> lock(this->mutex_);
     this->ThreadedObserverBase<std::mutex, DynVec>::read(r);
 }
-
-DiffDriveVehicleWrapper::DiffDriveVehicleWrapper(DiffDriveVehicle& vehicle)
-    :
-   integrate_mutex_(),
-   vehicle_ptr_(&vehicle),
-   cmd_()
-{}
-
-std::string
-DiffDriveVehicleWrapper::integrate(){
-    std::lock_guard<std::mutex> lock(integrate_mutex_);
-
-    if(cmd_.name != "INVALID_NAME"){
-        vehicle_ptr_->integrate(cmd_.velocity, cmd_.orientation);
-    }
-
-    return cmd_.name;
-}
-
-std::string
-DiffDriveVehicleWrapper::get_state_as_string()const{
-
-    std::lock_guard<std::mutex> lock(integrate_mutex_);
-
-    auto x = vehicle_ptr_->get_x_position();
-    auto y = vehicle_ptr_->get_y_position();
-    auto theta = vehicle_ptr_->get_orientation();
-    auto velocity = vehicle_ptr_->get_velcoty();
-    return std::to_string(x) + "," + std::to_string(y) + "," + std::to_string(theta) + "," + std::to_string(velocity)+"\n";
-
-}
-
-std::tuple<real_t, real_t>
-DiffDriveVehicleWrapper::get_position()const{
-
-    std::lock_guard<std::mutex> lock(integrate_mutex_);
-
-    auto x = vehicle_ptr_->get_x_position();
-    auto y = vehicle_ptr_->get_y_position();
-    return {x,y};
-}
-
-std::tuple<real_t, real_t, real_t, real_t>
-DiffDriveVehicleWrapper::get_state()const{
-
-    auto x = vehicle_ptr_->get_x_position();
-    auto y = vehicle_ptr_->get_y_position();
-    auto theta = vehicle_ptr_->get_orientation();
-    auto velocity = vehicle_ptr_->get_velcoty();
-    return {x, y, theta, velocity};
-}
-
-void
-DiffDriveVehicleWrapper::set_cmd(CMD cmd){
-    std::lock_guard<std::mutex> lock(integrate_mutex_);
-    cmd_ = cmd;
-}
-
 
 void
 ServerThread::StateEstimationThread::update_state_observers(){
@@ -345,7 +287,6 @@ ServerThread::PathFollowerThread::run(){
 
     while(!this->should_stop()){
 
-        vwrapper_.integrate();
 
         // are we on the goal? if yes
         // then notify server that notfies the client
@@ -685,7 +626,7 @@ ServerThread::run(){
 
     tasks_.push_back(std::make_unique<state_est_task_t>(this->get_condition(), *map_));
     tasks_.push_back(std::make_unique<path_cstr_task_t>(this->get_condition(), *map_));
-    tasks_.push_back(std::make_unique<path_follow_task_t>(this->get_condition(), vwrapper_));
+    tasks_.push_back(std::make_unique<path_follow_task_t>(this->get_condition()));
 
     tasks_.push_back(std::make_unique<request_task_t>(this->get_condition(), requests_, cmds_, responses_));
     tasks_.push_back(std::make_unique<client_task_t>(this->get_condition(), requests_, responses_));
@@ -867,9 +808,6 @@ int main(){
     // the vehicle the simulator is simulating
     DiffDriveVehicle vehicle(RADIUS);
 
-    // a wrapper class to provide synchronization
-    DiffDriveVehicleWrapper vehicle_wrapper(vehicle);
-
     ThreadPoolOptions options;
     options.n_threads = N_THREADS;
     options.msg_on_start_up = true;
@@ -881,7 +819,7 @@ int main(){
     ThreadPool pool(options);
 
     // the server instance
-    ServerThread server(stop_sim, map, init_state, vehicle_wrapper, pool);
+    ServerThread server(stop_sim, map, init_state, pool);
 
     server.run();
     pool.close();
