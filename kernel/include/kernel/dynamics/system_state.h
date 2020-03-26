@@ -117,8 +117,6 @@ SysState<dim>::SysState(std::array<std::string, dim>&& names, real_t val)
     for(uint_t i=0; i<dim; ++i){
         values_[i] = std::pair(names[i], val);
     }
-
-    names.clear();
 }
 
 template<int dim>

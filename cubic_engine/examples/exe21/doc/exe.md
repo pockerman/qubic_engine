@@ -1,64 +1,92 @@
-# Example 21: SARSA Algorithm for the cliff-walking problem
+# Example 21: Pure Pursuit Path Tracking
 
 ## Contents
-* [Acknowledgements](#ackw)
+
 * [Overview](#overview) 
-        * [SARSA Algorithm](#sarsa_algorithm)
-	* [Dynamic Programming](#dynamic_programming)
-	* [Monte Carlo](#monte_carlo)
-	* [Temporal Difference](#temporal_difference)
+	* [Pure pursuit path tracking](#pure_pursuit_tracking)
 * [Include files](#include_files)
 * [Program structure](#prg_struct)
 * [The main function](#m_func)
 * [Results](#results)
-
-## <a name="ackw"></a>  Acknowledgements
-
-This example is actually taken from <a href="https://towardsdatascience.com/reinforcement-learning-rl-101-with-python-e1aa0d37d43b">Towards Data Science</a>.
-The code is primarily an adaptation of the Python code from <a href="https://towardsdatascience.com/reinforcement-learning-rl-101-with-python-e1aa0d37d43b"> here </a>.
+* [Source Code](#source_code)
 
 ## <a name="overview"></a> Overview
 
-### <a name="sarsa_algorithm"></a> SARSA Algorithm
-SARSA stands for State-Action-Reward-State-Action and it is an iterative algorithm
-for  learning a <a href="https://en.wikipedia.org/wiki/Markov_decision_process">Markov Decision Process</a>.
+In this example we will implement the socalled pure pursuit path tracking algorithm.
+For more details you can consult the original document <a href="https://www.ri.cmu.edu/pub_files/pub3/coulter_r_craig_1992_1/coulter_r_craig_1992_1.pdf">here</a>.
 
-As the name implies, the algorithm uses the current agent state say ```S_1```,
-the action the agent chooses ```A_1```, the reward ```R``` that the agent
-gets for choosing this action, the state ```S_2``` that the agent enters after
-taking action ```A_1``` and the next action ```A_2``` the agent chooses when in
-state ```S_2```.
+### <a name="pure_pursuit_tracking"></a> Pure pursuit path tracking
 
-Hence, the update of the ```Q``` function is given by the equation below
+Pure pursuit path tracking is a geometry based path following controller.
+It uses the current position of the robot and a selected point on the path (also known as the 
+lookahead point) to make adjustements
+if needed in the position and orientation of the vehicle such that the latter follows the 
+the specified path as closely as possible. This point is chosen at a specified lookahead distacnce.
+The definitions are illustrated in the figure below
 
-<img src="sarsa_update.svg"
-     alt="SARSA Update"
+<img src="pure_pursuit_lookahead1.png"
+     alt="Pure Pursuit definitions"
      style="float: left; margin-right: 10px;" />
 
-The algorithm is described below
+
+A path is simply a series of coordinates also called waypoints. There are various methods to generate a path.
+In this example we will assume that a path is already known to us and that this path does not change during the
+course of the simulation.
+
+The lookahead point is the point on the path that is lookahead distance from the robot. We can find the 
+lookahead point by finding the intersection point of the circle with radius lookahead distance centered at the robot's 
+location and the path segments.
 
 
-### <a name="dynamic_programming"></a> Dynamic Programming
+So how can we choose the lookahead distance? For curvy paths a shorter lookahead distance is better.
+Note that the lookahead distance could also change along the path based on the curvature of the path or the
+target velocity of the vehicle. The following figure shows the effect of different lookahead distances.
 
-### <a name="monte_carlo"></a> Monte Carlo
+<img src="pure_pursuit_lookahead2.png"
+     alt="Pure Pursuit definitions"
+     style="float: left; margin-right: 10px;" />
 
-### <a name="temporal_difference"></a> Temporal Difference
+
+Once we establish the lookahead point, we need to drive the vehicle in an arc towards the lookahead point.
+Here is how we can calculate the curvature of that arc.
+
+
+The workings of the alogorithm are as follows:
+
+- Determine the current location of the vehicle
+- Find the path point closest to the vehicle
+- Find the lookahead point
+- Transform the lookahead to vehicle coordinates
+- Calculate the curvature and request the vehicle to set the steering to curvature
+- Update the vehicle's position
+
+The major advantages of the algorithm can be summarized as follows
+
+- Easy tuning of the look-ahead distance
+- Computational simplicity
+- Absence of derivative terms
+
+There are also some disadvantages
+
 
 ## <a name="include_files"></a> Include files
 
-## <a name="prg_struct"></a> Program structure
+```
+```
 
 ## <a name="m_func"></a> The main function
 
+```
+
+```
+
 ## <a name="results"></a> Results
 
-![Policy Iteration Simulation](iteration_delta_values.png)
+<img src="movie.gif"
+     alt="Position view"
+     style="float: left; margin-right: 10px;" />
 
-![Monte Carlo Simulation](monte_carlo_iteration_delta_values.png)
+## <a name="source_code"></a> Source Code
 
-![Temporal Difference gamma = 0.5 alpha = 0.5](td_iteration_gamma_05_alpha_05.png)
-![Temporal Difference gamma = 0.1 alpha = 0.1](td_iteration_gamma_01_alpha_01.png)
-
-
-
+<a href="../exe.cpp">exc.cpp</a>
 

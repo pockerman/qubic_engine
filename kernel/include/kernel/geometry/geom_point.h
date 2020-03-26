@@ -29,6 +29,9 @@ public:
    template<typename Container>
    explicit GeomPoint(const Container& data);
 
+   /// \brief Construct given an initializer_list
+   explicit GeomPoint(const std::initializer_list<T>& list);
+
    /// \brief copy ctor
    GeomPoint(const GeomPoint& t);
 
@@ -43,9 +46,7 @@ public:
    /// offset.
    GeomPoint & operator += (const GeomPoint &);
 
-   ///
    /// \detailed Subtract another tensor.
-   ///
    GeomPoint & operator -= (const GeomPoint &);
 
    /// \detailed Scale the vector by
@@ -59,10 +60,8 @@ public:
    /// \detailed scale with a given factor
    void scale(T factor);
 
-   ///
-   /// detailed scale this object by the given factors
+   /// \brief  scale this object by the given factors
    /// p factors should have size at least \p spacedim
-   ///
    void scale(const std::vector<T>& factors);
 
    /// detailed zero the entries of the tensor
@@ -80,17 +79,13 @@ public:
    /// \brief access the i-th coordinate of the point read-only
    T entry(uint_t i)const{return (*this)[i];}
 
-   ///
    /// \brief Get a copy of the data of this object
-   ///
    auto coordinates()const{return data_;}
 
    /// \brief Get the max element in the point
    T max()const;
 
-   ///
    /// \brief Get the min element in the point
-   ///
    T min()const;
 
    /// \brief Get the distance from the given point
@@ -98,6 +93,10 @@ public:
 
    /// \brief Return the distance from the origin
    T L2_norm()const{return distance(GeomPoint(static_cast<T>(0)));}
+
+   /// \brief Returns the dot product of this point
+   /// and the given point
+   T dot(const GeomPoint& other)const;
 
    /// \brief Returns the square sum of the compontents
    T square_sum()const;
@@ -133,6 +132,24 @@ data_()
 {
     for(uint_t i=0; i<data_.size(); ++i){
         data_[i] = data[i];
+    }
+}
+
+template<int spacedim,typename T>
+GeomPoint<spacedim,T>::GeomPoint(const std::initializer_list<T>& list)
+    :
+      data_()
+{
+    if(list.size() != spacedim){
+        throw std::logic_error("Invalid initialization list size");
+    }
+
+    auto start = list.begin();
+    auto end = list.end();
+
+    uint_t i = 0;
+    for(; start != end; ++start){
+        data_[i++] = *start;
     }
 }
 
@@ -280,6 +297,19 @@ GeomPoint<spacedim,T>::square_sum()const{
                   [&](const T& value){
         result += value*value;
     });
+
+    return result;
+}
+
+template<int spacedim,typename T>
+T
+GeomPoint<spacedim,T>::dot(const GeomPoint<spacedim, T>& other)const{
+
+    T result = (*this)[0]*other[0];
+
+    for(uint_t i = 1; i<spacedim; ++i){
+        result += (*this)[i]*other[i];
+    }
 
     return result;
 }

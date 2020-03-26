@@ -8,11 +8,8 @@
 #include "kernel/discretization/quad_implementation.h"
 
 
-namespace kernel
-{
-
-namespace numerics
-{
+namespace kernel{
+namespace numerics{
 
 /// \detailed a class that represents quad type elements in dim spatial dimension.
 /// In 2D this object acts like a proper element. In 3D this class
@@ -104,9 +101,9 @@ class Quad<2>: public Element<2>
    
 private:
  
-  /**
-    *\detailed object that handles the various calculations
-    */
+  ///
+  /// \brief object that handles the various calculations
+  ///
   QuadImpl<2> impl_;
 
   /// \brief The faces of the quad

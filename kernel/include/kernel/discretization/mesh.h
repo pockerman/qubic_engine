@@ -7,19 +7,18 @@
 #include "kernel/discretization/element_type.h"
 #include "kernel/utilities/filtered_iterator.h"
 
-namespace kernel
-{
+#include "boost/noncopyable.hpp"
+namespace kernel{
 
 // forward declarations
 template<int dim, typename T> class GeomPoint;
 
-namespace numerics
-{
+namespace numerics{
 
 
 /// \brief A class that represents a mesh.
 template<int spacedim>
-class Mesh
+class Mesh: private boost::noncopyable
 {
 
 public:
