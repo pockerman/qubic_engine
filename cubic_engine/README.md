@@ -94,7 +94,8 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
-- <a href="#">Example 6: </a> Solving the State-Value Function Problem
+- <a href="examples/exe6/doc/exe.md">Example 6: </a> TD Learning
+- <a href="examples/exe22/doc/exe.md">Example 22: </a> SARSA Algorithm
 
 ### <a name="using_ros"></a> Robotics Simulations
 

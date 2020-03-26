@@ -10,7 +10,6 @@
 * [Results](#results)
 * [Source Code](#source_code)
 
-
 ## <a name="overview"></a> Overview
 
 In this example we will implement the socalled pure pursuit path tracking algorithm.
