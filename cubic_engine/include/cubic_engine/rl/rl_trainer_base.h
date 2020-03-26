@@ -10,6 +10,13 @@ template<typename WorldTp, typename AgentTp>
 class RLTrainerBase: private boost::noncopyable
 {
 
+public:
+
+    typedef WorldTp world_t;
+    typedef AgentTp agent_t;
+
+    /// \brief Train the agent
+
 };
 
 }
