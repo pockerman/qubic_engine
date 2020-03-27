@@ -66,14 +66,15 @@ Checkout the [Examples Map](#examples_map). Documentation is well...underway.
 
 ### <a name="numerics"></a> Numerics
 
-- <a href="examples/example_8">Example 8: </a> Serial Monte Carlo Integration
+- <a href="examples/example_8">Example 8: </a> Serial Monte Carlo integration
 - <a href="examples/example_10">Example 10: </a> Calculate the area of a circle using Monte Carlo integration
 - <a href="examples/example_11">Example 11: </a> Radio active deacay simulation
-- <a href="examples/example_14">Example 14: </a> Monte Carlo Integration with ```OMPExecutor``` class
+- <a href="examples/example_14">Example 14: </a> Monte Carlo integration with ```OMPExecutor``` class
 - <a href="examples/example_15/doc/exe.md">Example 15: </a> Calculate MSE error with ```MSEFunction``` class
 - <a href="examples/example_16/doc/exe.md">Example 16: </a> Calculate SSE error with ```SSEFunction``` class
-- <a href="examples/example_26/doc/exe.md">Example 26: </a> Bisection Method
-- <a href="examples/example_27/doc/exe.md">Example 27: </a> Monte Carlo Simulation for the Monty Hall Problem
+- <a href="examples/example_26/doc/exe.md">Example 26: </a> Bisection method
+- <a href="examples/example_27/doc/exe.md">Example 27: </a> Monte Carlo simulation for the Monty Hall Problem
+- <a href="examples/example_28/doc/exe.md">Example 28: </a> Newton's method
 
 
 ### <a name="physics_simulation"></a> Physics Simulation
