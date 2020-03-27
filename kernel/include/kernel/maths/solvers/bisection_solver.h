@@ -11,6 +11,8 @@ namespace kernel {
 namespace maths{
 namespace solvers {
 
+/// \brief Simple implementation of the Bisection method
+/// for solving non linear equations
 template<typename PointTp, typename FunctionTp>
 class BisectionSolver: public IterativeAlgorithmController
 {
