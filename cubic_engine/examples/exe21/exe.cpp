@@ -5,20 +5,108 @@
 #include "kernel/discretization/edge_element.h"
 #include "kernel/dynamics/system_state.h"
 #include "kernel/discretization/node.h"
+#include "kernel/vehicles/difd_drive_vehicle.h"
 
 
 #include <array>
 #include <iostream>
 
+namespace example
+{
+using cengine::uint_t;
+using cengine::real_t;
+using cengine::control::PurePursuit2DPathTracker;
+using kernel::numerics::LineMesh;
+using kernel::GeomPoint;
+using kernel::dynamics::SysState;
+
+const real_t DT = 0.5;
+
+/// An agent to simulate
+class Agent
+{
+public:
+
+    /// Constructor
+    Agent(const LineMesh<2>& path, const GeomPoint<2>& goal, real_t goal_r);
+
+    /// execute the agent i.e. go to goal
+    void execute();
+
+    /// returns trus  if the goal has been reached
+    bool goal_reched()const;
+
+private:
+
+    /// the path the agent must follow
+    const LineMesh<2>* path_ptr_;
+
+    /// mobile platform of the agent
+    kernel::DiffDriveVehicle platform_;
+
+    /// the PP tracker
+    PurePursuit2DPathTracker tracker_;
+
+    /// the goal of the robot
+    kernel::GeomPoint<2> goal_;
+
+    /// the radius around the goal
+    real_t g_radius_;
+};
+
+Agent::Agent(const LineMesh<2>& path, const GeomPoint<2>& goal, real_t goal_r)
+    :
+    path_ptr_(&path),
+    platform_(0.2),
+    tracker_(),
+    goal_(goal),
+    g_radius_(goal_r)
+{}
+
+bool
+Agent::goal_reched()const{
+
+    GeomPoint<2> pos;
+    platform_.get_position(pos);
+
+    if(pos.distance(goal_)<g_radius_){
+        return true;
+    }
+
+    return false;
+}
+
+void Agent::execute(){
+
+
+    /// update the path the tracker is using
+    tracker_.update(*path_ptr_);
+    tracker_.set_n_sampling_points(4);
+    tracker_.set_lookahead_dist(0.2);
+
+    real_t time = 0.0;
+
+    while(!goal_reched()){
+
+        /// let's see the state of the agent
+        std::cout<<"At time: "<<time<<std::endl;
+        std::cout<<platform_.get_state()<<std::endl;
+
+        platform_.integrate(0.0, 0.0);
+
+        /// correct for the path
+        tracker_.execute(platform_.get_state());
+
+        time += DT;
+    }
+}
+
+}
+
 
 int main(){
 
-    using cengine::uint_t;
-    using cengine::real_t;
-    using cengine::control::PurePursuit2DPathTracker;
-    using kernel::numerics::LineMesh;
-    using kernel::GeomPoint;
-    using kernel::dynamics::SysState;
+    using namespace example;
 
     try{
 
@@ -40,18 +128,8 @@ int main(){
         element->set_node(0, node1);
         element->set_node(1, node2);
 
-        std::array<std::string, 3> names = {"X","Y","Theta"};
-        SysState<3> state(std::move(names), 0.0);
-
-        PurePursuit2DPathTracker tracker;
-        tracker.update(path);
-        tracker.set_goal(*node2);
-        tracker.set_n_sampling_points(4);
-        tracker.set_lookahead_dist(0.2);
-
-        /// let's track
-        tracker.execute(state);
-
+        Agent agent(path, *node2, 0.2);
+        agent.execute();
     }
     catch(std::exception& e){
 
