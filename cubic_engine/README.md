@@ -51,19 +51,6 @@ make tests
 
 Checkout the [Examples Map](#examples_map). Documentation is well...underway.
 
-## <a name="some_issues"></a> Some Issues
-
-```
-undefined reference to `dgetri_'
-```
-
-This means that you need to link your executable to BLAS for example adding something like
-the following should resolve the issue
-
-```
-TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
-```
-
 ## <a name="examples_map"></a> Examples Map
 
 ### <a name="filtering_and_esitmation"></a> Filtering and Estimation
