@@ -7,9 +7,7 @@ namespace kernel {
 namespace numerics {
 
 /// forward declarations
-class TrilinosEpetraMatrix;
-class TrilinosEpetraVector;
-class TrilinosKrylovSolver;
+class BlazeKrylovSolver;
 struct KrylovSolverResult;
 
 /// \brief A solution policy should
@@ -19,7 +17,7 @@ struct BlazeSolutionPolicy
 {
     typedef SparseMatrix<real_t> matrix_t;
     typedef DynVec<real_t> vector_t;
-    typedef TrilinosKrylovSolver solver_t;
+    typedef BlazeKrylovSolver solver_t;
     typedef KrylovSolverResult solver_output_t;
 };
 
