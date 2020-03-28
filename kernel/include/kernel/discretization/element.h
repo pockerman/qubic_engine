@@ -130,8 +130,6 @@ public:
     /// of the  passed  object
     uint_t which_neighbor_am_i(const Element<dim>& element)const;
 
-
-
     /// \brief Return the vertices of the element
     std::vector<node_ptr_t> get_vertices()const;
 

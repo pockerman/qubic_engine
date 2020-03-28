@@ -7,36 +7,27 @@
 #include "kernel/maths/constants.h"
 #include <cmath>
 
-namespace kernel
-{
+namespace kernel{
 
-/**
- * @brief The Circle class. Models a common circle
- */
+/// \brief The Circle class. Models a common circle
 class Circle
 {
 public:
 
-
     /// \brief Construct a circle centerd at the origin
     Circle(real_t r);
-
 
     /// \brief Construct a circle given its radius and center
     Circle(real_t r, const GeomPoint<2>& center);
 
-
     /// \brief Returns the radius of the circle
     real_t radius()const{return r_;}
-
 
     /// \brief Returns the center of the circle
     GeomPoint<2> center()const{return center_;}
 
-
     /// \brief Returns the area
     real_t area()const;
-
 
     /// \brief Returns true if the given point lies inside the circle
     bool is_inside(const GeomPoint<2>& point, real_t tol = KernelConsts::tolerance())const;

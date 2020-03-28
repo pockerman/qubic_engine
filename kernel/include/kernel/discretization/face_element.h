@@ -16,7 +16,7 @@ namespace kernel
 namespace numerics
 {
 
-//forward declarations  
+///forward declarations
 template<int dim> class Element;
 template<int spacedim> class Mesh;
 template<int dim,int topodim> class FaceElement;
@@ -109,10 +109,6 @@ public:
     bool on_boundary () const {return boundary_indicator_!=KernelConsts::invalid_size_type();}
     uint_t boundary_indicator()const{return boundary_indicator_;}
 
-
-
-
-
 private:
   
   bool is_vertex_;
@@ -158,8 +154,13 @@ public:
     static const int topodim_ = 1;
 
     typedef Node<2>* node_ptr_t;
-    typedef EdgeSelector<2>::ptr_t edge_ptr_t;
-    typedef EdgeSelector<2>::ptr_t face_ptr_t;
+    typedef const Node<2>* cnode_ptr_t;
+    typedef Node<2>& node_ref_t;
+    typedef const Node<2>& cnode_ref_t;
+    typedef EdgeSelector<2>::ptr_t  edge_ptr_t;
+    typedef EdgeSelector<2>::cptr_t cedge_ptr_t;
+    typedef EdgeSelector<2>::ptr_t  face_ptr_t;
+    typedef EdgeSelector<2>::cptr_t cface_ptr_t;
 
     /// \brief dtor
     virtual ~FaceElement(){}
@@ -198,7 +199,7 @@ public:
     void set_owner_shared_elements(Element<2>* o, Element<2>* n)
     {owner_ = o; neighbor_ = n;}
 
-    /// \detailed set the boundary indicator for the FaceElement
+    /// \brief set the boundary indicator for the FaceElement
     void set_boundary_indicator(uint_t bind){boundary_indicator_=bind;}
 
     /// \detailed read/write access to the owner of this
@@ -213,13 +214,13 @@ public:
     /// \brief Returns the vertices ids
     virtual std::vector<uint_t> get_vertices_ids()const;
 
-    /// Rreturns \p true iff a boundary indicator has been set
+    /// Returns \p true iff a boundary indicator has been set
     bool on_boundary () const {return boundary_indicator_ != KernelConsts::invalid_size_type();}
  
     /// Get the boundary indicator of the face
     uint_t boundary_indicator()const{return boundary_indicator_;}
 
-    /// \brief
+    /// \brief Calculate the volume of the element
     real_t volume()const;
 
     /// \brief computes a reference distance between the
@@ -249,6 +250,12 @@ public:
 
     /// \brief Read reference to the neighbor of the side
     const Element<2>& get_owner()const;
+
+    /// \brief Returns the v-th vertex
+    cnode_ref_t get_vertex(uint_t v)const;
+
+    /// \brief Returns the v-th vertex
+    node_ref_t get_vertex(uint_t v);
 
     /// \brief Returns the normal vector to the face
     const DynVec<real_t> normal_vector()const;
