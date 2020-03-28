@@ -96,7 +96,7 @@ IF( ENABLE_TESTING MATCHES "ON" AND GTEST_LIB_DIR MATCHES " " )
 ENDIF()
 
 IF(USE_PYTORCH MATCHES "ON")
-        SET(CMAKE_PREFIX_PATH /home/david/CubicEngineering/cubic_engine_develop_branches/integrate_pytorch/libtorch)
+        #SET(CMAKE_PREFIX_PATH )
 	find_package(Torch REQUIRED)
 	INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})
 ENDIF()
