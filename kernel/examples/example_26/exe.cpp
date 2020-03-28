@@ -1,18 +1,3 @@
-# Example 26: Bisection Method
-
-## Contents
-
-* [Overview](#overview) 
-* [Include files](#include_files)
-* [The main function](#m_func)
-* [Results](#results)
-* [Source Code](#source_code)
-
-## <a name="overview"></a> Overview
-
-## <a name="include_files"></a> Include files
-
-```
 #include "kernel/base/types.h"
 #include "kernel/maths/solvers/bisection_solver.h"
 #include "kernel/geometry/geom_point.h"
@@ -20,11 +5,7 @@
 
 #include <cmath>
 #include <iostream>
-```
 
-## <a name="m_func"></a> The main function
-
-```
 namespace example
 {
 using kernel::real_t;
@@ -65,22 +46,7 @@ int main(){
 
     return 0;
 }
-```
 
-## <a name="results"></a> Results
-
-```
-Converged...: true
-Tolerance...: 1e-08
-Residual....: 7.45058e-09
-Iterations..: 28
-
-( 0.360422 )
-```
-
-## <a name="source_code"></a> Source Code
-
-<a href="../exe.cpp">exc.cpp</a>
 
 
 
