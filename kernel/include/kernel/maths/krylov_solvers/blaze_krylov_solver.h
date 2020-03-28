@@ -8,8 +8,13 @@
 #include "kernel/maths/krylov_solvers/krylov_solver_output.h"
 #include "kernel/maths/krylov_solvers/krylov_solver_data.h"
 
+#include <memory>
+
 namespace kernel {
 namespace numerics{
+
+/// Forward declarations
+class BlazeKrylovSolverImplBase;
 
 
 /// \brief Class that models a Krylov type solver
@@ -19,6 +24,8 @@ class BlazeKrylovSolver
 
 public:
 
+    /// \brief The output the solver returns when solving
+    /// the system
     typedef KrylovSolverResult output_t;
 
     /// default ctor
@@ -58,6 +65,7 @@ private:
 
   /// \brief Iplement the Krylov solver by using
   /// local implementation of iterative solvers
+  std::unique_ptr<BlazeKrylovSolverImplBase> pimpl_;
 
 };
 
@@ -65,7 +73,7 @@ inline
 BlazeKrylovSolver::BlazeKrylovSolver()
                             :
                             data_(),
-                            linear_solver_()
+                            pimpl_()
                             {}
 
 
@@ -73,7 +81,7 @@ inline
 BlazeKrylovSolver::BlazeKrylovSolver(const KrylovSolverData& data)
                             :
                            data_(data),
-                           linear_solver_()
+                           pimpl_()
 {
     set_preconditioner();
     set_krylov_solver();
