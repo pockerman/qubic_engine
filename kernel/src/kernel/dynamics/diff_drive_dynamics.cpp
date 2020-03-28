@@ -1,6 +1,7 @@
 #include "kernel/dynamics/diff_drive_dynamics.h"
 #include "kernel/maths/constants.h"
 #include <cmath>
+
 namespace kernel{
 namespace dynamics{
 

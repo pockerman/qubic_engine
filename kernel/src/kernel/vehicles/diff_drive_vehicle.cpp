@@ -17,4 +17,11 @@ DiffDriveVehicle::integrate(real_t velocity, real_t orientation, const std::arra
     velocity_ = velocity;
     dynamics_.integrate(velocity, orientation, errors);
 }
+
+
+const DiffDriveVehicle::state_t&
+DiffDriveVehicle::get_state()const{
+    return this->get_state();
+}
+
 }
