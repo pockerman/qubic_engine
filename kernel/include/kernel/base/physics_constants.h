@@ -4,10 +4,10 @@
 #include "kernel/base/types.h"
 #include "boost/noncopyable.hpp"
 
-namespace kernel
-{
+namespace kernel{
 
-
+/// \brief PhysicsConsts collects various
+/// physics constants
 class PhysicsConsts: private boost::noncopyable
 {
 public:
