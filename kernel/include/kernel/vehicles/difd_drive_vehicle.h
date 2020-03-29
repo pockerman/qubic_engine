@@ -14,7 +14,7 @@ struct DiffDriveProperties
     /// \brief The maximum wheel velocity
     real_t Vm;
 
-    /// \brief The length of the axle connecting the
+    /// \brief Half the length of the axle connecting the
     /// two motorized wheels
     real_t L;
 };
@@ -65,7 +65,7 @@ public:
 private:
 
     /// \brief The properties of the robot
-    DiffDriveProperties& properties_;
+    DiffDriveProperties properties_;
 
     /// \brief The object that handles the dynamics
     dynamics::DiffDriveDynamics dynamics_;

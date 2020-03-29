@@ -1,21 +1,33 @@
 #include "kernel/vehicles/difd_drive_vehicle.h"
-
+#include <cmath>
 namespace kernel
 {
 
-DiffDriveVehicle::DiffDriveVehicle(real_t r)
+DiffDriveVehicle::DiffDriveVehicle(const DiffDriveProperties& properties)
     :
-      wheel_radius_(r),
-      dynamics_(),
-      velocity_(0.0),
-      w_(0.0)
+      properties_(properties),
+      dynamics_()
 {}
 
 void
-DiffDriveVehicle::integrate(real_t velocity, real_t orientation, const std::array<real_t, 2>& errors){
+DiffDriveVehicle::integrate(real_t vr, real_t vl, const std::array<real_t, 2>& errors){
 
-    velocity_ = velocity;
-    dynamics_.integrate(velocity, orientation, errors);
+    /// update right/left wheel velocities
+    if(std::fabs(vr) > properties_.Vm){
+        vr_ = properties_.Vm;
+    }
+    else{
+       vr_ = vr;
+    }
+
+    if(std::fabs(vl) > properties_.Vm){
+        vl_ = properties_.Vm;
+    }
+    else{
+       vl_ = vl;
+    }
+
+    dynamics_.integrate(vr_, vl_, errors);
 }
 
 
