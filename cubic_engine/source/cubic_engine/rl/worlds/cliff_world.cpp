@@ -110,7 +110,8 @@ CliffWorld::do_step(const CliffWorld::action_t& action){
           }
           else if(s == xlength_-1) {
 
-            s = goal_ - 1; // remember that we will do s++...
+            // remember that we will do s++...
+            s = goal_ - 1;
             r_ = reward_.step_reward();
           }
           else {
