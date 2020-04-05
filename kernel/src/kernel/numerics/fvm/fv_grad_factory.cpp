@@ -1,5 +1,5 @@
-#include "kernel/numerics/fv_grad_factory.h"
-#include "kernel/numerics/fv_gauss_grad.h"
+#include "kernel/numerics/fvm/fv_grad_factory.h"
+#include "kernel/numerics/fvm/fv_gauss_grad.h"
 
 namespace kernel{
 namespace numerics{

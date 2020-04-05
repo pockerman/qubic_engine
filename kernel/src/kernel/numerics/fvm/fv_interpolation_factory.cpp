@@ -1,6 +1,6 @@
-#include "kernel/numerics/fv_interpolation_factory.h"
-#include "kernel/numerics/fv_ud_interpolation.h"
-#include "kernel/numerics/fv_linear_interpolation.h"
+#include "kernel/numerics/fvm/fv_interpolation_factory.h"
+#include "kernel/numerics/fvm/fv_ud_interpolation.h"
+#include "kernel/numerics/fvm/fv_linear_interpolation.h"
 
 #include <exception>
 

@@ -1,5 +1,5 @@
-#include "kernel/numerics/fv_laplace_assemble_policy.h"
-#include "kernel/numerics/fv_grad_base.h"
+#include "kernel/numerics/fvm/fv_laplace_assemble_policy.h"
+#include "kernel/numerics/fvm/fv_grad_base.h"
 #include "kernel/numerics/dof_manager.h"
 #include "kernel/numerics/boundary_function_base.h"
 #include "kernel/numerics/boundary_conditions_type.h"

@@ -71,6 +71,9 @@ public:
     /// read/write access to the i-th entry of the vector
     real_t& operator[](uint_t i);
 
+    /// \brief Returns the i-th entry of the vector
+    real_t get(uint_t i)const{return (*this)[i];}
+
     /// get the start of the vector
     iterator begin();
 
