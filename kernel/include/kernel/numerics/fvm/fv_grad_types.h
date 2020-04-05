@@ -1,10 +1,8 @@
 #ifndef FV_GRAD_TYPES_H
 #define FV_GRAD_TYPES_H
 
-namespace kernel
-{
-namespace numerics
-{
+namespace kernel{
+namespace numerics{
 
 enum class FVGradType{GAUSS,
                       GAUSS_CORRECTED,

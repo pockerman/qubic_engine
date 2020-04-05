@@ -26,6 +26,12 @@ public:
     typedef VelocitAssemblyPolicy   velocity_assembly_policy_t;
     typedef typename SolutionPolicy::vector_t vector_t;
 
+    /// \brief Constructor
+    SteadyStateNSSystem();
+
+    /// \brief Destructor
+    ~SteadyStateNSSystem();
+
     /// \brief Distribute the dofs for the system
     /// over the attached mesh
     virtual void distribute_dofs();
@@ -81,6 +87,13 @@ private:
 
 };
 
+template<int dim, typename VelocitAssemblyPolicy,
+         typename PressureAssemblyPolicy, typename SolutionPolicy>
+SteadyStateNSSystem<dim, VelocitAssemblyPolicy, PressureAssemblyPolicy, SolutionPolicy>::SteadyStateNSSystem()
+    :
+      v_(),
+      p_()
+{}
 
 template<int dim, typename VelocitAssemblyPolicy,
          typename PressureAssemblyPolicy, typename SolutionPolicy>
@@ -112,14 +125,12 @@ SteadyStateNSSystem<dim, VelocitAssemblyPolicy,
     else{
 
         auto itr = v_.begin();
-
         for(; itr != v_.end(); ++itr){
 
             if(itr->first == name){
                 itr->second.set_boundary_function(func);
                 return;
             }
-
         }
     }
 
@@ -140,19 +151,16 @@ SteadyStateNSSystem<dim, VelocitAssemblyPolicy,
     else{
 
         auto itr = v_.begin();
-
         for(; itr != v_.end(); ++itr){
 
             if(itr->first == name){
                 itr->second.set_rhs_function(func);
                 return;
             }
-
         }
     }
 
     throw std::logic_error("Name " + name + "does not exist");
-
 }
 
 template<int dim, typename VelocitAssemblyPolicy,
@@ -181,6 +189,32 @@ SteadyStateNSSystem<dim, VelocitAssemblyPolicy,
     }
 
     throw std::logic_error("Name " + name + "does not exist");
+
+}
+
+
+template<int dim, typename VelocitAssemblyPolicy,
+         typename PressureAssemblyPolicy, typename SolutionPolicy>
+void
+SteadyStateNSSystem<dim, VelocitAssemblyPolicy,
+PressureAssemblyPolicy, SolutionPolicy>::assemble_system(){
+
+    /// assume that the velocity systems
+    /// are independent so we can assemble them
+    /// separately
+
+    auto v_itr = v_.begin();
+
+    for(; v_itr != v_.end(); ++v_itr){
+
+        v_itr->second.assemble_system();
+        v_itr->second.solve_system();
+    }
+
+    /// solve for the pressure variable
+    p_.assemble_system();
+    p_.solve();
+
 
 }
 
