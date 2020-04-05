@@ -66,7 +66,7 @@ configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/kernel/base/version.h 
 # add this because config.h ends up in the build directory
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
-SET(BLAZE_INCL_DIR "")
+SET(BLAZE_INCL_DIR " ")
 
 IF( BLAZE_INCL_DIR MATCHES " " )
     MESSAGE( FATAL_ERROR  "Blaze include directory has not been specified")
@@ -135,6 +135,7 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/maths/*.cpp
                  ${PROJECT_SRC_DIR}/dynamics/*.cpp
                  ${PROJECT_SRC_DIR}/numerics/*.cpp
+                 ${PROJECT_SRC_DIR}/numerics/fvm/*.cpp
                  ${PROJECT_SRC_DIR}/discretization/*.cpp
                  ${PROJECT_SRC_DIR}/discretization/utils/*.cpp
                  ${PROJECT_SRC_DIR}/geometry/*.cpp
