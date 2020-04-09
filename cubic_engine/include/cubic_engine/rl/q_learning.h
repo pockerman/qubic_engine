@@ -35,7 +35,7 @@ public:
     QTableLearning(QLearningInput&& input);
 
     /// \brief Train on the given world
-    void train(const world_t& world );
+    void train(world_t& world );
 
 private:
 
@@ -49,10 +49,10 @@ private:
     std::map<uint_t, std::vector<real_t>> qtable_;
 
     /// \brief The world used by the agent
-    const world_t* world_ptr_;
+    world_t* world_ptr_;
 
     ///Initialize the tabular implementation
-    void initialize_(const world_t& world);
+    void initialize_(world_t& world);
 
     /// \brief Initialize the QTable entries
     /// for the given state
@@ -75,7 +75,7 @@ QTableLearning<WorldTp>::QTableLearning(QLearningInput&& input)
 
 template<typename WorldTp>
 void
-QTableLearning<WorldTp>::initialize_(const typename QTableLearning<WorldTp>::world_t& world){
+QTableLearning<WorldTp>::initialize_(typename QTableLearning<WorldTp>::world_t& world){
 
 
     /// loop over the states of the world and initialize
@@ -92,7 +92,7 @@ template<typename WorldTp>
 template<typename StateTp>
 void
 QTableLearning<WorldTp>::initialize_state_(const StateTp& state){
-    qtable_.insert(state.get_id(), std::vector<real_t>(state.n_actions(), 0.0));
+    qtable_.insert({state.get_id(), std::vector<real_t>(state.n_actions(), 0.0)});
 }
 
 template<typename WorldTp>
@@ -103,7 +103,7 @@ QTableLearning<WorldTp>::get_maximum_action_for_state_(uint_t state_idx)const{
 
 template<typename WorldTp>
 void
-QTableLearning<WorldTp>::train(const world_t& world ){
+QTableLearning<WorldTp>::train(world_t& world ){
 
     /// initialize the table
     initialize_(world);

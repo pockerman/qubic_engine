@@ -4,6 +4,7 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/world.h"
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
+#include "cubic_engine/rl/worlds/grid_world_state.h"
 #include "kernel/base/kernel_consts.h"
 
 #include <map>
@@ -14,19 +15,19 @@ namespace cengine {
 namespace rl {
 namespace worlds {
 
+
 template<typename RewardTp>
-class GridWorld: public World<GridWorldAction, int, typename RewardTp::value_t>
+class GridWorld: public World<GridWorldAction, GridWorldState, typename RewardTp::value_t>
 {
 public:
 
     typedef RewardTp reward_t;
-    typedef
-    typedef typename World<GridWorldAction, int, typename RewardTp::value_t>::action_t action_t;
-    typedef typename World<GridWorldAction, int, typename RewardTp::value_t>::state_t state_t;
-    typedef typename World<GridWorldAction, int, typename RewardTp::value_t>::reward_value_t reward_value_t;
+    typedef typename World<GridWorldAction, GridWorldState, typename RewardTp::value_t>::action_t action_t;
+    typedef typename World<GridWorldAction, GridWorldState, typename RewardTp::value_t>::state_t state_t;
+    typedef typename World<GridWorldAction, GridWorldState, typename RewardTp::value_t>::reward_value_t reward_value_t;
 
     /// \brief Constructor
-    GridWorld(uint_t xlength,  uint_t ylength);
+    GridWorld();
 
     /// \brief Destructor
     ~GridWorld();
@@ -52,18 +53,30 @@ public:
     /// \brief The size of the world.  Namely,
     /// the total number of different positions in
     /// the grid
-    uint_t size()const{return cells_map_.size();}
+    uint_t size()const{return states_.size();}
 
     /// \brief Set up the cells map
-    void set_cells_map(std::map<uint_t, std::vector<uint_t>>&& cells);
+    void set_states(std::vector<state_t>&& states);
+
+    /// \brief returns the current state of the world
+    const state_t& get_current_state()const{return current_state_; }
+
+    /// \brief Execute the aid-th action in the current state
+    void execute_action(uint_t aid);
+
+    /// \brief Returns the state with the given id
+    const state_t get_state_by_id(uint_t id)const;
+
+    /// \brief The number of states of the world
+    uint_t n_states()const{return states_.size();}
+
+    /// \brief Returns the i-th state
+    state_t& get_state(uint_t s){return states_[s];}
+
+    /// \brief Returns the i-th state
+    const state_t& get_state(uint_t s)const{return states_[s];}
 
 private:
-
-    /// \brief The length  of the world in the x direction
-    uint_t xlength_;
-
-    /// \brief The length of the world in the y direction
-    uint_t ylength_;
 
     /// \brief The starting state
     state_t start_{0};
@@ -86,7 +99,7 @@ private:
     /// \brief A map that describes the possible state transitions
     /// from one state to another. This is simply a list of
     /// cell ids the agent can transition to
-    std::map<uint_t, std::vector<uint_t>> cells_map_;
+    std::vector<state_t> states_;
 
     /// \brief Flag indicating if the world
     /// has the current_state_ and goal_ state
@@ -95,17 +108,15 @@ private:
 };
 
 template<typename RewardTp>
-GridWorld<RewardTp>::GridWorld(uint_t xlength,  uint_t ylength)
+GridWorld<RewardTp>::GridWorld()
     :
-    World<GridWorldAction, int, typename RewardTp::value_t>(),
-    xlength_(xlength),
-    ylength_(ylength),
+    World<GridWorldAction, GridWorldState, typename RewardTp::value_t>(),
     start_(),
     goal_(),
     current_state_(),
     reward_(),
     r_(0.0),
-    cells_map_(),
+    states_(),
     finished_(false)
 {}
 
@@ -117,7 +128,7 @@ template<typename RewardTp>
 void
 GridWorld<RewardTp>::step(const typename GridWorld<RewardTp>::action_t& action){
 
-    if(cells_map_.empty()){
+    if(states_.empty()){
         throw std::logic_error("Cell connectivity is not established");
     }
 
@@ -130,41 +141,24 @@ GridWorld<RewardTp>::step(const typename GridWorld<RewardTp>::action_t& action){
         /// for the current state
         /// find out the index of the cell
         /// that the agent can transition to
-        auto& cells = cells_map_[current_state_];
-        auto next_state = kernel::KernelConsts::invalid_size_type();
+        auto* next_state = current_state_.execute_action(action);
 
-        /// according to the action where
-        /// the agent moves
-
-        if(action == GridWorldAction::SOUTH){
-            next_state = cells[0];
-        }
-        else if(action == GridWorldAction::EAST){
-            next_state = cells[1];
-        }
-        else if(action == GridWorldAction::NORTH){
-            next_state = cells[2];
-        }
-        else if(action == GridWorldAction::WEST){
-            next_state = cells[3];
-        }
-
-        if(next_state == kernel::KernelConsts::invalid_size_type()){
+        if(next_state == nullptr){
             // the agent just came out of the grid
             // so finishe the game
             finished_ = true;
         }
 
-        r_ = reward_.get_reward(action, current_state_, next_state);
-        current_state_ = next_state;
+        r_ = reward_.get_reward(action, current_state_, *next_state);
+        current_state_ = *next_state;
     }
 }
 
 
 template<typename RewardTp>
 void
-GridWorld<RewardTp>::set_cells_map(std::map<uint_t, std::vector<uint_t>>&& cells){
-    cells_map_ = cells;
+GridWorld<RewardTp>::set_states(std::vector<state_t>&& states){
+    states_ = states;
 }
 
 template<typename RewardTp>
@@ -177,6 +171,18 @@ GridWorld<RewardTp>::restart(const typename GridWorld<RewardTp>::state_t& start,
     current_state_ = start_;
     r_ = 0.0;
     finished_ = false;
+
+}
+
+template<typename RewardTp>
+void
+GridWorld<RewardTp>::execute_action(uint_t aid){
+
+}
+
+template<typename RewardTp>
+const typename GridWorld<RewardTp>::state_t
+GridWorld<RewardTp>::get_state_by_id(uint_t id)const{
 
 }
 
