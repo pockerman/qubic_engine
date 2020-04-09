@@ -4,11 +4,8 @@
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
 
-namespace kernel
-{
-
-  namespace kernel_detail
-  {
+namespace kernel{
+namespace kernel_detail{
 
   template<typename NodeTp>
   struct generic_line_base
@@ -112,7 +109,7 @@ public:
 
 private:
 
-        /// \brief The cost
+    /// \brief The cost
     CostTp cost_;
 
 };
