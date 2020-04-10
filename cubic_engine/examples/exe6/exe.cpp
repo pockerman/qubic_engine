@@ -73,11 +73,13 @@ RewardProducer::setup_rewards(){
 
         if(i<7){
 
-            if(i != 6){
+            if(i != 6 && i !=0 ){
                 rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
+                rewards_.add_reward(i, GridWorldAction::NORTH,  -1.0);
             }
-
-            rewards_.add_reward(i, GridWorldAction::NORTH,  PENALTY);
+            else{
+               rewards_.add_reward(i, GridWorldAction::NORTH,  PENALTY);
+            }
 
             if(i!= 0){
                 rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
@@ -85,10 +87,177 @@ RewardProducer::setup_rewards(){
         }
         else if(i>=42){
 
+            if(i != 42 && i != 48 ){
+                rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
+                rewards_.add_reward(i, GridWorldAction::SOUTH,  -1.0);
+            }
+            else{
+               rewards_.add_reward(i, GridWorldAction::SOUTH,  PENALTY);
+            }
+
+            if(i!= 42){
+                rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
+            }
+
         }
         else{
-            static const uint_t ar[]={7,14,21,28,35,13,20,27,34};
 
+            static const uint_t arwest[]={7,14,21,28};
+            static const uint_t areast[]={35,13,20,27,34};
+
+            if(std::find(&arwest[0],
+                         &arwest[ sizeof(arwest)/sizeof(uint_t) ],
+                         i) != &arwest[ sizeof (arwest)/sizeof(uint_t) ]){
+
+                rewards_.add_reward(i, GridWorldAction::SOUTH,  PENALTY);
+                rewards_.add_reward(i, GridWorldAction::NORTH,  PENALTY);
+
+                if(i != 35){
+                    rewards_.add_reward(i, GridWorldAction::EAST,  -1.0);
+                }
+                else{
+                   rewards_.add_reward(i, GridWorldAction::EAST,  0.0);
+                }
+            }
+            else if(std::find(&areast[0],
+                              &areast[ sizeof(areast)/sizeof(uint_t) ],
+                              i) != &areast[ sizeof (areast)/sizeof(uint_t) ]){
+
+                rewards_.add_reward(i, GridWorldAction::SOUTH,  PENALTY);
+                rewards_.add_reward(i, GridWorldAction::NORTH,  PENALTY);
+
+                if(i != 13){
+                    rewards_.add_reward(i, GridWorldAction::WEST,  -1.0);
+                }
+                else{
+                   rewards_.add_reward(i, GridWorldAction::WEST,  0.0);
+                }
+            }
+            else{
+
+                static uint_t short_path_1[] ={0, 20, 22, 18, 8};
+                static uint_t short_path_2[] ={37, 38, 39, 40};
+                static uint_t short_path_3[] ={33, 26, 19, 12};
+
+                if(std::find(&short_path_1[0],
+                             &short_path_1[ sizeof(short_path_1)/sizeof(uint_t) ],
+                                         i) != &short_path_1[ sizeof (short_path_1)/sizeof(uint_t) ]){
+
+                     rewards_.add_reward(i, GridWorldAction::SOUTH,  -1.0);
+
+                     if(i != 36){
+                         rewards_.add_reward(i, GridWorldAction::NORTH,  -1.0);
+                         rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
+
+                         if(i != 8){
+                             rewards_.add_reward(i, GridWorldAction::EAST,  -2.);
+                         }
+                         else{
+                             rewards_.add_reward(i, GridWorldAction::EAST,  -1.0);
+                         }
+                     }
+                     else{
+                        rewards_.add_reward(i, GridWorldAction::NORTH,  PENALTY);
+                        rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
+                        rewards_.add_reward(i, GridWorldAction::EAST,  -1.0);
+                     }
+                }
+                else if(std::find(&short_path_2[0],
+                                  &short_path_2[ sizeof(short_path_2)/sizeof(uint_t) ],
+                                              i) != &short_path_2[ sizeof (short_path_2)/sizeof(uint_t) ]){
+
+
+                    rewards_.add_reward(i, GridWorldAction::NORTH,  PENALTY);
+
+                    if(i != 40){
+                        rewards_.add_reward(i, GridWorldAction::SOUTH,  -2.0);
+                        rewards_.add_reward(i, GridWorldAction::EAST,  -1.0);
+                        rewards_.add_reward(i, GridWorldAction::WEST,  -1.0);
+                    }
+                    else{
+                        rewards_.add_reward(i, GridWorldAction::SOUTH,  -1.0);
+                        rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
+                        rewards_.add_reward(i, GridWorldAction::WEST,  -1.0);
+                    }
+
+                }
+                else if(std::find(&short_path_3[0],
+                                  &short_path_3[ sizeof(short_path_3)/sizeof(uint_t) ],
+                                              i) != &short_path_3[ sizeof (short_path_3)/sizeof(uint_t) ]){
+
+
+                    rewards_.add_reward(i, GridWorldAction::NORTH,  -1.0);
+                    rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
+
+                    if(i != 12){
+                        rewards_.add_reward(i, GridWorldAction::SOUTH,  -1.0);
+                        rewards_.add_reward(i, GridWorldAction::WEST,  -2.0);
+                    }
+                    else{
+                        rewards_.add_reward(i, GridWorldAction::SOUTH,  -2.0);
+                        rewards_.add_reward(i, GridWorldAction::WEST,  -1.0);
+                    }
+                }
+                else{
+
+                    if(i == 30 || i == 31 || i == 32){
+
+                        rewards_.add_reward(i, GridWorldAction::NORTH,  -1.0);
+                        rewards_.add_reward(i, GridWorldAction::SOUTH,  -2.0);
+
+                        if(i == 32){
+                            rewards_.add_reward(i, GridWorldAction::EAST,  -1.0);
+                        }
+                        else{
+                            rewards_.add_reward(i, GridWorldAction::EAST,  -2.0);
+                        }
+
+                        if(i == 30){
+                            rewards_.add_reward(i, GridWorldAction::WEST,  -1.0);
+                        }
+                        else{
+                            rewards_.add_reward(i, GridWorldAction::WEST,  -2.0);
+                        }
+                    }
+                    else if (i == 23 || i == 24 || i == 25) {
+
+                        rewards_.add_reward(i, GridWorldAction::NORTH,  -2.0);
+                        rewards_.add_reward(i, GridWorldAction::SOUTH,  -2.0);
+
+                        if(i == 25){
+                            rewards_.add_reward(i, GridWorldAction::EAST,  -1.0);
+                        }
+                        else{
+                            rewards_.add_reward(i, GridWorldAction::EAST,  -2.0);
+                        }
+
+                        if(i == 23){
+                            rewards_.add_reward(i, GridWorldAction::WEST,  -1.0);
+                        }
+                        else{
+                            rewards_.add_reward(i, GridWorldAction::WEST,  -2.0);
+                        }
+                    }
+                    else{
+                        rewards_.add_reward(i, GridWorldAction::NORTH,  -2.0);
+                        rewards_.add_reward(i, GridWorldAction::SOUTH,  -1.0);
+
+                        if(i == 18){
+                            rewards_.add_reward(i, GridWorldAction::EAST,  -1.0);
+                        }
+                        else{
+                            rewards_.add_reward(i, GridWorldAction::EAST,  -2.0);
+                        }
+
+                        if(i == 16){
+                            rewards_.add_reward(i, GridWorldAction::WEST,  -1.0);
+                        }
+                        else{
+                            rewards_.add_reward(i, GridWorldAction::WEST,  -2.0);
+                        }
+                    }
+                }
+            }
         }
 
     }
