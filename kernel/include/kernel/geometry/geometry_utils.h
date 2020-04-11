@@ -4,7 +4,10 @@
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/geometry/geom_point.h"
+
 #include <stdexcept>
+#include <cmath>
+#include <utility>
 
 namespace kernel{
 
@@ -45,6 +48,8 @@ get_point_with_min_distance(const GeomPoint<dim>& p,
     return current_point;
 }
 
+std::pair<bool, real_t>
+has_intersection(real_t discriminant, real_t b, real_t a);
 }
 
 #endif // GEOMETRY_UTILS_H
