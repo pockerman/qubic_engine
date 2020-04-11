@@ -12,28 +12,34 @@ namespace grids {
 
 /// \brief Helper class to represent a waypoint
 template<int dim, typename Data>
-struct WayPoint
+struct WayPoint: public kernel::GeomPoint<dim>
 {
     typedef kernel::GeomPoint<dim> position_t;
     typedef Data data_t;
-    position_t position;
     uint_t id;
     Data data;
 
     /// constructor
     WayPoint(const position_t& p, uint_t id_, const data_t& data_=data_t())
         :
-          position(p),
+          kernel::GeomPoint<dim>(p),
           id(id_),
           data(data)
     {}
 };
+
 
 struct LineSegmentData
 {
     /// \brief The maximum velocity
     /// allowed on the edge
     real_t Vmax;
+
+    /// \brief The orientation of the
+    /// segment with respect to the global coordinate
+    /// frame. This may also dictate the orientation
+    /// that a reference vehicle may have on the segment
+    real_t theta;
 };
 
 template<int dim, typename NodeData, typename SegmentData>
@@ -57,6 +63,23 @@ public:
     LineSegment(uint_t id, const w_point_t& v1,
                 const w_point_t& v2, const segment_data_t& data);
 
+
+    /// \brief Returns the v-th vertex of the segment
+    const w_point_t& get_vertex(uint_t v)const;
+
+    /// \brief Returns true if the segment is active
+    bool is_active()const{return is_active_;}
+
+    /// \brief deactive the segment
+    void deactivate(){is_active_ = false;}
+
+    /// \brief Activate the segment
+    void make_active(){is_active_ = true;}
+
+    /// \brief Returns the distance of the given
+    /// point from the segment
+    real_t distance_from(const kernel::GeomPoint<dim>& point)const;
+
 private:
 
     /// \brief list of internal points of
@@ -66,6 +89,8 @@ private:
     /// \brief The data asociated with the segmen
     segment_data_t data_;
 
+    /// \brief Flag indicating if the segment is active
+    bool is_active_;
 };
 
 template<int dim, typename NodeData, typename SegmentData>
@@ -76,8 +101,31 @@ LineSegment<dim, NodeData, SegmentData>::LineSegment(uint_t id,
     :
      kernel::kernel_detail::generic_line_base<WayPoint<dim, NodeData>>(v1, v2, id),
      internal_points_(),
-     data_(data)
+     data_(data),
+     is_active_(true)
 {}
+
+
+template<int dim, typename NodeData, typename SegmentData>
+const typename LineSegment<dim, NodeData, SegmentData>::w_point_t&
+LineSegment<dim, NodeData, SegmentData>::get_vertex(uint_t v)const{
+
+    if( v == 0 ){
+        return this->start();
+    }
+    else if(v == 1){
+        return this->end();
+    }
+
+    throw std::logic_error("Vertex index not in [0,1]");
+}
+
+template<int dim, typename NodeData, typename SegmentData>
+real_t
+LineSegment<dim, NodeData, SegmentData>::distance_from(const kernel::GeomPoint<dim>& point)const{
+    return 0.0;
+}
+
 
 /// \brief class WaypointPath models a path formed
 /// by line segments and way points. The Data
@@ -88,21 +136,28 @@ class WaypointPath
 {
 public:
 
+    static const int dimension = dim;
+
     typedef PointData w_point_data_t;
     typedef WayPoint<dim, w_point_data_t> w_point_t;
+    typedef kernel::GeomPoint<dim> point_t;
     typedef EdgeData segment_data_t;
     typedef LineSegment<dim, w_point_data_t, segment_data_t> segment_t;
+    typedef segment_t element_t;
 
     /// \brief point iteration
-    typedef typename std::vector<w_point_t>::iterator node_iterator_impl;
-    typedef typename std::vector<w_point_t>::const_iterator cnode_iterator_impl;
+    typedef typename std::vector<w_point_t*>::iterator node_iterator_impl;
+    typedef typename std::vector<w_point_t*>::const_iterator cnode_iterator_impl;
 
     /// \brief Line segment  iteration
-    typedef typename std::vector<segment_t>::iterator element_iterator_impl;
-    typedef typename std::vector<segment_t>::const_iterator celement_iterator_impl;
+    typedef typename std::vector<segment_t*>::iterator element_iterator_impl;
+    typedef typename std::vector<segment_t*>::const_iterator celement_iterator_impl;
 
     /// \brief Constructor
     WaypointPath();
+
+    /// \brief Destructor
+    ~WaypointPath();
 
     /// \brief How many waypoints the pah has
     uint_t n_wpoints()const{return waypoints_.size();}
@@ -116,6 +171,10 @@ public:
     /// \brief Reserve space for
     void reserve_n_segments(uint_t n);
 
+    /// \brief clear the memory allocated for points and
+    /// edges
+    void clear();
+
     /// \brief Add a new waypoint in the path and get back
     /// a writable reference of the newly added point
     w_point_t& add_way_point(const kernel::GeomPoint<dim>& position,
@@ -127,6 +186,12 @@ public:
     /// in the path
     segment_t& add_segment(uint_t vid0, uint_t vid1,
                             const segment_data_t& data);
+
+    /// \brief read/write access to the n-th segment
+    segment_t* element(uint_t e);
+
+    /// \brief read access to the n-th segment
+    const segment_t* element(uint_t e)const;
 
     /// \brief Raw node iteration
     node_iterator_impl nodes_begin(){return waypoints_.begin();}
@@ -147,10 +212,10 @@ public:
 private:
 
     /// \brief The Waypoints of the path
-    std::vector<w_point_t> waypoints_;
+    std::vector<w_point_t*> waypoints_;
 
     /// \brief The segments of the path
-    std::vector<segment_t> segments_;
+    std::vector<segment_t*> segments_;
 
 };
 
@@ -162,14 +227,38 @@ WaypointPath<dim, PointData, EdgeData>::WaypointPath()
 {}
 
 template<int dim, typename PointData, typename EdgeData>
+WaypointPath<dim, PointData, EdgeData>::~WaypointPath(){
+    clear();
+}
+
+template<int dim, typename PointData, typename EdgeData>
+void
+WaypointPath<dim, PointData, EdgeData>::clear(){
+
+    for(uint_t i=0; i<waypoints_.size(); ++i){
+        if(waypoints_[i] != nullptr){
+            delete waypoints_[i];
+            waypoints_[i] = nullptr;
+        }
+    }
+
+    for(uint_t i=0; i<segments_.size(); ++i){
+        if(segments_[i] != nullptr){
+            delete segments_[i];
+            segments_[i] = nullptr;
+        }
+    }
+}
+
+template<int dim, typename PointData, typename EdgeData>
 typename WaypointPath<dim, PointData, EdgeData>::w_point_t&
 WaypointPath<dim, PointData, EdgeData>::add_way_point(const kernel::GeomPoint<dim>& position,
                                                       const typename WaypointPath<dim, PointData, EdgeData>::w_point_data_t& data){
 
     uint_t id = waypoints_.size();
-    WaypointPath<dim, PointData, EdgeData>::w_point_t p(position, id, data);
+    WaypointPath<dim, PointData, EdgeData>::w_point_t* p = new WaypointPath<dim, PointData, EdgeData>::w_point_t(position, id, data);
     waypoints_.push_back(p);
-    return waypoints_[id];
+    return *waypoints_[id];
 }
 
 template<int dim, typename PointData, typename EdgeData>
@@ -192,9 +281,9 @@ WaypointPath<dim, PointData, EdgeData>::add_segment(uint_t vid0, uint_t vid1,
     auto id = segments_.size();
     auto v0 = waypoints_[vid0];
     auto v1 = waypoints_[vid1];
-    WaypointPath<dim, PointData, EdgeData>::segment_t seg(id, v0, v1, data);
+    WaypointPath<dim, PointData, EdgeData>::segment_t* seg = new WaypointPath<dim, PointData, EdgeData>::segment_t(id, *v0, *v1, data);
     segments_.push_back(seg);
-    return segments_[id];
+    return *segments_[id];
 }
 
 template<int dim, typename PointData, typename EdgeData>
@@ -207,6 +296,33 @@ template<int dim, typename PointData, typename EdgeData>
 void
 WaypointPath<dim, PointData, EdgeData>::reserve_n_segments(uint_t n){
     segments_.reserve(n);
+}
+
+template<int dim, typename PointData, typename EdgeData>
+typename WaypointPath<dim, PointData, EdgeData>::segment_t*
+WaypointPath<dim, PointData, EdgeData>::element(uint_t e){
+
+    if(e >= segments_.size()){
+        throw std::logic_error("Invalid segment id: "+
+                               std::to_string(e)+
+                               "not in [0, "+
+                               std::to_string(segments_.size()));
+    }
+
+    return segments_[e];
+}
+
+template<int dim, typename PointData, typename EdgeData>
+const typename WaypointPath<dim, PointData, EdgeData>::segment_t*
+WaypointPath<dim, PointData, EdgeData>::element(uint_t e)const{
+    if(e >= segments_.size()){
+        throw std::logic_error("Invalid segment id: "+
+                               std::to_string(e)+
+                               "not in [0, "+
+                               std::to_string(segments_.size()));
+    }
+
+    return segments_[e];
 }
 
 }
