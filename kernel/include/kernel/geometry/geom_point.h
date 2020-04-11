@@ -359,32 +359,23 @@ GeomPoint<spacedim,T>::to_string()const{
     return rslt;
 }
 
-//free functions that work on the GeomPoint<spacedim,T> class
-//these functions logically extend the interface of the class
+/// \brief free functions that work on the GeomPoint<spacedim,T> class
 
-/**
-  *  \detailed Prints the values of this tensor in the
-  *  form <tt>x1 x2 x3 etc</tt>.
-  */
+/// \brief Prints the values of the GeomPoint in the
 template<int spacedim,typename T>
 inline
 std::ostream & operator << (std::ostream &out, const GeomPoint<spacedim,T> &p){
  return p.print_point_info(out);
-
 }
 
-/**
-  *\detailed scale the given point by factor. This function does not
-  * change the entries of \p t.
-  */
+/// \brief scale the given point by facto and returns a copyr.
+/// This function does not change the entries of \p t.
 template<int spacedim,typename T>
 const GeomPoint<spacedim,T> scale(const GeomPoint<spacedim,T>& t, T factor){
   return (GeomPoint<spacedim,T>(t)*=factor);
 }
 
-/**
-  *\detailed scale the given point by the factors in vector
-  */
+/// \brief scale the given point by the factors in vector
 template<int spacedim,typename T>
 const GeomPoint<spacedim,T> scale(const GeomPoint<spacedim,T>& t, const std::vector<T>& factors){
 
