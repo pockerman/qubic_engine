@@ -45,16 +45,23 @@ public:
     /// the distance Dk and orientation. It also uses error terms
     void integrate(real_t vr, real_t vl, const std::array<real_t, 2>& errors);
 
-
-
     /// \brief Read the x-coordinate
     real_t get_x_position()const{return this->state_.get("X");}
+
+    /// \brief Set the x-coordinate
+    real_t set_x_position(real_t x){this->state_.set("X", x);}
 
     /// \brief Read the y-coordinate
     real_t get_y_position()const{return this->state_.get("Y");}
 
+    /// \brief Set the y-coordinate
+    real_t set_y_position(real_t y){this->state_.set("Y", y);}
+
     /// \brief Read the y-coordinate
     real_t get_orientation()const{return this->state_.get("Theta");}
+
+    /// \brief Set the orientation
+    void set_orientation(real_t theta){this->state_.set("Theta", theta);}
 
     /// \brief updates the matrices used to describe this
     /// motion model

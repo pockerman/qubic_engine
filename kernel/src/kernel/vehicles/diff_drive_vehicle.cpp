@@ -10,23 +10,48 @@ DiffDriveVehicle::DiffDriveVehicle(const DiffDriveProperties& properties)
 {}
 
 void
-DiffDriveVehicle::integrate(real_t vr, real_t vl, const std::array<real_t, 2>& errors){
+DiffDriveVehicle::set_velocity(real_t v){
 
-    /// update right/left wheel velocities
-    if(std::fabs(vr) > properties_.Vm){
-        vr_ = properties_.Vm;
-    }
-    else{
-       vr_ = vr;
+    vr_ = v/properties_.R;
+
+    if(std::fabs(vr_) > properties_.Vmax){
+        vr_ = properties_.Vmax;
     }
 
-    if(std::fabs(vl) > properties_.Vm){
-        vl_ = properties_.Vm;
+    vl_ = v/properties_.R;
+
+    if(std::fabs(vl_) > properties_.Vmax){
+        vl_ = properties_.Vmax;
     }
-    else{
-       vl_ = vl;
+}
+
+void
+DiffDriveVehicle::set_velocities(real_t v, real_t w){
+
+    if (std::fabs(w) < properties_.tol){
+        /// assume that angular velocity is zerp
+        set_velocity(v);
+        return;
     }
 
+    vl_ = v/properties_.R;
+
+    if(std::fabs(vl_) > properties_.Vmax){
+        vl_ = properties_.Vmax;
+    }
+
+    vr_ = (v + w*2.0*properties_.L)/properties_.R;
+
+    if(std::fabs(vr_) > properties_.Vmax){
+        vr_ = properties_.Vmax;
+    }
+}
+
+void
+DiffDriveVehicle::integrate(real_t v, real_t w, const std::array<real_t, 2>& errors){
+
+    /// set the right and left wheel velocities
+    set_velocities(v, w);
     dynamics_.integrate(vr_, vl_, errors);
 }
 
