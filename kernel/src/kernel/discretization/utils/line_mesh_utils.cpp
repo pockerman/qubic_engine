@@ -118,11 +118,11 @@ std::pair<bool, real_t> has_intersection(real_t discriminant,
     /// here t1 didn't intersect so we are either started
     /// inside the sphere or completely past it
     if( t2 >= 0 && t2 <= 1 ){
-      // ExitWound
+      /// ExitWound
       return {true, t2} ;
     }
 
-    // no intn: FallShort, Past, CompletelyInside
+    /// no intn: FallShort, Past, CompletelyInside
     return result ;
 
 
