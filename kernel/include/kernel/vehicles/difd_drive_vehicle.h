@@ -83,6 +83,9 @@ public:
     /// of the vehicle
     void set_velocities(real_t v, real_t w);
 
+    /// \brief Set time step
+    real_t set_time_step(real_t dt){dynamics_.set_time_step(dt);}
+
     /// \brief Read current velocity of the vehicle
     real_t get_velcoty()const{return 0.5*properties_.R*(vr_ + vl_);}
 

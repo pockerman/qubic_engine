@@ -36,15 +36,15 @@ DiffDriveVehicle::set_velocities(real_t v, real_t w){
 
     vl_ = v/properties_.R;
 
-    if(std::fabs(vl_) > properties_.Vmax){
+    /*if(std::fabs(vl_) > properties_.Vmax){
         vl_ = properties_.Vmax;
-    }
+    }*/
 
     vr_ = (v + w*2.0*properties_.L)/properties_.R;
 
-    if(std::fabs(vr_) > properties_.Vmax){
+    /*if(std::fabs(vr_) > properties_.Vmax){
         vr_ = properties_.Vmax;
-    }
+    }*/
 }
 
 void
@@ -52,13 +52,17 @@ DiffDriveVehicle::integrate(real_t v, real_t w, const std::array<real_t, 2>& err
 
     /// set the right and left wheel velocities
     set_velocities(v, w);
-    dynamics_.integrate(vr_, vl_, errors);
+
+    auto velocity = get_velcoty();
+    auto wvelocity = get_w_velocity();
+
+    dynamics_.integrate(v, w, errors);
 }
 
 
 const DiffDriveVehicle::state_t&
 DiffDriveVehicle::get_state()const{
-    return this->get_state();
+    return dynamics_.get_state();
 }
 
 }
