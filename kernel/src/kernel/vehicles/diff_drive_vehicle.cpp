@@ -34,17 +34,9 @@ DiffDriveVehicle::set_velocities(real_t v, real_t w){
         return;
     }
 
+    /// TODO: Verify that this is correct
     vl_ = v/properties_.R;
-
-    /*if(std::fabs(vl_) > properties_.Vmax){
-        vl_ = properties_.Vmax;
-    }*/
-
     vr_ = (v + w*2.0*properties_.L)/properties_.R;
-
-    /*if(std::fabs(vr_) > properties_.Vmax){
-        vr_ = properties_.Vmax;
-    }*/
 }
 
 void
