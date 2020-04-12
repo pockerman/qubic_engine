@@ -33,13 +33,20 @@ struct LineSegmentData
 {
     /// \brief The maximum velocity
     /// allowed on the edge
-    real_t Vmax;
+    real_t Vmax{0.0};
 
     /// \brief The orientation of the
     /// segment with respect to the global coordinate
     /// frame. This may also dictate the orientation
     /// that a reference vehicle may have on the segment
-    real_t theta;
+    real_t theta{0.0};
+
+    /// \brief The angular velocity on the segment
+    real_t w{0.0};
+
+    /// \brief The angular velocity on the segement
+    real_t v{0.0};
+
 };
 
 template<int dim, typename NodeData, typename SegmentData>
@@ -47,6 +54,7 @@ class LineSegment: private kernel::kernel_detail::generic_line_base<WayPoint<dim
 {
 public:
 
+    static const int dimension = dim;
     typedef NodeData node_data_t;
     typedef SegmentData segment_data_t;
     typedef WayPoint<dim, NodeData> w_point_t;
@@ -76,9 +84,17 @@ public:
     /// \brief Activate the segment
     void make_active(){is_active_ = true;}
 
-    /// \brief Returns the distance of the given
-    /// point from the segment
-    real_t distance_from(const kernel::GeomPoint<dim>& point)const;
+    /// \brief Returns the orientation of the
+    /// segment with respect to some global frame
+    real_t get_orientation()const{return data_.theta;}
+
+    /// \brief Returns the angular velocity on the
+    /// segment
+    real_t get_angular_velocity()const{return data_.w;}
+
+    /// \brief Returns the linear velocity on the
+    /// segment
+    real_t get_velocity()const{return data_.v;}
 
 private:
 
@@ -119,13 +135,6 @@ LineSegment<dim, NodeData, SegmentData>::get_vertex(uint_t v)const{
 
     throw std::logic_error("Vertex index not in [0,1]");
 }
-
-template<int dim, typename NodeData, typename SegmentData>
-real_t
-LineSegment<dim, NodeData, SegmentData>::distance_from(const kernel::GeomPoint<dim>& point)const{
-    return 0.0;
-}
-
 
 /// \brief class WaypointPath models a path formed
 /// by line segments and way points. The Data
