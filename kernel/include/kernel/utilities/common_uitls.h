@@ -7,7 +7,7 @@ namespace utils {
 template<typename T>
 int sign(const T& expr){
 
-    if(expr<0){
+    if(expr < 0){
         return -1;
     }
 
