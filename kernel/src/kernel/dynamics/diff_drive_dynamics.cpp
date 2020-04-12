@@ -1,13 +1,16 @@
 #include "kernel/dynamics/diff_drive_dynamics.h"
 #include "kernel/maths/constants.h"
+#include "kernel/base/kernel_consts.h"
 #include <cmath>
-
+#include <iostream>
 namespace kernel{
 namespace dynamics{
 
 DiffDriveDynamics::DiffDriveDynamics()
     :
-  MotionModelBase<SysState<3>, DynamicsMatrixDescriptor, real_t, real_t, std::array<real_t, 2>>()
+  MotionModelBase<SysState<3>, DynamicsMatrixDescriptor, real_t, real_t, std::array<real_t, 2>>(),
+  dt_(0.0),
+  tol_(KernelConsts::tolerance())
 {
     this->state_.set(0, {"X", 0.0});
     this->state_.set(1, {"Y", 0.0});
@@ -22,19 +25,27 @@ DiffDriveDynamics::DiffDriveDynamics(DiffDriveDynamics::state_t&& state)
 }
 
 void
-DiffDriveDynamics::integrate(real_t distance, real_t orientation, const std::array<real_t, 2>& errors){
+DiffDriveDynamics::integrate(real_t v, real_t w, const std::array<real_t, 2>& errors){
 
     auto values = state_.get_values();
 
-    this->state_[0] += values[0] + (distance + errors[0])*std::cos(values[2] + orientation + errors[1]);
-    this->state_[1] += values[1] + (distance + errors[0])*std::sin(values[2] + orientation + errors[1]);
-    this->state_[2] += values[2] + orientation + errors[1];
+    if(std::fabs(w) < tol_){
+        // assume zero angular velocity
 
-    if( this->state_[2] <  - MathConsts::PI){
-        this->state_[2] = - MathConsts::PI;
+        auto distance = 0.5*v*dt_;
+       auto xincrement = (distance + errors[0])*std::cos(values[2]  + errors[1]);
+       auto yincrement = (distance + errors[0])*std::sin(values[2]  + errors[1]);
+
+       this->state_[0] += xincrement;
+       this->state_[1] += yincrement;
     }
-    else if(this->state_[2] > MathConsts::PI){
-        this->state_[2] =  MathConsts::PI;
+    else{
+
+        this->state_[2] += w*dt_ + errors[1];
+        this->state_[0] += ((v/(2.0*w)) + errors[0])*(std::sin(this->state_[2]) -
+                std::sin(values[2]) + errors[1]);
+        this->state_[1] -= ((v/(2.0*w)) + errors[0])*(std::cos(this->state_[2]) -
+                std::cos(values[2]) + errors[1]);
     }
 }
 
