@@ -36,14 +36,12 @@ public:
     /// it also updates the various matrices if needed
     virtual state_t& evaluate(const input_t& input )override;
 
-    /// \brief Integrate the new state. The input is
-    /// the distance Dk and orientation
-    void integrate(real_t vr, real_t vl)
-    {integrate(vr, vl, {{0.0, 0.0}});}
+    /// \brief Integrate the new state.
+    void integrate(real_t v, real_t w)
+    {integrate(v, w, {{0.0, 0.0}});}
 
-    /// \brief Integrate the new state. The input is
-    /// the distance Dk and orientation. It also uses error terms
-    void integrate(real_t vr, real_t vl, const std::array<real_t, 2>& errors);
+    /// \brief Integrate the new state. It also uses error terms
+    void integrate(real_t v, real_t w, const std::array<real_t, 2>& errors);
 
     /// \brief Read the x-coordinate
     real_t get_x_position()const{return this->state_.get("X");}
@@ -70,10 +68,16 @@ public:
     /// \brief Set the time step
     void set_time_step(real_t dt){dt_ = dt;}
 
+    /// \brief Set the tolerance to use
+    real_t set_tolerance(real_t tol){tol_ = tol;}
+
 private:
 
     /// \brief The time step the integrator uses
     real_t dt_;
+
+    /// \brief tolerance
+    real_t tol_;
 
 };
 
