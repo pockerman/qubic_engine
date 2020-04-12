@@ -9,10 +9,12 @@
 #include "kernel/base/kernel_consts.h"
 #include "kernel/discretization/utils/mesh_utils.h"
 #include "kernel/geometry/shapes/circle.h"
+#include "kernel/utilities/common_uitls.h"
 
 #include "boost/noncopyable.hpp"
 #include <cmath>
 #include <tuple>
+#include <iostream>
 
 namespace cengine {
 namespace control {
@@ -25,7 +27,7 @@ namespace control {
 /// proposed by K. C. KOH and H. S. CHO
 ///
 
-template<typename PointData, typename SegmentData>
+template<typename PointData, typename SegmentData, typename RefModel>
 class BangBangPathTrackController:public kernel::ObserverBase<grids::WaypointPath<2, PointData, SegmentData>*>,
                                   private boost::noncopyable
 {
@@ -51,13 +53,10 @@ public:
     BangBangPathTrackController();
 
     /// \brief Execute controller
-    result_t execute(const kernel::dynamics::SysState<3>& state)const;
+    result_t execute(const kernel::dynamics::SysState<3>& state,  real_t v)const;
 
     /// \brief Set the lookahead distance
     void set_lookahead_dist(real_t dist){lookahead_distance_ = dist;}
-
-    /// \brief Set the goal position
-    void set_goal(const kernel::GeomPoint<2>& goal){goal_ = goal;}
 
     /// \brief Set the number of sampling points to
     /// use when computing the closest point from the
@@ -66,6 +65,9 @@ public:
 
     /// \brief Set the maximum allowed acceleration
     void set_amax(real_t a){amax_ = a;}
+
+    /// \brief Set the maximum allowed angular acceleration
+    void set_awmax(real_t awmax){awmax_ = awmax;}
 
     /// \brief Set the fitting coefficient
     void set_cx(real_t cx){cx_ = std::fabs(cx);}
@@ -80,9 +82,8 @@ public:
     /// \brief Read the resource
     virtual const path_t& read()const override final;
 
-    /// \brief Calculate the linear velocity
-    /// control
-    real_t linear_velocity_control();
+    /// \brief Returns the reference model
+    RefModel& reference_model(){return ref_model_;}
 
 private:
 
@@ -92,6 +93,9 @@ private:
     /// \brief Maximum acceleration
     real_t amax_;
 
+    /// \brief Maximum angular acceleration
+    real_t awmax_;
+
     /// \brief The lookahead distance
     real_t lookahead_distance_;
 
@@ -100,52 +104,50 @@ private:
     /// position to the path
     uint_t n_sampling_points_;
 
-    /// \brief The lookahed point calculated
-    /// by the controller
-    kernel::GeomPoint<2> lookahead_point_;
-
-    /// \brief The goal coordinates
-    kernel::GeomPoint<2> goal_;
-
     /// \brief The sampling time
     real_t dt_;
 
     /// \brief Tolerance used for calculations
     real_t tol_;
+
+    /// \brief The reference model the controller
+    /// integrates to
+    mutable RefModel ref_model_;
 };
 
-template<typename PointData, typename SegmentData>
+template<typename PointData, typename SegmentData, typename RefModel>
 real_t
-BangBangPathTrackController<PointData, SegmentData>::clip(real_t a, real_t b){
+BangBangPathTrackController<PointData, SegmentData, RefModel>::clip(real_t a, real_t b){
 
-    if(std::fabs(a) -b <kernel::KernelConsts::tolerance() ){
+    if(std::fabs(a)<b ){
         return a;
     }
 
     return b;
 }
 
-template<typename PointData, typename SegmentData>
-BangBangPathTrackController<PointData, SegmentData>::BangBangPathTrackController()
+template<typename PointData, typename SegmentData, typename RefModel>
+BangBangPathTrackController<PointData, SegmentData, RefModel>::BangBangPathTrackController()
     :
     kernel::ObserverBase<grids::WaypointPath<2, PointData, SegmentData>*>(),
     cx_(0.0),
     amax_(0.0),
+    awmax_(0.0),
     lookahead_distance_(0.0),
     n_sampling_points_(kernel::KernelConsts::invalid_size_type()),
-    lookahead_point_(),
-    goal_(),
     dt_(0.0),
-    tol_(kernel::KernelConsts::tolerance())
+    tol_(kernel::KernelConsts::tolerance()),
+    ref_model_()
 {}
 
-template<typename PointData, typename SegmentData>
-typename BangBangPathTrackController<PointData,SegmentData>::result_t
+template<typename PointData, typename SegmentData, typename RefModel>
+typename BangBangPathTrackController<PointData,SegmentData,RefModel>::result_t
 BangBangPathTrackController<PointData,
-SegmentData>::execute(const kernel::dynamics::SysState<3>& state)const{
+SegmentData,RefModel>::execute(const kernel::dynamics::SysState<3>& state, real_t v)const{
 
-    /// calculate the linear velocity control
-    ///
+    BangBangPathTrackController<PointData,SegmentData, RefModel>::result_t result;
+
+    ref_model_.set_time_step(dt_);
 
     /// get the position coordinates
     real_t rx = state.get("X");
@@ -154,53 +156,128 @@ SegmentData>::execute(const kernel::dynamics::SysState<3>& state)const{
     /// form the position
     kernel::GeomPoint<2> position({rx, ry});
 
+    /// get the position of the reference model
+    real_t ref_x = ref_model_.get_x_position();
+    real_t ref_y = ref_model_.get_y_position();
+
+    /// form the position
+    kernel::GeomPoint<2> ref_position({ref_x, ref_y});
+
+    /// calculate the vector
+    kernel::GeomPoint<2> vec = ref_position - position;
+
+    /// the path to follow
     const path_t& path=this->read();
 
-    /// 2. Find the lookahead point. We can find the lookahead point
+    /// Find the lookahead point. We can find the lookahead point
     /// by finding the intersection point of the circle centered at
     /// the robot's location and radius equal to the lookahead distance
     /// and the path segment
-    auto intersections = kernel::discretization::utils::find_intersections(path,
+    /*auto intersections = kernel::discretization::utils::find_intersections(path,
                                                               kernel::Circle(lookahead_distance_, position));
 
     if(intersections.empty()){
         /// we cannot proceed
         throw std::logic_error("No intersection points found");
-    }
+    }*/
 
     /// pick the first lookahead point
     /// as the target position on the path
-    auto lookahead_point = intersections[0];
+    auto lookahead_point = ref_position; //intersections[0];
+    //auto lookahead_point = intersections[0];
 
     /// get the segment that this lookahead point
     /// is on
-    auto segment = kernel::discretization::utils::find_first_closest_element(path, lookahead_point, tol_);
+    auto segment = kernel::discretization::utils::find_closest_element(path, ref_position, /*lookahead_point,*/
+                                                                       n_sampling_points_, tol_);
+
+    if(segment == nullptr){
+        /// we cannot proceed
+        throw std::logic_error("No segment found for lookahead point");
+    }
+
+    auto start = segment->get_vertex(0);
+    auto end = segment->get_vertex(1);
+
+    auto seg_vec = end - start;
+
+    real_t theta_t = ref_model_.get_orientation(); //segment->get_orientation();
+    real_t wt = segment->get_angular_velocity();
+    real_t vt = segment->get_velocity();
+
+    /// calculate errors
+    real_t ex = (lookahead_point[0] - rx)*std::cos(theta_t) +
+                (lookahead_point[1] - ry)*std::sin(theta_t);
+
+    real_t ey = (lookahead_point[0] - rx)*std::sin(theta_t) -
+                (lookahead_point[1] - ry)*std::cos(theta_t);
+
+    real_t etheta = theta_t - state.get("Theta");
+
+    //std::cout<<"ex: "<<ex<<std::endl;
+    //std::cout<<"ey: "<<ey<<std::endl;
+    //std::cout<<"etheta: "<<etheta<<std::endl;
+
+    real_t dotey = v*std::sin(etheta) - wt*ex ;
+    real_t dotex = vt - v*std::cos(etheta) + wt*ey;
+
+    ///calculate landing point
+    /// orientation and angular velocity
+    ///
+
+    real_t atan = std::atan(3.0*cx_* std::pow(ey/cx_, 2/3)*kernel::utils::sign(ey));
+    if(std::fabs(ey)<tol_){
+        atan = 0.0;
+    }
+
+
+    real_t theta_p = theta_t + atan;
+
+    real_t tan = std::tan(atan);
+    real_t tansqr = kernel::utils::sqr(tan);
+    real_t wp = wt + (2.0*std::pow(ey/cx_, -1/3)/(1 + tansqr))*dotey*kernel::utils::sign(ey);
+
+    int sign = kernel::utils::sign(theta_p - state.get("Theta"));
+
+    std::cout<<"Sign is : "<<sign<<std::endl;
+    real_t ws = wp +
+            std::sqrt(2.0*awmax_*std::fabs(theta_p - state.get("Theta")))*sign;
+
+
+    real_t awc = BangBangPathTrackController<PointData, SegmentData, RefModel>::clip(ws/dt_, awmax_);
+
+    result.w = awc*dt_;
+
+    real_t vs = dotex + std::sqrt(2.0*amax_*std::fabs(ex))*kernel::utils::sign(ex);
+    real_t ac = BangBangPathTrackController<PointData, SegmentData, RefModel>::clip(vs/dt_, amax_);
+
+    result.v = ac*dt_;
+
+    /// integrate the reference model
+    ref_model_.integrate(vt, wt);
+
+    //std::cout<<"Reference model state: "<<std::endl;
+    //std::cout<<ref_model_.get_state()<<std::endl;
+
+    return result;
 
 }
 
-template<typename PointData, typename SegmentData>
-real_t
-BangBangPathTrackController<PointData,SegmentData>::linear_velocity_control(){
-
-    /// calculate vs
-    real_t vs = 0.0;
-    real_t ac = BangBangPathTrackController<PointData,SegmentData>::clip(vs/dt_, amax_);
-    return ac*dt_;
-}
-
-template<typename PointData, typename SegmentData>
+template<typename PointData, typename SegmentData, typename RefModel>
 void
 BangBangPathTrackController<PointData,
-                            SegmentData>::update(const typename BangBangPathTrackController<PointData,
-                                                                                            SegmentData>::path_t& resource){
+                            SegmentData,
+RefModel>::update(const typename BangBangPathTrackController<PointData,
+                                                             SegmentData,
+                  RefModel>::path_t& resource){
 
     this->kernel::ObserverBase<grids::WaypointPath<2, PointData, SegmentData>*>::update(resource);
 }
 
-template<typename PointData, typename SegmentData>
-const typename BangBangPathTrackController<PointData,SegmentData>::path_t&
+template<typename PointData, typename SegmentData, typename RefModel>
+const typename BangBangPathTrackController<PointData, SegmentData, RefModel>::path_t&
 BangBangPathTrackController<PointData,
-                            SegmentData>::read()const{
+                            SegmentData, RefModel>::read()const{
   this->kernel::ObserverBase<grids::WaypointPath<2, PointData, SegmentData>*>::read();
 }
 
