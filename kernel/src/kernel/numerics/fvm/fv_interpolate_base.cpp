@@ -1,4 +1,4 @@
-#include "kernel/numerics/fv_interpolate_base.h"
+#include "kernel/numerics/fvm/fv_interpolate_base.h"
 
 namespace kernel{
 namespace numerics{

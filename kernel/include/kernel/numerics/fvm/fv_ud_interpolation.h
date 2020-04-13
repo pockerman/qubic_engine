@@ -1,7 +1,7 @@
 #ifndef FV_UD_INTERPOLATION_H
 #define FV_UD_INTERPOLATION_H
 
-#include "kernel/numerics/fv_interpolate_base.h"
+#include "kernel/numerics/fvm/fv_interpolate_base.h"
 #include "kernel/maths/functions/numeric_vector_function.h"
 
 namespace kernel{

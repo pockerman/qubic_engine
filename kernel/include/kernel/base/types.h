@@ -29,6 +29,10 @@ namespace kernel
     template<typename T>
     using DynVec = blaze::DynamicVector<T, blaze::columnVector>;
 
+    /// \brief General Sparse matrix
+    template<typename T>
+    using SparseMatrix = blaze::CompressedMatrix<T, blaze::rowMajor>;
+
     /// \brief Null type. Simple placeholder
     struct Null{};
 

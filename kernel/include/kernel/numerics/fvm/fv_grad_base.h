@@ -2,7 +2,7 @@
 #define FV_GRAD_BASE_H
 
 #include "kernel/base/types.h"
-#include "kernel/numerics/fv_grad_types.h"
+#include "kernel/numerics/fvm/fv_grad_types.h"
 #include <vector>
 
 namespace kernel{

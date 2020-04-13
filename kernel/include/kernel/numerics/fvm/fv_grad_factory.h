@@ -1,7 +1,7 @@
 #ifndef FV_GRAD_FACTORY_H
 #define FV_GRAD_FACTORY_H
 
-#include "kernel/numerics/fv_grad_types.h"
+#include "kernel/numerics/fvm/fv_grad_types.h"
 #include <memory>
 
 namespace kernel {

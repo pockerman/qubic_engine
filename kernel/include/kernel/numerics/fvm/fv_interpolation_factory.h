@@ -1,8 +1,9 @@
 #ifndef FV_INTERPOLATION_FACTORY_H
 #define FV_INTERPOLATION_FACTORY_H
 
-#include "kernel/numerics/fv_interpolation_types.h"
+#include "kernel/numerics/fvm/fv_interpolation_types.h"
 #include <memory>
+
 namespace kernel{
 namespace numerics{
 

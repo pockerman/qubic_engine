@@ -135,6 +135,7 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/maths/*.cpp
                  ${PROJECT_SRC_DIR}/dynamics/*.cpp
                  ${PROJECT_SRC_DIR}/numerics/*.cpp
+                 ${PROJECT_SRC_DIR}/numerics/fvm/*.cpp
                  ${PROJECT_SRC_DIR}/discretization/*.cpp
                  ${PROJECT_SRC_DIR}/discretization/utils/*.cpp
                  ${PROJECT_SRC_DIR}/geometry/*.cpp

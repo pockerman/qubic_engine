@@ -2,7 +2,7 @@
 #define FV_INTERPOLATE_BASE_H
 
 #include "kernel/base/types.h"
-#include "kernel/numerics/fv_interpolation_types.h"
+#include "kernel/numerics/fvm/fv_interpolation_types.h"
 
 #include <map>
 
