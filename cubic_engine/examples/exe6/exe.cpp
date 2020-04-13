@@ -30,7 +30,6 @@ const uint_t N_CELLS = 7;
 const real_t PENALTY = -1000;
 
 
-
 class RewardProducer
 {
 public:
@@ -273,7 +272,6 @@ RewardProducer::get_reward(const ActionTp& action,
 
 }
 
-class RewardProducer;
 typedef GridWorld<RewardProducer> world_t;
 typedef world_t::state_t state_t;
 
@@ -374,24 +372,26 @@ int main() {
 
     create_wolrd(world);
 
-    state_t start(10);
+    std::cout<<"Number of states: "<<world.n_states()<<std::endl;
+
+    state_t start(36);
     state_t goal(12);
 
     /// simulation parameters
     const real_t EPSILON = 0.7;
 
-    QLearningInput qinput={0.01, EPSILON, 1.0, true};
+    QLearningInput qinput={0.01, EPSILON, 1.0, true, true};
 
     QTableLearning<world_t> qlearner(std::move(qinput));
 
 
     /// number of episodes for the agent to
     /// learn the Q-values.
-    const uint_t N_ITERATIONS = 10000;
+    const uint_t N_ITERATIONS = 1000;
 
     for(uint_t episode=0; episode < N_ITERATIONS; ++episode){
         world.restart(start, goal);
-        qlearner.train(world);
+        qlearner.train(world, goal);
     }
     
    return 0;
