@@ -2,7 +2,6 @@
 
 * [Dependencies](#dependencies)
 * [Installation](#nstallation)
-* [How to use ](#how_to_use)
 * [Examples Map](#examples_map)
     * [Multi-threading](#multi_threading)
     * [Linear Algebra](#linear_algebra)
@@ -18,6 +17,7 @@
 - <a href="https://bitbucket.org/blaze-lib/blaze/wiki/browse/">Blaze</a> library for linear algebra
 - <a href="https://github.com/google/googletest">GTest</a> if testing is enabled
 - <a href="https://github.com/trilinos/Trilinos">Trilinos</a> if it is enabled.
+- <a href="https://github.com/Neargye/magic_enum">```magic_enum```</a> only used if ```__GNUC__ >7 ```
 
 ## <a name="nstallation"></a> Installation
 
@@ -33,6 +33,7 @@ specify the following:
 - ```USE_LOG``` by default is ```ON``` meaning use logging
 - ```USE_TRILINOS``` by default is ```OFF``` meaning do not use Trilinos. If the variable is set to ```ON``` then the following
 variables should also be set ```TRILINOS_INCL_DIR``` and ```TRILINOS_LIB_DIR```
+- ```MAGIC_ENUM_INCL_DIR``` if ```magic_enum``` can be supported by the compiler (```__GNUC__ >7 ```)
 
 ```
 mkdir build
@@ -43,9 +44,6 @@ make install
 make tests
 ```
 
-## <a name="dependencies"></a> How to use
-
-Checkout the [Examples Map](#examples_map). Documentation is well...underway.
 
 ## <a name="examples_map"></a> Examples Map
 

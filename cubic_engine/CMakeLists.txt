@@ -34,6 +34,8 @@ SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/cubic_engine)
 SET(PWD ${PROJECT_SOURCE_DIR})
 SET(CMAKE_INSTALL_PREFIX ${PWD}/install)
+SET(MAGIC_ENUM_INCL_DIR " ")
+SET(BLAZE_INCL_DIR " ")
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(CENGINE_DEBUG "ON")
@@ -66,14 +68,19 @@ ENDIF()
 
 SET(KERNEL_INCL_DIR ${PROJECT_SOURCE_DIR}/../kernel/include)
 
-
 if(${KERNEL_INCL_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " kernel directory not set")
 else()
     INCLUDE_DIRECTORIES(${KERNEL_INCL_DIR})
 endif()
 
-SET(BLAZE_INCL_DIR " ")
+
+
+IF(${MAGIC_ENUM_INCL_DIR} MATCHES " ")
+    MESSAGE( FATAL_ERROR  "MagicEnum include directory has not been specified")
+ELSE()
+    INCLUDE_DIRECTORIES(${MAGIC_ENUM_INCL_DIR})
+ENDIF()
 
 if(${BLAZE_INCL_DIR} MATCHES " ")
     MESSAGE(FATAL_ERROR " Blaze directory not set")
