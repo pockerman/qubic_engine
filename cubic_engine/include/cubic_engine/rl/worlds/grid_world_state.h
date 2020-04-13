@@ -17,6 +17,9 @@ class GridWorldState
 {
 public:
 
+    /// \brief A map from indexes to action type
+    static GridWorldAction get_action_from_idx(uint_t i);
+
     /// \brief Constructor
     GridWorldState();
 
@@ -47,43 +50,10 @@ private:
 
     /// \brief The neighboring states that
     /// this state may transition to
-    std::map<GridWorldAction,GridWorldState*> state_transitions_;
+    std::map<GridWorldAction, GridWorldState*> state_transitions_;
 
 };
 
-GridWorldState::GridWorldState()
-    :
-      id_(kernel::KernelConsts::invalid_size_type()),
-      state_transitions_()
-{}
-
-GridWorldState::GridWorldState(uint_t id)
-    :
-      id_(id),
-      state_transitions_()
-{}
-
-GridWorldState&
-GridWorldState::operator=(const GridWorldState& other){
-
-    if(&other == this){
-        return *this;
-    }
-
-    this->id_ = other.id_;
-    state_transitions_ = other.state_transitions_;
-    return *this;
-}
-
-void
-GridWorldState::set_transition(GridWorldAction action, GridWorldState* state){
-    state_transitions_.insert_or_assign(action, state);
-}
-
-GridWorldState*
-GridWorldState::execute_action(GridWorldAction action){
-    return state_transitions_[action];
-}
 
 inline
 bool operator==(const GridWorldState& s1, const GridWorldState& s2){
