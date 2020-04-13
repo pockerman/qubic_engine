@@ -1,9 +1,9 @@
-# Example 6: Temporal Difference Learning
+# Example 6: Qlearning applied on simple ```GridWorld```
 
 ## Contents
 * [Acknowledgements](#ackw)
 * [Overview](#overview) 
-	* [Temporal Difference](#temporal_difference)
+        * [Q-learning](#temporal_difference)
 * [Include files](#include_files)
 * [Program structure](#prg_struct)
 * [The main function](#m_func)
