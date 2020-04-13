@@ -169,10 +169,10 @@ public:
     ~WaypointPath();
 
     /// \brief How many waypoints the pah has
-    uint_t n_wpoints()const{return waypoints_.size();}
+    uint_t n_nodes()const{return waypoints_.size();}
 
     /// \brief How many segments the path has
-    uint_t n_segments()const{return segments_.size();}
+    uint_t n_elements()const{return segments_.size();}
 
     /// \brief Reserve space for waypoints
     void reserve_n_waypoints(uint_t n);
