@@ -33,7 +33,7 @@ public:
     ~GridWorld();
 
     /// \brief Returns the state
-    virtual state_t& sense()override final{return  current_state_;}
+    virtual state_t& sense()override final{return  *current_state_;}
 
     /// \brief Transition to a new state by
     /// performing the given action
@@ -59,33 +59,33 @@ public:
     void set_states(std::vector<state_t>&& states);
 
     /// \brief returns the current state of the world
-    const state_t& get_current_state()const{return current_state_; }
+    const state_t& get_current_state()const{return *current_state_; }
 
     /// \brief Execute the aid-th action in the current state
-    void execute_action(uint_t aid);
-
-    /// \brief Returns the state with the given id
-    const state_t get_state_by_id(uint_t id)const;
+    void execute_action(action_t aid);
 
     /// \brief The number of states of the world
     uint_t n_states()const{return states_.size();}
 
     /// \brief Returns the i-th state
-    state_t& get_state(uint_t s){return states_[s];}
+    state_t& get_state(uint_t s);
 
     /// \brief Returns the i-th state
-    const state_t& get_state(uint_t s)const{return states_[s];}
+    const state_t& get_state(uint_t s)const;
+
+    /// \brief Returns true if the world is finished
+    bool is_finished()const{return finished_;}
 
 private:
 
     /// \brief The starting state
-    state_t start_{0};
+    const state_t* start_;
 
     /// \brief The goal state
-    state_t goal_;
+    const state_t* goal_;
 
     /// \brief The current state the world is in
-    state_t current_state_;
+    state_t* current_state_;
 
     /// \brief The object responsible for
     /// producing the reward that the agent
@@ -111,9 +111,9 @@ template<typename RewardTp>
 GridWorld<RewardTp>::GridWorld()
     :
     World<GridWorldAction, GridWorldState, typename RewardTp::value_t>(),
-    start_(),
-    goal_(),
-    current_state_(),
+    start_(nullptr),
+    goal_(nullptr),
+    current_state_(nullptr),
     reward_(),
     r_(0.0),
     states_(),
@@ -132,7 +132,15 @@ GridWorld<RewardTp>::step(const typename GridWorld<RewardTp>::action_t& action){
         throw std::logic_error("Cell connectivity is not established");
     }
 
-    if(current_state_ == goal_){
+    if(current_state_ == nullptr ){
+       throw std::logic_error("Null current state pointer");
+    }
+
+    if(goal_ == nullptr){
+       throw std::logic_error("Null goal pointer");
+    }
+
+    if(*current_state_ == *goal_){
         r_ = reward_.goal_reward();
         finished_ = true;
     }
@@ -141,16 +149,17 @@ GridWorld<RewardTp>::step(const typename GridWorld<RewardTp>::action_t& action){
         /// for the current state
         /// find out the index of the cell
         /// that the agent can transition to
-        auto* next_state = current_state_.execute_action(action);
+        auto* next_state = current_state_->execute_action(action);
 
         if(next_state == nullptr){
             // the agent just came out of the grid
             // so finishe the game
             finished_ = true;
         }
-
-        r_ = reward_.get_reward(action, current_state_, *next_state);
-        current_state_ = *next_state;
+        else{
+            r_ = reward_.get_reward(action, *current_state_, *next_state);
+            current_state_ = next_state;
+        }
     }
 }
 
@@ -166,9 +175,9 @@ void
 GridWorld<RewardTp>::restart(const typename GridWorld<RewardTp>::state_t& start,
                              const typename GridWorld<RewardTp>::state_t& goal){
 
-    start_ = start;
-    goal_ = goal;
-    current_state_ = start_;
+    start_ = &start;
+    goal_ = &goal;
+    current_state_ = &get_state(start_->get_id());
     r_ = 0.0;
     finished_ = false;
 
@@ -176,14 +185,37 @@ GridWorld<RewardTp>::restart(const typename GridWorld<RewardTp>::state_t& start,
 
 template<typename RewardTp>
 void
-GridWorld<RewardTp>::execute_action(uint_t aid){
+GridWorld<RewardTp>::execute_action(typename GridWorld<RewardTp>::action_t aid){
 
+    current_state_ = current_state_->execute_action(aid);
 }
 
 template<typename RewardTp>
-const typename GridWorld<RewardTp>::state_t
-GridWorld<RewardTp>::get_state_by_id(uint_t id)const{
+const typename GridWorld<RewardTp>::state_t&
+GridWorld<RewardTp>::get_state(uint_t id)const{
 
+    if(id >= states_.size()){
+        throw std::logic_error("Invalid state id: "+
+                               std::to_string(id) +
+                               " not in [0, "+
+                               std::to_string(states_.size()));
+    }
+
+    return states_[id];
+}
+
+template<typename RewardTp>
+typename GridWorld<RewardTp>::state_t&
+GridWorld<RewardTp>::get_state(uint_t id){
+
+    if(id >= states_.size()){
+        throw std::logic_error("Invalid state id: "+
+                               std::to_string(id) +
+                               " not in [0, "+
+                               std::to_string(states_.size()));
+    }
+
+    return states_[id];
 }
 
 }
