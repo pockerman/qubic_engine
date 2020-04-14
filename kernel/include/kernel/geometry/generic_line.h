@@ -4,6 +4,8 @@
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
 
+#include <stdexcept>
+
 namespace kernel{
 namespace kernel_detail{
 
@@ -82,9 +84,11 @@ class GenericLine: private kernel_detail::generic_line_base<NodeTp>
 
 public:
 
+    static const int dimension = NodeTp::dimension;
     typedef CostTp cost_type;
     typedef kernel_detail::generic_line_base<NodeTp> base;
     typedef typename base::node_type node_type;
+    typedef NodeTp point_t;
 
     using base::start;
     using base::end;
@@ -94,6 +98,9 @@ public:
 
     /// \brief Constructor
     GenericLine();
+
+    /// \brief Constructor
+    GenericLine(const NodeTp& p1, const NodeTp& p2);
 
     /// \brief Constructor
     GenericLine(const NodeTp& p1, const NodeTp& p2, uint_t id, const CostTp& cost = CostTp());
@@ -106,6 +113,12 @@ public:
 
     /// \brief Set the cost of the line
     void set_cost(const CostTp& cost){cost_= cost;}
+
+    /// \brief Returns the v-th vertex of the segment
+    const point_t& get_vertex(uint_t v)const;
+
+    /// \brief Returns the v-th vertex of the segment
+    point_t& get_vertex(uint_t v);
 
 private:
 
@@ -128,6 +141,42 @@ kernel_detail::generic_line_base<NodeTp>(p1,p2,id),
 cost_(cost)
 {}
 
+template<typename NodeTp,typename CostTp>
+GenericLine<NodeTp, CostTp>::GenericLine(const NodeTp& p1,const NodeTp& p2)
+:
+GenericLine<NodeTp, CostTp>(p1,p2,kernel::KernelConsts::invalid_size_type(), CostTp())
+{}
+
+template<typename NodeTp,typename CostTp>
+const typename GenericLine<NodeTp, CostTp>::point_t&
+GenericLine<NodeTp, CostTp>::get_vertex(uint_t v)const{
+
+    if(v == 0){
+        return this->start();
+    }
+    else if(v == 1){
+        return this->end();
+    }
+
+    throw std::logic_error("Invalid vertex index. Index not in [0,1]");
+
+}
+
+template<typename NodeTp,typename CostTp>
+typename GenericLine<NodeTp, CostTp>::point_t&
+GenericLine<NodeTp, CostTp>::get_vertex(uint_t v){
+
+    if(v == 0){
+        return this->start();
+    }
+    else if(v == 1){
+        return this->end();
+    }
+
+    throw std::logic_error("Invalid vertex index. Index not in [0,1]");
+
+}
+
 
 /// \brief Partial specialization for lines having no cost
 template<typename NodeTp>
@@ -135,8 +184,10 @@ class GenericLine<NodeTp, void>: private kernel_detail::generic_line_base<NodeTp
 {
 public:
 
+    static const int dimension = NodeTp::dimension;
     typedef kernel_detail::generic_line_base<NodeTp> base;
     typedef typename base::node_type node_type;
+    typedef NodeTp point_t;
 
     using base::start;
     using base::end;
@@ -148,7 +199,16 @@ public:
     GenericLine();
 
     /// \brief Constructor
+    GenericLine(const NodeTp& p1, const NodeTp& p2);
+
+    /// \brief Constructor
     GenericLine(const NodeTp& p1, const NodeTp& p2, uint_t id);
+
+    /// \brief Returns the v-th vertex of the segment
+    const point_t& get_vertex(uint_t v)const;
+
+    /// \brief Returns the v-th vertex of the segment
+    point_t& get_vertex(uint_t v);
 };
 
 template<typename NodeTp>
@@ -162,6 +222,42 @@ GenericLine<NodeTp,void>::GenericLine(const NodeTp& p1, const NodeTp& p2, uint_t
 :
 kernel_detail::generic_line_base<NodeTp>(p1,p2,id)
 {}
+
+template<typename NodeTp>
+GenericLine<NodeTp,void>::GenericLine(const NodeTp& p1, const NodeTp& p2)
+:
+GenericLine<NodeTp, void>(p1,p2,kernel::KernelConsts::invalid_size_type())
+{}
+
+template<typename NodeTp>
+const typename GenericLine<NodeTp, void>::point_t&
+GenericLine<NodeTp, void>::get_vertex(uint_t v)const{
+
+    if(v == 0){
+        return this->start();
+    }
+    else if(v == 1){
+        return this->end();
+    }
+
+    throw std::logic_error("Invalid vertex index. Index not in [0,1]");
+
+}
+
+template<typename NodeTp>
+typename GenericLine<NodeTp, void>::point_t&
+GenericLine<NodeTp, void>::get_vertex(uint_t v){
+
+    if(v == 0){
+        return this->start();
+    }
+    else if(v == 1){
+        return this->end();
+    }
+
+    throw std::logic_error("Invalid vertex index. Index not in [0,1]");
+
+}
 
 
 }
