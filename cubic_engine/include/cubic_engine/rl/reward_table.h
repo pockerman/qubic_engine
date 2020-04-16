@@ -51,6 +51,9 @@ public:
     /// \brief Get the maximum reward for the state
     reward_value_t get_max_reward_at_state(uint_t sid)const;
 
+    /// \brief Returns the total reward
+    reward_value_t get_total_reward()const;
+
 private:
 
     /// \brief A map that holds the reward values given
@@ -174,6 +177,25 @@ RewardTable<ActionTp, RewardTp>::get_max_reward_at_state(uint_t sid)const{
     }
 
     return max_reward;
+
+}
+
+template<typename ActionTp, typename RewardTp>
+typename RewardTable<ActionTp, RewardTp>::reward_value_t
+RewardTable<ActionTp, RewardTp>::get_total_reward()const{
+
+    typedef typename RewardTable<ActionTp, RewardTp>::reward_value_t reward_value_t;
+
+    reward_value_t total = reward_value_t(0);
+
+    auto itr = reward_table_.begin();
+    auto itr_end = reward_table_.end();
+
+    for(; itr != itr_end; ++itr){
+        total += itr->second;
+    }
+
+    return total;
 
 }
 
