@@ -54,6 +54,12 @@ public:
     /// \brief Train on the given world
     void train(world_t& world, const state_t& goal );
 
+    /// \brief Returns the learnt tabular Qfunction
+    const RewardTable<action_t, reward_value_t>& get_table()const{return qtable_;}
+
+    /// \brief Returns the learnt tabular Qfunction
+    RewardTable<action_t, reward_value_t>& get_table(){return qtable_;}
+
 private:
 
     /// \brief Basic input
