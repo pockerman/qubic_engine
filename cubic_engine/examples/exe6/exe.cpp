@@ -1,6 +1,7 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/utilities/csv_file_writer.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/utilities/csv_file_writer.h"
 #include "cubic_engine/rl/worlds/grid_world.h"
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #include "cubic_engine/rl/q_learning.h"
@@ -19,13 +20,12 @@ namespace exe
 
 using cengine::uint_t;
 using cengine::real_t;
-using cengine::DynMat;
 using cengine::rl::worlds::GridWorld;
 using cengine::rl::worlds::GridWorldAction;
 using cengine::rl::QTableLearning;
 using cengine::rl::QLearningInput;
 using cengine::rl::RewardTable;
-
+using kernel::CSVWriter;
 const uint_t N_CELLS = 7;
 const real_t PENALTY = -1000;
 
@@ -40,7 +40,7 @@ public:
     RewardProducer();
 
     /// returns the reward for the goal
-    real_t goal_reward()const{return 8.0;}
+    real_t goal_reward()const{return 0.0;}
 
     /// returns the reward for the action
     /// at  state s when going to state sprime
@@ -75,34 +75,52 @@ RewardProducer::setup_rewards(){
             if(i != 6 && i !=0 ){
                 rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
                 rewards_.add_reward(i, GridWorldAction::NORTH,  -1.0);
+                rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
             }
             else{
-               rewards_.add_reward(i, GridWorldAction::NORTH,  PENALTY);
-            }
 
-            if(i!= 0){
-                rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
+               if(i == 0){
+                   rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
+               }
+               else{
+                   rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
+               }
+
+               rewards_.add_reward(i, GridWorldAction::NORTH,  PENALTY);
             }
         }
         else if(i>=42){
 
             if(i != 42 && i != 48 ){
                 rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
-                rewards_.add_reward(i, GridWorldAction::SOUTH,  -1.0);
+
+                if(i != 43){
+                    rewards_.add_reward(i, GridWorldAction::SOUTH,  -1.0);
+                }
+                else{
+                   rewards_.add_reward(i, GridWorldAction::SOUTH,  0.0);
+                }
+
+                rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
             }
             else{
                rewards_.add_reward(i, GridWorldAction::SOUTH,  PENALTY);
+
+               if( i == 42){
+                    rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
+               }
+
+               if(i == 48){
+                   rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
+               }
             }
 
-            if(i!= 42){
-                rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
-            }
 
         }
         else{
 
-            static const uint_t arwest[]={7,14,21,28};
-            static const uint_t areast[]={35,13,20,27,34};
+            static const uint_t arwest[]={7,14,21,28, 35};
+            static const uint_t areast[]={13,20,27,34, 41};
 
             if(std::find(&arwest[0],
                          &arwest[ sizeof(arwest)/sizeof(uint_t) ],
@@ -134,9 +152,10 @@ RewardProducer::setup_rewards(){
             }
             else{
 
-                static uint_t short_path_1[] ={0, 20, 22, 18, 8};
+                static uint_t short_path_1[] ={8, 15, 22, 29, 36};
                 static uint_t short_path_2[] ={37, 38, 39, 40};
-                static uint_t short_path_3[] ={33, 26, 19, 12};
+                static uint_t short_path_3[] ={33, 26, 13, 12};
+                static uint_t short_path_4[] ={9, 10, 11};
 
                 if(std::find(&short_path_1[0],
                              &short_path_1[ sizeof(short_path_1)/sizeof(uint_t) ],
@@ -193,8 +212,23 @@ RewardProducer::setup_rewards(){
                         rewards_.add_reward(i, GridWorldAction::WEST,  -2.0);
                     }
                     else{
-                        rewards_.add_reward(i, GridWorldAction::SOUTH,  -2.0);
+                        rewards_.add_reward(i, GridWorldAction::SOUTH,  PENALTY);
                         rewards_.add_reward(i, GridWorldAction::WEST,  -1.0);
+                    }
+                }
+                else if(std::find(&short_path_4[0],
+                                  &short_path_4[ sizeof(short_path_4)/sizeof(uint_t) ],
+                                              i) != &short_path_4[ sizeof (short_path_4)/sizeof(uint_t) ]){
+
+                    rewards_.add_reward(i, GridWorldAction::NORTH,  -2);
+                    rewards_.add_reward(i, GridWorldAction::SOUTH,  PENALTY);
+                    rewards_.add_reward(i, GridWorldAction::WEST,  -1.0);
+
+                    if(i==11){
+                       rewards_.add_reward(i, GridWorldAction::EAST,  0.);
+                    }
+                    else{
+                        rewards_.add_reward(i, GridWorldAction::EAST,  -1.);
                     }
                 }
                 else{
@@ -342,7 +376,7 @@ create_wolrd(world_t& w){
            /// all rows in between
            state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), &w.get_state(i - N_CELLS));
 
-           if(i != 13 && i != 20 && i != 27 && i != 41){
+           if(i != 13 && i != 20 && i != 27 && i != 41 && i != 34){
                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), &w.get_state(i +1));
            }
            else{
@@ -381,17 +415,31 @@ int main() {
     const real_t EPSILON = 0.7;
 
     QLearningInput qinput={0.01, EPSILON, 1.0, true, true};
-
     QTableLearning<world_t> qlearner(std::move(qinput));
 
 
+    CSVWriter writer("agent_rewards.csv", ',', true);
+
+    writer.write_column_names({"Episode", "Reward"});
+
     /// number of episodes for the agent to
     /// learn the Q-values.
-    const uint_t N_ITERATIONS = 1000;
+    const uint_t N_ITERATIONS = 10000;
+
+    std::vector<real_t> row(2);
 
     for(uint_t episode=0; episode < N_ITERATIONS; ++episode){
+
         world.restart(start, goal);
         qlearner.train(world, goal);
+
+        ///
+        auto reward = qlearner.get_table().get_total_reward();
+        row[0] = static_cast<real_t>(episode);
+        row[1] = std::fabs(reward);
+        std::cout<<"At episode: "<<episode<<" total reward: "<<reward<<std::endl;
+        writer.write_row(row);
+
     }
     
    return 0;
