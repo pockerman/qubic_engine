@@ -14,7 +14,7 @@ public:
 
     typedef ActionTp action_t;
     typedef StateTp state_t;
-    typedef RewardTp reward_t;
+    typedef RewardTp reward_value_t;
 
     /// \brief Destructor
     ~World(){}
@@ -28,7 +28,7 @@ public:
 
     /// \brief Returns the reward associated
     /// with the last state transition
-    virtual reward_t reward()const=0;
+    virtual reward_value_t reward()const=0;
 
 protected:
 

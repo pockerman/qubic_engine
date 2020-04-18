@@ -1,4 +1,4 @@
-#include "kernel/numerics/fv_linear_interpolation.h"
+#include "kernel/numerics/fvm/fv_linear_interpolation.h"
 
 namespace kernel{
 namespace numerics{

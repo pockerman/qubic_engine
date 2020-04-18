@@ -3,7 +3,7 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/world.h"
-
+#include "cubic_engine/rl/worlds/grid_world_action_space.h"
 
 namespace cengine{
 namespace rl{
@@ -31,14 +31,15 @@ namespace worlds {
 // positions shown on the previous figure into an integer.
 
 
-      /**
-       * Cliff-Walking  parameter handler.
-       * @author <a href="mailto:Herve.Frezza-Buet@supelec.fr">Herve.Frezza-Buet@supelec.fr</a>
-       */
+/**
+ * Cliff-Walking  parameter handler.
+ * @author <a href="mailto:Herve.Frezza-Buet@supelec.fr">Herve.Frezza-Buet@supelec.fr</a>
+ */
+
+
 /// \brief Enumeration describing the action
 /// space for the Cliff-World problem
-enum class CliffWorldAction{NORTH=0, SOUTH=1,
-                            EAST=2, WEST=3};
+using CliffWorldAction=GridWorldAction;
 
 struct CliffWorldReward
 {
@@ -64,7 +65,7 @@ class CliffWorld: public World<CliffWorldAction, int, real_t>
 public:
 
     typedef World<CliffWorldAction, int, real_t>::state_t state_t;
-    typedef World<CliffWorldAction, int, real_t>::reward_t reward_t;
+    typedef World<CliffWorldAction, int, real_t>::reward_value_t reward_value_t;
 
     /// \brief the starting state of the world
     static const state_t  START = 0;
@@ -100,7 +101,7 @@ public:
 
     /// \brief Returns the reward associated
     /// with the last state transition
-    virtual reward_t reward()const override final{return r_;}
+    virtual reward_value_t reward()const override final{return r_;}
 
     /// \brief The size of the world.  Namely,
     /// the total number of different positions in
@@ -132,7 +133,7 @@ private:
 
     /// \brief The reward that the agent should recieve
     /// after executing an action
-    real_t r_;
+    reward_value_t r_;
 };
 
 }

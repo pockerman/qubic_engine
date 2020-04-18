@@ -1,4 +1,4 @@
-#include "kernel/numerics/fv_laplace_assemble_policy_threaded.h"
+#include "kernel/numerics/fvm/fv_laplace_assemble_policy_threaded.h"
 #include "kernel/parallel/threading/thread_pool.h"
 #include "kernel/parallel/threading/openmp_executor.h"
 #include <exception>

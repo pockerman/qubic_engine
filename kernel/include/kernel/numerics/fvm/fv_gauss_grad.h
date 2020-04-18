@@ -1,7 +1,7 @@
 #ifndef FV_GAUSS_GRAD_H
 #define FV_GAUSS_GRAD_H
 
-#include "kernel/numerics/fv_grad_base.h"
+#include "kernel/numerics/fvm/fv_grad_base.h"
 
 namespace kernel {
 

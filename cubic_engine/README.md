@@ -2,8 +2,6 @@
 
 * [Dependencies](#dependencies)
 * [Installation](#nstallation)
-* [How to use ](#how_to_use)
-* [Some Issues](#some_issues)
 * [Examples Map](#examples_map)
     * [Filtering and Estimation](#filtering_and_esitmation)
     * [Control](#control)
@@ -20,6 +18,7 @@
 - <a href="https://github.com/google/googletest">GTest</a> if testing is enabled
 - <a href="https://pytorch.org/">PyTorch</a> if PyTorch is enabled
 - <a href="https://github.com/pockerman/compute_engine/tree/master/kernel">```kernel```</a>
+- <a href="https://github.com/Neargye/magic_enum">```magic_enum```</a> only used if ```__GNUC__ >7 ```
 
 ## <a name="nstallation"></a> Installation
 
@@ -37,7 +36,7 @@ specify the following:
 
 - ```CMAKE_INSTALL_PREFIX``` by default is set to ```${PWD}/install```
 - ```KERNEL_INCL_DIR``` and ```KERNEL_LIB_DIR``` by default these point to ```${PWD}../kernel/include``` and  ```${PWD}../kernel/install/lib``` respectively
-
+- ```MAGIC_ENUM_INCL_DIR``` if ```magic_enum``` can be supported by the compiler (```__GNUC__ >7 ```)
 ```
 mkdir build
 cd build
@@ -46,10 +45,6 @@ make
 make install
 make tests
 ```
-
-## <a name="dependencies"></a> How to use
-
-Checkout the [Examples Map](#examples_map). Documentation is well...underway.
 
 ## <a name="examples_map"></a> Examples Map
 
@@ -81,7 +76,7 @@ Checkout the [Examples Map](#examples_map). Documentation is well...underway.
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
-- <a href="examples/exe6/doc/exe.md">Example 6: </a> TD Learning
+- <a href="examples/exe6/doc/exe.md">Example 6: </a> Qlearning applied on simple ```GridWorld```
 - <a href="examples/exe22/doc/exe.md">Example 22: </a> SARSA Algorithm
 
 ### <a name="using_ros"></a> Robotics Simulations
