@@ -1,3 +1,25 @@
+# Example 21: Follow The Carrot Path Tracking
+
+## Contents
+
+* [Overview](#overview) 
+	* [Follow the carrot path tracking](#pure_pursuit_tracking)
+* [Include files](#include_files)
+* [Program structure](#prg_struct)
+* [The main function](#m_func)
+* [Results](#results)
+* [Source Code](#source_code)
+
+## <a name="overview"></a> Overview
+
+
+
+### <a name="pure_pursuit_tracking"></a> Follow the carrot path tracking
+
+
+## <a name="include_files"></a> Include files
+
+```
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/control/carrot_chasing.h"
 #include "cubic_engine/grids/waypoint_path.h"
@@ -9,7 +31,11 @@
 #include "kernel/base/unit_converter.h"
 
 #include <iostream>
+```
 
+## <a name="m_func"></a> The main function
+
+```
 namespace example{
 using cengine::uint_t;
 using cengine::real_t;
@@ -227,3 +253,213 @@ int main(){
 
     return 0;
 }
+```
+
+## <a name="results"></a> Results
+
+```
+...
+
+Position: 87.9227 , 2.09307 theta (degs) -45.2166
+Current V: 1
+Current W: 3.52499e-06
+At time: 233
+
+Position: 87.9579 , 2.05758 theta (degs) -45.2166
+Current V: 1
+Current W: 3.40701e-06
+At time: 233.1
+
+Position: 87.9931 , 2.02209 theta (degs) -45.2166
+Current V: 1
+Current W: 3.29396e-06
+At time: 233.2
+
+Position: 88.0283 , 1.9866 theta (degs) -45.2165
+Current V: 1
+Current W: 3.18562e-06
+At time: 233.3
+
+Position: 88.0636 , 1.95112 theta (degs) -45.2165
+Current V: 1
+Current W: 3.08183e-06
+At time: 233.4
+
+Position: 88.0988 , 1.91563 theta (degs) -45.2165
+Current V: 1
+Current W: 2.98239e-06
+At time: 233.5
+
+Position: 88.134 , 1.88014 theta (degs) -45.2165
+Current V: 1
+Current W: 2.88714e-06
+At time: 233.6
+
+Position: 88.1692 , 1.84465 theta (degs) -45.2165
+Current V: 1
+Current W: 2.79592e-06
+At time: 233.7
+
+Position: 88.2044 , 1.80916 theta (degs) -45.2165
+Current V: 1
+Current W: 2.70857e-06
+At time: 233.8
+
+Position: 88.2397 , 1.77367 theta (degs) -45.2164
+Current V: 1
+Current W: 2.62494e-06
+At time: 233.9
+
+Position: 88.2749 , 1.73818 theta (degs) -45.2164
+Current V: 1
+Current W: 2.5449e-06
+At time: 234
+
+Position: 88.3101 , 1.7027 theta (degs) -45.2164
+Current V: 1
+Current W: 2.46832e-06
+At time: 234.1
+
+Position: 88.3453 , 1.66721 theta (degs) -45.2164
+Current V: 1
+Current W: 2.39506e-06
+At time: 234.2
+
+Position: 88.3805 , 1.63172 theta (degs) -45.2164
+Current V: 1
+Current W: 2.32502e-06
+At time: 234.3
+
+Position: 88.4158 , 1.59623 theta (degs) -45.2164
+Current V: 1
+Current W: 2.25807e-06
+At time: 234.4
+
+Position: 88.451 , 1.56074 theta (degs) -45.2164
+Current V: 1
+Current W: 2.19411e-06
+At time: 234.5
+
+Position: 88.4862 , 1.52525 theta (degs) -45.2164
+Current V: 1
+Current W: 2.13305e-06
+At time: 234.6
+
+Position: 88.5214 , 1.48976 theta (degs) -45.2163
+Current V: 1
+Current W: 2.07478e-06
+At time: 234.7
+
+Position: 88.5567 , 1.45428 theta (degs) -45.2163
+Current V: 1
+Current W: 2.01923e-06
+At time: 234.8
+
+Position: 88.5919 , 1.41879 theta (degs) -45.2163
+Current V: 1
+Current W: 1.96632e-06
+At time: 234.9
+
+Position: 88.6271 , 1.3833 theta (degs) -45.2163
+Current V: 1
+Current W: 1.91595e-06
+At time: 235
+
+Position: 88.6623 , 1.34781 theta (degs) -45.2163
+Current V: 1
+Current W: 1.86808e-06
+At time: 235.1
+
+Position: 88.6975 , 1.31232 theta (degs) -45.2163
+Current V: 1
+Current W: 1.82264e-06
+At time: 235.2
+
+Position: 88.7328 , 1.27683 theta (degs) -45.2163
+Current V: 1
+Current W: 1.77956e-06
+At time: 235.3
+
+Position: 88.768 , 1.24134 theta (degs) -45.2163
+Current V: 1
+Current W: 1.73881e-06
+At time: 235.4
+
+Position: 88.8032 , 1.20586 theta (degs) -45.2163
+Current V: 1
+Current W: 1.70034e-06
+At time: 235.5
+
+Position: 88.8384 , 1.17037 theta (degs) -45.2162
+Current V: 1
+Current W: 1.66411e-06
+At time: 235.6
+
+Position: 88.8736 , 1.13488 theta (degs) -45.2162
+Current V: 1
+Current W: 1.6301e-06
+At time: 235.7
+
+Position: 88.9089 , 1.09939 theta (degs) -45.2162
+Current V: 1
+Current W: 1.5983e-06
+At time: 235.8
+
+Position: 88.9441 , 1.0639 theta (degs) -45.2162
+Current V: 1
+Current W: 1.56869e-06
+At time: 235.9
+
+Position: 88.9793 , 1.02841 theta (degs) -45.2162
+Current V: 1
+Current W: 1.54127e-06
+At time: 236
+
+Position: 89.0145 , 0.992924 theta (degs) -45.2162
+Current V: 1
+Current W: 1.51607e-06
+At time: 236.1
+
+Position: 89.0498 , 0.957436 theta (degs) -45.2162
+Current V: 1
+Current W: 1.49309e-06
+At time: 236.2
+
+Position: 89.085 , 0.921947 theta (degs) -45.2162
+Current V: 1
+Current W: 1.47239e-06
+At time: 236.3
+
+Position: 89.1202 , 0.886459 theta (degs) -45.2162
+Current V: 1
+Current W: 1.45403e-06
+At time: 236.4
+
+Position: 89.1554 , 0.85097 theta (degs) -45.2162
+Current V: 1
+Current W: 1.43809e-06
+At time: 236.5
+
+Position: 89.1906 , 0.815482 theta (degs) -45.2162
+Current V: 1
+Current W: 1.42466e-06
+At time: 236.6
+
+Position: 89.2259 , 0.779993 theta (degs) -45.2162
+Current V: 1
+Current W: 1.41388e-06
+At time: 236.7
+
+Position: 89.2611 , 0.744505 theta (degs) -45.2161
+Current V: 1
+Current W: 1.40589e-06
+```
+
+<img src="path_vehicle_position.png"
+     alt="Position view"
+     style="float: left; margin-right: 10px;" />
+
+## <a name="source_code"></a> Source Code
+
+<a href="../exe.cpp">exc.cpp</a>
+

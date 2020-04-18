@@ -144,16 +144,11 @@ public:
      */
     uint_t n_elements()const{return topology_.n_elements();}
 
-
-   ///
    /// \brief How many edges the mesh has
-   ///
-    uint_t n_edges()const; //{return topology_.n_edges();}
+    uint_t n_edges()const;
 
-   ///
    /// \brief how many faces the mesh has
-   ///
-   uint_t n_faces()const; //{return topology_.n_faces();}
+   uint_t n_faces()const;
 
 
    /**
@@ -161,9 +156,7 @@ public:
      */
     uint_t n_active_faces()const;
 
-   ///
-   /// \brief Return read/write access to the topology of the mesh
-   ///
+    /// \brief Return read/write access to the topology of the mesh
     MeshTopology<spacedim>* topology(){return &topology_;}
 
     /// \brief Read access to the topology of the mesh

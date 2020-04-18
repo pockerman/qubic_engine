@@ -31,7 +31,7 @@ public:
     /// \brief Read access to the state
     const state_t& get_state()const{return state_;}
 
-    /// \brief Read access to the state
+    /// \brief Read/write access to the state
     state_t& get_state(){return state_;}
 
     matrix_t& get_matrix(const std::string& name){return matrix_description_.get_matrix(name);}
@@ -45,6 +45,8 @@ public:
     /// \brief set the matrix update flag
     void set_matrix_update_flag(bool f){update_description_matrices_on_evaluate_ = f;}
 
+    /// \brief Set the flag for updating or not the matrices describing
+    /// the model
     bool allows_matrix_updates()const{return update_description_matrices_on_evaluate_;}
 
 protected:

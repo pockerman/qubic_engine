@@ -805,8 +805,11 @@ int main(){
     // the initial system state
     SysState<4> init_state;
 
+    DiffDriveProperties properties;
+    properties.R = RADIUS;
+
     // the vehicle the simulator is simulating
-    DiffDriveVehicle vehicle(RADIUS);
+    DiffDriveVehicle vehicle(properties);
 
     ThreadPoolOptions options;
     options.n_threads = N_THREADS;

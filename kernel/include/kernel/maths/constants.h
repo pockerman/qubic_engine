@@ -4,9 +4,9 @@
 #include "kernel/base/types.h"
 #include "boost/noncopyable.hpp"
 
-namespace kernel
-{
+namespace kernel{
 
+/// \brief MathConsts
 class MathConsts: private boost::noncopyable
 {
 public:
@@ -17,6 +17,7 @@ public:
 
 private:
 
+    /// \brief Constructor
     MathConsts()
     {}
 };

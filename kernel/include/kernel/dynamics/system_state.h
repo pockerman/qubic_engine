@@ -9,6 +9,7 @@
 #include <utility>
 #include <algorithm>
 #include <ostream>
+#include <iostream>
 
 namespace kernel{
 namespace dynamics{
@@ -260,10 +261,12 @@ std::array<real_t, dim>
 SysState<dim>::get_values()const{
 
     std::array<real_t, dim> copy;
-    std::transform(values_.begin(), values_.end(),
-                   copy.begin(), [](const std::pair<std::string, real_t>& item){
-       return item.second;
-    });
+
+    for(uint_t i=0; i<dim; ++i){
+        copy[i] = values_[i].second;
+    }
+
+    return copy;
 }
 
 template<int dim>

@@ -28,7 +28,6 @@ std::ostream& operator<<(std::ostream& out, const KrylovSolverResult& info ){
 }
 
 }
-
 }
 
 #endif // KRYLOV_SOLVER_OUTPUT_H
