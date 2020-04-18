@@ -55,7 +55,7 @@ SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/kernel)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 SET(MAGIC_ENUM_INCL_DIR " ")
-SET(BLAZE_INCL_DIR "/home/david/MySoftware/blazelib/install/include")
+SET(BLAZE_INCL_DIR " ")
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(KERNEL_DEBUG "ON")
@@ -89,8 +89,8 @@ ENDIF()
 
 
 IF( ENABLE_TESTING MATCHES "ON")
-    SET(GTEST_INC_DIR "/home/david/MySoftware/gtest/install/include")
-    SET(GTEST_LIB_DIR "/home/david/MySoftware/gtest/install/lib")
+    SET(GTEST_INC_DIR " ")
+    SET(GTEST_LIB_DIR " ")
     INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
 ENDIF()
 
