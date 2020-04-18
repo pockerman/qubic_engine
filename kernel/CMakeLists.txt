@@ -45,7 +45,7 @@ ENDIF()
 
 SET(BUILD_SHARED_LIBS ON)
 SET(CMAKE_BUILD_TYPE "Debug")
-SET(ENABLE_TESTING "OFF")
+SET(ENABLE_TESTING "ON")
 SET(USE_OPENMP "ON")
 SET(USE_LOG "ON")
 SET(USE_FVM "ON")
@@ -66,7 +66,7 @@ configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/kernel/base/version.h 
 # add this because config.h ends up in the build directory
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
-SET(BLAZE_INCL_DIR "")
+SET(BLAZE_INCL_DIR "/home/david/MySoftware/blazelib/install/include")
 
 IF( BLAZE_INCL_DIR MATCHES " " )
     MESSAGE( FATAL_ERROR  "Blaze include directory has not been specified")
@@ -81,8 +81,8 @@ ENDIF()
 
 
 IF( ENABLE_TESTING MATCHES "ON")
-    SET(GTEST_INC_DIR " ")
-    SET(GTEST_LIB_DIR " ")
+    SET(GTEST_INC_DIR "/home/david/MySoftware/gtest/install/include")
+    SET(GTEST_LIB_DIR "/home/david/MySoftware/gtest/install/lib")
     INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
 ENDIF()
 
