@@ -19,7 +19,7 @@ template<int dim> class LineMesh;
 /// The function loops over the elements in the
 /// mesh and uses samples the EdgeElement using the given
 /// number of sampling points plus two as it accounts for the
-/// vertices as well. It then out of the calculated points
+/// vertices as well. From the calculated points
 /// it picks the one with the smallest distance
 const GeomPoint<2> find_closest_point_to(const LineMesh<2>& mesh,
                                          const GeomPoint<2>&p, uint_t nsamples,

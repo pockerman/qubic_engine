@@ -20,9 +20,9 @@ endif(COMMAND cmake_policy)
 # set the name of the library to link against
 SET(LIB_NAME "kernellib")
 
-SET(KERNELLIB_VERSION_MAJOR 0)
+SET(KERNELLIB_VERSION_MAJOR 1)
 SET(KERNELLIB_VERSION_MINOR 1)
-SET(KERNELLIB_VERSION_PATCH 0)
+SET(KERNELLIB_VERSION_PATCH 1)
 PROJECT(KernelLib VERSION ${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH})
 SET(KERNELLIB_VERSION "${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH}")
 
@@ -54,6 +54,8 @@ SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install)
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/kernel)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
+SET(MAGIC_ENUM_INCL_DIR " ")
+SET(BLAZE_INCL_DIR "/home/david/MySoftware/blazelib/install/include")
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(KERNEL_DEBUG "ON")
@@ -66,9 +68,15 @@ configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/kernel/base/version.h 
 # add this because config.h ends up in the build directory
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
-SET(BLAZE_INCL_DIR "/home/david/MySoftware/blazelib/install/include")
 
-IF( BLAZE_INCL_DIR MATCHES " " )
+IF(${MAGIC_ENUM_INCL_DIR} MATCHES " ")
+    MESSAGE( STATUS  "MagicEnum include directory has not been specified")
+ELSE()
+  INCLUDE_DIRECTORIES(${MAGIC_ENUM_INCL_DIR})
+ENDIF()
+
+
+IF( ${BLAZE_INCL_DIR} MATCHES " " )
     MESSAGE( FATAL_ERROR  "Blaze include directory has not been specified")
 ENDIF()
 
@@ -122,6 +130,7 @@ INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR})
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
 
+
 # use the Boost link directories
 LINK_DIRECTORIES(${BOOST_LIBRARYDIR})
 
@@ -135,6 +144,7 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/maths/*.cpp
                  ${PROJECT_SRC_DIR}/dynamics/*.cpp
                  ${PROJECT_SRC_DIR}/numerics/*.cpp
+                 ${PROJECT_SRC_DIR}/numerics/fvm/*.cpp
                  ${PROJECT_SRC_DIR}/discretization/*.cpp
                  ${PROJECT_SRC_DIR}/discretization/utils/*.cpp
                  ${PROJECT_SRC_DIR}/geometry/*.cpp

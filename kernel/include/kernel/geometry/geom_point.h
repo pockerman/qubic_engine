@@ -41,7 +41,7 @@ public:
    /// \brief dtor
    virtual ~GeomPoint(){}
 
-   /// \detailed Add another vector, i.e. move
+   /// \brief Add another vector, i.e. move
    /// this point by the given
    /// offset.
    GeomPoint & operator += (const GeomPoint &);
@@ -49,22 +49,20 @@ public:
    /// \detailed Subtract another tensor.
    GeomPoint & operator -= (const GeomPoint &);
 
-   /// \detailed Scale the vector by
-   /// <tt>factor</tt>, i.e. multiply all
-   /// coordinates by <tt>factor</tt>.
+   /// \brief Scale the point by factor
    GeomPoint & operator *= (T factor);
 
-   /// Scale the vector by <tt>1/factor</tt>.
+   /// \brief Scale the vector by factor.
    GeomPoint & operator /= (T factor);
 
-   /// \detailed scale with a given factor
+   /// \brief scale with a given factor
    void scale(T factor);
 
    /// \brief  scale this object by the given factors
    /// p factors should have size at least \p spacedim
    void scale(const std::vector<T>& factors);
 
-   /// detailed zero the entries of the tensor
+   /// \brief Zero the entries of the tensor
    void zero();
 
    /// \brief Add the coordinates of the given point to this scaled by factor
@@ -141,7 +139,11 @@ GeomPoint<spacedim,T>::GeomPoint(const std::initializer_list<T>& list)
       data_()
 {
     if(list.size() != spacedim){
-        throw std::logic_error("Invalid initialization list size");
+        std::string msg;
+        msg += "Invalid initialization ";
+        msg += " list size for point construction. "+ std::to_string(list.size());
+        msg += " not equal to "+std::to_string(spacedim);
+        throw std::logic_error(msg);
     }
 
     auto start = list.begin();
@@ -359,32 +361,23 @@ GeomPoint<spacedim,T>::to_string()const{
     return rslt;
 }
 
-//free functions that work on the GeomPoint<spacedim,T> class
-//these functions logically extend the interface of the class
+/// \brief free functions that work on the GeomPoint<spacedim,T> class
 
-/**
-  *  \detailed Prints the values of this tensor in the
-  *  form <tt>x1 x2 x3 etc</tt>.
-  */
+/// \brief Prints the values of the GeomPoint in the
 template<int spacedim,typename T>
 inline
 std::ostream & operator << (std::ostream &out, const GeomPoint<spacedim,T> &p){
  return p.print_point_info(out);
-
 }
 
-/**
-  *\detailed scale the given point by factor. This function does not
-  * change the entries of \p t.
-  */
+/// \brief scale the given point by facto and returns a copyr.
+/// This function does not change the entries of \p t.
 template<int spacedim,typename T>
 const GeomPoint<spacedim,T> scale(const GeomPoint<spacedim,T>& t, T factor){
   return (GeomPoint<spacedim,T>(t)*=factor);
 }
 
-/**
-  *\detailed scale the given point by the factors in vector
-  */
+/// \brief scale the given point by the factors in vector
 template<int spacedim,typename T>
 const GeomPoint<spacedim,T> scale(const GeomPoint<spacedim,T>& t, const std::vector<T>& factors){
 
