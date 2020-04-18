@@ -15,7 +15,6 @@
 #include "boost/noncopyable.hpp"
 #include <cmath>
 #include <tuple>
-#include <iostream>
 
 namespace cengine {
 namespace control {
@@ -30,7 +29,7 @@ public:
 
     /// \brief The result returned by the controller
     /// upon calling execute
-    typedef  real_t result_t;
+    typedef  std::tuple<real_t, kernel::GeomPoint<2>, kernel::GeomPoint<2>>  result_t;
 
     /// \brief Expose the type of the path
     typedef typename kernel::ObserverBase<grids::WaypointPath<2,
@@ -40,7 +39,8 @@ public:
     CarrotChasingPathTrackController();
 
     /// \brief Execute controller
-    std::tuple<result_t, kernel::GeomPoint<2>, kernel::GeomPoint<2>> execute(const kernel::dynamics::SysState<3>& state)const;
+    std::tuple<real_t, kernel::GeomPoint<2>, kernel::GeomPoint<2>>
+    execute(const kernel::dynamics::SysState<3>& state)const;
 
     /// \brief Set the lookahead distance
     void set_lookahead_dist(real_t dist){lookahead_distance_ = dist;}
@@ -104,8 +104,7 @@ CarrotChasingPathTrackController<PointData, SegmentData>::CarrotChasingPathTrack
 {}
 
 template<typename PointData, typename SegmentData>
-std::tuple<typename CarrotChasingPathTrackController<PointData,SegmentData>::result_t,
-kernel::GeomPoint<2>, kernel::GeomPoint<2>>
+std::tuple<real_t, kernel::GeomPoint<2>, kernel::GeomPoint<2>>
 CarrotChasingPathTrackController<PointData,
 SegmentData>::execute(const kernel::dynamics::SysState<3>& state)const{
 
@@ -127,8 +126,6 @@ SegmentData>::execute(const kernel::dynamics::SysState<3>& state)const{
 
     current_element_ = segment;
 
-    std::cout<<"Segment id found: "<<current_element_->get_id()<<std::endl;
-
     /// find the look ahead point
     auto [found, lookahead_point] = kernel::find_point_on_line_distant_from_p(*current_element_,
                                                                               closest_path_point,
@@ -144,158 +141,6 @@ SegmentData>::execute(const kernel::dynamics::SysState<3>& state)const{
 
     real_t theta_d = std::atan2(lookahead_point[1] - p[1], lookahead_point[0] - p[0]);
     return {k_*(theta_d - theta), lookahead_point, closest_path_point};
-
-
-    /// maybe the robot reached the segment end
-    /// if yes then we proceed to use the next segment
-    /*if(p.distance(current_element_->get_vertex(1)) < waypoint_r_){
-
-        if(current_element_->get_id() + 1 != path.n_elements()){
-            /// change the segment we are looking at
-            current_element_ = path.element(current_element_->get_id() +1);
-        }
-        else{
-            throw std::logic_error("End of path reached");
-        }
-
-        std::cout<<"Segment id used: "<<current_element_->get_id()<<std::endl;
-
-        auto& start = current_element_->get_vertex(0);
-        auto ru = start.distance(p);
-
-        auto& end = current_element_->get_vertex(1);
-
-
-
-        auto psi = std::atan2(end[1] - start[1], end[0] - start[0]);
-        std::cout<<"Segment angle: "<<psi<<std::endl;
-        real_t psiu = std::atan2(p[1] - start[1], p[0] - start[0]);
-        real_t beta = psi - psiu;
-
-        real_t r = std::sqrt(kernel::utils::sqr(ru) - kernel::utils::sqr(ru*std::sin(beta)));
-        real_t theta_d =std::atan2((r+lookahead_distance_)*std::sin(psi) - p[1],
-                                    (r+lookahead_distance_)*std::cos(psi) - p[0]);
-
-        //if(std::fabs(theta_d) > kernel::UnitConverter::degrees_to_rad(90.0) ){
-        //    theta_d = current_element_->get_orientation();
-        //}
-
-        //real_t theta_d = current_element_->get_orientation();
-        std::cout<<"Desired angle: "<<kernel::UnitConverter::rad_to_degrees(theta_d)<<std::endl;
-        std::cout<<"Error angle: "<<kernel::UnitConverter::rad_to_degrees(theta_d - theta)<<std::endl;
-        std::cout<<"R: "<<r<<", delta: "<<lookahead_distance_<<std::endl;
-        std::cout<<"Lookahed point: "<<(r+lookahead_distance_)*std::cos(psi)<<", "
-                                     <<(r+lookahead_distance_)*std::sin(psi)<<std::endl;
-
-
-
-
-        /// 2. Find the lookahead point. We can find the lookahead point
-        /// by finding the intersection point of the circle centered at
-        /// the robot's location and radius equal to the lookahead distance
-        /// and the path segment
-        auto intersections = kernel::discretization::utils::find_intersections(path,
-                                                                  kernel::Circle(lookahead_distance_, p));
-
-        if(intersections.empty()){
-            /// we cannot proceed
-            throw std::logic_error("No intersection points found");
-        }
-
-        std::cout<<"Lookahed point: "<<intersections[0][0]<<", "
-                                     <<intersections[0][1]<<std::endl;
-
-        theta_d = std::atan2(intersections[0][1] - p[1], intersections[0][0] - p[0]);
-        return {k_*(theta_d - theta), intersections[0]};
-    }
-    else{
-
-        auto closest_path_point = kernel::discretization::utils::find_point_on_element_closest_to(*current_element_,
-                                                                                                  p,
-                                                                                                  n_sampling_points_,
-                                                                                                  tol_);
-        /// we have not reached the segment end
-        auto dist = closest_path_point.distance(current_element_->get_vertex(1));
-
-        auto lookahead_distance = lookahead_distance_;
-
-        if( dist < lookahead_distance_){
-            lookahead_distance = dist;
-        }
-
-        std::cout<<"Segment id used: "<<current_element_->get_id()<<std::endl;
-
-        auto& start = current_element_->get_vertex(0);
-        auto ru = start.distance(p);
-
-        auto& end = current_element_->get_vertex(1);
-        auto psi = std::atan2(end[1] - start[1], end[0] - start[0]);
-        std::cout<<"Segment angle: "<<psi<<std::endl;
-        real_t psiu = std::atan2(p[1] - start[1], p[0] - start[0]);
-        real_t beta = psi - psiu;
-
-        real_t r = std::sqrt(kernel::utils::sqr(ru) - kernel::utils::sqr(ru*std::sin(beta)));
-        real_t theta_d =std::atan2((r+lookahead_distance)*std::sin(psi) - p[1],
-                                    (r+lookahead_distance)*std::cos(psi) - p[0]);
-
-        //if(std::fabs(theta_d) > kernel::UnitConverter::degrees_to_rad(90.0) ){
-        //    theta_d = current_element_->get_orientation();
-        //}
-
-        //real_t theta_d = current_element_->get_orientation();
-
-        std::cout<<"Desired angle: "<<kernel::UnitConverter::rad_to_degrees(theta_d)<<std::endl;
-        std::cout<<"Error angle: "<<kernel::UnitConverter::rad_to_degrees(theta_d - theta)<<std::endl;
-        std::cout<<"R: "<<r<<", delta: "<<lookahead_distance_<<std::endl;
-        std::cout<<"Lookahed point: "<<(r+lookahead_distance_)*std::cos(psi)<<", "
-                                     <<(r+lookahead_distance_)*std::sin(psi)<<std::endl;
-
-        /// 2. Find the lookahead point. We can find the lookahead point
-        /// by finding the intersection point of the circle centered at
-        /// the robot's location and radius equal to the lookahead distance
-        /// and the path segment
-        auto intersections = kernel::discretization::utils::find_intersections(path,
-                                                                  kernel::Circle(lookahead_distance_, p));
-
-        if(intersections.empty()){
-            /// we cannot proceed
-            throw std::logic_error("No intersection points found");
-        }
-
-        std::cout<<"Lookahed point: "<<intersections[0][0]<<", "
-                                     <<intersections[0][1]<<std::endl;
-
-        theta_d = std::atan2(intersections[0][1] - p[1], intersections[0][0] - p[0]);
-        return {k_*(theta_d - theta), intersections[0]};
-    }*/
-
-    /// if the distance from the closest point
-    /// to the end of the segment is less
-    /// than the lookahead distance then the lookahead
-    ///
-    ///  we will switch
-    /// segments and consider the next segment.
-    /// We do this if the found segment is not
-    /// the last segment on the path
-
-    /*if(segment->get_id() + 1 != path.n_elements()){
-
-        if(closest_path_point.distance(segment->get_vertex(1)) < lookahead_distance_){
-
-            /// change the segment we are looking at
-            segment = path.element(segment->get_id() +1);
-        }
-
-
-    }
-    else{
-
-
-
-    }*/
-
-
-
 
 }
 

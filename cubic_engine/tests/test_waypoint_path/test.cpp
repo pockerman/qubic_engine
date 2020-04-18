@@ -13,7 +13,7 @@ TEST(TestWaypointPath, TestAddWaiPoint) {
 
     grids::WaypointPath<2,Null, Null> path;
     path.add_way_point(GeomPoint<2>(0.0), Null());
-    ASSERT_EQ(path.n_wpoints(), 1);
+    ASSERT_EQ(path.n_nodes(), 1);
 }
 
 TEST(TestWaypointPath, TestAddSegmentFail) {
@@ -48,8 +48,8 @@ TEST(TestWaypointPath, TestAddSegment) {
     path.add_way_point(GeomPoint<2>(0.0), Null());
     path.add_way_point(GeomPoint<2>(1.0), Null());
 
-    ASSERT_EQ(path.n_wpoints(), 2);
+    ASSERT_EQ(path.n_nodes(), 2);
 
     path.add_segment(0, 1, Null());
-    ASSERT_EQ(path.n_segments(), 1);
+    ASSERT_EQ(path.n_elements(), 1);
 }
