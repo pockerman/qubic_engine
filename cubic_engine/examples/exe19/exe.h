@@ -26,6 +26,8 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/estimation/extended_kalman_filter.h"
+#include "cubic_engine/grids/waypoint_path.h"
+#include "cubic_engine/control/carrot_chasing.h"
 
 #include <iostream>
 #include <memory>
@@ -41,8 +43,13 @@ std::mutex msg_mutex;
 using cengine::real_t;
 using cengine::uint_t;
 using cengine::ExtendedKalmanFilter;
+using cengine::control::CarrotChasingPathTrackController;
+using cengine::grids::WaypointPath;
+using cengine::grids::WayPoint;
+using cengine::grids::LineSegmentData;
 using DynMat = cengine::DynMat<real_t>;
 using DynVec = cengine::DynVec<real_t>;
+
 using kernel::ThreadPool;
 using kernel::ThreadPoolOptions;
 using kernel::StoppableTask;
@@ -86,11 +93,14 @@ const uint_t REQUESTS_THREAD_CYCLE = 10;
 /// cycle of state estimation thread
 const uint_t STATE_ESTIMATION_THREAD_CYCLE = 10;
 
+/// cycle for path correction thread
+const uint_t PATH_CORRECTION_THREAD_CYCLE = 10;
+
 /// cycle for client thread
 /// in milliseconds
 const uint_t CLIENT_THREAD_CYCLE = 10;
 
-//vertex data to apply A*
+///vertex data to apply A*
 struct AstarNodeData
 {
     real_t gcost;
@@ -156,8 +166,8 @@ ObservationModel::ObservationModel()
       M()
 {}
 
-typedef BoostSerialGraph<AstarNodeData, Null> Map;
-typedef LineMesh<2> Path;
+typedef BoostSerialGraph<AstarNodeData, LineSegmentData> Map;
+typedef WaypointPath<2, AstarNodeData, LineSegmentData> Path;
 typedef SysState<4> State;
 typedef GeomPoint<2> Goal;
 typedef DiffDriveDynamics MotionModel;
@@ -406,7 +416,7 @@ public:
     virtual void run()override final;
 protected:
 
-    //virtual void run()override final;
+
     LockableQueue<std::string>& requests_;
     LockableQueue<std::string>& responses_;
 
@@ -453,7 +463,7 @@ private:
     /// the state of the system
     State state_;
 
-    /// the motion model used by the state estimator is using
+    /// the motion model used by the state estimator
     MotionModel m_model_;
 
     /// the observation model the state estimator is using
@@ -550,10 +560,9 @@ ServerThread::PathConstructorThread::PathConstructorThread(const StopSimulation&
 
 }
 
-// Given the Path produced by the
-// PathConstructorThread follows the Path
-// by integrating the robot motion model and
-// provides the appropriate corrections
+/// Given the Path produced by the  PathConstructorThread
+/// creates motion commands so that the robot
+/// follows the specified path
 struct ServerThread::PathFollowerThread: public StoppableTask<StopSimulation>
 {
 
@@ -567,21 +576,40 @@ struct ServerThread::PathFollowerThread: public StoppableTask<StopSimulation>
     StateObserver sobserver;
 
     // constructor
-    PathFollowerThread(const StopSimulation& stop);
+    PathFollowerThread(const StopSimulation& stop,
+                       LockableQueue<std::string>& responses,
+                       real_t gradius,
+                       real_t gain);
 
 protected:
 
     /// run the thread
     virtual void run()override final;
+
+    /// The path tracker used
+    CarrotChasingPathTrackController<Null, LineSegmentData> path_controller_;
+
+    /// The goal radius
+    real_t gradius_;
+
+    /// The responses queue to notify when the
+    /// goal hs been reached
+    LockableQueue<std::string>& responses_;
 };
 
 inline
-ServerThread::PathFollowerThread::PathFollowerThread(const StopSimulation& stop)
+ServerThread::PathFollowerThread::PathFollowerThread(const StopSimulation& stop,
+                                                     LockableQueue<std::string>& responses,
+                                                     real_t gradius,
+                                                     real_t gain)
     :
    StoppableTask<StopSimulation>(stop),
    gobserver(),
    pobserver(),
-   sobserver()
+   sobserver(),
+   path_controller_(),
+   gradius_(gradius),
+   responses_(responses)
 {
     this->set_name("PathFollowerThread");
     gobserver.set_name("PathFollowerThread GOAL Observer");
