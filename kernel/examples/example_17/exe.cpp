@@ -25,6 +25,7 @@ using DynVec = kernel::DynVec<real_t>;
 using kernel::ThreadPool;
 using kernel::ThreadPoolOptions;
 using kernel::DiffDriveVehicle;
+using kernel::DiffDriveProperties;
 using kernel::LockableQueue;
 using kernel::GeomPoint;
 
@@ -503,12 +504,14 @@ int main(){
     const uint_t N_THREADS = 4;
     const real_t RADIUS = 2.0/100.0;
 
-    // the shared object that
-    // controls when to stop
+    /// the shared object that controls when to stop
     StopSimulation stop_sim;
 
-    // the vehicle the simulator is simulating
-    DiffDriveVehicle vehicle(RADIUS);
+    DiffDriveProperties properties;
+    properties.R = RADIUS;
+
+    /// the vehicle the simulator is simulating
+    DiffDriveVehicle vehicle(properties);
 
     // a wrapper class to provide synchronization
     DiffDriveVehicleWrapper vehicle_wrapper(vehicle);

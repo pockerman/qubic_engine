@@ -46,7 +46,6 @@ using DynVec = cengine::DynVec<real_t>;
 using kernel::ThreadPool;
 using kernel::ThreadPoolOptions;
 using kernel::StoppableTask;
-using kernel::DiffDriveVehicle;
 using kernel::LockableQueue;
 using kernel::GeomPoint;
 using kernel::numerics::Mesh;
@@ -56,6 +55,8 @@ using kernel::Null;
 using kernel::ThreadedObserverBase;
 using kernel::dynamics::SysState;
 using kernel::dynamics::DiffDriveDynamics;
+using kernel::DiffDriveProperties;
+using kernel::DiffDriveVehicle;
 
 const real_t DT = 0.5;
 const std::string SET_GOAL("SET_GOAL");

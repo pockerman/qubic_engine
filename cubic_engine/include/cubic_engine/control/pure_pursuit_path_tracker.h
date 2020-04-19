@@ -71,7 +71,6 @@ private:
     /// by the controller
     kernel::GeomPoint<2> lookahead_point_;
 
-
 };
 
 }
