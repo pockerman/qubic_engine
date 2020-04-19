@@ -12,7 +12,7 @@ TEST(TestWaypointPath, TestAddWaiPoint) {
     using kernel::GeomPoint;
 
     grids::WaypointPath<2,Null, Null> path;
-    path.add_way_point(GeomPoint<2>(0.0), Null());
+    path.add_node(GeomPoint<2>(0.0), Null());
     ASSERT_EQ(path.n_nodes(), 1);
 }
 
@@ -23,7 +23,7 @@ TEST(TestWaypointPath, TestAddSegmentFail) {
     using kernel::GeomPoint;
 
     grids::WaypointPath<2,Null, Null> path;
-    ASSERT_THROW(path.add_segment(0, 0, Null()), std::logic_error);
+    ASSERT_THROW(path.add_element(0, 0, Null()), std::logic_error);
 }
 
 TEST(TestWaypointPath, TestAddSegmentFail2) {
@@ -33,9 +33,9 @@ TEST(TestWaypointPath, TestAddSegmentFail2) {
     using kernel::GeomPoint;
 
     grids::WaypointPath<2,Null, Null> path;
-    path.add_way_point(GeomPoint<2>(0.0), Null());
-    path.add_way_point(GeomPoint<2>(1.0), Null());
-    ASSERT_THROW(path.add_segment(0, 0, Null()), std::logic_error);
+    path.add_node(GeomPoint<2>(0.0), Null());
+    path.add_node(GeomPoint<2>(1.0), Null());
+    ASSERT_THROW(path.add_element(0, 0, Null()), std::logic_error);
 }
 
 TEST(TestWaypointPath, TestAddSegment) {
@@ -45,11 +45,11 @@ TEST(TestWaypointPath, TestAddSegment) {
     using kernel::GeomPoint;
 
     grids::WaypointPath<2,Null, Null> path;
-    path.add_way_point(GeomPoint<2>(0.0), Null());
-    path.add_way_point(GeomPoint<2>(1.0), Null());
+    path.add_node(GeomPoint<2>(0.0), Null());
+    path.add_node(GeomPoint<2>(1.0), Null());
 
     ASSERT_EQ(path.n_nodes(), 2);
 
-    path.add_segment(0, 1, Null());
+    path.add_element(0, 1, Null());
     ASSERT_EQ(path.n_elements(), 1);
 }
