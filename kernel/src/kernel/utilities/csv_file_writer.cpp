@@ -39,7 +39,7 @@ CSVWriter::write_column_names(const std::vector<std::string>& col_names){
 void
 CSVWriter::write_mesh(const numerics::LineMesh<2>& mesh ){
 
-    //if the file is not open
+    ///if the file is not open throw
     if(!is_open()){
         throw std::logic_error("File "+this->file_name_+" is not open");
     }
