@@ -52,7 +52,10 @@ public:
     QTableLearning(QLearningInput&& input);
 
     /// \brief Train on the given world
-    void train(world_t& world, const state_t& goal );
+    void train(const state_t& goal );
+
+    ///Initialize the tabular implementation
+    void initialize(world_t& world, reward_value_t val);
 
     /// \brief Returns the learnt tabular Qfunction
     const RewardTable<action_t, reward_value_t>& get_table()const{return qtable_;}
@@ -74,13 +77,14 @@ private:
     /// \brief The world used by the agent
     world_t* world_ptr_;
 
-    ///Initialize the tabular implementation
-    void initialize_(world_t& world);
+    /// \brief Flag indicating if the trainer
+    /// has been initialized
+    bool is_initialized_;
 
     /// \brief Initialize the QTable entries
     /// for the given state
     template<typename StateTp>
-    void initialize_state_(const StateTp& state);
+    void initialize_state_(const StateTp& state, reward_value_t val);
 
 };
 
@@ -89,47 +93,54 @@ QTableLearning<WorldTp>::QTableLearning(QLearningInput&& input)
     :
     input_(std::move(input)),
     qtable_(),
-    world_ptr_(nullptr)
+    world_ptr_(nullptr),
+    is_initialized_(false)
 {}
 
 template<typename WorldTp>
 void
-QTableLearning<WorldTp>::initialize_(typename QTableLearning<WorldTp>::world_t& world){
+QTableLearning<WorldTp>::initialize(typename QTableLearning<WorldTp>::world_t& world,
+                                    typename QTableLearning<WorldTp>::reward_value_t val){
 
 
     /// loop over the states of the world and initialize
     /// the action scores
     for(uint_t s=0; s<world.n_states(); ++s){
-        initialize_state_(world.get_state(s));
+        initialize_state_(world.get_state(s), val);
     }
 
     /// finally set the world pointer
     world_ptr_ = &world;
+    is_initialized_ = true;
 }
 
 template<typename WorldTp>
 template<typename StateTp>
 void
-QTableLearning<WorldTp>::initialize_state_(const StateTp& state){
+QTableLearning<WorldTp>::initialize_state_(const StateTp& state,
+                                           typename QTableLearning<WorldTp>::reward_value_t val){
 
     for(uint_t a = 0; a<state.n_actions(); ++a){
-        qtable_.add_reward(state.get_id(), state.get_action_from_idx(a),  0.0);
+        if(state.is_active_action(a)){
+            qtable_.add_reward(state.get_id(), state.get_action_from_idx(a),  val);
+        }
     }
 }
 
 
 template<typename WorldTp>
 void
-QTableLearning<WorldTp>::train(world_t& world, const typename QTableLearning<WorldTp>::state_t& goal ){
+QTableLearning<WorldTp>::train(const typename QTableLearning<WorldTp>::state_t& goal ){
 
-    /// initialize the table
-    initialize_(world);
+    if(!is_initialized_){
+        throw std::logic_error("QTableLearning instance is not initialized");
+    }
 
     uint_t itr_counter = 0;
-    while( world.get_current_state() != goal ){
+    while( world_ptr_->get_current_state() != goal ){
 
         /// get the current state of the world
-        auto& state = world.get_current_state();
+        auto& state = world_ptr_->get_current_state();
 
         if(input_.show_iterations){
             std::cout<<"At iteration: "<<itr_counter +1 <<std::endl;
@@ -168,8 +179,8 @@ QTableLearning<WorldTp>::train(world_t& world, const typename QTableLearning<Wor
         }
 
 
-        world.step(action_idx);
-        if(world.is_finished()){
+        world_ptr_->step(action_idx);
+        if(world_ptr_->is_finished()){
 
             /// the action led to a catastrophy according to
             /// the world
@@ -191,18 +202,22 @@ QTableLearning<WorldTp>::train(world_t& world, const typename QTableLearning<Wor
 
 
             /// get the reward
-            auto reward = world.reward();
+            auto reward = world_ptr_->reward();
             auto current_val = qtable_.get_reward(state.get_id(), action_idx);
 
             /// update the table
-            auto& new_state = world.get_current_state();
+            auto& new_state = world_ptr_->get_current_state();
 
             auto future_reward = qtable_.get_max_reward_at_state(new_state.get_id());
 
             auto val = current_val + input_.learning_rate*(reward +
                                          input_.discount_factor * future_reward - current_val);
 
-
+            if(input_.show_iterations){
+                std::cout<<"\t Setting for state: "<<state.get_id()
+                        <<" and action: "<<worlds::to_string(action_idx)
+                        <<" to value: "<<val<<std::endl;
+            }
             qtable_.set_reward(state.get_id(), action_idx, val );
 
             itr_counter++;
