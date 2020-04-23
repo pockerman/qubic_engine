@@ -33,6 +33,9 @@ public:
     /// that the state allws
     uint_t n_actions()const{return 4;}
 
+    /// \brief is this action idx valid
+    bool is_active_action(uint_t i)const;
+
     /// \brief Returns the id of the state
     uint_t get_id()const{return id_;}
 
@@ -42,6 +45,7 @@ public:
 
     /// \brief Execute the action
     GridWorldState* execute_action(GridWorldAction action);
+
 
 private:
 
