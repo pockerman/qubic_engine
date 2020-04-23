@@ -58,6 +58,18 @@ GridWorldState::execute_action(GridWorldAction action){
     return state_transitions_[action];
 }
 
+bool
+GridWorldState::is_active_action(uint_t i)const{
+
+    auto action = GridWorldState::get_action_from_idx(i);
+
+    if(state_transitions_.find(action)->second){
+        return true;
+    }
+
+    return false;
+}
+
 
 }
 

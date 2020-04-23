@@ -4,12 +4,12 @@
 #include "kernel/base/types.h"
 #include "kernel/utilities/file_writer_base.h"
 #include <vector>
+#include <tuple>
 
 namespace kernel{
 namespace numerics {
 template<int dim> class LineMesh;
 }
-
 
 /// \brief Handles writing into CSV file format
 class CSVWriter: public FileWriterBase
@@ -25,7 +25,7 @@ public:
               bool open_file=false, const std::ios_base::openmode mode=std::ios_base::out);
 
     /// \brief Write the column names
-    void write_column_names(const std::vector<std::string>& col_names);
+    void write_column_names(const std::vector<std::string>& col_names, bool wheader=true);
 
     /// \brief Write a row of the file
     template<typename T>
@@ -34,6 +34,10 @@ public:
     /// \brief Write the given Vec as a row
     template<typename T>
     void write_row(const DynVec<T>& vals);
+
+    /// \brief Write the given tuple as a row
+    template<typename...T>
+    void write_row(const std::tuple<T...>& row);
 
     /// \brief Set the delimiter
     void set_delimiter(char delim)noexcept{delim_=delim;}
@@ -76,7 +80,7 @@ template<typename T>
 void
 CSVWriter::write_row(const DynVec<T>& vals){
 
-    //if the file is not open
+    /// if the file is not open
     if(!is_open()){
         throw std::logic_error("File "+this->file_name_+" is not open");
     }
@@ -93,6 +97,20 @@ CSVWriter::write_row(const DynVec<T>& vals){
         }
     }
 
+}
+
+template<typename...T>
+void
+CSVWriter::write_row(const std::tuple<T...>& row){
+
+    /// if the file is not open
+    if(!is_open()){
+        throw std::logic_error("File "+this->file_name_+" is not open");
+    }
+
+
+    std::apply([&](auto&&...args ){((file_<<args<<","), ...);}, row);
+    file_<<std::endl;
 }
 
 }

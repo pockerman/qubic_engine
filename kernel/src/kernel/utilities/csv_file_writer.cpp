@@ -14,11 +14,15 @@ delim_(delim)
 {}
 
 void
-CSVWriter::write_column_names(const std::vector<std::string>& col_names){
+CSVWriter::write_column_names(const std::vector<std::string>& col_names, bool wheader){
 
     //if the file is not open
     if(!is_open()){
         throw std::logic_error("File "+this->file_name_+" is not open");
+    }
+
+    if(wheader){
+        this->write_header();
     }
 
     for(uint_t c=0; c<col_names.size(); ++c){
