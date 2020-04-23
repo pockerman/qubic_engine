@@ -3,15 +3,20 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
+
 #if defined(__GNUC__) && (__GNUC___ > 7)
 #include "magic_enum.hpp"
 #else
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #endif
+
+#include "kernel/utilities/csv_file_writer.h"
+
 #include <stdexcept>
 #include <map>
 #include <utility>
 #include <vector>
+#include <tuple>
 
 namespace cengine{
 namespace rl {
@@ -53,6 +58,9 @@ public:
 
     /// \brief Returns the total reward
     reward_value_t get_total_reward()const;
+
+    /// \brief save the reward table in a CSV format
+    void save_to_csv(const std::string& filename)const;
 
 private:
 
@@ -124,8 +132,6 @@ RewardTable<ActionTp, RewardTp>::get_action_reward_mapping_for_state(uint_t sid)
 
             values.push_back({begin->first.second, begin->second});
         }
-
-        begin++;
     }
 
     return values;
@@ -197,6 +203,28 @@ RewardTable<ActionTp, RewardTp>::get_total_reward()const{
 
     return total;
 
+}
+
+template<typename ActionTp, typename RewardTp>
+void
+RewardTable<ActionTp, RewardTp>::save_to_csv(const std::string& filename)const{
+
+    kernel::CSVWriter writer(filename, ',', true);
+
+    std::vector<std::string> col_names = {"StateId", "Action", "Reward"};
+    writer.write_column_names(col_names, true);
+
+    auto itr = reward_table_.begin();
+    auto itr_end = reward_table_.end();
+
+    for(; itr != itr_end; ++itr){
+
+        std::tuple<uint_t, std::string, real_t> row= std::make_tuple(itr->first.first,
+                                                                      worlds::to_string(itr->first.second),
+                                                                     itr->second);
+
+        writer.write_row(row);
+    }
 }
 
 }
