@@ -36,8 +36,8 @@ FileWriterBase::open(std::ios_base::openmode mode){
 
     std::string suffix = FileFormats::type_to_string(t_);
 
-    //attempt to split the file name and check if a suffix has been given
-    //if yes check if this is the same with the file type
+    /// attempt to split the file name and check if a suffix has been given
+    /// if yes check if this is the same with the file type
     std::vector<std::string> cont;
     boost::split(cont, file_name_, boost::is_any_of("."));
 
