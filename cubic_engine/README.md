@@ -77,7 +77,7 @@ make tests
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
 - <a href="examples/exe6/doc/exe.md">Example 6: </a> Qlearning applied on simple ```GridWorld```
-- <a href="examples/exe22/doc/exe.md">Example 22: </a> SARSA Algorithm
+- <a href="examples/exe22/doc/exe.md">Example 22: </a> SARSA learning applied on ```CliffWorld```
 
 ### <a name="using_ros"></a> Robotics Simulations
 
