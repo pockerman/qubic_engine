@@ -47,6 +47,7 @@ using cengine::control::CarrotChasingPathTrackController;
 using cengine::grids::WaypointPath;
 using cengine::grids::WayPoint;
 using cengine::grids::LineSegmentData;
+using cengine::control::CarrotChasingPathTrackControllerInput;
 using DynMat = cengine::DynMat<real_t>;
 using DynVec = cengine::DynVec<real_t>;
 
@@ -56,7 +57,6 @@ using kernel::StoppableTask;
 using kernel::LockableQueue;
 using kernel::GeomPoint;
 using kernel::numerics::Mesh;
-using kernel::numerics::LineMesh;
 using kernel::BoostSerialGraph;
 using kernel::Null;
 using kernel::ThreadedObserverBase;
@@ -145,6 +145,7 @@ public:
 
     typedef  DynVec input_t;
 
+    /// constructor
     ObservationModel();
 
     /// simply return th
@@ -267,7 +268,9 @@ public:
     ServerThread(const StopSimulation& stop_condition,
                  const Map& map,
                  const SysState<4>& state,
-                 ThreadPool& threads);
+                 ThreadPool& threads,
+                 const CarrotChasingPathTrackControllerInput& input,
+                 real_t gradius);
 
     /// run the server
     virtual void run()override final;
@@ -303,6 +306,9 @@ protected:
     /// observers that we should update when a measurement
     /// of the sensor is taken
     std::vector<MeasurmentObserver*> m_observers_;
+
+    CarrotChasingPathTrackControllerInput path_control_input_;
+    real_t gradius_;
 
     /// checks if all tasks are stopped
     /// if this is true the server is stopped as well
@@ -569,17 +575,23 @@ struct ServerThread::PathFollowerThread: public StoppableTask<StopSimulation>
     /// The observer for the goal
     GoalObserver gobserver;
 
-    /// The observer for the Path
+    /// Path observer for output
     PathObserver pobserver;
 
     /// The state observer
     StateObserver sobserver;
 
-    // constructor
+    /// constructor
     PathFollowerThread(const StopSimulation& stop,
                        LockableQueue<std::string>& responses,
-                       real_t gradius,
-                       real_t gain);
+                       const CarrotChasingPathTrackControllerInput& input,
+                       real_t gradius);
+
+    /// attach an angular velocity observer
+    void attach_w_velocity_observer(RefVelocityObserver& observer);
+
+    /// update the w velocity observers
+    void update_w_velocity_observers(real_t w);
 
 protected:
 
@@ -587,29 +599,33 @@ protected:
     virtual void run()override final;
 
     /// The path tracker used
-    CarrotChasingPathTrackController<Null, LineSegmentData> path_controller_;
-
-    /// The goal radius
-    real_t gradius_;
+    CarrotChasingPathTrackController<AstarNodeData, LineSegmentData> path_controller_;
 
     /// The responses queue to notify when the
     /// goal hs been reached
     LockableQueue<std::string>& responses_;
+
+    /// the list of angular observers to update
+    std::vector<RefVelocityObserver*> wobservers_;
+
+    /// the goal radius
+    real_t gradius_;
 };
 
 inline
 ServerThread::PathFollowerThread::PathFollowerThread(const StopSimulation& stop,
                                                      LockableQueue<std::string>& responses,
-                                                     real_t gradius,
-                                                     real_t gain)
+                                                     const CarrotChasingPathTrackControllerInput& input,
+                                                     real_t gradius)
     :
    StoppableTask<StopSimulation>(stop),
    gobserver(),
-   pobserver(),
    sobserver(),
-   path_controller_(),
-   gradius_(gradius),
-   responses_(responses)
+   pobserver(),
+   path_controller_(input),
+   responses_(responses),
+   wobservers_(),
+   gradius_(gradius)
 {
     this->set_name("PathFollowerThread");
     gobserver.set_name("PathFollowerThread GOAL Observer");
@@ -619,10 +635,27 @@ ServerThread::PathFollowerThread::PathFollowerThread(const StopSimulation& stop,
 
 
 inline
+void
+ServerThread::PathFollowerThread::attach_w_velocity_observer(RefVelocityObserver& observer){
+    wobservers_.push_back(&observer);
+}
+
+inline
+void
+ServerThread::PathFollowerThread::update_w_velocity_observers(real_t w){
+    for(auto observer:wobservers_){
+        observer->update(w);
+    }
+}
+
+
+inline
 ServerThread::ServerThread(const StopSimulation& stop_condition,
                            const Map& map,
                            const SysState<4>& init_state,
-                           ThreadPool& thread_pool)
+                           ThreadPool& thread_pool,
+                           const CarrotChasingPathTrackControllerInput& input,
+                           real_t gradius)
     :
   kernel::StoppableTask<StopSimulation>(stop_condition),
   map_(&map),

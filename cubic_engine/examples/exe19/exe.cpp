@@ -187,7 +187,7 @@ ServerThread::PathConstructorThread::run(){
 
     while(!this->should_stop()){
 
-        // read both goal and state
+        /// read both goal and state
         gobserver.read(goal);
         sobserver.read(state);
 
@@ -249,27 +249,27 @@ ServerThread::PathConstructorThread::run(){
         }
 #endif
 
-        // update the line mesh that represents the path
+        /// update the line mesh that represents the path
         std::vector<uint_t> mesh_data = cengine::reconstruct_a_star_path(path_connections, goal_vertex_id);
 
 #ifdef USE_LOG
         kernel::Logger::log_info("Reconstructed path from A*");
 #endif
 
-        // now that we have the connections let's update the path
+        /// update the path
         cengine::grids::build(path_, *map_, mesh_data);
 
 #ifdef USE_LOG
         kernel::Logger::log_info("Updated Path");
 #endif
 
-        // update the observers
+        /// update the observers
         update_path_observers();
 
         end = std::chrono::system_clock::now();
         std::chrono::duration<real_t> duration = end - start;
 
-        // save the path
+        /// save the path
         save_path(duration.count());
 
         previous_position = position;
@@ -306,24 +306,21 @@ ServerThread::PathFollowerThread::run(){
         if(goal.distance(position) < gradius_){
 
             /// the goal has been reached
-            responses_.push_item(MESSAGE+" Goal has been reached");
+            responses_.push_item(MESSAGE + " Goal has been reached");
         }
         else{
 
             SysState<3> real_state(state);
 
+            /// update the path
+            path_controller_.update(pobserver.read());
+
             /// calculate the steering CMD
             auto [control_result, lookahed_point, closest] = path_controller_.execute(real_state);
 
             /// update the observers interested
-
+            update_w_velocity_observers(control_result);
         }
-
-
-
-        // if we are not on the goal check
-        // are we on path? if yes continue
-        // else make the corrections
 
         ///... sleep for some time
         std::this_thread::sleep_for(std::chrono::milliseconds(PATH_CORRECTION_THREAD_CYCLE));
@@ -657,12 +654,13 @@ ServerThread::run(){
 
     tasks_.push_back(std::make_unique<state_est_task_t>(this->get_condition(), *map_));
     tasks_.push_back(std::make_unique<path_cstr_task_t>(this->get_condition(), *map_));
-    tasks_.push_back(std::make_unique<path_follow_task_t>(this->get_condition()));
+    tasks_.push_back(std::make_unique<path_follow_task_t>(this->get_condition(), responses_,
+                                                          path_control_input_, gradius_ ));
 
     tasks_.push_back(std::make_unique<request_task_t>(this->get_condition(), requests_, cmds_, responses_));
     tasks_.push_back(std::make_unique<client_task_t>(this->get_condition(), requests_, responses_));
 
-    //assign the observers
+    /// assign the observers
     {
         request_task_t* req_task = static_cast<request_task_t*>(tasks_[3].get());
         req_task->attach_goal_observer(static_cast< path_cstr_task_t*>(tasks_[1].get())->gobserver);
@@ -683,6 +681,9 @@ ServerThread::run(){
         pconstruct_thread->attach_path_observer(static_cast<request_task_t*>(tasks_[3].get())->pobserver);
 
         this->attach_measurement_observer(state_thread->mobserver);
+
+        path_follow_task_t* path_follow_thread = static_cast<path_follow_task_t*>(tasks_[2].get());
+        path_follow_thread->attach_w_velocity_observer(state_thread->wobserver);
 
     }
 
@@ -829,8 +830,6 @@ int main(){
     const uint_t N_THREADS = 5;
     const real_t RADIUS = 2.0/100.0;
 
-    // the object that controls when to stop
-    // the threads
     StopSimulation stop_sim;
 
     // the initial system state
@@ -839,7 +838,7 @@ int main(){
     DiffDriveProperties properties;
     properties.R = RADIUS;
 
-    // the vehicle the simulator is simulating
+    /// the vehicle to simulate
     DiffDriveVehicle vehicle(properties);
 
     ThreadPoolOptions options;
@@ -852,8 +851,17 @@ int main(){
     // executor
     ThreadPool pool(options);
 
+    CarrotChasingPathTrackControllerInput path_contorl_input;
+    path_contorl_input.lookahead_distance = 7.5;
+    path_contorl_input.n_sampling_points = 10;
+    path_contorl_input.k = 0.5;
+    path_contorl_input.waypoint_r = 1.5;
+
+    real_t gradius = 1.0;
+
     // the server instance
-    ServerThread server(stop_sim, map, init_state, pool);
+    ServerThread server(stop_sim, map, init_state,
+                        pool, path_contorl_input, gradius);
 
     server.run();
     pool.close();
