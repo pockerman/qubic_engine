@@ -19,6 +19,34 @@
 namespace cengine {
 namespace control {
 
+
+/// \brief Helper class to assemble all the
+/// properties needed to initialize the
+/// CarrotChasingPathTrackController
+
+
+struct CarrotChasingPathTrackControllerInput
+{
+
+    /// \brief The gain parameter
+    real_t k;
+
+    /// \brief The lookahead distance
+    real_t lookahead_distance;
+
+    /// \brief number of sampling poinst to use
+    /// when computing the closest point from
+    /// position to the path
+    uint_t n_sampling_points;
+
+    /// \brief Tolerance used for calculations
+    real_t tol;
+
+    /// \brief Radius within which it is
+    /// assumed that the waypoint has been reached
+    real_t waypoint_r;
+};
+
 /// \brief The so-called carrot chasing path track controller
 template<typename PointData, typename SegmentData>
 class CarrotChasingPathTrackController:public kernel::ObserverBase<grids::WaypointPath<2, PointData, SegmentData>*>,
@@ -31,12 +59,18 @@ public:
     /// upon calling execute
     typedef  std::tuple<real_t, kernel::GeomPoint<2>, kernel::GeomPoint<2>>  result_t;
 
+    /// \brief The type of the base class
+    typedef kernel::ObserverBase<grids::WaypointPath<2, PointData, SegmentData>*> obsertver_base_t;
+
     /// \brief Expose the type of the path
     typedef typename kernel::ObserverBase<grids::WaypointPath<2,
                                                               PointData,
                                                               SegmentData>*>::resource_t  path_t;
     /// \brief Constructor
     CarrotChasingPathTrackController();
+
+    /// \brief Constructor
+    CarrotChasingPathTrackController(const CarrotChasingPathTrackControllerInput& input );
 
     /// \brief Execute controller
     std::tuple<real_t, kernel::GeomPoint<2>, kernel::GeomPoint<2>>
@@ -62,6 +96,12 @@ public:
 
     /// \brief Read the resource
     virtual const path_t& read()const override final;
+
+    ///\brief Returns this as ObserverBase
+    obsertver_base_t& get_observer(){return *this;}
+
+    ///\brief Returns this as ObserverBase
+    const obsertver_base_t& get_observer()const{return *this;}
 
 private:
 
@@ -103,6 +143,18 @@ CarrotChasingPathTrackController<PointData, SegmentData>::CarrotChasingPathTrack
     current_element_(nullptr)
 {}
 
+
+template<typename PointData, typename SegmentData>
+CarrotChasingPathTrackController<PointData, SegmentData>::CarrotChasingPathTrackController(const CarrotChasingPathTrackControllerInput& input )
+    :
+   kernel::ObserverBase<grids::WaypointPath<2, PointData, SegmentData>*>(),
+   k_(input.k),
+   lookahead_distance_(input.lookahead_distance),
+   n_sampling_points_(input.n_sampling_points),
+   tol_(input.tol),
+   waypoint_r_(input.waypoint_r),
+   current_element_(nullptr)
+{}
 template<typename PointData, typename SegmentData>
 std::tuple<real_t, kernel::GeomPoint<2>, kernel::GeomPoint<2>>
 CarrotChasingPathTrackController<PointData,
