@@ -137,6 +137,8 @@ SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::s
         throw std::logic_error("SarsaTableLearning instance is not initialized");
     }
 
+    auto action_idx = WorldTp::invalid_action;
+
     uint_t itr_counter = 0;
     while( world_ptr_->get_current_state() != goal ){
 
@@ -148,39 +150,43 @@ SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::s
             std::cout<<"\tCurrent state: "<<state.get_id()<<std::endl;
         }
 
-        auto action_idx = qtable_.get_max_reward_action_at_state(state.get_id());
+        /// we just started
+        if(action_idx == WorldTp::invalid_action){
+            action_idx = qtable_.get_max_reward_action_at_state(state.get_id());
 
-        /// generate a random number
-        /// between 0 and 1
-        auto r = 0.0;
-        if(input_.use_exploration){
+            /// generate a random number
+            /// between 0 and 1
+            auto r = 0.0;
+            if(input_.use_exploration){
 
-            ///Will be used to obtain a seed for the random number engine
-            std::random_device rd;
+                ///Will be used to obtain a seed for the random number engine
+                std::random_device rd;
 
-            ///Standard mersenne_twister_engine seeded with rd()
-            std::mt19937 gen(rd());
-            std::uniform_real_distribution<> dis(0.0, 1.1);
-            r = dis(rd);
+                ///Standard mersenne_twister_engine seeded with rd()
+                std::mt19937 gen(rd());
+                std::uniform_real_distribution<> dis(0.0, 1.1);
+                r = dis(rd);
+            }
+
+            /// replace with random action to
+            /// promote exploration
+            if(input_.use_exploration && r < input_.exploration_factor){
+
+                ///Will be used to obtain a seed for the random number engine
+                std::random_device rd;
+
+                ///Standard mersenne_twister_engine seeded with rd()
+                std::mt19937 gen(rd());
+                std::uniform_int_distribution<> dis(0, state.n_actions()-1);
+                auto idx = dis(rd);
+
+                action_idx = state.get_action_from_idx(idx);
+            }
         }
 
-        /// replace with random action to
-        /// promote exploration
-        if(input_.use_exploration && r < input_.exploration_factor){
-
-            ///Will be used to obtain a seed for the random number engine
-            std::random_device rd;
-
-            ///Standard mersenne_twister_engine seeded with rd()
-            std::mt19937 gen(rd());
-            std::uniform_int_distribution<> dis(0, state.n_actions()-1);
-            auto idx = dis(rd);
-
-            action_idx = state.get_action_from_idx(idx);
-        }
-
-
+        /// take action
         world_ptr_->step(action_idx);
+
         if(world_ptr_->is_finished()){
 
             /// the action led to a catastrophy according to
@@ -202,14 +208,40 @@ SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::s
         else{
 
 
-            /// get the reward
+            /// observe R and S'
             auto reward = world_ptr_->reward();
-            auto current_val = qtable_.get_reward(state.get_id(), action_idx);
-
-            /// update the table
             auto& new_state = world_ptr_->get_current_state();
 
-            auto future_reward = qtable_.get_max_reward_at_state(new_state.get_id());
+            auto current_val = qtable_.get_reward(state.get_id(), action_idx);
+
+            /// choose A' from S'
+            auto next_action_idx = qtable_.get_max_reward_action_at_state(new_state.get_id());
+
+            if(input_.use_exploration){
+
+                ///Will be used to obtain a seed for the random number engine
+                std::random_device newrd;
+
+                ///Standard mersenne_twister_engine seeded with rd()
+                std::mt19937 newgen(newrd());
+                std::uniform_real_distribution<> newdis(0.0, 1.1);
+               auto epsilon = newdis(newrd);
+
+                if(epsilon < input_.exploration_factor){
+
+                    ///Will be used to obtain a seed for the random number engine
+                    std::random_device rd;
+
+                    ///Standard mersenne_twister_engine seeded with rd()
+                    std::mt19937 gen(rd());
+                    std::uniform_int_distribution<> dis(0, state.n_actions()-1);
+                    auto idx = dis(rd);
+
+                    next_action_idx = new_state.get_action_from_idx(idx);
+                }
+            }
+
+            auto future_reward = qtable_.get_reward(new_state.get_id(), next_action_idx);
 
             auto val = current_val + input_.learning_rate*(reward +
                                          input_.discount_factor * future_reward - current_val);
@@ -221,6 +253,7 @@ SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::s
             }
             qtable_.set_reward(state.get_id(), action_idx, val );
 
+            action_idx = next_action_idx;
             itr_counter++;
         }
       }
