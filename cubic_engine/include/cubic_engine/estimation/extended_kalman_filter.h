@@ -42,6 +42,7 @@ public:
     typedef ObservationModelTp observation_model_t;
     typedef typename motion_model_t::input_t motion_model_input_t;
     typedef typename motion_model_t::matrix_t matrix_t;
+    typedef typename motion_model_t::state_t state_t;
     typedef typename observation_model_t::input_t observation_model_input_t;
 
     /// \brief Constructor
@@ -77,6 +78,12 @@ public:
 
    /// \brief Set the matrix used by the filter
    void set_matrix(const std::string& name, const matrix_t& mat);
+
+   /// \brief Returns the state
+   const state_t& get_state()const{return motion_model_ptr_->get_state();}
+
+   /// \brief Returns the state
+   state_t& get_state(){return motion_model_ptr_->get_state();}
            
 protected:
 
@@ -140,7 +147,7 @@ ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::predict(const typename E
     auto& F = motion_model_ptr_->get_matrix("F");
     auto F_T = trans(F);
 
-    P = F * P * F_T; // + L*Q*L_T;
+    P = F * P * F_T + L*Q*L_T;
 }
 
 template<typename MotionModelTp, typename ObservationModelTp>
@@ -173,7 +180,10 @@ ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::update(const typename Ex
         auto innovation = z - zpred;
 
         if(K.columns() != innovation.size()){
-            throw std::runtime_error("Matrix columns: "+std::to_string(K.columns())+" not equal to vector size: "+std::to_string(innovation.size()));
+            throw std::runtime_error("Matrix columns: "+
+                                      std::to_string(K.columns())+
+                                      " not equal to vector size: "+
+                                      std::to_string(innovation.size()));
         }
 
         state.add(K*innovation);
@@ -185,9 +195,9 @@ ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::update(const typename Ex
     }
     catch(...){
 
-        //# this is a singular matrix what
-        //# should we do? Simply use the predicted
-        //# values and log the fact that there was a singular matrix
+        // this is a singular matrix what
+        // should we do? Simply use the predicted
+        // values and log the fact that there was a singular matrix
 
         throw;
     }
