@@ -215,7 +215,19 @@ SysState<dim>::get(const std::string& name)const{
     });
 
     if(itr == values_.end()){
-        throw std::invalid_argument("Invalid variable name");
+        auto error_msg("Invalid variable name. Name");
+        auto names = get_names();
+        std::string name_strs("[");
+        for(auto& name:names){
+
+            name_strs += std::string(name);
+            name_strs += std::string(",");
+        }
+
+        name_strs += std::string("]");
+        throw std::invalid_argument(error_msg + 
+                                    name+
+                                    std::string(" not in: ")+ name_strs);
     }
 
     return itr->second;
@@ -231,9 +243,20 @@ SysState<dim>::set(const std::string& name, real_t val){
     });
 
     if(itr == values_.end()){
-        throw std::invalid_argument("Invalid variable name");
-    }
+        auto error_msg("Invalid variable name. Name");
+        auto names = get_names();
+        std::string name_strs("[");
+        for(auto& name:names){
 
+            name_strs += std::string(name);
+            name_strs += std::string(",");
+        }
+
+        name_strs += std::string("]");
+        throw std::invalid_argument(error_msg + 
+                                    name+
+                                    std::string(" not in: ")+ name_strs);
+    }
 
     itr->second = val;
 }
@@ -268,7 +291,19 @@ SysState<dim>::operator[](const std::string& name){
     });
 
     if(itr == values_.end()){
-        throw std::invalid_argument("Invalid variable name");
+        auto error_msg("Invalid variable name. Name");
+        auto names = get_names();
+        std::string name_strs("[");
+        for(auto& name:names){
+
+            name_strs += std::string(name);
+            name_strs += std::string(",");
+        }
+
+        name_strs += std::string("]");
+        throw std::invalid_argument(error_msg + 
+                                    name+
+                                    std::string(" not in: ")+ name_strs);
     }
 
     return itr->second;
@@ -283,8 +318,20 @@ SysState<dim>::operator[](const std::string& name)const{
         return item.first == name;
     });
 
-    if(itr == values_.end()){
-        throw std::invalid_argument("Invalid variable name");
+   if(itr == values_.end()){
+        auto error_msg("Invalid variable name. Name");
+        auto names = get_names();
+        std::string name_strs("[");
+        for(auto& name:names){
+
+            name_strs += std::string(name);
+            name_strs += std::string(",");
+        }
+
+        name_strs += std::string("]");
+        throw std::invalid_argument(error_msg + 
+                                    name+
+                                    std::string(" not in: ")+ name_strs);
     }
 
     return itr->second;
