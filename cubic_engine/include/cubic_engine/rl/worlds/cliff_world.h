@@ -5,6 +5,7 @@
 #include "cubic_engine/rl/world.h"
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #include "cubic_engine/rl/worlds/grid_world_state.h"
+#include "cubic_engine/rl/reward_table.h"
 
 #include  <stdexcept>
 
@@ -36,7 +37,7 @@ class CliffWorld: public World<GridWorldAction, GridWorldState, real_t>
 
 public:
 
-    typedef real_t reward_t;
+
     typedef typename World<GridWorldAction, GridWorldState, real_t>::action_t action_t;
     typedef typename World<GridWorldAction, GridWorldState, real_t>::state_t state_t;
     typedef typename World<GridWorldAction, GridWorldState, real_t>::reward_value_t reward_value_t;
@@ -95,6 +96,8 @@ public:
     /// \brief Returns true if the world is finished
     bool is_finished()const{return finished_;}
 
+    /// \brief Create the world
+    void create_world();
 
 private:
 
@@ -106,11 +109,6 @@ private:
 
     /// \brief The current state the world is in
     const state_t* current_state_;
-
-    /// \brief The object responsible for
-    /// producing the reward that the agent
-    /// should receive
-    reward_t reward_;
 
     /// \brief The reward that the agent should recieve
     /// after executing an action
@@ -125,6 +123,35 @@ private:
     /// has the current_state_ and goal_ state
     /// equal
     bool finished_;
+
+    /// \brief Class that handles the rewards
+    class RewardProducer
+    {
+    public:
+
+        typedef real_t value_t;
+
+        /// \brief construcotr
+        RewardProducer();
+
+        /// \brief Returns the reward for the goal
+        real_t goal_reward()const{return 0.0;}
+
+        /// \brief Returns the reward for the action
+        /// at  state s when going to state sprime
+        real_t get_reward(const action_t& action,
+                          const state_t& s,
+                          const state_t& sprime)const;
+
+        /// \brief Setup the rewards
+        void setup_rewards();
+    private:
+
+        /// table that holds the rewards
+        RewardTable<GridWorldAction, real_t> rewards_;
+    };
+
+    RewardProducer reward_;
 };
 
 inline

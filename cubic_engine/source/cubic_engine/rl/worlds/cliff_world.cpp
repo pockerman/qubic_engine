@@ -1,158 +1,229 @@
 #include "cubic_engine/rl/worlds/cliff_world.h"
+#include <algorithm>
 
 namespace cengine{
 namespace rl{
 namespace worlds{
 
-CliffWorld::CliffWorld(uint_t xlength,  uint_t ylength)
+CliffWorld::CliffWorld()
     :
-      World<CliffWorldAction, int, real_t>(),
-      xlength_(xlength),
-      ylength_(ylength),
-      goal_(xlength * ylength + 1)
+      World<GridWorldAction, GridWorldState,  real_t>(),
+      start_(nullptr),
+      goal_(nullptr),
+      current_state_(nullptr),
+      reward_(),
+      r_(0.0),
+      states_(),
+      finished_(false)
 {}
 
 CliffWorld::~CliffWorld()
 {}
 
-void
-CliffWorld::restart(){
-   set_state(CliffWorld::START);
-}
-
-
-void
-CliffWorld::set_state(const state_t state){
-    agent_pos_ = state;
-}
-
 
 void
 CliffWorld::step(const CliffWorld::action_t& action){
 
-    const static uint_t START = start_;
-
-    /// switch of the current state
-    /// of the world
-    if(agent_pos_ == start_){
-        step_start(action);
+    if(states_.empty()){
+        throw std::logic_error("Cell connectivity is not established");
     }
-    else if(agent_pos_ == goal_){
-        step_goal(action);
+
+    if(current_state_ == nullptr ){
+       throw std::logic_error("Null current state pointer");
+    }
+
+    if(goal_ == nullptr){
+       throw std::logic_error("Null goal pointer");
+    }
+
+    if(*current_state_ == *goal_){
+        r_ = 0.0;
+        finished_ = true;
     }
     else{
-        do_step(action);
+
+        /// for the current state
+        /// find out the index of the cell
+        /// that the agent can transition to
+        auto* next_state = const_cast<state_t*>(current_state_)->execute_action(action);
+
+        if(next_state == nullptr){
+            // the agent just came out of the grid
+            // so finishe the game
+            finished_ = true;
+        }
+        else{
+            r_ = reward_.get_reward(action, *current_state_, *next_state);
+            current_state_ = next_state;
+
+            static const uint_t cliff[]={1, 2, 3, 4, 5, 6,7,8,9,10};
+
+            if(std::find(&cliff[0],
+                         &cliff[ sizeof(cliff)/sizeof(uint_t) ], current_state_->get_id()) !=
+                    &cliff[ sizeof (cliff)/sizeof(uint_t) ]){
+
+                finished_ = true;
+            }
+        }
     }
 }
 
 void
-CliffWorld::step_start(const CliffWorld::action_t& action){
+CliffWorld::create_world(){
 
-    switch(action) {
-      case CliffWorldAction::NORTH:
-        agent_pos_ = 1;
-        r_ = reward_.step_reward();
-        break;
-      case CliffWorldAction::SOUTH:
-      case CliffWorldAction::WEST:
-        r_ = reward_.bump_reward();
-        break;
-      case CliffWorldAction::EAST:
-        r_ = reward_.fall_reward();
-        break;
-      default:
-        std::ostringstream ostr;
-        ostr << "cliff_walking::Simulator::stepStart(" << static_cast<int>(action) << ")";
-        //throw BadAction(ostr.str());
-    }
-}
+    const uint_t N_CELLS = 48;
+    const uint_t N_CELLS_X = 12;
+    states_.reserve(N_CELLS);
 
-void
-CliffWorld::step_goal(const CliffWorld::action_t& action) {
-
-      r_ = reward_.goal_reward();
-      //throw rl::exception::Terminal("Transition from goal");
+    /// create default states
+    for(uint_t state=0; state<N_CELLS; ++state){
+       states_.push_back(GridWorldState(state));
     }
 
-void
-CliffWorld::do_step(const CliffWorld::action_t& action){
+    for(auto& state:states_){
 
-    // Easier index
-    uint_t s = agent_pos_ - 1;
+        auto id = state.get_id();
 
-     switch(action) {
+        if(id <12){
 
-        case CliffWorldAction::NORTH:
+            state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), nullptr);
 
-         // not upper wall
-          if(s / xlength_ < ylength_ -1) {
-            s += xlength_;
-            r_ = reward_.step_reward();
-          }
-          else{
-            r_ = reward_.bump_reward();
-          }
+            if(id==0){
+              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
+            }
+            else{
+                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &states_[id-1]);
+            }
 
-          break;
+            if(id == 11){
+               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), nullptr);
+            }
+            else{
+              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), &states_[id + 1]);
+            }
 
-        case CliffWorldAction::SOUTH:
+            state.set_transition(static_cast<GridWorldAction>(GridWorldAction::NORTH), &states_[id + N_CELLS_X]);
 
-         // not on the edge
-          if(s / xlength_ > 0) {
-            s -= xlength_;
-            r_ = reward_.step_reward();
-          }
-          else if(s == 0) {
+        }
+        else if (id>=36) {
+            state.set_transition(static_cast<GridWorldAction>(GridWorldAction::NORTH), nullptr);
+            state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), &states_[id - N_CELLS_X]);
 
-            // On start again
-            s = start_ - 1;
-            r_ = reward_.bump_reward();
-          }
-          else if(s == xlength_-1) {
+            if(id == 36){
+                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
+            }
+            else{
+               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &states_[id - 1]);
+            }
 
-            // remember that we will do s++...
-            s = goal_ - 1;
-            r_ = reward_.step_reward();
-          }
-          else {
-            s = start_-1;
-            r_ = reward_.fall_reward();
-          }
+            if(id == 47){
+               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), nullptr);
+            }
+            else{
+                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), &states_[id + 1]);
+            }
+        }
+        else{
 
-          break;
+            state.set_transition(static_cast<GridWorldAction>(GridWorldAction::NORTH), &states_[id + N_CELLS_X]);
+            state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), &states_[id - N_CELLS_X]);
 
-        case CliffWorldAction::EAST:
+            if(id == 12 || id == 24){
+                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
+            }
+            else{
+               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &states_[id - 1]);
+            }
 
-         // Not on right wall
-          if(s % xlength_ < xlength_ - 1) {
-            r_ = reward_.step_reward();
-            s++;
-          }
-          else{
-            r_ = reward_.bump_reward();
-          }
-          break;
-        case CliffWorldAction::WEST:
+            if(id == 23 || id == 35){
+               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), nullptr);
+            }
+            else{
+                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), &states_[id + 1]);
+            }
+        }
+    }
 
-         // Not on left wall
-          if(s % xlength_ != 0) {
-            r_ = reward_.step_reward();
-            s--;
-          }
-          else{
-            r_ = reward_.bump_reward();
-          }
-          break;
-        default:
-          std::ostringstream ostr;
-          ostr << "cliff_walking::Simulator::timeStep(" << static_cast<int>(action) << ")";
-          //throw BadAction(ostr.str());
-     }
-
-     agent_pos_ = s+1;
-
+    /// initialize the rewards
+    reward_.setup_rewards();
 }
 
+ CliffWorld::RewardProducer::RewardProducer()
+     :
+       rewards_()
+ {}
+
+ real_t
+ CliffWorld::RewardProducer::get_reward(const action_t& action,
+                                        const state_t& s,
+                                        const state_t& sprime)const{
+     return rewards_.get_reward(s.get_id(), action);
+ }
+
+void
+CliffWorld::RewardProducer::setup_rewards(){
+
+    const uint_t N_CELLS_X = 12;
+    const uint_t N_CELLS_Y = 4;
+    const real_t PENALTY = -100.0;
+    const real_t NORMAL = -1.0;
+
+    for(uint_t i=0; i<N_CELLS_X*N_CELLS_Y; ++i){
+
+        if(i<11){
+
+            if(i==0){
+               rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
+               rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
+            }
+            else if( i == 11){
+                rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
+                rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
+             }
+        }
+        else {
+
+            if(i >= 36 ){
+
+                rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
+
+                if(i != 47){
+                  rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
+                }
+
+                if(i != 36){
+                   rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
+                }
+            }
+            else{
+
+                rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
+
+                if(i != 24 || i != 12){
+                   rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
+                }
+
+                if(i != 23 || i != 35){
+                  rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
+                }
+
+                if( i >= 24){
+                    rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
+                }
+
+               if( i>=13 && i<=22){
+                   rewards_.add_reward(i, GridWorldAction::SOUTH,  PENALTY);
+               }
+
+               if(i == 12 || i == 23){
+                 rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
+               }
+            }
+        }
+
+    }/// for
+
+}
 
 }
 }
