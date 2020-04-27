@@ -36,8 +36,8 @@ int main(){
 
         std::cout<<"Number of states: "<<world.n_states()<<std::endl;
 
-        state_t start(36);
-        state_t goal(12);
+        state_t start(0);
+        state_t goal(11);
 
         /// simulation parameters
         const real_t EPSILON = 0.1;
