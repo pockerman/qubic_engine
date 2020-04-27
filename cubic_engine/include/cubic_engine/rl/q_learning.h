@@ -137,7 +137,7 @@ QTableLearning<WorldTp>::train(const typename QTableLearning<WorldTp>::state_t& 
     }
 
     uint_t itr_counter = 0;
-    while( world_ptr_->get_current_state() != goal ){
+    while( world_ptr_->get_current_state() != goal && !world_ptr_->is_finished()){
 
         /// get the current state of the world
         auto& state = world_ptr_->get_current_state();

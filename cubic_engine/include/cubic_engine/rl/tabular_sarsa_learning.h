@@ -140,7 +140,7 @@ SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::s
     auto action_idx = WorldTp::invalid_action;
 
     uint_t itr_counter = 0;
-    while( world_ptr_->get_current_state() != goal ){
+    while( world_ptr_->get_current_state() != goal && !world_ptr_->is_finished()){
 
         /// get the current state of the world
         auto& state = world_ptr_->get_current_state();
