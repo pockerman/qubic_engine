@@ -13,23 +13,6 @@ namespace cengine{
 namespace rl{
 namespace worlds {
 
-
-struct CliffWorldReward
-{
-    /// \brief The reward received when  reaching the goal
-    real_t  goal_reward() const {return    0.;}
-
-    /// \brief The reward received when doing one step
-    real_t step_reward() const {return   -1;}
-
-    /// \brief The reward received when falling off the cliff
-    real_t fall_reward() const {return -100.;}
-
-    /// \brief The reward received
-    real_t bump_reward() const {return  step_reward();}
-};
-
-
 /// \brief CliffWorld class models the Environment
 /// for the cliff-world problem
 class CliffWorld: public World<GridWorldAction, GridWorldState, real_t>
