@@ -184,6 +184,10 @@ SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::s
             }
         }
 
+        if(input_.show_iterations){
+            std::cout<<"\tTaking action: "<<worlds::to_string(action_idx)<<std::endl;
+        }
+
         /// take action
         world_ptr_->step(action_idx);
 
@@ -230,15 +234,21 @@ SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::s
                 if(epsilon < input_.exploration_factor){
 
                     ///Will be used to obtain a seed for the random number engine
-                    std::random_device rd;
+                    /*std::random_device rd;
 
                     ///Standard mersenne_twister_engine seeded with rd()
                     std::mt19937 gen(rd());
-                    std::uniform_int_distribution<> dis(0, state.n_actions()-1);
-                    auto idx = dis(rd);
+                    std::uniform_int_distribution<> dis(0, new_state.n_actions()-1);
+                    auto idx = dis(rd);*/
 
-                    next_action_idx = new_state.get_action_from_idx(idx);
+                    next_action_idx = new_state.get_random_active_action();
+                    //get_action_from_idx(idx);
                 }
+            }
+
+            if(input_.show_iterations){
+                std::cout<<"\tNext state: "<<new_state.get_id()<<std::endl;
+                std::cout<<"\tNext action: "<<worlds::to_string(next_action_idx)<<std::endl;
             }
 
             auto future_reward = qtable_.get_reward(new_state.get_id(), next_action_idx);
@@ -247,7 +257,7 @@ SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::s
                                          input_.discount_factor * future_reward - current_val);
 
             if(input_.show_iterations){
-                std::cout<<"\t Setting for state: "<<state.get_id()
+                std::cout<<"\tSetting for state: "<<state.get_id()
                         <<" and action: "<<worlds::to_string(action_idx)
                         <<" to value: "<<val<<std::endl;
             }
