@@ -1,6 +1,6 @@
 #include "cubic_engine/rl/worlds/cliff_world.h"
 #include <algorithm>
-
+#include <iostream>
 namespace cengine{
 namespace rl{
 namespace worlds{
@@ -56,7 +56,7 @@ CliffWorld::step(const CliffWorld::action_t& action){
             r_ = reward_.get_reward(action, *current_state_, *next_state);
             current_state_ = next_state;
 
-            static const uint_t cliff[]={1, 2, 3, 4, 5, 6,7,8,9,10};
+            static const uint_t cliff[]={1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
             if(std::find(&cliff[0],
                          &cliff[ sizeof(cliff)/sizeof(uint_t) ], current_state_->get_id()) !=
@@ -175,24 +175,35 @@ CliffWorld::RewardProducer::setup_rewards(){
             if(i==0){
                rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
                rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
+               rewards_.add_reward(i, GridWorldAction::SOUTH,  PENALTY);
+               rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
             }
             else if( i == 11){
                 rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
                 rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
+                rewards_.add_reward(i, GridWorldAction::SOUTH,  PENALTY);
+                rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
              }
         }
         else {
 
             if(i >= 36 ){
 
+                rewards_.add_reward(i, GridWorldAction::NORTH,  PENALTY);
                 rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
 
                 if(i != 47){
                   rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
                 }
+                else{
+                    rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
+                }
 
                 if(i != 36){
                    rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
+                }
+                else{
+                    rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
                 }
             }
             else{
@@ -202,9 +213,16 @@ CliffWorld::RewardProducer::setup_rewards(){
                 if(i != 24 || i != 12){
                    rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
                 }
+                else{
+                    std::cout<<"Set "<<i<<"-WEST to PENALTY"<<std::endl;
+                    rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
+                }
 
                 if(i != 23 || i != 35){
                   rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
+                }
+                else{
+                   rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
                 }
 
                 if( i >= 24){
@@ -218,6 +236,8 @@ CliffWorld::RewardProducer::setup_rewards(){
                if(i == 12 || i == 23){
                  rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
                }
+
+
             }
         }
 
