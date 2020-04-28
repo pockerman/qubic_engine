@@ -5,6 +5,7 @@
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #include "kernel/base/kernel_consts.h"
 
+#include <vector>
 #include <map>
 
 namespace cengine{
@@ -46,6 +47,13 @@ public:
     /// \brief Execute the action
     GridWorldState* execute_action(GridWorldAction action);
 
+    /// \brief Select uniformly an active
+    /// action
+    GridWorldAction get_random_active_action()const;
+
+    /// \brief Returns a vector with the available
+    /// active actions
+    const std::vector<GridWorldAction> get_active_actions()const;
 
 private:
 
