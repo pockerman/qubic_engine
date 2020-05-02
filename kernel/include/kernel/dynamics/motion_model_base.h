@@ -1,6 +1,7 @@
 #ifndef MOTION_MODEL_BASE_H
 #define MOTION_MODEL_BASE_H
 
+#include "kernel/base/types.h"
 #include "boost/noncopyable.hpp"
 #include <memory>
 namespace kernel{
@@ -48,6 +49,13 @@ public:
     /// \brief Set the flag for updating or not the matrices describing
     /// the model
     bool allows_matrix_updates()const{return update_description_matrices_on_evaluate_;}
+
+    /// \brief Returns true if the matrix with the given name 
+    /// already exists
+    bool has_matrix(const std::string& name)const{return matrix_description_.has_matrix(name);}
+
+    /// \brief Returns the state property with the given name
+    real_t get(const std::string& name)const{return state_.get(name);}
 
 protected:
 
