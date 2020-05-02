@@ -79,7 +79,7 @@ DiffDriveDynamics::initialize_matrices(const DiffDriveDynamics::input_t& input){
   }
 
   if(! this->has_matrix("L")){
-    matrix_t L(2, 3, 0.0);
+    matrix_t L(3, 2, 0.0);
     this->set_matrix("L", L);
   }
 
