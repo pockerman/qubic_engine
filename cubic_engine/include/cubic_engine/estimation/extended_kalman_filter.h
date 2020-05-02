@@ -71,19 +71,27 @@ public:
    virtual void update(const observation_model_input_t& z);
 
    /// \brief Set the motion model
-   void set_motion_model(motion_model_t& motion_model){motion_model_ptr_ = &motion_model;}
+   void set_motion_model(motion_model_t& motion_model)
+   {motion_model_ptr_ = &motion_model;}
 
    /// \brief Set the observation model
-   void set_observation_model(const observation_model_t& observation_model){observation_model_ptr_ = &observation_model;}
+   void set_observation_model(const observation_model_t& observation_model)
+   {observation_model_ptr_ = &observation_model;}
 
    /// \brief Set the matrix used by the filter
    void set_matrix(const std::string& name, const matrix_t& mat);
+
+   /// \brief Returns true if the matrix with the given name exists
+   bool has_matrix(const std::string& name)const;
 
    /// \brief Returns the state
    const state_t& get_state()const{return motion_model_ptr_->get_state();}
 
    /// \brief Returns the state
    state_t& get_state(){return motion_model_ptr_->get_state();}
+
+   /// \brief Returns the state property with the given name
+   real_t get(const std::string& name)const{return motion_model_ptr_->get(name);}
            
 protected:
 
@@ -131,11 +139,20 @@ ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::set_matrix(const std::st
 }
 
 template<typename MotionModelTp, typename ObservationModelTp>
-void
-ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::predict(const typename ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::motion_model_input_t& u){
+bool
+ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::has_matrix(const std::string& name)const{
 
-    // make a state predicion using the
-    // motion model
+    auto itr = matrices_.find(name);
+    return itr != matrices_.end();
+}
+
+template<typename MotionModelTp, typename ObservationModelTp>
+void
+ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::predict(const typename ExtendedKalmanFilter<MotionModelTp,
+                                                                ObservationModelTp>::motion_model_input_t& u){
+
+    /// make a state predicion using the
+    /// motion model
     auto& state = motion_model_ptr_->evaluate(u);
 
     auto& P = matrices_["P"];
@@ -167,15 +184,24 @@ ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::update(const typename Ex
     // w.r.t the error vector
     auto& M = observation_model_ptr_->get_matrix("M");
     auto M_T = trans(M);
-    auto& K = matrices_["K"];
 
      try{
 
-        // S = H*P*H^T + M*R*M^T
+        /// S = H*P*H^T + M*R*M^T
         auto S = H*P*H_T + M*R*M_T;
 
         auto S_inv = inv(S);
-        K = P*H_T*S_inv;
+
+        if(has_matrix("K")){
+            auto& K = matrices_["K"];
+            K = P*H_T*S_inv;
+        }
+        else{
+            auto K = P*H_T*S_inv;
+            set_matrix("K", K);
+        }
+
+        auto& K = matrices_["K"];
 
         auto innovation = z - zpred;
 
@@ -190,7 +216,7 @@ ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::update(const typename Ex
 
         IdentityMatrix<real_t> I(state.size());
 
-        // update the covariance matrix
+        /// update the covariance matrix
         P =  (I - K*H)*P;
     }
     catch(...){
