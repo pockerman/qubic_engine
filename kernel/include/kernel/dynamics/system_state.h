@@ -22,7 +22,11 @@ class SysState
 
 public:
 
+    /// \brief The dimension of the state
     static const int dimension = dim;
+
+    /// \brief The type of the stored values
+    typedef std::array<std::pair<std::string, real_t>, dim> value_t;
 
     /// \brief Extract a state of different dimension
     template<int dim1, int dim2>
