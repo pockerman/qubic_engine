@@ -5,6 +5,7 @@
 #include "kernel/utilities/csv_file_writer.h"
 #include "kernel/dynamics/system_state.h"
 #include "kernel/maths/constants.h"
+#include "kernel/base/unit_converter.h"
 
 #include <cmath>
 #include <iostream>
@@ -82,19 +83,29 @@ const DynVec<real_t> get_measurement(const SysState<3>& state){
 int main() {
    
     using namespace example;
-    uint_t n_steps = 500;
+    uint_t n_steps = 300;
+
+    auto time = 0.0;
+    auto dt = 0.5;
+
+    /// angular velocity
+    auto w = 0.0;
+
+    /// linear velocity
+    auto vt = 1.0;
+
+    std::array<real_t, 2> motion_control_error;
+    motion_control_error[0] = 0.0;
+    motion_control_error[1] = 0.0;
 
     DiffDriveDynamics exact_motion_model;
     exact_motion_model.set_matrix_update_flag(false);
+    exact_motion_model.set_time_step(dt);
+
     DiffDriveDynamics motion_model;
 
-    DynMat<real_t> L(3, 2, 0.0);
-    motion_model.set_matrix("L", L);
-
-    DynMat<real_t> F(3, 3, 0.0);
-    motion_model.set_matrix("F", F);
-
-    motion_model.set_matrix_update_flag(true);
+    motion_model.initialize_matrices({1.0, 0.0, motion_control_error});
+    motion_model.set_time_step(dt);
 
     ObservationModel observation;
 
@@ -117,42 +128,32 @@ int main() {
     ekf.set_matrix("R", R);
     ekf.set_matrix("Q", Q);
 
-
     kernel::CSVWriter writer("state", kernel::CSVWriter::default_delimiter(), true);
     std::vector<std::string> names{"X", "Y", "X_true", "Y_true"};
     writer.write_column_names(names);
 
     try{
 
-        auto time = 0.0;
-        auto dt = 0.5;
-
-        auto v_L = 50; // RPM
-        auto v_R = 50; // RPM
-
-        auto RADIUS = 2.5/100.0;
-        auto vt = (v_L * RADIUS + v_R * RADIUS)/2.0;
-
-        auto w = 0.0;
-        std::array<real_t, 2> motion_control_error;
-        motion_control_error[0] = 0.0;
-        motion_control_error[1] = 0.0;
-
+        uint_t counter=0;
         for(uint_t step=0; step < n_steps; ++step){
 
             std::cout<<"At step: "<<step<<" time: "<<time<<std::endl;
 
-            if(time >=50.0 && time < 100.0){
-              w = -3.0*kernel::MathConsts::PI*0.25;
+            if(counter == 50){
+              w = kernel::UnitConverter::degrees_to_rad(45.0);
             }
-            else if(time >=100.0 && time < 150.0){
-               w = 3.0*kernel::MathConsts::PI*0.25;
+            else if(counter == 100){
+               w = kernel::UnitConverter::degrees_to_rad(-45.0);
+            }
+            else if(counter == 150){
+               w = kernel::UnitConverter::degrees_to_rad(-45.0);
             }
             else{
                 w = 0.0;
             }
 
-            auto motion_input = std::make_tuple(vt*dt, w, motion_control_error);
+
+            auto motion_input = std::make_tuple(vt, w, motion_control_error);
             auto& exact_state = exact_motion_model.evaluate(motion_input);
 
             ekf.predict(motion_input);
@@ -160,6 +161,10 @@ int main() {
             auto& state = motion_model.get_state();
             auto z = get_measurement(state);
             ekf.update(z);
+
+            std::cout<<"Position: "<<ekf.get("X")<<", "<<ekf.get("Y")<<std::endl;
+            std::cout<<"Orientation: "<<kernel::UnitConverter::rad_to_degrees(ekf.get("Theta"))<<std::endl;
+            std::cout<<"V: "<<vt<<", W: "<<w<<std::endl;
 
             std::vector<real_t> row(4, 0.0);
             row[0] = exact_state.get("X");
@@ -169,9 +174,13 @@ int main() {
             writer.write_row(row);
 
             time += dt;
+            counter++;
         }
     }
     catch(std::runtime_error& e){
+        std::cerr<<e.what()<<std::endl;
+    }
+    catch(std::logic_error& e){
         std::cerr<<e.what()<<std::endl;
     }
     catch(...){
