@@ -1,5 +1,6 @@
 #include "exe.h"
 #include "cubic_engine/search/a_star_search.h"
+#include "cubic_engine/grids/waypath_builder.h"
 #include "kernel/data_structs/serial_graph_builder.h"
 #include "kernel/utilities/vtk_mesh_file_writer.h"
 #include "kernel/maths/lp_metric.h"
@@ -42,11 +43,17 @@ void
 PathObserver::update(const PathObserver::path_resource_t& r){
     std::lock_guard<std::mutex> lock(this->mutex_);
     this->ThreadedObserverBase<std::mutex, Path*>::update(r);
+    ready_ = true;
+    cv.notify_all();
 }
 
 const PathObserver::path_resource_t&
 PathObserver::read()const{
-    std::lock_guard<std::mutex> lock(this->mutex_);
+    
+    std::unique_lock<std::mutex> lk(this->mutex_);
+    cv.wait(lk, [this]{return ready_;});
+    ready_ = false;
+    lk.unlock();
     return this->ThreadedObserverBase<std::mutex, Path*>::read();
 }
 
@@ -77,6 +84,13 @@ MeasurmentObserver::read(MeasurmentObserver::measurement_resource_t& r)const{
 void
 ServerThread::StateEstimationThread::update_state_observers(){
 
+    const auto& computed_state = ekf_.get_state();
+    state_["X"] = computed_state.get("X");
+    state_["Y"] = computed_state.get("Y");
+    state_["Theta"] = computed_state.get("Theta");
+    state_["V"] = v_ctrl_;
+    state_["W"] = w_ctrl_;
+
     for(uint_t o=0; o<sobservers_.size(); ++o){
         sobservers_[o]->update(state_);
     }
@@ -88,16 +102,14 @@ ServerThread::StateEstimationThread::run(){
     std::array<real_t, 2> motion_control_error;
     motion_control_error[0] = 0.0;
     motion_control_error[1] = 0.0;
+
     while(!this->should_stop()){
 
         // estimate the state
-        real_t v=0.0;
-        vobserver.read(v);
+        vobserver.read(v_ctrl_);
+        wobserver.read(w_ctrl_);
 
-        real_t w=0.0;
-        wobserver.read(w);
-
-        auto motion_input = std::make_tuple(v*DT, w*DT, motion_control_error);
+        auto motion_input = std::make_tuple(v_ctrl_*DT, w_ctrl_*DT, motion_control_error);
         ekf_.predict(motion_input);
 
         /// Read the measurement vector
@@ -107,8 +119,8 @@ ServerThread::StateEstimationThread::run(){
 
         ekf_.update(measurement);
 
-        // update the observers
-        //update_state_observers();
+        /// update the observers
+        update_state_observers();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(STATE_ESTIMATION_THREAD_CYCLE));
     }
@@ -122,6 +134,9 @@ ServerThread::PathConstructorThread::update_path_observers(){
     for(uint_t o =0; o<pobservers_.size(); ++o){
         pobservers_[o]->update(path_);
     }
+
+    std::lock_guard<std::mutex> lock(msg_mutex);
+    std::cout<<"MESSAGE: Task "+this->get_name()<<" updated path observers"<<std::endl;
 }
 
 void
@@ -137,7 +152,7 @@ ServerThread::PathConstructorThread::save_path(real_t duration){
     }
 
     kernel::CSVWriter writer("path_" + strings[1] + ".csv", ',', true);
-    writer.write_mesh(path_);
+    writer.write_mesh_nodes(path_);
 }
 
 void
@@ -147,9 +162,9 @@ ServerThread::PathConstructorThread::run(){
     std::chrono::time_point<std::chrono::system_clock> end;
     start = std::chrono::system_clock::now();
 
-    // the state provides the current position
-    // the goal provides the target position
-    // the goal or the state or both have not been updated wait here until
+    /// the state provides the current position
+    /// the goal provides the target position
+    /// the goal or the state or both have not been updated wait here until
     while((!gobserver.is_updated() || !sobserver.is_updated()) && !threads_should_stop){
         std::this_thread::yield();
     }
@@ -186,18 +201,18 @@ ServerThread::PathConstructorThread::run(){
 
     while(!this->should_stop()){
 
-        // read both goal and state
+        /// read both goal and state
         gobserver.read(goal);
         sobserver.read(state);
 
         position[0] = state.get("X");
         position[1] = state.get("Y");
 
-        // if position has not changed
-        // then the robot for some reason does not move
-        // maybe it is waiting for a new goal
-        // if the position is the same and the goal
-        // does not change then we don't need to do anything
+        /// if position has not changed
+        /// then the robot for some reason does not move
+        /// maybe it is waiting for a new goal
+        /// if the position is the same and the goal
+        /// does not change then we don't need to do anything
         if(previous_goal.distance(goal) < 1.0e-3 &&
            previous_position.distance(position) < 1.0e-3){
 #ifdef USE_LOG
@@ -208,12 +223,12 @@ ServerThread::PathConstructorThread::run(){
             continue;
         }
 
-        // we need to find the starting node with the position
-        // closest to the robot position
+        /// we need to find the starting node with the position
+        /// closest to the robot position
         uint_t start_vertex_id = kernel::find_vertex(*map_, closest_start_vertex_pred);
         uint_t goal_vertex_id = kernel::find_vertex(*map_, closest_goal_vertex_pred);
 
-        // if this is an invalid id then throw?
+        /// if this is an invalid id then throw?
         if(start_vertex_id == kernel::KernelConsts::invalid_size_type() ||
             goal_vertex_id == kernel::KernelConsts::invalid_size_type()    ){
 
@@ -232,7 +247,7 @@ ServerThread::PathConstructorThread::run(){
         goal_pos.data.position = goal;
         goal_pos.id = goal_vertex_id;
 
-        // find the path we need the goal
+        /// find the path we need the goal
         auto path_connections = cengine::astar_search(const_cast<Map&>(*map_), start_pos, goal_pos, h );
 
         if(path_connections.empty()){
@@ -248,33 +263,33 @@ ServerThread::PathConstructorThread::run(){
         }
 #endif
 
-        // update the line mesh that represents the path
+        /// update the line mesh that represents the path
         std::vector<uint_t> mesh_data = cengine::reconstruct_a_star_path(path_connections, goal_vertex_id);
 
 #ifdef USE_LOG
         kernel::Logger::log_info("Reconstructed path from A*");
 #endif
 
-        // now that we have the connections let's update the path
-        kernel::numerics::build_mesh(path_, *map_, mesh_data);
+        /// update the path
+        cengine::grids::build(path_, *map_, mesh_data);
 
 #ifdef USE_LOG
         kernel::Logger::log_info("Updated Path");
 #endif
 
-        // update the observers
+        /// update the observers
         update_path_observers();
 
         end = std::chrono::system_clock::now();
         std::chrono::duration<real_t> duration = end - start;
 
-        // save the path
+        /// save the path
         save_path(duration.count());
 
         previous_position = position;
         previous_goal = goal;
 
-        // sleep for some time
+        ///... sleep for some time
         std::this_thread::sleep_for(std::chrono::milliseconds(PATH_CONSTRUCTOR_CYCLE));
     }
 
@@ -285,17 +300,46 @@ ServerThread::PathConstructorThread::run(){
 void
 ServerThread::PathFollowerThread::run(){
 
+    /// we should wait until we have a path
+
     while(!this->should_stop()){
 
 
-        // are we on the goal? if yes
-        // then notify server that notfies the client
-        // and sleep until a new mission arrives
-        // or exit has been signaled
+        /// are we on the goal? if yes
+        /// then notify server that notfies the client
+        /// and sleep until a new mission arrives
+        /// or exit has been signaled
 
-        // if we are not on the goal check
-        // are we on path? if yes continue
-        // else make the corrections
+        /// Read state and goal
+        State state;
+        sobserver.read(state);
+
+        Goal position({state.get("X"), state.get("Y")});
+
+        Goal goal;
+        gobserver.read(goal);
+
+        if(goal.distance(position) < gradius_){
+
+            /// the goal has been reached
+            responses_.push_item(MESSAGE + " Goal has been reached");
+        }
+        else{
+
+            SysState<3> real_state(state);
+
+            /// update the path
+            path_controller_.update(pobserver.read());
+
+            /// calculate the steering CMD
+            auto [control_result, lookahed_point, closest] = path_controller_.execute(real_state);
+
+            /// update the observers interested
+            update_w_velocity_observers(control_result);
+        }
+
+        ///... sleep for some time
+        std::this_thread::sleep_for(std::chrono::milliseconds(PATH_CORRECTION_THREAD_CYCLE));
 
     }
 
@@ -426,7 +470,7 @@ ServerThread::RequestTask::serve_request(const std::string& request){
                 responses_.push_item(SET_GOAL);
             }
             else{
-                // this is a new goal
+                /// this is a new goal
                 auto x = std::atof(strings[1].c_str());
                 auto y = std::atof(strings[2].c_str());
 
@@ -507,12 +551,12 @@ ServerThread::ClientTask::run(){
     /// is coming from the server
     while(!responses_.empty()){
 
-        //empty what is comming from the server
+        ///empty what is comming from the server
         auto response = responses_.pop_wait();
 
         if(response == SET_GOAL){
 
-            // then wait until we receive the new goal
+            /// then wait until we receive the new goal
             std::vector<real_t> values = {0.0, 0.0};
 
             std::cout<<RESPONSE<<"Enter new goal: "<<std::endl;
@@ -614,8 +658,8 @@ ServerThread::run(){
     kernel::Logger::log_info("Starting Server Thread");
 #endif
 
-    // create the tasks and assign them
-    // to the queue
+    /// create the tasks and assign them
+    /// to the queue
     tasks_.reserve(5);
 
     typedef ServerThread::RequestTask request_task_t;
@@ -626,37 +670,42 @@ ServerThread::run(){
 
     tasks_.push_back(std::make_unique<state_est_task_t>(this->get_condition(), *map_));
     tasks_.push_back(std::make_unique<path_cstr_task_t>(this->get_condition(), *map_));
-    tasks_.push_back(std::make_unique<path_follow_task_t>(this->get_condition()));
-
     tasks_.push_back(std::make_unique<request_task_t>(this->get_condition(), requests_, cmds_, responses_));
     tasks_.push_back(std::make_unique<client_task_t>(this->get_condition(), requests_, responses_));
 
-    //assign the observers
+    //tasks_.push_back(std::make_unique<path_follow_task_t>(this->get_condition(), responses_,
+    //                                                      path_control_input_, gradius_ ));
+
+    /// assign the observers
     {
-        request_task_t* req_task = static_cast<request_task_t*>(tasks_[3].get());
+        request_task_t* req_task = static_cast<request_task_t*>(tasks_[2].get());
         req_task->attach_goal_observer(static_cast< path_cstr_task_t*>(tasks_[1].get())->gobserver);
-        req_task->attach_goal_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->gobserver);
+        
         req_task->attach_v_observer(static_cast<state_est_task_t*>(tasks_[0].get())->vobserver);
         req_task->attach_w_observer(static_cast<state_est_task_t*>(tasks_[0].get())->wobserver);
+        //req_task->attach_goal_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->gobserver);
 
         state_est_task_t* state_thread = static_cast<state_est_task_t*>(tasks_[0].get());
-        state_thread->attach_state_observer(static_cast<path_cstr_task_t*>(tasks_[1].get())->sobserver);
-        state_thread->attach_state_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->sobserver);
-        state_thread->attach_state_observer(static_cast<request_task_t*>(tasks_[3].get())->sobserver);
+        state_thread->attach_state_observer(static_cast<path_cstr_task_t*>(tasks_[1].get())->sobserver);        
+        state_thread->attach_state_observer(static_cast<request_task_t*>(tasks_[2].get())->sobserver);
+        //state_thread->attach_state_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->sobserver);
 
-        //ask the state thread to update the state observers
+        ///ask the state thread to update the state observers
         state_thread->update_state_observers();
 
-        path_cstr_task_t* pconstruct_thread = static_cast< path_cstr_task_t*>(tasks_[1].get());
-        pconstruct_thread->attach_path_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->pobserver);
-        pconstruct_thread->attach_path_observer(static_cast<request_task_t*>(tasks_[3].get())->pobserver);
+        path_cstr_task_t* pconstruct_thread = static_cast< path_cstr_task_t*>(tasks_[1].get());        
+        pconstruct_thread->attach_path_observer(static_cast<request_task_t*>(tasks_[2].get())->pobserver);
+        //pconstruct_thread->attach_path_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->pobserver);
 
         this->attach_measurement_observer(state_thread->mobserver);
 
+        //path_follow_task_t* path_follow_thread = static_cast<path_follow_task_t*>(tasks_[2].get());
+        //path_follow_thread->attach_w_velocity_observer(state_thread->wobserver);
+
     }
 
-    // create a request so that we print the state
-    // when the ClientTask starts
+    /// create a request so that we print the state
+    /// when the ClientTask starts
     requests_.push_item(PRINT);
 
     /// we also need to add a response so that the
@@ -724,7 +773,7 @@ int main(){
 
     using namespace example;
 
-    // create the graph from the mesh
+    /// create the graph from the mesh
     Map map;
 
     {
@@ -781,7 +830,7 @@ int main(){
 
         writer.write_mesh(mesh, occupamcy_prob, "OccupancyProb");
 
-        // build the mesh graph
+        /// build the mesh graph
         kernel::build_mesh_graph(mesh, map);
 
         for(uint_t v=0; v<map.n_vertices(); ++v){
@@ -798,17 +847,15 @@ int main(){
     const uint_t N_THREADS = 5;
     const real_t RADIUS = 2.0/100.0;
 
-    // the object that controls when to stop
-    // the threads
     StopSimulation stop_sim;
 
     // the initial system state
-    SysState<4> init_state;
+    SysState<5> init_state;
 
     DiffDriveProperties properties;
     properties.R = RADIUS;
 
-    // the vehicle the simulator is simulating
+    /// the vehicle to simulate
     DiffDriveVehicle vehicle(properties);
 
     ThreadPoolOptions options;
@@ -821,8 +868,17 @@ int main(){
     // executor
     ThreadPool pool(options);
 
+    CarrotChasingPathTrackControllerInput path_contorl_input;
+    path_contorl_input.lookahead_distance = 7.5;
+    path_contorl_input.n_sampling_points = 10;
+    path_contorl_input.k = 0.5;
+    path_contorl_input.waypoint_r = 1.5;
+
+    real_t gradius = 1.0;
+
     // the server instance
-    ServerThread server(stop_sim, map, init_state, pool);
+    ServerThread server(stop_sim, map, init_state,
+                        pool, path_contorl_input, gradius);
 
     server.run();
     pool.close();

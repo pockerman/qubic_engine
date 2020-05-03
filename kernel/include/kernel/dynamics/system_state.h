@@ -3,13 +3,14 @@
 
 #include "kernel/base/types.h"
 
-
 #include <string>
 #include <array>
 #include <utility>
 #include <algorithm>
+#include <vector>
 #include <ostream>
-#include <iostream>
+#include <stdexcept>
+//#include <iostream>
 
 namespace kernel{
 namespace dynamics{
@@ -20,6 +21,16 @@ class SysState
 {
 
 public:
+
+    /// \brief The dimension of the state
+    static const int dimension = dim;
+
+    /// \brief The type of the stored values
+    typedef std::array<std::pair<std::string, real_t>, dim> value_t;
+
+    /// \brief Extract a state of different dimension
+    template<int dim1, int dim2>
+    static void extract(const SysState<dim1>& state, SysState<dim2>& other);
 
     /// \brief Initialize the state with the given names and values
     SysState();
@@ -33,6 +44,10 @@ public:
 
     /// \brief Copy constructor
     SysState(const SysState<dim>& other);
+
+    /// \brief Copy constructor
+    template<int other_dim>
+    SysState(const SysState<other_dim>& other);
 
     /// \brief Move copy constructor
     SysState& operator=(const SysState<dim>& other);
@@ -56,7 +71,10 @@ public:
     uint_t size()const{return dim;}
 
     /// \brief Returns a copy of the state values
-    std::array<real_t, dim> get_values()const;
+    const std::array<real_t, dim> get_values()const;
+
+    /// \brief Returns a copy of the state names
+    const std::array<std::string_view, dim> get_names()const;
 
     /// \brief Access operators
     real_t& operator[](uint_t);
@@ -90,6 +108,21 @@ private:
     std::array<std::pair<std::string, real_t>, dim> values_;
 
 };
+
+template<int dim>
+template<int dim1, int dim2>
+void
+SysState<dim>::extract(const SysState<dim1>& state, SysState<dim2>& other){
+
+
+    static_assert (dim2 <= dim1, "Invalid dimension dim2>dim1");
+
+    for(auto& name:other.get_names()){
+
+        auto value = state[name];
+        other.set(name, value);
+    }
+}
 
 template<int dim>
 SysState<dim>::SysState()
@@ -126,6 +159,21 @@ SysState<dim>::SysState(const SysState<dim>& other)
       values_(other.values_)
 {}
 
+template<int dim>
+template<int other_dim>
+SysState<dim>::SysState(const SysState<other_dim>& other)
+    :
+      values_()
+{
+    static_assert (dim <= other_dim, "Invalid dimension: dim < other_dim" );
+
+    auto names = other.get_names();
+    auto values = other.get_values();
+
+    for(uint_t i=0; i<dim; ++i){
+        values_[i] = std::make_pair(names[i], values[i]);
+    }
+}
 
 template<int dim>
 SysState<dim>&
@@ -171,7 +219,19 @@ SysState<dim>::get(const std::string& name)const{
     });
 
     if(itr == values_.end()){
-        throw std::invalid_argument("Invalid variable name");
+        auto error_msg("Invalid variable name. Name");
+        auto names = get_names();
+        std::string name_strs("[");
+        for(auto& name:names){
+
+            name_strs += std::string(name);
+            name_strs += std::string(",");
+        }
+
+        name_strs += std::string("]");
+        throw std::invalid_argument(error_msg + 
+                                    name+
+                                    std::string(" not in: ")+ name_strs);
     }
 
     return itr->second;
@@ -187,9 +247,20 @@ SysState<dim>::set(const std::string& name, real_t val){
     });
 
     if(itr == values_.end()){
-        throw std::invalid_argument("Invalid variable name");
-    }
+        auto error_msg("Invalid variable name. Name");
+        auto names = get_names();
+        std::string name_strs("[");
+        for(auto& name:names){
 
+            name_strs += std::string(name);
+            name_strs += std::string(",");
+        }
+
+        name_strs += std::string("]");
+        throw std::invalid_argument(error_msg + 
+                                    name+
+                                    std::string(" not in: ")+ name_strs);
+    }
 
     itr->second = val;
 }
@@ -224,7 +295,19 @@ SysState<dim>::operator[](const std::string& name){
     });
 
     if(itr == values_.end()){
-        throw std::invalid_argument("Invalid variable name");
+        auto error_msg("Invalid variable name. Name");
+        auto names = get_names();
+        std::string name_strs("[");
+        for(auto& name:names){
+
+            name_strs += std::string(name);
+            name_strs += std::string(",");
+        }
+
+        name_strs += std::string("]");
+        throw std::invalid_argument(error_msg + 
+                                    name+
+                                    std::string(" not in: ")+ name_strs);
     }
 
     return itr->second;
@@ -239,8 +322,20 @@ SysState<dim>::operator[](const std::string& name)const{
         return item.first == name;
     });
 
-    if(itr == values_.end()){
-        throw std::invalid_argument("Invalid variable name");
+   if(itr == values_.end()){
+        auto error_msg("Invalid variable name. Name");
+        auto names = get_names();
+        std::string name_strs("[");
+        for(auto& name:names){
+
+            name_strs += std::string(name);
+            name_strs += std::string(",");
+        }
+
+        name_strs += std::string("]");
+        throw std::invalid_argument(error_msg + 
+                                    name+
+                                    std::string(" not in: ")+ name_strs);
     }
 
     return itr->second;
@@ -257,7 +352,7 @@ SysState<dim>::clear(){
 }
 
 template<int dim>
-std::array<real_t, dim>
+const std::array<real_t, dim>
 SysState<dim>::get_values()const{
 
     std::array<real_t, dim> copy;
@@ -267,6 +362,20 @@ SysState<dim>::get_values()const{
     }
 
     return copy;
+}
+
+template<int dim>
+const std::array<std::string_view, dim>
+SysState<dim>::get_names()const{
+
+    std::array<std::string_view, dim> copy;
+
+    for(uint_t i=0; i<dim; ++i){
+        copy[i] = values_[i].first;
+    }
+
+    return copy;
+
 }
 
 template<int dim>

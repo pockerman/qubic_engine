@@ -17,15 +17,29 @@ struct WayPoint: public kernel::GeomPoint<dim>
     typedef kernel::GeomPoint<dim> position_t;
     typedef Data data_t;
     uint_t id;
-    Data data;
+    data_t data;
+    bool is_active_point;
 
     /// constructor
     WayPoint(const position_t& p, uint_t id_, const data_t& data_=data_t())
         :
           kernel::GeomPoint<dim>(p),
           id(id_),
-          data(data)
+          data(data),
+          is_active_point(true)
     {}
+
+    /// \brief Return the id of the point
+    uint_t get_id()const{return id;}
+
+    /// \brief Writable reference to the data
+    data_t& get_data(){return data;}
+
+    /// \brief Read reference to the data
+    const data_t& get_data()const{return data;}
+
+    /// \brief Returns true if the waypoint is active
+    bool is_active()const{return is_active_point;}
 };
 
 
@@ -70,6 +84,11 @@ public:
     /// \brief Constructor
     LineSegment(uint_t id, const w_point_t& v1,
                 const w_point_t& v2, const segment_data_t& data);
+
+
+    /// \brief Constructor
+    LineSegment(uint_t id, const w_point_t& v1,
+                const w_point_t& v2);
 
 
     /// \brief Returns the v-th vertex of the segment
@@ -119,6 +138,14 @@ LineSegment<dim, NodeData, SegmentData>::LineSegment(uint_t id,
      internal_points_(),
      data_(data),
      is_active_(true)
+{}
+
+template<int dim, typename NodeData, typename SegmentData>
+LineSegment<dim, NodeData, SegmentData>::LineSegment(uint_t id,
+                                                     const typename LineSegment<dim, NodeData, SegmentData>::w_point_t& v1,
+                                                     const typename LineSegment<dim, NodeData, SegmentData>::w_point_t& v2)
+    :
+    LineSegment<dim, NodeData, SegmentData>(id, v1, v2, typename LineSegment<dim, NodeData, SegmentData>::segment_data_t())
 {}
 
 
@@ -175,26 +202,40 @@ public:
     uint_t n_elements()const{return segments_.size();}
 
     /// \brief Reserve space for waypoints
-    void reserve_n_waypoints(uint_t n);
+    void reserve_nodes(uint_t n);
 
     /// \brief Reserve space for
-    void reserve_n_segments(uint_t n);
+    void reserve_elements(uint_t n);
 
     /// \brief clear the memory allocated for points and
     /// edges
     void clear();
 
+    /// \brief Add a new waypoint in the path
+    /// and get a writable pointer default
+    /// waypoint data is assumed
+    w_point_t* add_node(const kernel::GeomPoint<dim>& position)
+    {return add_node(position, w_point_data_t());}
+
+
     /// \brief Add a new waypoint in the path and get back
     /// a writable reference of the newly added point
-    w_point_t& add_way_point(const kernel::GeomPoint<dim>& position,
-                             const w_point_data_t& data);
+    w_point_t* add_node(const kernel::GeomPoint<dim>& position,
+                        const w_point_data_t& data);
 
     /// \brief Add a new segment in the path and get back
     /// a writable reference of the newly added segment.
     /// Throws std::logic_error if vid0 and vid1 are not
     /// in the path
-    segment_t& add_segment(uint_t vid0, uint_t vid1,
+    segment_t* add_element(uint_t vid0, uint_t vid1,
                             const segment_data_t& data);
+
+    /// \brief Add a new segment in the path and get back
+    /// a writable reference of the newly added segment.
+    /// Throws std::logic_error if vid0 and vid1 are not
+    /// in the path
+    segment_t* add_element(uint_t vid0, uint_t vid1)
+    {return add_element(vid0, vid1, segment_data_t());}
 
     /// \brief read/write access to the n-th segment
     segment_t* element(uint_t e);
@@ -208,7 +249,7 @@ public:
 
     /// \brief Raw node iteration
     cnode_iterator_impl nodes_begin()const{return waypoints_.begin();}
-    cnode_iterator_impl nodes_end()const{return waypoints_.nodes_end();}
+    cnode_iterator_impl nodes_end()const{return waypoints_.end();}
 
     /// \brief Raw elements iteration
     element_iterator_impl elements_begin(){return segments_.begin();}
@@ -260,19 +301,19 @@ WaypointPath<dim, PointData, EdgeData>::clear(){
 }
 
 template<int dim, typename PointData, typename EdgeData>
-typename WaypointPath<dim, PointData, EdgeData>::w_point_t&
-WaypointPath<dim, PointData, EdgeData>::add_way_point(const kernel::GeomPoint<dim>& position,
+typename WaypointPath<dim, PointData, EdgeData>::w_point_t*
+WaypointPath<dim, PointData, EdgeData>::add_node(const kernel::GeomPoint<dim>& position,
                                                       const typename WaypointPath<dim, PointData, EdgeData>::w_point_data_t& data){
 
     uint_t id = waypoints_.size();
     WaypointPath<dim, PointData, EdgeData>::w_point_t* p = new WaypointPath<dim, PointData, EdgeData>::w_point_t(position, id, data);
     waypoints_.push_back(p);
-    return *waypoints_[id];
+    return waypoints_[id];
 }
 
 template<int dim, typename PointData, typename EdgeData>
-typename WaypointPath<dim, PointData, EdgeData>::segment_t&
-WaypointPath<dim, PointData, EdgeData>::add_segment(uint_t vid0, uint_t vid1,
+typename WaypointPath<dim, PointData, EdgeData>::segment_t*
+WaypointPath<dim, PointData, EdgeData>::add_element(uint_t vid0, uint_t vid1,
                             const typename WaypointPath<dim, PointData, EdgeData>::segment_data_t& data){
 
     if(vid0 >= waypoints_.size() ||
@@ -292,18 +333,18 @@ WaypointPath<dim, PointData, EdgeData>::add_segment(uint_t vid0, uint_t vid1,
     auto v1 = waypoints_[vid1];
     WaypointPath<dim, PointData, EdgeData>::segment_t* seg = new WaypointPath<dim, PointData, EdgeData>::segment_t(id, *v0, *v1, data);
     segments_.push_back(seg);
-    return *segments_[id];
+    return segments_[id];
 }
 
 template<int dim, typename PointData, typename EdgeData>
 void
-WaypointPath<dim, PointData, EdgeData>::reserve_n_waypoints(uint_t n){
+WaypointPath<dim, PointData, EdgeData>::reserve_nodes(uint_t n){
     waypoints_.reserve(n);
 }
 
 template<int dim, typename PointData, typename EdgeData>
 void
-WaypointPath<dim, PointData, EdgeData>::reserve_n_segments(uint_t n){
+WaypointPath<dim, PointData, EdgeData>::reserve_elements(uint_t n){
     segments_.reserve(n);
 }
 

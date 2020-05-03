@@ -87,7 +87,7 @@ StoppableTask<StopCondition>::operator()(){
 
 #ifdef USE_LOG
         std::ostringstream message;
-        message<<"An logic occured whilst running task: "<<this->get_name();
+        message<<"A logic error occured whilst running task: "<<this->get_name();
         message<<" what() says: "<<error.what();
         Logger::log_error(message.str());
 #endif

@@ -33,11 +33,19 @@ public:
     matrix_iterator find_matrix(const std::string& name);
 
     /// \brief find the matrix with the given name
+    const_matrix_iterator find_matrix(const std::string& name)const;
+
+    /// \brief find the matrix with the given name
     vector_iterator find_vector(const std::string& name);
+
+    /// \brief find the matrix with the given name
+    const_vector_iterator find_vector(const std::string& name)const;
 
     matrix_t& get_matrix(const std::string& name);
     const matrix_t& get_matrix(const std::string& name)const;
     void set_matrix(const std::string& name, const matrix_t& mat){matrices_.insert_or_assign(name, mat);}
+    bool has_matrix(const std::string& name)const;
+
 
     vector_t& get_vector(const std::string& name);
     const vector_t& get_vector(const std::string& name)const;
