@@ -45,7 +45,7 @@ ENDIF()
 
 SET(BUILD_SHARED_LIBS ON)
 SET(CMAKE_BUILD_TYPE "Debug")
-SET(ENABLE_TESTING "OFF")
+SET(ENABLE_TESTING "ON")
 SET(USE_OPENMP "ON")
 SET(USE_LOG "ON")
 SET(USE_FVM "ON")
@@ -68,11 +68,13 @@ configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/kernel/base/version.h 
 # add this because config.h ends up in the build directory
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
+
 IF(${MAGIC_ENUM_INCL_DIR} MATCHES " ")
     MESSAGE( STATUS  "MagicEnum include directory has not been specified")
 ELSE()
     INCLUDE_DIRECTORIES(${MAGIC_ENUM_INCL_DIR})
 ENDIF()
+
 
 IF( ${BLAZE_INCL_DIR} MATCHES " " )
     MESSAGE( FATAL_ERROR  "Blaze include directory has not been specified")
