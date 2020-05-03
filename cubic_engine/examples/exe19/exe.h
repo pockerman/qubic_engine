@@ -35,10 +35,9 @@
 #include <thread>
 #include <limits>
 #include <vector>
+#include <condition_variable>
 
 namespace example{
-
-std::mutex msg_mutex;
 
 using cengine::real_t;
 using cengine::uint_t;
@@ -64,6 +63,8 @@ using kernel::dynamics::SysState;
 using kernel::dynamics::DiffDriveDynamics;
 using kernel::DiffDriveProperties;
 using kernel::DiffDriveVehicle;
+
+std::mutex msg_mutex;
 
 const real_t DT = 0.5;
 const std::string SET_GOAL("SET_GOAL");
@@ -169,7 +170,7 @@ ObservationModel::ObservationModel()
 
 typedef BoostSerialGraph<AstarNodeData, LineSegmentData> Map;
 typedef WaypointPath<2, AstarNodeData, LineSegmentData> Path;
-typedef SysState<4> State;
+typedef SysState<5> State;
 typedef GeomPoint<2> Goal;
 typedef DiffDriveDynamics MotionModel;
 
@@ -235,6 +236,15 @@ public:
 
     virtual void update(const path_resource_t& resource)override final;
     virtual const path_resource_t& read()const override final;
+
+private:
+
+  /// the cv to wait unitl path is ready
+  mutable std::condition_variable cv;
+
+  /// flag indicating if the path has 
+  /// been computed
+  mutable bool ready_{false};
 };
 
 struct CMD
@@ -267,7 +277,7 @@ public:
     /// constructor
     ServerThread(const StopSimulation& stop_condition,
                  const Map& map,
-                 const SysState<4>& state,
+                 const SysState<5>& state,
                  ThreadPool& threads,
                  const CarrotChasingPathTrackControllerInput& input,
                  real_t gradius);
@@ -483,6 +493,12 @@ private:
 
     /// pointer to the map
     const Map* map_;
+
+    /// the velocity control
+    real_t v_ctrl_;
+
+    /// the angular velocity control
+    real_t w_ctrl_;
 };
 
 inline
@@ -497,15 +513,18 @@ ServerThread::StateEstimationThread::StateEstimationThread(const StopSimulation&
     o_model_(),
     ekf_(m_model_, o_model_),
     sobservers_(),
-    map_(&map)
+    map_(&map),
+    v_ctrl_(0.0),
+    w_ctrl_(0.0)
 {
     this->set_name("StateEstimationThread");
 
     /// create the requests and report the initial state
-    state_.set(0, {"x", 0.0});
-    state_.set(1, {"y", 0.0});
-    state_.set(2, {"V", 0.0});
-    state_.set(3, {"W", 0.0});
+    state_.set(0, {"X", 0.0});
+    state_.set(1, {"Y", 0.0});
+    state_.set(2, {"Theta", 0.0});
+    state_.set(3, {"V", 0.0});
+    state_.set(4, {"W", 0.0});
 }
 
 
@@ -652,7 +671,7 @@ ServerThread::PathFollowerThread::update_w_velocity_observers(real_t w){
 inline
 ServerThread::ServerThread(const StopSimulation& stop_condition,
                            const Map& map,
-                           const SysState<4>& init_state,
+                           const SysState<5>& init_state,
                            ThreadPool& thread_pool,
                            const CarrotChasingPathTrackControllerInput& input,
                            real_t gradius)

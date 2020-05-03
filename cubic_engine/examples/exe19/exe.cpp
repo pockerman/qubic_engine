@@ -43,11 +43,17 @@ void
 PathObserver::update(const PathObserver::path_resource_t& r){
     std::lock_guard<std::mutex> lock(this->mutex_);
     this->ThreadedObserverBase<std::mutex, Path*>::update(r);
+    ready_ = true;
+    cv.notify_all();
 }
 
 const PathObserver::path_resource_t&
 PathObserver::read()const{
-    std::lock_guard<std::mutex> lock(this->mutex_);
+    
+    std::unique_lock<std::mutex> lk(this->mutex_);
+    cv.wait(lk, [this]{return ready_;});
+    ready_ = false;
+    lk.unlock();
     return this->ThreadedObserverBase<std::mutex, Path*>::read();
 }
 
@@ -78,6 +84,13 @@ MeasurmentObserver::read(MeasurmentObserver::measurement_resource_t& r)const{
 void
 ServerThread::StateEstimationThread::update_state_observers(){
 
+    const auto& computed_state = ekf_.get_state();
+    state_["X"] = computed_state.get("X");
+    state_["Y"] = computed_state.get("Y");
+    state_["Theta"] = computed_state.get("Theta");
+    state_["V"] = v_ctrl_;
+    state_["W"] = w_ctrl_;
+
     for(uint_t o=0; o<sobservers_.size(); ++o){
         sobservers_[o]->update(state_);
     }
@@ -89,16 +102,14 @@ ServerThread::StateEstimationThread::run(){
     std::array<real_t, 2> motion_control_error;
     motion_control_error[0] = 0.0;
     motion_control_error[1] = 0.0;
+
     while(!this->should_stop()){
 
         // estimate the state
-        real_t v=0.0;
-        vobserver.read(v);
+        vobserver.read(v_ctrl_);
+        wobserver.read(w_ctrl_);
 
-        real_t w=0.0;
-        wobserver.read(w);
-
-        auto motion_input = std::make_tuple(v*DT, w*DT, motion_control_error);
+        auto motion_input = std::make_tuple(v_ctrl_*DT, w_ctrl_*DT, motion_control_error);
         ekf_.predict(motion_input);
 
         /// Read the measurement vector
@@ -109,7 +120,7 @@ ServerThread::StateEstimationThread::run(){
         ekf_.update(measurement);
 
         /// update the observers
-        //update_state_observers();
+        update_state_observers();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(STATE_ESTIMATION_THREAD_CYCLE));
     }
@@ -123,6 +134,9 @@ ServerThread::PathConstructorThread::update_path_observers(){
     for(uint_t o =0; o<pobservers_.size(); ++o){
         pobservers_[o]->update(path_);
     }
+
+    std::lock_guard<std::mutex> lock(msg_mutex);
+    std::cout<<"MESSAGE: Task "+this->get_name()<<" updated path observers"<<std::endl;
 }
 
 void
@@ -285,6 +299,8 @@ ServerThread::PathConstructorThread::run(){
 
 void
 ServerThread::PathFollowerThread::run(){
+
+    /// we should wait until we have a path
 
     while(!this->should_stop()){
 
@@ -454,7 +470,7 @@ ServerThread::RequestTask::serve_request(const std::string& request){
                 responses_.push_item(SET_GOAL);
             }
             else{
-                // this is a new goal
+                /// this is a new goal
                 auto x = std::atof(strings[1].c_str());
                 auto y = std::atof(strings[2].c_str());
 
@@ -654,36 +670,37 @@ ServerThread::run(){
 
     tasks_.push_back(std::make_unique<state_est_task_t>(this->get_condition(), *map_));
     tasks_.push_back(std::make_unique<path_cstr_task_t>(this->get_condition(), *map_));
-    tasks_.push_back(std::make_unique<path_follow_task_t>(this->get_condition(), responses_,
-                                                          path_control_input_, gradius_ ));
-
     tasks_.push_back(std::make_unique<request_task_t>(this->get_condition(), requests_, cmds_, responses_));
     tasks_.push_back(std::make_unique<client_task_t>(this->get_condition(), requests_, responses_));
 
+    //tasks_.push_back(std::make_unique<path_follow_task_t>(this->get_condition(), responses_,
+    //                                                      path_control_input_, gradius_ ));
+
     /// assign the observers
     {
-        request_task_t* req_task = static_cast<request_task_t*>(tasks_[3].get());
+        request_task_t* req_task = static_cast<request_task_t*>(tasks_[2].get());
         req_task->attach_goal_observer(static_cast< path_cstr_task_t*>(tasks_[1].get())->gobserver);
-        req_task->attach_goal_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->gobserver);
+        
         req_task->attach_v_observer(static_cast<state_est_task_t*>(tasks_[0].get())->vobserver);
         req_task->attach_w_observer(static_cast<state_est_task_t*>(tasks_[0].get())->wobserver);
+        //req_task->attach_goal_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->gobserver);
 
         state_est_task_t* state_thread = static_cast<state_est_task_t*>(tasks_[0].get());
-        state_thread->attach_state_observer(static_cast<path_cstr_task_t*>(tasks_[1].get())->sobserver);
-        state_thread->attach_state_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->sobserver);
-        state_thread->attach_state_observer(static_cast<request_task_t*>(tasks_[3].get())->sobserver);
+        state_thread->attach_state_observer(static_cast<path_cstr_task_t*>(tasks_[1].get())->sobserver);        
+        state_thread->attach_state_observer(static_cast<request_task_t*>(tasks_[2].get())->sobserver);
+        //state_thread->attach_state_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->sobserver);
 
         ///ask the state thread to update the state observers
         state_thread->update_state_observers();
 
-        path_cstr_task_t* pconstruct_thread = static_cast< path_cstr_task_t*>(tasks_[1].get());
-        pconstruct_thread->attach_path_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->pobserver);
-        pconstruct_thread->attach_path_observer(static_cast<request_task_t*>(tasks_[3].get())->pobserver);
+        path_cstr_task_t* pconstruct_thread = static_cast< path_cstr_task_t*>(tasks_[1].get());        
+        pconstruct_thread->attach_path_observer(static_cast<request_task_t*>(tasks_[2].get())->pobserver);
+        //pconstruct_thread->attach_path_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->pobserver);
 
         this->attach_measurement_observer(state_thread->mobserver);
 
-        path_follow_task_t* path_follow_thread = static_cast<path_follow_task_t*>(tasks_[2].get());
-        path_follow_thread->attach_w_velocity_observer(state_thread->wobserver);
+        //path_follow_task_t* path_follow_thread = static_cast<path_follow_task_t*>(tasks_[2].get());
+        //path_follow_thread->attach_w_velocity_observer(state_thread->wobserver);
 
     }
 
@@ -833,7 +850,7 @@ int main(){
     StopSimulation stop_sim;
 
     // the initial system state
-    SysState<4> init_state;
+    SysState<5> init_state;
 
     DiffDriveProperties properties;
     properties.R = RADIUS;
