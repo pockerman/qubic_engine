@@ -3,11 +3,11 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 
+#include <boost/noncopyable.hpp>
 #include <map>
 #include <string>
 
 namespace cengine{
-
 
 ///
 /// Implements the Extended Kalman filter algorithm.
@@ -37,7 +37,7 @@ namespace cengine{
 /// with the process
 ///
 template<typename MotionModelTp, typename ObservationModelTp>
-class ExtendedKalmanFilter
+class ExtendedKalmanFilter: private boost::noncopyable
 {
 public:
 
@@ -168,8 +168,8 @@ ExtendedKalmanFilter<MotionModelTp,
                      ObservationModelTp>::estimate(const std::tuple<motion_model_input_t,
                                                    observation_model_input_t>& input ){
 
-    predict(input.template get<1>());
-    update(input.template get<2>());
+    predict(input.template get<0>());
+    update(input.template get<1>());
 }
 
 template<typename MotionModelTp, typename ObservationModelTp>
