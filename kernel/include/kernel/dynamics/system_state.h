@@ -61,11 +61,20 @@ public:
     /// \brief Returns the value for the variable name
     real_t get(const std::string& name)const;
 
-    /// \brief Returns the value for the variable name
+    /// \brief Returns the entries of this state
+    /// as a DynVec
+    DynVec<real_t> as_vector()const;
+
+    /// \brief Set the value for the variable name
     void set(const std::string& name, real_t val);
 
     /// \brief Set the name and value of the i-th variable
     void set(uint_t i, const std::pair<std::string, real_t>& value);
+
+    /// \brief Set the values of state variables
+    /// container must be of size dim.
+    template<typename Container>
+    void set(const Container& container);
 
     /// \brief Returns the size of the system
     uint_t size()const{return dim;}
@@ -238,6 +247,19 @@ SysState<dim>::get(const std::string& name)const{
 }
 
 template<int dim>
+DynVec<real_t>
+SysState<dim>::as_vector()const{
+
+    DynVec<real_t> vec(dim, 0.0);
+
+    for(uint_t v=0; v<values_.size(); ++v){
+        vec[v] = values_[v].second;
+    }
+
+    return vec;
+}
+
+template<int dim>
 void
 SysState<dim>::set(const std::string& name, real_t val){
 
@@ -263,6 +285,24 @@ SysState<dim>::set(const std::string& name, real_t val){
     }
 
     itr->second = val;
+}
+
+template<int dim>
+template<typename Container>
+void
+SysState<dim>::set(const Container& container){
+
+    if(container.size() != dim){
+        throw std::invalid_argument("Container has incorrect size: "+
+                                    std::to_string(container.size()) +
+                                    " not equal to "+
+                                    std::to_string(dim));
+    }
+
+    uint counter = 0;
+    std::for_each(values_.begin(),
+                  values_.end(),
+                  [&](auto& arg){arg.second = container[counter++];});
 }
 
 template<int dim>
