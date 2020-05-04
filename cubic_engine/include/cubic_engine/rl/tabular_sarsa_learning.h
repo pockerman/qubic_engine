@@ -232,17 +232,7 @@ SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::s
                auto epsilon = newdis(newrd);
 
                 if(epsilon < input_.exploration_factor){
-
-                    ///Will be used to obtain a seed for the random number engine
-                    /*std::random_device rd;
-
-                    ///Standard mersenne_twister_engine seeded with rd()
-                    std::mt19937 gen(rd());
-                    std::uniform_int_distribution<> dis(0, new_state.n_actions()-1);
-                    auto idx = dis(rd);*/
-
                     next_action_idx = new_state.get_random_active_action();
-                    //get_action_from_idx(idx);
                 }
             }
 
