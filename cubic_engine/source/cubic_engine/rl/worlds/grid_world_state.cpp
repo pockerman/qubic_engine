@@ -60,6 +60,11 @@ GridWorldState::execute_action(GridWorldAction action){
     return state_transitions_[action];
 }
 
+const GridWorldState*
+GridWorldState::execute_action(GridWorldAction action)const{
+    return state_transitions_.find(action)->second;
+}
+
 bool
 GridWorldState::is_active_action(uint_t i)const{
 
@@ -70,6 +75,24 @@ GridWorldState::is_active_action(uint_t i)const{
     }
 
     return false;
+}
+
+GridWorldAction
+GridWorldState::get_action_for_neighbor(const GridWorldState& neighbor)const{
+
+    auto begin = state_transitions_.begin();
+    auto end = state_transitions_.end();
+
+    for(; begin != end; ++begin){
+
+        if(begin->second != nullptr &&
+                begin->second->get_id() == neighbor.get_id()){
+            return begin->first;
+        }
+    }
+
+   return GridWorldAction::INVALID_ACTION;
+
 }
 
 const std::vector<GridWorldAction>
@@ -100,9 +123,16 @@ GridWorldState::get_random_active_action()const{
     std::random_device rd;
 
     ///Standard mersenne_twister_engine seeded with rd()
-    std::mt19937 gen(rd());
+    calculate: std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, active_actions.size()-1);
+
     auto idx = dis(rd);
+
+    /*while(idx == previous_active_action_choice_){
+        goto calculate;
+    }*/
+
+    previous_active_action_choice_ = idx;
 
     return active_actions[idx];
 
