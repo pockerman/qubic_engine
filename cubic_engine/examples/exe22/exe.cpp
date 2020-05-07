@@ -14,7 +14,6 @@
 #include <random>
 #include <algorithm>
 
-
 int main(){
 
     using cengine::uint_t;
@@ -33,6 +32,7 @@ int main(){
 
         /// the world of the agent
         CliffWorld world;
+        world.create_world();
 
         std::cout<<"Number of states: "<<world.n_states()<<std::endl;
 
@@ -40,56 +40,41 @@ int main(){
         state_t goal(11);
 
         /// simulation parameters
-        const real_t EPSILON = 0.1;
+        /// number of episodes for the agent to learn.
+        const uint_t N_ITERATIONS = 500;
+        const real_t ETA = 0.1;
+        const real_t EPSILON = 0.3;
+        const real_t GAMMA = 0.0;
         const real_t PENALTY = -100.0;
 
-        SarsaLearningInput qinput={1.0, EPSILON, 0.0, true, true};
+        SarsaLearningInput qinput={ETA, EPSILON, GAMMA, true, true};
         SarsaTableLearning<world_t> sarsalearner(std::move(qinput));
 
         CSVWriter writer("agent_rewards.csv", ',', true);
         writer.write_column_names({"Episode", "Reward"}, true);
 
-        /// number of episodes for the agent to
-        /// learn the Q-values.
-        const uint_t N_ITERATIONS = 10000;
-
         std::vector<real_t> row(2);
         sarsalearner.initialize(world, PENALTY);
 
-        for(uint_t episode=0; episode < N_ITERATIONS; ++episode){
-            world.restart(start, goal);
-            sarsalearner.train(goal);
+        auto& table = sarsalearner.get_table();
+        table.save_to_csv("table_rewards" + std::to_string(0) + ".csv");
 
-            auto reward = sarsalearner.get_table().get_total_reward();
+        for(uint_t episode=0; episode < N_ITERATIONS; ++episode){
+
+            std::cout<<"At episode: "<<episode<<std::endl;
+            world.restart(start, goal);
+            auto result = sarsalearner.train(goal);
+
+            /// the total reward the agent obtained
+            /// in this episode
+            auto reward = result.total_reward;
             writer.write_row(std::make_tuple(episode, reward));
             std::cout<<"At episode: "<<episode<<" total reward: "<<reward<<std::endl;
-        }
 
-        /// now that we train let's play
-        auto& qtable = sarsalearner.get_table();
-
-        auto stop = false;
-
-        world.restart(start, goal);
-
-        auto counter = 0;
-        while(!stop){
-
-            auto& state = world.get_current_state();
-            std::cout<<"At state: "<<state.get_id()<<std::endl;
-
-            if(state == goal){
-                std::cout<<"State: "<<state.get_id()<<" is the goal"<<std::endl;
-                break;
+            if(episode == N_ITERATIONS - 1){
+                auto& table = sarsalearner.get_table();
+                table.save_to_csv("table_rewards" + std::to_string(episode) + ".csv");
             }
-
-            /// get the action with the maximum value
-            auto action = qtable.get_max_reward_action_at_state(state.get_id());
-
-            std::cout<<"Maximum reward action: "<<cengine::rl::worlds::to_string(action)<<std::endl;
-            std::cout<<"MAximum reward is: "<<qtable.get_max_reward_at_state(state.get_id())<<std::endl;
-            world.execute_action(action);
-            counter++;
         }
     }
     catch(std::exception& e){
