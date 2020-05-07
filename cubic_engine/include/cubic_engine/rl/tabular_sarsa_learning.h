@@ -16,6 +16,7 @@
 #include <map>
 #include <random>
 #include <iostream>
+#include <chrono>
 
 namespace cengine {
 namespace rl {
@@ -27,6 +28,12 @@ struct SarsaLearningInput
     real_t discount_factor;
     bool use_exploration;
     bool show_iterations;
+};
+
+struct SarsaLearningOutput
+{
+    real_t total_reward;
+    real_t total_time;
 };
 
 
@@ -49,11 +56,17 @@ public:
     /// \brief The type of the state
     typedef typename world_t::state_t state_t;
 
+    /// \brief The input to initialize the algorithm
+    typedef SarsaLearningInput input_t;
+
+    /// \brief The output type the train method returns
+    typedef SarsaLearningOutput output_t;
+
     /// \brief Constructor
     SarsaTableLearning(SarsaLearningInput&& input);
 
     /// \brief Train on the given world
-    void train(const state_t& goal );
+    output_t train(const state_t& goal );
 
     ///Initialize the tabular implementation
     void initialize(world_t& world, reward_value_t val);
@@ -130,12 +143,17 @@ SarsaTableLearning<WorldTp>::initialize_state_(const StateTp& state,
 
 
 template<typename WorldTp>
-void
+typename SarsaTableLearning<WorldTp>::output_t
 SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::state_t& goal ){
 
     if(!is_initialized_){
         throw std::logic_error("SarsaTableLearning instance is not initialized");
     }
+
+    auto start = std::chrono::steady_clock::now();
+    typename SarsaTableLearning<WorldTp>::output_t output;
+    output.total_reward = 0.0;
+    output.total_time = 0.0;
 
     auto action_idx = WorldTp::invalid_action;
 
@@ -146,7 +164,7 @@ SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::s
         auto& state = world_ptr_->get_current_state();
 
         if(input_.show_iterations){
-            std::cout<<"At iteration: "<<itr_counter +1 <<std::endl;
+            std::cout<<"\tAt iteration: "<<itr_counter +1 <<std::endl;
             std::cout<<"\tCurrent state: "<<state.get_id()<<std::endl;
         }
 
@@ -214,12 +232,25 @@ SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::s
 
             /// observe R and S'
             auto reward = world_ptr_->reward();
+
+            std::cout<<"\tReward received: "<<reward<<std::endl;
+
+            output.total_reward += reward;
+
             auto& new_state = world_ptr_->get_current_state();
 
             auto current_val = qtable_.get_reward(state.get_id(), action_idx);
 
+            std::cout<<"\tCurrent value for state: "<<state.get_id()
+                    <<" and action: "<<worlds::to_string(action_idx)
+                   <<" "<<current_val<<std::endl;
+
             /// choose A' from S'
             auto next_action_idx = qtable_.get_max_reward_action_at_state(new_state.get_id());
+
+            if(input_.show_iterations){
+                std::cout<<"\tNext action: "<<worlds::to_string(next_action_idx)<<std::endl;
+            }
 
             if(input_.use_exploration){
 
@@ -228,17 +259,18 @@ SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::s
 
                 ///Standard mersenne_twister_engine seeded with rd()
                 std::mt19937 newgen(newrd());
-                std::uniform_real_distribution<> newdis(0.0, 1.1);
-               auto epsilon = newdis(newrd);
+                std::uniform_real_distribution<> newdis(0.0, 1.0);
+                auto epsilon = newdis(newrd);
 
                 if(epsilon < input_.exploration_factor){
                     next_action_idx = new_state.get_random_active_action();
+                    std::cout<<"\tRecalculated next action: "<<worlds::to_string(next_action_idx)<<std::endl;
                 }
             }
 
             if(input_.show_iterations){
                 std::cout<<"\tNext state: "<<new_state.get_id()<<std::endl;
-                std::cout<<"\tNext action: "<<worlds::to_string(next_action_idx)<<std::endl;
+                //std::cout<<"\tNext action: "<<worlds::to_string(next_action_idx)<<std::endl;
             }
 
             auto future_reward = qtable_.get_reward(new_state.get_id(), next_action_idx);
@@ -256,7 +288,13 @@ SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::s
             action_idx = next_action_idx;
             itr_counter++;
         }
-      }
+      }//end of while
+
+     auto end = std::chrono::steady_clock::now();
+     std::chrono::duration<double> elapsed_seconds = end-start;
+     output.total_time = elapsed_seconds.count();
+
+     return output;
 }
 
 }
