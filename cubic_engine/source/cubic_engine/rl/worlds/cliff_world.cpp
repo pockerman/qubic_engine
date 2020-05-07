@@ -214,7 +214,6 @@ CliffWorld::RewardProducer::setup_rewards(){
                    rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
                 }
                 else{
-                    std::cout<<"Set "<<i<<"-WEST to PENALTY"<<std::endl;
                     rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
                 }
 
@@ -233,8 +232,12 @@ CliffWorld::RewardProducer::setup_rewards(){
                    rewards_.add_reward(i, GridWorldAction::SOUTH,  PENALTY);
                }
 
-               if(i == 12 || i == 23){
+               if(i == 12){
                  rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
+               }
+
+               if(i == 23){
+                  rewards_.add_reward(i, GridWorldAction::SOUTH,  0.0);
                }
 
 
