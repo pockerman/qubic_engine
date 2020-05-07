@@ -26,6 +26,14 @@ public:
                             DynamicsMatrixDescriptor,
                             real_t, real_t, std::array<real_t, 2> >::input_t input_t;
 
+    typedef MotionModelBase<SysState<3>,
+                            DynamicsMatrixDescriptor,
+                            real_t, real_t, std::array<real_t, 2> >::matrix_t matrix_t;
+
+    typedef MotionModelBase<SysState<3>,
+                            DynamicsMatrixDescriptor,
+                            real_t, real_t, std::array<real_t, 2> >::vector_t vector_t;
+
     /// \brief Constructor
     DiffDriveDynamics();
 
@@ -70,6 +78,10 @@ public:
 
     /// \brief Set the tolerance to use
     real_t set_tolerance(real_t tol){tol_ = tol;}
+
+    /// \brief Initialize the matrices describing the
+    /// the dynamics
+    void initialize_matrices(const input_t& input);
 
 private:
 

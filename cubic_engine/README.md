@@ -51,14 +51,15 @@ make tests
 ### <a name="filtering_and_esitmation"></a> Filtering and Estimation
 
 - <a href="#">Example 1: </a> Using the ```KalmanFilter``` class
-- <a href="examples/exe2/doc/exe.md">Example 2: </a> Using the ```ExtendedKalmanFilter``` class
-- <a href="#">Example 3:</a> Unscented Kalman Filter
-- <a href="#">Example 4:</a> Particle Filters
+- <a href="examples/exe2/doc/exe.ipynb">Example 2: </a> Using the ```ExtendedKalmanFilter``` class
+- Unscented Kalman Filter
+- Particle Filters
 
 ### <a name="control"></a> Control
 
 - <a href="#">Example 4: </a> Using the ```PIDControl``` class
 - LQR Control
+- Model Predictive Control 
 
 ### <a name="machine_learning"></a> Machine Learning
 

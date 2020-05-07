@@ -29,10 +29,17 @@ DiffDriveDynamics::integrate(real_t v, real_t w, const std::array<real_t, 2>& er
 
     auto values = state_.get_values();
 
-    if(std::fabs(w) < tol_){
-        // assume zero angular velocity
+    /// before we do the integration 
+    /// update the matrices
+    if(this->allows_matrix_updates()){
 
-        auto distance = 0.5*v*dt_;
+      DiffDriveDynamics::input_t input(v,w,errors);
+      update_matrices(input);
+    }
+
+    if(std::fabs(w) < tol_){
+        /// assume zero angular velocity
+       auto distance = 0.5*v*dt_;
        auto xincrement = (distance + errors[0])*std::cos(values[2]  + errors[1]);
        auto yincrement = (distance + errors[0])*std::sin(values[2]  + errors[1]);
 
@@ -42,53 +49,112 @@ DiffDriveDynamics::integrate(real_t v, real_t w, const std::array<real_t, 2>& er
     else{
 
         this->state_[2] += w*dt_ + errors[1];
+
         this->state_[0] += ((v/(2.0*w)) + errors[0])*(std::sin(this->state_[2]) -
-                std::sin(values[2]) + errors[1]);
+                std::sin(values[2]));
+
         this->state_[1] -= ((v/(2.0*w)) + errors[0])*(std::cos(this->state_[2]) -
-                std::cos(values[2]) + errors[1]);
+                std::cos(values[2]));
     }
 }
 
 DiffDriveDynamics::state_t&
 DiffDriveDynamics::evaluate(const DiffDriveDynamics::input_t& input ){
-    auto [distance, orientation, errors] = input;
-    integrate(distance, orientation, errors);
-
-    if(this->allows_matrix_updates()){
-      update_matrices(input);
-    }
-
+    auto [v, w, errors] = input;
+    integrate(v, w, errors);
     return this->state_;
+}
+
+void 
+DiffDriveDynamics::initialize_matrices(const DiffDriveDynamics::input_t& input){
+
+
+  /// if we initialize the matrices
+  /// then we should set the matrix update flag to true
+  set_matrix_update_flag(true);
+
+  if(!this->has_matrix("F")){
+    matrix_t F(3,3, 0.0);
+    this->set_matrix("F", F);
+  }
+
+  if(! this->has_matrix("L")){
+    matrix_t L(3, 2, 0.0);
+    this->set_matrix("L", L);
+  }
+
+  update_matrices(input);
+
 }
 
 void
 DiffDriveDynamics::update_matrices(const DiffDriveDynamics::input_t& input){
 
-   auto [distance, orientation, errors] = input;
+   auto [v, w, errors] = input;
+
+   auto distance = 0.5*v*dt_;
+   auto orientation = w*dt_;
    auto values = this->state_.get_values();
-   auto& F = this->get_matrix("F");
-   F(0, 0) = 1.0;
-   F(0, 1) = 0.0;
-   F(0, 2) = (distance + errors[0])*std::sin(values[2] + orientation + errors[1]);
+  
+   if(std::fabs(w) < tol_){
 
-   F(1, 0) = 0.0;
-   F(1, 1) = 1.0;
-   F(1, 2) = -(distance + errors[0])*std::cos(values[2] + orientation + errors[1]);
+      auto& F = this->get_matrix("F");
 
-   F(2, 0) = 0.0;
-   F(2, 1) = 0.0;
-   F(2, 2) = 1.0;
+      F(0, 0) = 1.0;
+      F(0, 1) = 0.0;
+      F(0, 2) = (distance + errors[0])*std::sin(values[2] + orientation + errors[1]);
 
-   auto& L = this->get_matrix("L");
+      F(1, 0) = 0.0;
+      F(1, 1) = 1.0;
+      F(1, 2) = -(distance + errors[0])*std::cos(values[2] + orientation + errors[1]);
 
-   L(0, 0) = std::cos(values[2] + orientation + errors[1]);
-   L(0, 1) = (distance + errors[0])*std::sin(values[2] + orientation + errors[1]);
+      F(2, 0) = 0.0;
+      F(2, 1) = 0.0;
+      F(2, 2) = 1.0;
 
-   L(1, 0) = std::sin(values[2] + orientation + errors[1]);
-   L(1, 1) = -(distance + errors[0])*std::sin(values[2] + orientation + errors[1]);
+      auto& L = this->get_matrix("L");
 
-   L(2, 0) = 0.0;
-   L(2, 1) = 1.0;
+      L(0, 0) = std::cos(values[2] + orientation + errors[1]);
+      L(0, 1) = (distance + errors[0])*std::sin(values[2] + orientation + errors[1]);
+
+      L(1, 0) = std::sin(values[2] + orientation + errors[1]);
+      L(1, 1) = -(distance + errors[0])*std::cos(values[2] + orientation + errors[1]);
+
+      L(2, 0) = 0.0;
+      L(2, 1) = 1.0;
+
+   }
+   else{
+
+      auto& F = this->get_matrix("F");
+
+      F(0, 0) = 1.0;
+      F(0, 1) = 0.0;
+      F(0, 2) = -(distance + errors[0])*std::cos(values[2] + orientation + errors[1]) +
+                 (distance + errors[0])*std::cos(values[2]);
+
+      F(1, 0) = 0.0;
+      F(1, 1) = 1.0;
+      F(1, 2) = -(distance + errors[0])*std::sin(values[2] + orientation + errors[1]) +
+                 (distance + errors[0])*std::sin(values[2]);
+
+      F(2, 0) = 0.0;
+      F(2, 1) = 0.0;
+      F(2, 2) = 1.0;
+
+      auto& L = this->get_matrix("L");
+
+      L(0, 0) = std::sin(values[2] + orientation + errors[1])- std::sin(values[2]);
+                
+      L(0, 1) = -((v/2.0*w) + errors[0])*std::cos(values[2] + orientation + errors[1])*
+                std::sin(values[2] + orientation + errors[1]);
+
+      L(1, 0) = -std::cos(values[2] + orientation + errors[1]) + std::cos(values[2]);
+      L(1, 1) = ((v/2.0*w) + errors[0])*std::sin(values[2] + orientation + errors[1]);
+
+      L(2, 0) = 0.0;
+      L(2, 1) = 1.0; 
+   }
 
 }
 

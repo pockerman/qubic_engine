@@ -15,6 +15,28 @@ DynamicsMatrixDescriptor::find_matrix(const std::string& name){
     return matrices_.find(name);
 }
 
+DynamicsMatrixDescriptor::const_matrix_iterator
+DynamicsMatrixDescriptor::find_matrix(const std::string& name)const{
+    return matrices_.find(name);
+}
+
+DynamicsMatrixDescriptor::vector_iterator
+DynamicsMatrixDescriptor::find_vector(const std::string& name){
+    return vectors_.find(name);
+}
+
+DynamicsMatrixDescriptor::const_vector_iterator
+DynamicsMatrixDescriptor::find_vector(const std::string& name)const{
+    return vectors_.find(name);
+}
+
+bool 
+DynamicsMatrixDescriptor::has_matrix(const std::string& name)const{
+
+  auto itr = find_matrix(name);
+  return itr != matrices_.end();
+}
+
 DynamicsMatrixDescriptor::matrix_t&
 DynamicsMatrixDescriptor::get_matrix(const std::string& name){
 
