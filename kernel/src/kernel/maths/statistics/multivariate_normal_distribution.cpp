@@ -79,19 +79,24 @@ MultiNormalDist::sample()const{
     /// L: a diagonal matrix with the eigenvalues of Sigma
     /// Q: Matrix with the eignevectors of Sigma as columns
 
-    /// Note that Q is row major so the eigenvectors
+    /// Note that L is row major so the eigenvectors
     /// are returned as rows...so we need to to transpose
     /// below
-    DynMat<real_t> Q(sigma_.rows(), sigma_.rows(), 0.0);
-    DynVec<real_t> w(sigma_.rows(), 0.0);
+    DynMat<std::complex<real_t>> V(sigma_.rows(), sigma_.rows(), 0.0);
+    DynVec<std::complex<real_t>> w(sigma_.rows(), 0.0);
 
     /// compute eigenvalues and eigenvectors
-    eigen(sigma_, w, Q);
+    eigen(sigma_, w, V);
 
     DynMat<real_t> L(sigma_.rows(), sigma_.rows(), 0.0);
+    DynMat<real_t> Q(sigma_.rows(), sigma_.rows(), 0.0);
 
     for(uint_t r=0; r<sigma_.rows(); ++r ){
-        L(r,r) = w[r];
+        L(r,r) = w[r].real();
+
+        for(uint_t c=0; c<sigma_.rows(); ++c ){
+            Q(r,c) = V(r,c).real();
+        }
     }
 
     L = sqrt(L);
