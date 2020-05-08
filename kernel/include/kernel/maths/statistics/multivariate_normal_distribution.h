@@ -25,10 +25,13 @@ public:
                     const DynMat<real_t>& sigma);
 
     /// \brief Calculate the pdf at the given point
-    real_t pdf(const DynVec<real_t>& x);
+    real_t pdf(const DynVec<real_t>& x)const;
 
     /// \brief Returns the dimensions
     uint_t get_dimension()const{return mu_.size();}
+
+    /// \brief Returns a vector of sampled values
+    DynVec<real_t> sample()const;
 
 
 private:
@@ -40,10 +43,10 @@ private:
     DynMat<real_t> sigma_;
 
     /// \brief The inverse of the covariance
-    DynMat<real_t> sigma_inv_;
+    mutable DynMat<real_t> sigma_inv_;
 
     /// \brief The determinant of sigma
-    real_t sigma_det_;
+    mutable real_t sigma_det_;
 };
 
 }
