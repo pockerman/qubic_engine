@@ -13,13 +13,21 @@ namespace cengine
     template<typename T>
     using DynMat = blaze::DynamicMatrix<T>;
 
-    /// \brief General vector type
+    /// \brief General diagonal matrix
     template<typename T>
-    using DynVec = blaze::DynamicVector<T>;
+    using DiagMat = blaze::DiagonalMatrix<DynMat<T>>;
 
     /// \brief Identity matrix
     template<typename T>
     using IdentityMatrix = blaze::IdentityMatrix<T>;
+
+    /// \brief General Sparse matrix
+    template<typename T>
+    using SparseMatrix = blaze::CompressedMatrix<T, blaze::rowMajor>;
+
+    /// \brief General vector type
+    template<typename T>
+    using DynVec = blaze::DynamicVector<T>;
 
     /// \brief Basic primitive data types
     using real_t = kernel::real_t;

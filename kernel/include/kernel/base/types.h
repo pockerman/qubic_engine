@@ -24,14 +24,22 @@ namespace kernel
     template<typename T>
     using DynMat = blaze::DynamicMatrix<T, blaze::rowMajor>;
 
-    /// \brief General vector type. By default this is
-    /// a column vector
+    /// \brief General diagonal matrix
     template<typename T>
-    using DynVec = blaze::DynamicVector<T, blaze::columnVector>;
+    using DiagMat = blaze::DiagonalMatrix<DynMat<T>>;
+
+    /// \brief Identity matrix
+    template<typename T>
+    using IdentityMatrix = blaze::IdentityMatrix<T>;
 
     /// \brief General Sparse matrix
     template<typename T>
     using SparseMatrix = blaze::CompressedMatrix<T, blaze::rowMajor>;
+
+    /// \brief General vector type. By default this is
+    /// a column vector
+    template<typename T>
+    using DynVec = blaze::DynamicVector<T, blaze::columnVector>;
 
     /// \brief Null type. Simple placeholder
     struct Null{};
