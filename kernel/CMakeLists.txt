@@ -45,7 +45,7 @@ ENDIF()
 
 SET(BUILD_SHARED_LIBS ON)
 SET(CMAKE_BUILD_TYPE "Debug")
-SET(ENABLE_TESTING "ON")
+SET(ENABLE_TESTING "OFF")
 SET(USE_OPENMP "ON")
 SET(USE_LOG "ON")
 SET(USE_FVM "ON")
@@ -141,6 +141,7 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/vehicles/*.cpp
                  ${PROJECT_SRC_DIR}/maths/functions/*.cpp
                  ${PROJECT_SRC_DIR}/maths/krylov_solvers/*.cpp
+                 ${PROJECT_SRC_DIR}/maths/statistics/*.cpp
                  ${PROJECT_SRC_DIR}/maths/*.cpp
                  ${PROJECT_SRC_DIR}/dynamics/*.cpp
                  ${PROJECT_SRC_DIR}/numerics/*.cpp

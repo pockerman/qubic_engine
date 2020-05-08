@@ -50,7 +50,7 @@ make tests
 
 ### <a name="filtering_and_esitmation"></a> Filtering and Estimation
 
-- <a href="#">Example 1: </a> Using the ```KalmanFilter``` class
+- <a href="examples/exe1/doc/exe.ipynb">Example 1: </a> Using the ```KalmanFilter``` class
 - <a href="examples/exe2/doc/exe.ipynb">Example 2: </a> Using the ```ExtendedKalmanFilter``` class
 - Unscented Kalman Filter
 - Particle Filters
