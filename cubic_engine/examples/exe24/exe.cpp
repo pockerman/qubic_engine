@@ -1,5 +1,4 @@
 #include "cubic_engine/base/cubic_engine_types.h"
-
 #include "kernel/utilities/csv_file_writer.h"
 #include "kernel/maths/statistics/multivariate_normal_distribution.h"
 

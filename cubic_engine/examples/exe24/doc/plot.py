@@ -1,67 +1,44 @@
-"""
-Utility script for plotting with matplotlib
-"""
-import matplotlib.pyplot as plt
 import csv
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+import seaborn as sns
+from scipy.stats import kde
+from sklearn.neighbors import KernelDensity
+from scipy.stats import norm
 
-def main(filename):
-	
-	with open(filename, 'r', newline='') as csvfile:
-		csv_file_reader = csv.reader(csvfile, delimiter=",")
-		
-		row_count = 0
-				
-		cluster_0_x = []
-		cluster_0_y = []
-		
-		cluster_1_x = []
-		cluster_1_y = []
-		
-		cluster_2_x = []
-		cluster_2_y = []
-		
-		for row in csv_file_reader:
-		
-			if row_count != 0:
-				cid = int(row[0])
-		
-				if cid == 0:
-					cluster_0_x.append(float(row[1]))
-					cluster_0_y.append(float(row[2]))
-				elif cid == 1:
-					cluster_1_x.append(float(row[1]))
-					cluster_1_y.append(float(row[2]))
-				elif cid == 2:
-					cluster_2_x.append(float(row[1]))
-					cluster_2_y.append(float(row[2]))
-				else:
-					raise ValueError("Invlaid Cluster Id")
-					
-			row_count += 1
-		
-		legend = []
-		if len(cluster_0_x) != 0:
-			plt.plot(cluster_0_x, cluster_0_y, 'ko')
-			legend.append("Class 0")
-		
-		if len(cluster_1_x) != 0:
-			plt.plot(cluster_1_x, cluster_1_y, 'ro')
-			legend.append("Class 1")
-			
-		if len(cluster_2_x) != 0:
-			plt.plot(cluster_2_x, cluster_2_y, 'bo')
-			legend.append("Class 2")
-			
-		plt.xlabel('x')
-		plt.ylabel('y')
-		plt.legend(legend)
 
-		plt.axis('square')
-		plt.tight_layout(pad=0)
-		plt.plot()
-		plt.show()
-	
+def main(filename, legend):
+
+  counter = 0
+
+  with open(filename, 'r') as file:
+    csv_reader = csv.reader(file, delimiter=",")
+
+    x1 = []
+    x2 = []
+
+    for line in csv_reader:
+
+
+          if counter > 1:
+              t = float(line[0])
+              p = float(line[1])
+
+              x1.append(t)
+              x2.append(p)
+
+          counter += 1
+
+    plt.plot(x1, x2, ".g")
+
+    plt.xlabel("X1")
+    plt.ylabel("X2")
+    plt.title = legend
+    plt.grid(True)
+    plt.show()
+
+
 if __name__ == '__main__':
-	main("knn_classifier_exact.csv")
-	#main("knn_classifier_3.csv")
-	
+  main("sample_1.csv", "m=0, sigma=1.0")
+  main("sample_2.csv", "m=0, sigma=1.0")
