@@ -5,6 +5,7 @@
 * [Examples Map](#examples_map)
     * [Filtering and Estimation](#filtering_and_esitmation)
     * [Control](#control)
+    * [Statistics](#statistics)
     * [Machine Learning](#machine_learning)
     * [Reinforcement Learning](#reinforcement_learning)
     * [Robotics Simulations](#using_ros)
@@ -60,6 +61,9 @@ make tests
 - <a href="#">Example 4: </a> Using the ```PIDControl``` class
 - LQR Control
 - Model Predictive Control 
+
+### <a name="statistics"></a> Statistics
+- <a href="examples/exe24/doc/exe.ipynb">Example 24</a> Sampling from multivariate normal distribution
 
 ### <a name="machine_learning"></a> Machine Learning
 
