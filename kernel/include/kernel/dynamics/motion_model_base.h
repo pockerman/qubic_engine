@@ -57,6 +57,14 @@ public:
     /// \brief Returns the state property with the given name
     real_t get(const std::string& name)const{return state_.get(name);}
 
+    /// \brief Set the state names
+    void set_state_name_value(uint_t i, const std::string& name, real_t val)
+    {state_.set(i, {name, val});}
+
+    /// \brief Set the state names
+    void set_state_name_value(uint_t i, const std::pair<std::string, real_t>&  val)
+    {state_.set(i, val);}
+
 protected:
 
     /// \brief Constructor
