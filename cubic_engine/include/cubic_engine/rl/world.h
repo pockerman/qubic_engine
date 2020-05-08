@@ -20,7 +20,7 @@ public:
     ~World(){}
 
     /// \brief Returns the state
-    virtual state_t& sense()=0;
+    virtual const state_t& sense()=0;
 
     /// \brief Transition to a new state by
     /// performing the given action

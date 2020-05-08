@@ -1,4 +1,6 @@
 #include "cubic_engine/rl/worlds/grid_world_state.h"
+
+#include <random>
 #include <stdexcept>
 namespace cengine{
 namespace rl {
@@ -58,6 +60,11 @@ GridWorldState::execute_action(GridWorldAction action){
     return state_transitions_[action];
 }
 
+const GridWorldState*
+GridWorldState::execute_action(GridWorldAction action)const{
+    return state_transitions_.find(action)->second;
+}
+
 bool
 GridWorldState::is_active_action(uint_t i)const{
 
@@ -68,6 +75,67 @@ GridWorldState::is_active_action(uint_t i)const{
     }
 
     return false;
+}
+
+GridWorldAction
+GridWorldState::get_action_for_neighbor(const GridWorldState& neighbor)const{
+
+    auto begin = state_transitions_.begin();
+    auto end = state_transitions_.end();
+
+    for(; begin != end; ++begin){
+
+        if(begin->second != nullptr &&
+                begin->second->get_id() == neighbor.get_id()){
+            return begin->first;
+        }
+    }
+
+   return GridWorldAction::INVALID_ACTION;
+
+}
+
+const std::vector<GridWorldAction>
+GridWorldState::get_active_actions()const{
+
+    std::vector<GridWorldAction> active_actions;
+    active_actions.reserve(state_transitions_.size());
+
+    auto itr = state_transitions_.begin();
+    auto end = state_transitions_.end();
+
+    for(; itr != end; ++itr){
+
+        if(itr->second){
+            active_actions.push_back(itr->first);
+        }
+    }
+
+    return active_actions;
+}
+
+GridWorldAction
+GridWorldState::get_random_active_action()const{
+
+    auto active_actions = get_active_actions();
+
+    ///Will be used to obtain a seed for the random number engine
+    std::random_device rd;
+
+    ///Standard mersenne_twister_engine seeded with rd()
+    calculate: std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, active_actions.size()-1);
+
+    auto idx = dis(rd);
+
+    /*while(idx == previous_active_action_choice_){
+        goto calculate;
+    }*/
+
+    previous_active_action_choice_ = idx;
+
+    return active_actions[idx];
+
 }
 
 

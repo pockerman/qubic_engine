@@ -26,6 +26,10 @@ public:
     typedef typename World<GridWorldAction, GridWorldState, typename RewardTp::value_t>::state_t state_t;
     typedef typename World<GridWorldAction, GridWorldState, typename RewardTp::value_t>::reward_value_t reward_value_t;
 
+    /// \brief Global invalid action assumed by the
+    /// world. Useful for initialization.
+    static const GridWorldAction invalid_action = GridWorldAction::INVALID_ACTION;
+
     /// \brief Constructor
     GridWorld();
 
@@ -33,7 +37,7 @@ public:
     ~GridWorld();
 
     /// \brief Returns the state
-    virtual state_t& sense()override final{return  *current_state_;}
+    virtual const state_t& sense()override final{return  *current_state_;}
 
     /// \brief Transition to a new state by
     /// performing the given action
@@ -44,7 +48,7 @@ public:
     void restart(const state_t& start, const state_t& goal);
 
     /// \brief Set the state of the world
-    void set_state(const state_t& state){current_state_ = state;}
+    void set_state(const state_t& state){current_state_ = &state;}
 
     /// \brief Returns the reward associated
     /// with the last state transition
@@ -85,7 +89,7 @@ private:
     const state_t* goal_;
 
     /// \brief The current state the world is in
-    state_t* current_state_;
+    const state_t* current_state_;
 
     /// \brief The object responsible for
     /// producing the reward that the agent
@@ -149,7 +153,7 @@ GridWorld<RewardTp>::step(const typename GridWorld<RewardTp>::action_t& action){
         /// for the current state
         /// find out the index of the cell
         /// that the agent can transition to
-        auto* next_state = current_state_->execute_action(action);
+        auto* next_state = const_cast<state_t*>(current_state_)->execute_action(action);
 
         if(next_state == nullptr){
             // the agent just came out of the grid
@@ -187,7 +191,7 @@ template<typename RewardTp>
 void
 GridWorld<RewardTp>::execute_action(typename GridWorld<RewardTp>::action_t aid){
 
-    current_state_ = current_state_->execute_action(aid);
+    current_state_ = const_cast<state_t*>(current_state_)->execute_action(aid);
 }
 
 template<typename RewardTp>

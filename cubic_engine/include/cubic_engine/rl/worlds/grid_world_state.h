@@ -5,6 +5,7 @@
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #include "kernel/base/kernel_consts.h"
 
+#include <vector>
 #include <map>
 
 namespace cengine{
@@ -46,6 +47,21 @@ public:
     /// \brief Execute the action
     GridWorldState* execute_action(GridWorldAction action);
 
+    /// \brief Returns the neighbor state for the given action
+    const GridWorldState* execute_action(GridWorldAction action)const;
+
+    /// \brief Select uniformly an active
+    /// action
+    GridWorldAction get_random_active_action()const;
+
+    /// \brief Returns a vector with the available
+    /// active actions
+    const std::vector<GridWorldAction> get_active_actions()const;
+
+    /// \brief Return the GridWorldAction required to
+    /// get to the neighbor element. If the neighbor
+    /// does not exist return GridWorldAction::INVALID_ACTION
+    GridWorldAction get_action_for_neighbor(const GridWorldState& neighbor)const;
 
 private:
 
@@ -55,6 +71,9 @@ private:
     /// \brief The neighboring states that
     /// this state may transition to
     std::map<GridWorldAction, GridWorldState*> state_transitions_;
+
+    /// \brief
+    mutable uint_t previous_active_action_choice_{0};
 
 };
 
