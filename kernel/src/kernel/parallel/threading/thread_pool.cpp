@@ -78,6 +78,11 @@ ThreadPool::start(){
 void
 ThreadPool::add_task(TaskBase& task){
 
+
+    if(!is_started_){
+      throw std::logic_error("Thread pool is not started");
+    }
+
     if(next_thread_available_ == kernel::KernelConsts::invalid_size_type() ||
        next_thread_available_ >= pool_.size()){
         next_thread_available_=0;
@@ -95,7 +100,14 @@ ThreadPool::add_task(TaskBase& task){
 void
 ThreadPool::add_tasks(const std::vector<std::unique_ptr<task_t>>& tasks){
 
+    if(!is_started_){
+      throw std::logic_error("Thread pool is not started");
+    }
+
     for(uint_t t=0; t<tasks.size(); ++t){
+        if(!tasks[t]){
+          throw std::invalid_argument("Attempt to add a null task pointer");
+        }
         add_task(*(tasks[t].get()));
     }
 }
@@ -121,9 +133,4 @@ ThreadPool::close(){
         std::cout<<"MESSAGE:  Shut down  thread pool with "+std::to_string(options_.n_threads)<<" threads "<<std::endl;
     }
 }
-
-
-
-
-
 }
