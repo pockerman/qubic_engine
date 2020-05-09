@@ -23,6 +23,9 @@ public:
     typedef typename matrix_descriptor_t::matrix_t matrix_t;
     typedef typename matrix_descriptor_t::vector_t vector_t;
 
+    /// \brief The dimension of the state
+    static const uint_t state_dimension = StateTp::dimension;
+
     /// \brief Destructor
     virtual ~MotionModelBase();
 
