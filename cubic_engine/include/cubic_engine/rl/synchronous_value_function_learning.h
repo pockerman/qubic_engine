@@ -3,6 +3,7 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/utilities/iterative_algorithm_controller.h"
 
 #if defined(__GNUC__) && (__GNUC___ > 7)
 #include "magic_enum.hpp"
@@ -23,7 +24,9 @@ namespace rl {
 
 struct SyncValueFuncItrInput
 {
-    real_t discount_factor;
+    real_t tol;
+    real_t gamma;
+    uint_t n_iterations;
     bool show_iterations;
 };
 
@@ -68,9 +71,13 @@ public:
     ///Initialize the tabular implementation
     void initialize(world_t& world, real_t init_val);
 
-
-
 private:
+
+    /// \brief The input provided to the algorithm
+    input_t imput_;
+
+    /// \brief The object that controls the iterations
+    kernel::IterativeAlgorithmController itr_controller_;
 
     /// \brief The old value function for each state
     std::vector<real_t> vold_;
@@ -78,8 +85,59 @@ private:
     /// \brief The current value function for each state
     std::vector<real_t> v_;
 
+    /// \brief Pointer to the world
+    world_t* world_;
+
 
 };
+
+template<typename WorldTp>
+typename SyncValueFuncItr<WorldTp>::output_t
+SyncValueFuncItr<WorldTp>::train(const typename SyncValueFuncItr<WorldTp>::state_t& goal ){
+
+
+    while(itr_controller_.continue_iterations()){
+
+        if(imput_.show_iterations){
+
+            std::cout<<itr_controller_.get_state()<<std::endl;
+        }
+
+        /// loop over the states of the world
+        for(uint_t s=0; s<world_->n_states(); ++s){
+
+            /// get the s-th state
+            auto state = world_->get_state();
+
+            /// the world should know which state is terminal
+            if(!world_->is_goal_state(state)){
+
+                /// this is not the goal state
+                real_t old_v = vold_[state.get_id()];
+
+                real_t weighted_sum = 0.0;
+
+                /// loop over all the actions allowed on this
+                /// state
+                for(uint_t a=0; a<state.n_actions(); ++a){
+
+                    auto action  = state.get_action(a);
+                    auto state_prime = state.apply_action(a);
+
+                    if(state_prime){
+
+                        real_t p = world_->transition_dynamics(state_prime, state, action);
+                        real_t reward = world_->get_reward(state, action);
+                        real_t vs_prime = vold_[state_prime->get_id()];
+                        weighted_sum += reward + p*imput_.gamma*vs_prime;
+                    }
+
+                }
+            }
+        }
+    }
+
+}
 
 
 
