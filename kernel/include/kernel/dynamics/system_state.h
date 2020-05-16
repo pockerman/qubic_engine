@@ -228,7 +228,7 @@ SysState<dim>::get(const std::string& name)const{
     });
 
     if(itr == values_.end()){
-        auto error_msg("Invalid variable name. Name");
+        auto error_msg("Invalid variable name. Name ");
         auto names = get_names();
         std::string name_strs("[");
         for(auto& name:names){
@@ -269,7 +269,7 @@ SysState<dim>::set(const std::string& name, real_t val){
     });
 
     if(itr == values_.end()){
-        auto error_msg("Invalid variable name. Name");
+        auto error_msg("Invalid variable name. Name ");
         auto names = get_names();
         std::string name_strs("[");
         for(auto& name:names){
@@ -335,7 +335,7 @@ SysState<dim>::operator[](const std::string& name){
     });
 
     if(itr == values_.end()){
-        auto error_msg("Invalid variable name. Name");
+        auto error_msg("Invalid variable name. Name ");
         auto names = get_names();
         std::string name_strs("[");
         for(auto& name:names){
@@ -363,7 +363,7 @@ SysState<dim>::operator[](const std::string& name)const{
     });
 
    if(itr == values_.end()){
-        auto error_msg("Invalid variable name. Name");
+        auto error_msg("Invalid variable name. Name ");
         auto names = get_names();
         std::string name_strs("[");
         for(auto& name:names){

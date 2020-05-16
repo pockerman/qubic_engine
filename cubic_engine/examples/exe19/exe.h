@@ -66,7 +66,7 @@ using kernel::DiffDriveVehicle;
 
 std::mutex msg_mutex;
 
-const real_t DT = 0.5;
+const real_t DT = 0.1;
 const std::string SET_GOAL("SET_GOAL");
 const std::string SET_GOAL_SERVER("SET_GOAL_SERVER");
 const std::string GOAL("GOAL");
@@ -77,29 +77,27 @@ const std::string RESPONSE("RESPONSE: ");
 const std::string MESSAGE("MESSAGE: ");
 const std::string EMPTY_CMD("");
 const std::string ENTER_CMD("ENTER_CMD");
+const std::string V_CMD_SERVER("V_CMD_SERVER");
 const std::string V_CMD("V_CMD");
+const std::string W_CMD_SERVER("W_CMD_SERVER");
 const std::string W_CMD("W_CMD");
 
 /// gloabl variable to synchronize stop
 std::atomic<bool> threads_should_stop(false);
 
+/// global variable indicating whether the goal is reached
+std::atomic<bool> goal_reached(false);
+
 /// cycle of path constructor thread
 /// in milliseconds
-const uint_t PATH_CONSTRUCTOR_CYCLE = 10;
-
-/// cycle of requests thread
-/// in milliseconds
-const uint_t REQUESTS_THREAD_CYCLE = 10;
+const uint_t PATH_CONSTRUCTOR_CYCLE = 30;
 
 /// cycle of state estimation thread
-const uint_t STATE_ESTIMATION_THREAD_CYCLE = 10;
+const uint_t STATE_ESTIMATION_THREAD_CYCLE = 25;
 
 /// cycle for path correction thread
-const uint_t PATH_CORRECTION_THREAD_CYCLE = 10;
+const uint_t PATH_CORRECTION_THREAD_CYCLE = 5;
 
-/// cycle for client thread
-/// in milliseconds
-const uint_t CLIENT_THREAD_CYCLE = 10;
 
 ///vertex data to apply A*
 struct AstarNodeData
@@ -150,22 +148,25 @@ public:
     ObservationModel();
 
     /// simply return th
-    const DynVec evaluate(const DynVec& input)const{}
+    const DynVec evaluate(const DynVec& input)const;
 
     /// get the H or M matrix
-    const DynMat& get_matrix(const std::string& name)const{}
+    const DynMat& get_matrix(const std::string& name)const;
+
+    /// initialize the matrices
+    void initialize_matrices();
 
 private:
 
-    DynMat H;
-    DynMat M;
+    DynMat H_;
+    DynMat M_;
 };
 
 inline
 ObservationModel::ObservationModel()
     :
-      H(),
-      M()
+      H_(2,3,0.0),
+      M_(2,2,0.0)
 {}
 
 typedef BoostSerialGraph<AstarNodeData, LineSegmentData> Map;
@@ -194,17 +195,6 @@ public:
 
 };
 
-class MeasurmentObserver: public ThreadedObserverBase<std::mutex, DynVec>
-{
-public:
-
-    typedef ThreadedObserverBase<std::mutex, DynVec>::resource_t measurement_resource_t;
-
-    virtual void update(const measurement_resource_t& resource)override final;
-    virtual void read(measurement_resource_t&)const override final;
-
-};
-
 class StateObserver: public ThreadedObserverBase<std::mutex, State>
 {
 
@@ -214,6 +204,11 @@ public:
 
     virtual void update(const state_resource_t& resource)override final;
     virtual void read(state_resource_t&)const override final;
+
+private:
+
+  /// the cv to wait unitl state is ready
+  mutable std::condition_variable cv;
 };
 
 class GoalObserver: public ThreadedObserverBase<std::mutex, Goal>
@@ -242,226 +237,20 @@ private:
   /// the cv to wait unitl path is ready
   mutable std::condition_variable cv;
 
-  /// flag indicating if the path has 
-  /// been computed
-  mutable bool ready_{false};
-};
-
-struct CMD
-{
-    real_t velocity{0.0};
-    real_t orientation{0.0};
-    std::string name{"INVALID_CMD"};
-
-    CMD()=default;
-
-    CMD(real_t v, real_t o, std::string n)
-        :
-          velocity(v),
-          orientation(o),
-          name(n)
-    {}
-
-    static CMD generate_cmd(real_t v, real_t o, std::string name){
-        return CMD(v, o, name);
-    }
 };
 
 
-class ServerThread: public kernel::StoppableTask<StopSimulation>
-{
-public:
-
-    GoalObserver gobserver;
-
-    /// constructor
-    ServerThread(const StopSimulation& stop_condition,
-                 const Map& map,
-                 const SysState<5>& state,
-                 ThreadPool& threads,
-                 const CarrotChasingPathTrackControllerInput& input,
-                 real_t gradius);
-
-    /// run the server
-    virtual void run()override final;
-
-    /// Query the sensor interface for measurements
-    const DynVec get_measurement()const;
-
-    /// attach any measurement observers to update
-    /// when the measurement is taken
-    void attach_measurement_observer(MeasurmentObserver& observer){m_observers_.push_back(&observer);}
-
-    /// update the observers with the new measurement
-    void update_measurement_observers(MeasurmentObserver::measurement_resource_t& measurement);
-
-protected:
-
-    /// The map used
-    const Map* map_;
-
-    /// the initial state
-    State init_state_;
-
-    LockableQueue<std::string> requests_;
-    LockableQueue<std::string> responses_;
-    LockableQueue<CMD> cmds_;
-
-    /// the thread pool
-    ThreadPool& thread_pool_;
-
-    /// list of tasks the server handles
-    std::vector<std::unique_ptr<kernel::TaskBase>> tasks_;
-
-    /// observers that we should update when a measurement
-    /// of the sensor is taken
-    std::vector<MeasurmentObserver*> m_observers_;
-
-    CarrotChasingPathTrackControllerInput path_control_input_;
-    real_t gradius_;
-
-    /// checks if all tasks are stopped
-    /// if this is true the server is stopped as well
-    void tasks_stopped();
-
-    struct RequestTask;
-    struct ClientTask;
-    struct StateEstimationThread;
-    struct PathConstructorThread;
-    struct PathFollowerThread;
-
-};
-
-
-struct ServerThread::RequestTask: public kernel::StoppableTask<StopSimulation>
-{
-
-public:
-
-    /// Goal Observer
-    GoalObserver gobserver;
-
-    /// State observer
-    StateObserver sobserver;
-
-    /// Path observer for output
-    PathObserver pobserver;
-
-    /// Reference velocity requested
-    RefVelocityObserver vobserver;
-
-    /// Reference angular velocity requested
-    RefVelocityObserver wobserver;
-
-    /// constructor
-    RequestTask(const StopSimulation& stop_condition,
-                LockableQueue<std::string>& requests,
-                LockableQueue<CMD>& cmds,
-                LockableQueue<std::string>& responses);
-
-    /// update the goal for the local
-    /// gobserver and the observers subscribed
-    void update_goal_observers(const Goal& goal);
-
-    /// attach a goal observer
-    void attach_goal_observer(GoalObserver& observer){goal_observers_.push_back(&observer);}
-
-    /// update the velocity observers
-    void update_v_observers(real_t v);
-
-    /// attach a velocity observer
-    void attach_v_observer(RefVelocityObserver& observer){v_observers_.push_back(&observer);}
-
-    /// update the w velocity observers
-    void update_w_observers(real_t w);
-
-    /// attach a velocity observer
-    void attach_w_observer(RefVelocityObserver& observer){w_observers_.push_back(&observer);}
-
-protected:
-
-    virtual void run()override final;
-    LockableQueue<std::string>& requests_;
-    LockableQueue<CMD>& cmds_;
-    LockableQueue<std::string>& responses_;
-
-    ///  The observer list for the goal
-    std::vector<GoalObserver*> goal_observers_;
-
-    /// The observer list for the reference velocity
-    std::vector<RefVelocityObserver*> v_observers_;
-
-    /// The observer list for the angular velocity
-    std::vector<RefVelocityObserver*> w_observers_;
-
-    void serve_request(const std::string& request);
-    void save_solution(kernel::CSVWriter& writer);
-};
-
-inline
-ServerThread::RequestTask::RequestTask(const StopSimulation& stop_condition,
-                                       LockableQueue<std::string>& requests,
-                                       LockableQueue<CMD>& cmds,
-                                       LockableQueue<std::string>& responses)
-    :
-kernel::StoppableTask<StopSimulation>(stop_condition),
-gobserver(),
-sobserver(),
-pobserver(),
-vobserver(),
-wobserver(),
-requests_(requests),
-cmds_(cmds),
-responses_(responses)
-{
-    this->set_name("RequestTask");
-    gobserver.set_name("ReqestTask GOAL Observer");
-    sobserver.set_name("RequestTask STATE Observer");
-    pobserver.set_name("RequestTask PATH Observer");
-}
-
-struct ServerThread::ClientTask: public kernel::StoppableTask<StopSimulation>
-{
-
-public:
-
-    ClientTask(const StopSimulation& stop_condition,
-               LockableQueue<std::string>& request,
-               LockableQueue<std::string>& response);
-
-    virtual void run()override final;
-protected:
-
-
-    LockableQueue<std::string>& requests_;
-    LockableQueue<std::string>& responses_;
-
-};
-
-inline
-ServerThread::ClientTask::ClientTask(const StopSimulation& stop_condition,
-                                     LockableQueue<std::string>& request,
-                                     LockableQueue<std::string>& response)
-    :
-  kernel::StoppableTask<StopSimulation>(stop_condition),
-  requests_(request),
-  responses_(response)
-
-{
-    this->set_name("ClientTask");
-}
 
 /// Uses EKF algorithm to provide an estimation
 /// of the robot state
-struct ServerThread::StateEstimationThread: public kernel::StoppableTask<StopSimulation>
+struct StateEstimationThread: public kernel::StoppableTask<StopSimulation>
 
 {
 public:
 
     RefVelocityObserver vobserver;
     RefVelocityObserver wobserver;
-    MeasurmentObserver  mobserver;
-
+    
     /// Constructor
     StateEstimationThread(const StopSimulation& stop, const Map& map);
 
@@ -471,11 +260,18 @@ public:
     /// update the path observers that a new path is ready
     void update_state_observers();
 
-private:
-
     /// run the thread
     virtual void run()override final;
 
+    /// initialize the object
+    void initialize();
+
+    /// set the initial state for the motion
+    void set_state(const State& state);
+
+private:
+
+    
     /// the state of the system
     State state_;
 
@@ -502,12 +298,11 @@ private:
 };
 
 inline
-ServerThread::StateEstimationThread::StateEstimationThread(const StopSimulation& stop, const Map& map)
+StateEstimationThread::StateEstimationThread(const StopSimulation& stop, const Map& map)
     :
     StoppableTask<StopSimulation>(stop),
     vobserver(),
     wobserver(),
-    mobserver(),
     state_(),
     m_model_(),
     o_model_(),
@@ -518,6 +313,9 @@ ServerThread::StateEstimationThread::StateEstimationThread(const StopSimulation&
     w_ctrl_(0.0)
 {
     this->set_name("StateEstimationThread");
+
+    vobserver.set_name("StateEstimationThread V Observer");
+    wobserver.set_name("StateEstimationThread W Observer");
 
     /// create the requests and report the initial state
     state_.set(0, {"X", 0.0});
@@ -531,7 +329,7 @@ ServerThread::StateEstimationThread::StateEstimationThread(const StopSimulation&
 /// Given the state produced by the
 /// StateEstimationThread produce a Path
 /// to be followed using A* lagorithm
-struct ServerThread::PathConstructorThread: public StoppableTask<StopSimulation>
+struct PathConstructorThread: public StoppableTask<StopSimulation>
 {
 public:
 
@@ -570,8 +368,8 @@ protected:
 };
 
 inline
-ServerThread::PathConstructorThread::PathConstructorThread(const StopSimulation& stop,
-                                                           const Map& map)
+PathConstructorThread::PathConstructorThread(const StopSimulation& stop,
+                                             const Map& map)
     :
     StoppableTask<StopSimulation>(stop),
     gobserver(),
@@ -588,7 +386,7 @@ ServerThread::PathConstructorThread::PathConstructorThread(const StopSimulation&
 /// Given the Path produced by the  PathConstructorThread
 /// creates motion commands so that the robot
 /// follows the specified path
-struct ServerThread::PathFollowerThread: public StoppableTask<StopSimulation>
+struct PathFollowerThread: public StoppableTask<StopSimulation>
 {
 
     /// The observer for the goal
@@ -602,7 +400,6 @@ struct ServerThread::PathFollowerThread: public StoppableTask<StopSimulation>
 
     /// constructor
     PathFollowerThread(const StopSimulation& stop,
-                       LockableQueue<std::string>& responses,
                        const CarrotChasingPathTrackControllerInput& input,
                        real_t gradius);
 
@@ -612,6 +409,9 @@ struct ServerThread::PathFollowerThread: public StoppableTask<StopSimulation>
     /// update the w velocity observers
     void update_w_velocity_observers(real_t w);
 
+    /// set the initial state for the motion
+    void set_state(const State& state){state_ = state;}
+
 protected:
 
     /// run the thread
@@ -620,72 +420,63 @@ protected:
     /// The path tracker used
     CarrotChasingPathTrackController<AstarNodeData, LineSegmentData> path_controller_;
 
-    /// The responses queue to notify when the
-    /// goal hs been reached
-    LockableQueue<std::string>& responses_;
-
     /// the list of angular observers to update
     std::vector<RefVelocityObserver*> wobservers_;
 
     /// the goal radius
     real_t gradius_;
+
+    /// pointer to the path
+    const Path* path_;
+
+    /// the state of the system
+    State state_;
 };
 
 inline
-ServerThread::PathFollowerThread::PathFollowerThread(const StopSimulation& stop,
-                                                     LockableQueue<std::string>& responses,
-                                                     const CarrotChasingPathTrackControllerInput& input,
-                                                     real_t gradius)
+PathFollowerThread::PathFollowerThread(const StopSimulation& stop,
+                                       const CarrotChasingPathTrackControllerInput& input,
+                                       real_t gradius)
     :
    StoppableTask<StopSimulation>(stop),
    gobserver(),
    sobserver(),
    pobserver(),
    path_controller_(input),
-   responses_(responses),
    wobservers_(),
-   gradius_(gradius)
+   gradius_(gradius),
+   path_(nullptr),
+   state_()
 {
     this->set_name("PathFollowerThread");
     gobserver.set_name("PathFollowerThread GOAL Observer");
     sobserver.set_name("PathFollowerThread STATE Observer");
     pobserver.set_name("PathFollowerThread PATH Observer");
+
+    /// create the requests and report the initial state
+    state_.set(0, {"X", 0.0});
+    state_.set(1, {"Y", 0.0});
+    state_.set(2, {"Theta", 0.0});
+    state_.set(3, {"V", 0.0});
+    state_.set(4, {"W", 0.0});
 }
 
 
 inline
 void
-ServerThread::PathFollowerThread::attach_w_velocity_observer(RefVelocityObserver& observer){
+PathFollowerThread::attach_w_velocity_observer(RefVelocityObserver& observer){
     wobservers_.push_back(&observer);
 }
 
 inline
 void
-ServerThread::PathFollowerThread::update_w_velocity_observers(real_t w){
+PathFollowerThread::update_w_velocity_observers(real_t w){
     for(auto observer:wobservers_){
         observer->update(w);
     }
-}
 
-
-inline
-ServerThread::ServerThread(const StopSimulation& stop_condition,
-                           const Map& map,
-                           const SysState<5>& init_state,
-                           ThreadPool& thread_pool,
-                           const CarrotChasingPathTrackControllerInput& input,
-                           real_t gradius)
-    :
-  kernel::StoppableTask<StopSimulation>(stop_condition),
-  map_(&map),
-  init_state_(init_state),
-  requests_(),
-  responses_(),
-  cmds_(),
-  thread_pool_(thread_pool),
-  tasks_()
-{
-    this->set_name("ServerThread");
+    //std::lock_guard<std::mutex> lock(msg_mutex);
+    //std::cout<<"MESSAGE: Task "+this->get_name()<<" updated W velocity observers"<<std::endl;
 }
 
 }

@@ -193,30 +193,48 @@ template<typename LineTp>
 std::tuple<bool,GeomPoint<LineTp::dimension>>
 find_point_on_line_distant_from_p(const LineTp& line,
                                   const GeomPoint<LineTp::dimension>& p,
-                                  real_t delta, uint_t nsamples, real_t tol){
+                                  real_t delta, uint_t nsamples, real_t tol, bool ahead_of){
+
+    /// if the line length is less
+    /// than delat there is not point trying
+    if(line.length() < delta){
+        return {false, GeomPoint<LineTp::dimension>()};
+    }
 
     auto& v0 = line.get_vertex(0);
     auto& v1 = line.get_vertex(1);
 
-    /// check if we can construct the point
-    if(v0.distance(p) < 0.0){
-        if(v0.distance(p) < std::fabs(delta)){
-            return {false, GeomPoint<LineTp::dimension>()};
+    if(ahead_of){
+        /// we are only interested for the point
+        /// after p
+
+        if(v1.distance(p) < std::fabs(delta)){
+           return {false, GeomPoint<LineTp::dimension>()};
         }
+
+        GenericLine<GeomPoint<LineTp::dimension>, void> newline(p, v1);
+        return find_point_on_line_at_delta_distance(newline, std::fabs(delta), nsamples, tol);
     }
-    else if(v1.distance(p) < delta){
-        return {false, GeomPoint<LineTp::dimension>()};
+    else{
+
+        /// either direction is ok
+        ///
+        if(delta < 0.0 && v0.distance(p) > std::fabs(delta) ){
+            GenericLine<GeomPoint<LineTp::dimension>, void> newline(p, v0);
+            return find_point_on_line_at_delta_distance(newline, std::fabs(delta), nsamples, tol);
+        }
+        else if(delta > 0.0 && v1.distance(p) > delta){
+
+            GenericLine<GeomPoint<LineTp::dimension>, void> newline(p, v1);
+            return find_point_on_line_at_delta_distance(newline, delta, nsamples, tol);
+        }
+        else{
+             return {false, GeomPoint<LineTp::dimension>()};
+        }
+
     }
 
-    if(delta < 0.0){
-       GenericLine<GeomPoint<LineTp::dimension>, void> newline(p, v0);
-       return find_point_on_line_at_delta_distance(newline, std::fabs(delta), nsamples, tol);
-    }
-
-    GenericLine<GeomPoint<LineTp::dimension>, void> newline(p, v1);
-    return find_point_on_line_at_delta_distance(newline, delta, nsamples, tol);
-
-
+    return {false, GeomPoint<LineTp::dimension>()};
 }
 
 template<typename LineTp>

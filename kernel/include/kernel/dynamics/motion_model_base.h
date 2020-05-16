@@ -23,6 +23,9 @@ public:
     typedef typename matrix_descriptor_t::matrix_t matrix_t;
     typedef typename matrix_descriptor_t::vector_t vector_t;
 
+    /// \brief The dimension of the state
+    static const uint_t state_dimension = StateTp::dimension;
+
     /// \brief Destructor
     virtual ~MotionModelBase();
 
@@ -64,6 +67,10 @@ public:
     /// \brief Set the state names
     void set_state_name_value(uint_t i, const std::pair<std::string, real_t>&  val)
     {state_.set(i, val);}
+
+    /// \brief Set the name-th value of the state
+    void set_state_name_value(const std::string& name, real_t value)
+    {state_.set(name,value);}
 
 protected:
 

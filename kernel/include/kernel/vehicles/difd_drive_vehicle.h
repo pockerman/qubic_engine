@@ -28,6 +28,10 @@ struct DiffDriveProperties
 
     /// \brief The CoM
     GeomPoint<3> com;
+    
+    /// \brief flag indicating if the matrix description 
+    /// of the vehicle dynamics will be used
+    bool update_description_matrices_on_evaluate{false};
 };
 
 /// \brief Base class that models a differential drive
