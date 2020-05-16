@@ -68,6 +68,10 @@ public:
     void set_state_name_value(uint_t i, const std::pair<std::string, real_t>&  val)
     {state_.set(i, val);}
 
+    /// \brief Set the name-th value of the state
+    void set_state_name_value(const std::string& name, real_t value)
+    {state_.set(name,value);}
+
 protected:
 
     /// \brief Constructor
