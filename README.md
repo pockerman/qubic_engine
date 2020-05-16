@@ -17,6 +17,6 @@ and <a href="https://github.com/pockerman/compute_engine/tree/master/cubic_engin
 
 
 <img src="images/path_following.gif"
-     alt="Extended Kalman Filter"
+     alt="Carrot Patth Following"
      style="float: left; margin-right: 10px; width: 500px;" />
 
