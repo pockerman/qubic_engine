@@ -15,6 +15,7 @@
 #include "boost/noncopyable.hpp"
 #include <cmath>
 #include <tuple>
+#include <iostream>
 
 namespace cengine {
 namespace control {
@@ -178,20 +179,51 @@ SegmentData>::execute(const kernel::dynamics::SysState<3>& state)const{
 
     current_element_ = segment;
 
+    //std::cout<<"Segment id:     "<<current_element_->get_id()<<std::endl;
+    //std::cout<<"Segment length: "<<current_element_->length()<<std::endl;
+
     /// find the look ahead point
     auto [found, lookahead_point] = kernel::find_point_on_line_distant_from_p(*current_element_,
                                                                               closest_path_point,
                                                                               lookahead_distance_,
                                                                                n_sampling_points_,
-                                                                               tol_);
-
+                                                                               tol_, true);
+    /// if we were not able to find a lookahead point
+    /// on the current_element using lookahead_distance_
     if(!found){
-       /// the lookahed point is the next waypoint
-       lookahead_point = current_element_->get_vertex(1);
+
+           /// iteratively look on the next segments until
+           /// we exhaust the path
+           while(!found){
+
+               /// if this is the last segment on the path then
+               /// the best option is to simply use the end vertex
+               if(current_element_->get_id() == path.n_elements()-1){
+                   /// the lookahed point is the next waypoint
+                   lookahead_point = current_element_->get_vertex(1);
+                   break;
+               }
+
+               current_element_ = path.element(current_element_->get_id() + 1);
+               auto cpp = current_element_->start();
+
+               auto [f, l_point] = kernel::find_point_on_line_distant_from_p(*current_element_,
+                                                                                         cpp,
+                                                                                         lookahead_distance_,
+                                                                                          n_sampling_points_,
+                                                                                          tol_, true);
+                found = f;
+                lookahead_point = l_point;
+
+           }
+
     }
 
 
     real_t theta_d = std::atan2(lookahead_point[1] - p[1], lookahead_point[0] - p[0]);
+    //std::cout<<"thetad:" <<kernel::UnitConverter::rad_to_degrees(theta_d)<<std::endl;
+    //std::cout<<"theta:" <<kernel::UnitConverter::rad_to_degrees(theta)<<std::endl;
+    //std::cout<<"Lookahead point:" <<lookahead_point[0]<<","<<lookahead_point[1]<<std::endl;
     return {k_*(theta_d - theta), lookahead_point, closest_path_point};
 
 }
