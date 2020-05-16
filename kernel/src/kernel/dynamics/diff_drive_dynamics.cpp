@@ -1,6 +1,7 @@
 #include "kernel/dynamics/diff_drive_dynamics.h"
 #include "kernel/maths/constants.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/utilities/common_uitls.h"
 #include <cmath>
 #include <iostream>
 namespace kernel{
@@ -29,6 +30,10 @@ DiffDriveDynamics::integrate(real_t v, real_t w, const std::array<real_t, 2>& er
 
     auto values = state_.get_values();
 
+    if(std::fabs(w)>wmax_){
+        w = utils::sign(w)*wmax_;
+    }
+
     /// before we do the integration 
     /// update the matrices
     if(this->allows_matrix_updates()){
@@ -49,6 +54,12 @@ DiffDriveDynamics::integrate(real_t v, real_t w, const std::array<real_t, 2>& er
     else{
 
         this->state_[2] += w*dt_ + errors[1];
+
+        /// clip the value
+        if(std::fabs(this->state_[2]) > MathConsts::PI){
+            this->state_[2] = utils::sign(this->state_[2])*MathConsts::PI;
+        }
+
 
         this->state_[0] += ((v/(2.0*w)) + errors[0])*(std::sin(this->state_[2]) -
                 std::sin(values[2]));
