@@ -69,6 +69,9 @@ public:
     /// \brief Set the orientation
     void set_orientation(real_t theta){this->state_.set("Theta", theta);}
 
+    /// \brief Set the maximum angular velocity
+    void set_max_w(real_t val){wmax_ = val;}
+
     /// \brief updates the matrices used to describe this
     /// motion model
     void update_matrices(const input_t& input);
@@ -90,6 +93,11 @@ private:
 
     /// \brief tolerance
     real_t tol_;
+
+    /// \brief The maximum angular velocity
+    real_t wmax_;
+
+
 
 };
 
