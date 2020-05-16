@@ -9,7 +9,7 @@ and <a href="https://github.com/pockerman/compute_engine/tree/master/cubic_engin
 
 <img src="images/squeare_transport.gif"
      alt="Square transport view 3D"
-     style="float: left; margin-right: 10px; width: 50px;" />
+     style="float: left; margin-right: 10px; width: 20px;" />
 
 <img src="images/ekf.gif"
      alt="Extended Kalman Filter"
