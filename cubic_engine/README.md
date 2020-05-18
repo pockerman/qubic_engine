@@ -83,6 +83,8 @@ make tests
 
 - <a href="examples/exe6/doc/exe.md">Example 6: </a> Qlearning applied on simple ```GridWorld```
 - <a href="examples/exe22/doc/exe.ipynb">Example 22: </a> SARSA learning applied on ```CliffWorld```
+- <a href="examples/exe25/doc/exe.ipynb">Example 25: </a> Value iteration
+- Example 26: Policy iteration
 
 ### <a name="using_ros"></a> Robotics Simulations
 
