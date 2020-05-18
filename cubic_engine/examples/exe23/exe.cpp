@@ -1,7 +1,6 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/control/carrot_chasing.h"
 #include "cubic_engine/grids/waypoint_path.h"
-#include "kernel/discretization/line_mesh.h"
 #include "kernel/geometry/geom_point.h"
 #include "kernel/dynamics/system_state.h"
 #include "kernel/vehicles/difd_drive_vehicle.h"
@@ -24,7 +23,7 @@ using kernel::DiffDriveProperties;
 using kernel::Null;
 
 const real_t DT = 0.1;
-const real_t GOAL_RADIUS = 1.0; // m
+const real_t GOAL_RADIUS = 0.2; // m
 
 /// An agent to simulate
 class Agent
@@ -115,19 +114,21 @@ void Agent::execute(){
 
     real_t time = 0.0;
 
-    writer_.write_column_names({"X", "Y", "Theta"});
+    writer_.write_column_names({"X", "Y", "Theta", "XL", "YL"});
 
-    auto v = 1.0;
+    auto v = 0.5;
     auto w = 0.0;
 
-    std::vector<real_t> row(3);
+    std::vector<real_t> row(5, 0.0);
     row[0] = platform_.get_x_position();
     row[1] = platform_.get_y_position();
     row[2] = platform_.get_orientation();
+    row[3] = platform_.get_x_position();
+    row[4] = platform_.get_y_position();
     writer_.write_row(row);
 
     uint_t counter = 0;
-    while(!goal_reached() ){
+    while(!goal_reached() && counter < 4250){
 
         std::cout<<"At time: "<<time<<std::endl;
         std::cout<<"\n";
@@ -139,7 +140,7 @@ void Agent::execute(){
 
         std::cout<<"Current V: "<<v<<std::endl;
         std::cout<<"Current W: "<<w<<std::endl;
-
+        
         auto [control_result, lookahed_point, closest] = controller_ptr_->execute(platform_.get_state());
         w = control_result;
 
@@ -148,6 +149,8 @@ void Agent::execute(){
         row[0] = platform_.get_x_position();
         row[1] = platform_.get_y_position();
         row[2] = platform_.get_orientation();
+        row[3] = lookahed_point[0];
+		row[4] = lookahed_point[1];
         writer_.write_row(row);
 
         time += DT;
@@ -163,6 +166,10 @@ int main(){
     using namespace example;
 
     try{
+           bool case_2 = true;
+
+           if(!case_2)
+           {
             WaypointPath<2, Null, LineSegmentData> path;
             path.reserve_nodes(6);
 
@@ -189,9 +196,9 @@ int main(){
             path.add_element(4, 5, segmentdata);
 
             CarrotChasingPathTrackController<Null, LineSegmentData> controller;
-            controller.set_lookahead_dist(7.5);
+            controller.set_lookahead_dist(1.0);
             controller.set_n_sampling_points(10);
-            controller.set_gain(0.5);
+            controller.set_gain(1.0);
             controller.set_wpoint_radius(1.5);
 
             controller.update(path);
@@ -201,7 +208,8 @@ int main(){
             properties.L = 0.5; //m
             properties.Vmax = 2.0; //m/sec
             properties.Amax = 1.2; // m/sec^2
-
+            
+            /// the agent we simulate
             Agent agent(controller, *goal, GOAL_RADIUS, properties);
 
             /// initialze the state of the agent at (0,0.5)
@@ -214,6 +222,84 @@ int main(){
             agent.set_init_orientation(0.0);
 
             agent.execute();
+          }
+          else
+          {
+
+            WaypointPath<2, Null, LineSegmentData> path;
+            path.reserve_nodes(19);
+
+            auto start = path.add_node(GeomPoint<2>({0.5, 0.5}), Null());
+            path.add_node(GeomPoint<2>({1.5, 0.5}), Null());
+            path.add_node(GeomPoint<2>({2.5, 0.5}), Null());
+            path.add_node(GeomPoint<2>({3.5, 0.5}), Null());
+            path.add_node(GeomPoint<2>({3.5, 1.5}), Null());
+            path.add_node(GeomPoint<2>({3.5, 2.5}), Null());
+            path.add_node(GeomPoint<2>({3.5, 3.5}), Null());
+            path.add_node(GeomPoint<2>({4.5, 3.5}), Null());
+            path.add_node(GeomPoint<2>({4.5, 4.5}), Null());
+            path.add_node(GeomPoint<2>({5.5, 4.5}), Null());
+            path.add_node(GeomPoint<2>({5.5, 5.5}), Null());
+            path.add_node(GeomPoint<2>({6.5, 5.5}), Null());
+            path.add_node(GeomPoint<2>({7.5, 5.5}), Null());
+            path.add_node(GeomPoint<2>({7.5, 6.5}), Null());
+            path.add_node(GeomPoint<2>({7.5, 7.5}), Null());
+            path.add_node(GeomPoint<2>({7.5, 8.5}), Null());
+            path.add_node(GeomPoint<2>({8.5, 8.5}), Null());
+            path.add_node(GeomPoint<2>({9.5, 8.5}), Null());
+            auto goal = path.add_node(GeomPoint<2>({9.5, 9.5}), Null());
+            
+            LineSegmentData segmentdata = {1.0, 0.0, 0.0, 0.0};
+
+            path.reserve_elements(5);
+            path.add_element(0, 1, segmentdata);
+            path.add_element(1, 2, segmentdata);
+            path.add_element(2, 3, segmentdata);
+            path.add_element(3, 4, segmentdata);
+            path.add_element(4, 5, segmentdata);
+            path.add_element(5, 6, segmentdata);
+            path.add_element(6, 7, segmentdata);
+            path.add_element(7, 8, segmentdata);
+            path.add_element(8, 9, segmentdata);
+            path.add_element(9, 10, segmentdata);
+            path.add_element(10, 11, segmentdata);
+            path.add_element(11, 12, segmentdata);
+			path.add_element(12, 13, segmentdata);
+			path.add_element(13, 14, segmentdata);
+			path.add_element(14, 15, segmentdata);
+			path.add_element(15, 16, segmentdata);
+			path.add_element(16, 17, segmentdata);
+			path.add_element(17, 18, segmentdata);
+			
+            CarrotChasingPathTrackController<Null, LineSegmentData> controller;
+            controller.set_lookahead_dist(0.4);
+            controller.set_n_sampling_points(10);
+            controller.set_gain(1.0);
+            controller.set_wpoint_radius(1.5);
+
+            controller.update(path);
+
+            DiffDriveProperties properties;
+            properties.R = 1.; //m
+            properties.L = 0.5; //m
+            properties.Vmax = 2.0; //m/sec
+            properties.Amax = 1.2; // m/sec^2
+            
+            /// the agent we simulate
+            Agent agent(controller, *goal, GOAL_RADIUS, properties);
+
+            /// initialze the state of the agent at (0,0.5)
+            agent.set_init_pos(0.5, 0.5);
+
+            /// set the linear and angular velocities
+            agent.set_init_velocities(.5, 0.0);
+
+            /// set the initial heading
+            agent.set_init_orientation(0.0);
+
+            agent.execute();
+
+          }
 
     }
     catch(std::exception& e){

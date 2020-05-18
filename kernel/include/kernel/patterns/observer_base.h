@@ -36,6 +36,9 @@ public:
     /// \brief Returns true if the resouce has been updated
     bool is_updated()const{return updated_;}
 
+    /// \brief Set the update flag
+    void set_updated_flag(bool flag){updated_=flag;}
+
     /// \brief The name of the observer
     std::string_view name()const{return name_;}
 
@@ -102,6 +105,11 @@ ObserverBase<ResourceTp>::update(const resource_t& resource){
 template<typename ResourceTp>
 void
 ObserverBase<ResourceTp>::read(typename ObserverBase<ResourceTp>::resource_t& r)const{
+
+#ifdef USE_LOG
+    Logger::log_info("Read observer "+name_);
+#endif
+
     r = resource_;
     updated_ = false;
 }
@@ -128,6 +136,9 @@ public:
 
     /// \brief Returns true if the resouce has been updated
     bool is_updated()const{return updated_;}
+
+    /// \brief Set the update flag
+    void set_updated_flag(bool flag){updated_=flag;}
 
     /// \brief The name of the observer
     std::string_view name()const{return name_;}
@@ -195,6 +206,7 @@ ObserverBase<ResourceTp*>::update(const resource_t& resource){
 #endif
 
     resource_ = &resource;
+    updated_ = true;
 }
 
 template<typename ResourceTp>
@@ -205,6 +217,11 @@ ObserverBase<ResourceTp*>::read()const{
         throw std::logic_error("Null resource ptr. Update resource");
     }
 
+#ifdef USE_LOG
+    Logger::log_info("Read observer "+name_);
+#endif
+
+    updated_=false;
     return *resource_;
 }
 

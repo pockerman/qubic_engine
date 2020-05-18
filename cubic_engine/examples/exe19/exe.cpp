@@ -19,11 +19,16 @@ void
 StateObserver::update(const StateObserver::state_resource_t& r){
     std::lock_guard<std::mutex> lock(this->mutex_);
     this->ThreadedObserverBase<std::mutex, State>::update(r);
+    this->set_updated_flag(true);    
+    cv.notify_all();
 }
 
 void
 StateObserver::read(StateObserver::state_resource_t& r)const{
-    std::lock_guard<std::mutex> lock(this->mutex_);
+
+    std::unique_lock<std::mutex> lk(this->mutex_);
+    cv.wait(lk, [this]{return is_updated();});
+    lk.unlock();
     this->ThreadedObserverBase<std::mutex, State>::read(r);
 }
 
@@ -43,7 +48,7 @@ void
 PathObserver::update(const PathObserver::path_resource_t& r){
     std::lock_guard<std::mutex> lock(this->mutex_);
     this->ThreadedObserverBase<std::mutex, Path*>::update(r);
-    ready_ = true;
+    this->set_updated_flag(true);
     cv.notify_all();
 }
 
@@ -51,8 +56,7 @@ const PathObserver::path_resource_t&
 PathObserver::read()const{
     
     std::unique_lock<std::mutex> lk(this->mutex_);
-    cv.wait(lk, [this]{return ready_;});
-    ready_ = false;
+    cv.wait(lk, [this]{return is_updated();});
     lk.unlock();
     return this->ThreadedObserverBase<std::mutex, Path*>::read();
 }
@@ -69,20 +73,75 @@ RefVelocityObserver::read(RefVelocityObserver::ref_velocity_resource_t& r)const{
     this->ThreadedObserverBase<std::mutex, real_t>::read(r);
 }
 
-void
-MeasurmentObserver::update(const MeasurmentObserver::measurement_resource_t& r){
-    std::lock_guard<std::mutex> lock(this->mutex_);
-    this->ThreadedObserverBase<std::mutex, DynVec>::update(r);
+const DynVec 
+ObservationModel::evaluate(const DynVec& input)const{
+
+  return DynVec({input[0], input[1]});
+
+}
+
+const DynMat& 
+ObservationModel::get_matrix(const std::string& name)const{
+
+  if(name == "H"){
+    return H_;
+  }
+  else if(name == "M"){
+    return M_;
+  }
+
+  throw std::invalid_argument("Invalid name: "+name+" not in [H,M]");
+}
+
+void 
+ObservationModel::initialize_matrices(){
+
+  H_(0, 0) = 1.0;
+  H_(1,1) = 1.0;
+  M_(0,0) = 1.0;
+  M_(1, 1) = 1.0; 
+
+}
+
+void 
+StateEstimationThread::initialize(){
+
+    std::array<real_t, 2> motion_control_error;
+    motion_control_error[0] = 0.0;
+    motion_control_error[1] = 0.0;
+
+    m_model_.set_time_step(DT);
+    m_model_.initialize_matrices(std::make_tuple(0.0, 0.0, motion_control_error));
+
+    {
+      /// set the matrices
+      DynMat P(m_model_.state_dimension, m_model_.state_dimension, 0.0);
+      P(0,0) = 1.0;
+      P(1,1) = 1.0;
+      P(2,2) = 1.0;
+
+      ekf_.set_matrix("P",P);
+
+      DynMat R(2, 2, 0.0);
+      R(0,0) = 1.0;
+      R(1, 1) = 1.0; 
+
+      ekf_.set_matrix("R",R);
+
+      DynMat Q(2, 2, 0.0);
+      Q(0,0) = 0.001;
+      Q(1, 1) = 0.001;
+
+      ekf_.set_matrix("Q",Q);
+    }
+
+    /// initialize the matrices for the
+    /// observation model
+    o_model_.initialize_matrices();
 }
 
 void
-MeasurmentObserver::read(MeasurmentObserver::measurement_resource_t& r)const{
-    std::lock_guard<std::mutex> lock(this->mutex_);
-    this->ThreadedObserverBase<std::mutex, DynVec>::read(r);
-}
-
-void
-ServerThread::StateEstimationThread::update_state_observers(){
+StateEstimationThread::update_state_observers(){
 
     const auto& computed_state = ekf_.get_state();
     state_["X"] = computed_state.get("X");
@@ -97,50 +156,70 @@ ServerThread::StateEstimationThread::update_state_observers(){
 }
 
 void
-ServerThread::StateEstimationThread::run(){
+StateEstimationThread::set_state(const State& state){
+
+  state_ = state;
+  m_model_.set_state_name_value("X", state.get("X"));
+  m_model_.set_state_name_value("Y", state.get("Y"));
+  m_model_.set_state_name_value("Theta", state.get("Theta"));
+}
+
+void
+StateEstimationThread::run(){
+
 
     std::array<real_t, 2> motion_control_error;
     motion_control_error[0] = 0.0;
     motion_control_error[1] = 0.0;
 
-    while(!this->should_stop()){
+    kernel::CSVWriter writer("state.csv", ',', true);
+    std::vector<std::string> names={"X","Y","Theta"};
+    writer.write_column_names(names);
+    
+    std::vector<real_t> row(3,0.0);
 
-        // estimate the state
-        vobserver.read(v_ctrl_);
-        wobserver.read(w_ctrl_);
+    while(!goal_reached){
+    
+      // estimate the state
+      vobserver.read(v_ctrl_);
+      wobserver.read(w_ctrl_);
 
-        auto motion_input = std::make_tuple(v_ctrl_*DT, w_ctrl_*DT, motion_control_error);
-        ekf_.predict(motion_input);
+      auto motion_input = std::make_tuple(v_ctrl_, w_ctrl_, motion_control_error);
+      ekf_.predict(motion_input);
 
-        /// Read the measurement vector
-        typedef MeasurmentObserver::measurement_resource_t measurement_t;
-        measurement_t measurement;
-        mobserver.read(measurement);
+      auto measurement = o_model_.evaluate(ekf_.get_state().as_vector());
+      ekf_.update(measurement);
 
-        ekf_.update(measurement);
+      /// update the observers
+      update_state_observers();
 
-        /// update the observers
-        update_state_observers();
+      std::lock_guard<std::mutex> lock(msg_mutex);
+      std::cout<<"MESSAGE: Estimated Pos: X: "<<ekf_.get_state().get("X")
+             <<", Y: "<<ekf_.get_state().get("Y")
+             <<", THETA: "<<ekf_.get_state().get("Theta")
+             <<", V:" <<v_ctrl_
+             <<",  W:" <<w_ctrl_<<std::endl;
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(STATE_ESTIMATION_THREAD_CYCLE));
+      row[0] = ekf_.get_state().get("X");
+      row[1] = ekf_.get_state().get("Y");
+      row[2] = ekf_.get_state().get("Theta");
+      writer.write_row(row);
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(STATE_ESTIMATION_THREAD_CYCLE));
     }
-
     std::lock_guard<std::mutex> lock(msg_mutex);
-    std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
+    std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;      
 }
 
 void
-ServerThread::PathConstructorThread::update_path_observers(){
+PathConstructorThread::update_path_observers(){
     for(uint_t o =0; o<pobservers_.size(); ++o){
         pobservers_[o]->update(path_);
     }
-
-    std::lock_guard<std::mutex> lock(msg_mutex);
-    std::cout<<"MESSAGE: Task "+this->get_name()<<" updated path observers"<<std::endl;
 }
 
 void
-ServerThread::PathConstructorThread::save_path(real_t duration){
+PathConstructorThread::save_path(real_t duration){
 
     std::string dur = std::to_string(duration);
 
@@ -151,12 +230,12 @@ ServerThread::PathConstructorThread::save_path(real_t duration){
         strings.push_back(s);
     }
 
-    kernel::CSVWriter writer("path_" + strings[1] + ".csv", ',', true);
+    kernel::CSVWriter writer("path.csv", ',', true);
     writer.write_mesh_nodes(path_);
 }
 
 void
-ServerThread::PathConstructorThread::run(){
+PathConstructorThread::run(){
 
     std::chrono::time_point<std::chrono::system_clock> start;
     std::chrono::time_point<std::chrono::system_clock> end;
@@ -179,13 +258,13 @@ ServerThread::PathConstructorThread::run(){
     State state;
     Goal position;
 
-    Goal previous_position(-1.0);
-    Goal previous_goal;
+    //Goal previous_position(-1.0);
+    //Goal previous_goal;
 
     static auto closest_start_vertex_pred = [&](const vertex_t& vertex){
         auto distance = vertex.data.position.distance(position);
 
-        if( distance < 0.1){
+        if( distance < 1.0){
             return true;
         }
         return false;
@@ -193,13 +272,13 @@ ServerThread::PathConstructorThread::run(){
 
     static auto closest_goal_vertex_pred = [&](const vertex_t& vertex){
         auto distance = vertex.data.position.distance(goal);
-        if( distance < 0.1){
+        if( distance < 1.0){
             return true;
         }
         return false;
     };
 
-    while(!this->should_stop()){
+    
 
         /// read both goal and state
         gobserver.read(goal);
@@ -207,21 +286,6 @@ ServerThread::PathConstructorThread::run(){
 
         position[0] = state.get("X");
         position[1] = state.get("Y");
-
-        /// if position has not changed
-        /// then the robot for some reason does not move
-        /// maybe it is waiting for a new goal
-        /// if the position is the same and the goal
-        /// does not change then we don't need to do anything
-        if(previous_goal.distance(goal) < 1.0e-3 &&
-           previous_position.distance(position) < 1.0e-3){
-#ifdef USE_LOG
-            kernel::Logger::log_warning("Previous goal is the same with current goal");
-            kernel::Logger::log_warning("Previous state is the same with state goal");
-            kernel::Logger::log_warning("Skipping computation...");
-#endif
-            continue;
-        }
 
         /// we need to find the starting node with the position
         /// closest to the robot position
@@ -284,484 +348,69 @@ ServerThread::PathConstructorThread::run(){
         std::chrono::duration<real_t> duration = end - start;
 
         /// save the path
-        save_path(duration.count());
-
-        previous_position = position;
-        previous_goal = goal;
-
-        ///... sleep for some time
-        std::this_thread::sleep_for(std::chrono::milliseconds(PATH_CONSTRUCTOR_CYCLE));
-    }
-
-    std::lock_guard<std::mutex> lock(msg_mutex);
-    std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
+        save_path(duration.count());       
 }
 
 void
-ServerThread::PathFollowerThread::run(){
+PathFollowerThread::run(){
 
     /// we should wait until we have a path
+    /// PathConstructorThread is one off so
+    /// reading it constantly will cause a deadlock
+    path_ = &pobserver.read();
 
-    while(!this->should_stop()){
+    kernel::CSVWriter writer("path_follower.csv", ',', true);
+    std::vector<real_t> row(2, 0.0);
 
+    while(!this->should_stop() && !threads_should_stop){
 
-        /// are we on the goal? if yes
-        /// then notify server that notfies the client
-        /// and sleep until a new mission arrives
-        /// or exit has been signaled
+        Goal position({state_.get("X"), state_.get("Y")});
 
-        /// Read state and goal
-        State state;
-        sobserver.read(state);
-
-        Goal position({state.get("X"), state.get("Y")});
-
+        /// the goal is updated at the
+        /// beginning of the program
         Goal goal;
         gobserver.read(goal);
 
         if(goal.distance(position) < gradius_){
 
             /// the goal has been reached
-            responses_.push_item(MESSAGE + " Goal has been reached");
+            goal_reached = true;
+            threads_should_stop = true;
+            this->get_condition().set_condition(true);
+#ifdef USE_LOG
+        kernel::Logger::log_info("GOAL: " + goal.to_string() + " REACHED WITH RADIOUS: "+std::to_string(gradius_));
+#endif
+          break;
         }
         else{
 
-            SysState<3> real_state(state);
+            SysState<3> real_state(state_);
 
             /// update the path
-            path_controller_.update(pobserver.read());
-
+            path_controller_.update(*path_);
+            
             /// calculate the steering CMD
             auto [control_result, lookahed_point, closest] = path_controller_.execute(real_state);
 
             /// update the observers interested
             update_w_velocity_observers(control_result);
+
+            row[0] = lookahed_point[0];
+            row[1] = lookahed_point[1];
+            writer.write_row(row);
         }
 
         ///... sleep for some time
         std::this_thread::sleep_for(std::chrono::milliseconds(PATH_CORRECTION_THREAD_CYCLE));
-
-    }
-
-    std::lock_guard<std::mutex> lock(msg_mutex);
-    std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
-}
-
-void
-ServerThread::RequestTask::update_goal_observers(const Goal& goal){
-
-    /// update self
-    gobserver.update(goal);
-
-    /// loop over the observers and update them
-    for(uint_t o=0; o<goal_observers_.size(); ++o){
-        goal_observers_[o]->update(goal);
-    }
-}
-
-void
-ServerThread::RequestTask::update_v_observers(real_t v){
-
-    vobserver.update(v);
-
-    // loop over the observers and update them
-    for(uint_t o=0; o<v_observers_.size(); ++o){
-        v_observers_[o]->update(v);
-    }
-}
-
-void
-ServerThread::RequestTask::update_w_observers(real_t w){
-
-    wobserver.update(w);
-
-    // loop over the observers and update them
-    for(uint_t o=0; o<w_observers_.size(); ++o){
-        w_observers_[o]->update(w);
-    }
-}
-
-void
-ServerThread::RequestTask::run(){
-
-    // the object that handles the solution output
-    kernel::CSVWriter writer("vehicle_state.csv");
-
-    while(!this->should_stop()){
-
-        save_solution(writer);
-
-        // otherwise create the input
-        while(!requests_.empty()){
-            auto request = requests_.pop_wait();
-            serve_request(request);
-        }
-
-        // if the request is not empty put to sleep
-        std::this_thread::sleep_for(std::chrono::milliseconds(REQUESTS_THREAD_CYCLE));
-    }
-
-    std::lock_guard<std::mutex> lock(msg_mutex);
-    std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
-}
-
-void
-ServerThread::RequestTask::serve_request(const std::string& request){
-
-    std::vector<std::string> strings;
-    std::istringstream f(request);
-    std::string s;
-    while (std::getline(f, s, ';')) {
-        strings.push_back(s);
-    }
-
-    if(!strings.empty()){
-        if(strings[0] == "CMD"){
-
-            responses_.push_item("CMDs are not allowed yet");
-
-            //we have a CMD
-            /*if(strings[1] == "S"){
-                auto [x, y, theta, velocity]  = vwrapper_.get_state();
-                cmds_.push_item(CMD::generate_cmd(0.0, theta, strings[1]));
-            }
-            else if(strings[1] == "V"){
-
-                    auto vel_str = strings[2];
-                    real_t vel = std::atof(vel_str.c_str());
-
-                    auto [x, y, theta, velocity]  = vwrapper_.get_state();
-                    real_t w = theta;
-
-                    if(strings.size() == 5 && strings[3] == "W" ){
-
-                        auto w_str = strings[4];
-                        w = std::atof(w_str.c_str());
-                    }
-
-                    cmds_.push_item(CMD::generate_cmd(vel*DT, w*DT, strings[1]));
-            }
-            else if(strings[1] == "W"){
-
-                    auto w_str = strings[2];
-                    real_t w = std::atof(w_str.c_str());
-
-                    auto [x, y, theta, velocity]  = vwrapper_.get_state();
-                    real_t v = velocity;
-
-                    if(strings.size() == 5 && strings[3] == "V" ){
-
-                        auto v_str = strings[4];
-                        v = std::atof(v_str.c_str());
-                    }
-
-                    cmds_.push_item(CMD::generate_cmd(v*DT, w*DT, strings[1]));
-
-            }*/
-        }
-        else if(strings[0] == SET_GOAL_SERVER){
-            responses_.push_item(SET_GOAL);
-        }
-        else if(strings[0] == GOAL){
-            kernel::Logger::log_info("Received GOAL request");
-
-            if(strings.size() != 3){
-                responses_.push_item("You want to update the goal. 2 coordinates are required separated by ;.");
-                responses_.push_item(SET_GOAL);
-            }
-            else{
-                /// this is a new goal
-                auto x = std::atof(strings[1].c_str());
-                auto y = std::atof(strings[2].c_str());
-
-                std::vector<real_t> coords(2);
-                coords[0] = x;
-                coords[1] = y;
-                Goal g(coords);
-                kernel::Logger::log_info("Update goal: " + g.to_string());
-                update_goal_observers(g);
-            }
-        }
-        else if(strings[0] == V_CMD){
-
-            kernel::Logger::log_info("Update ref velocity: " + strings[1]);
-            auto v = std::atof(strings[1].c_str());
-            update_v_observers(v);
-        }
-        else if(strings[0] == W_CMD){
-             kernel::Logger::log_info("Update ref angular velocity: " + strings[1]);
-            auto w = std::atof(strings[1].c_str());
-            update_w_observers(w);
-        }
-        else if(strings[0] == EXIT){
-            kernel::Logger::log_info("Received EXIT request");
-
-            // notify the others that we stop
-            threads_should_stop = true;
-            this->get_condition().set_condition(true);   
-        }
-        else if(strings[0] == PRINT){
-            kernel::Logger::log_info("Received PRINT request");
-            State s;
-            sobserver.read(s);
-            kernel::Logger::log_info("Sendig PRINT request " + s.as_string());
-            responses_.push_item(s.as_string());
-        }
-        else{
-           responses_.push_item("You entered an unknown command. Try again");
-        }
-    }
-}
-
-void
-ServerThread::RequestTask::save_solution(kernel::CSVWriter& writer){
-
-    //static State old;
-    //static State current;
-    //sobserver.read(current);
-
-    /*std::vector<real_t> row(2);
-    GeomPoint<2> current(std::vector<real_t>({x,y}));
-
-    if(position_.distance(current) > 100.0){
-        writer.open(std::ios_base::app);
-
-        row[0] = x;
-        row[1] = y;
-        writer.write_row(row);
-        writer.close();
-        position_ = current;
-    }*/
-}
-
-void
-ServerThread::ClientTask::run(){
-
-    /// wait for a while until
-    /// the server responses are ready
-    /// the user should set the goal position, the velocity
-    /// and the angular velocity of the robot
-    while(responses_.empty() || responses_.size() != 3){
-        std::this_thread::yield();
-    }
-
-    std::string request("");
-
-    /// on start up we want to catch what
-    /// is coming from the server
-    while(!responses_.empty()){
-
-        ///empty what is comming from the server
-        auto response = responses_.pop_wait();
-
-        if(response == SET_GOAL){
-
-            /// then wait until we receive the new goal
-            std::vector<real_t> values = {0.0, 0.0};
-
-            std::cout<<RESPONSE<<"Enter new goal: "<<std::endl;
-            std::cout<<"Enter first coordinate of goal"<<std::endl;
-            std::cin>>values[0];
-            std::cout<<"Enter second coordinate of goal"<<std::endl;
-            std::cin>>values[1];
-
-            std::cout<<"Goal assigned: "<<values[0]<<","<<values[1]<<std::endl;
-            request = "GOAL;" + std::to_string(values[0]) + ";"+std::to_string(values[1]);
-
-            requests_.push_item(request);
-        }
-        else if(response == V_CMD ){
-            real_t velocity = 0.0;
-            std::cout<<RESPONSE<<"Enter robot velocity: "<<std::endl;
-            std::cin>>velocity;
-            request = V_CMD + ";" + std::to_string(velocity);
-            requests_.push_item(request);
-        }
-        else if(response == W_CMD ){
-            real_t velocity = 0.0;
-            std::cout<<RESPONSE<<"Enter robot angular velocity: "<<std::endl;
-            std::cin>>velocity;
-            request = W_CMD + ";" + std::to_string(velocity);
-            requests_.push_item(request);
-        }
-        else{
-            std::cout<<RESPONSE<<response<<std::endl;
-        }
-    }
-
-    request = ENTER_CMD;
-    while(!this->should_stop()){
-
-        if(request == ENTER_CMD){
-
-            std::cout<<"MESSAGE: Enter CMD for robot..."<<std::endl;
-
-            // Read the CMD
-            std::getline(std::cin, request);
-        }
-        else if(request == EXIT){
-            std::cout<<"MESSAGE: CMD requested: "<<request<<std::endl;
-            this->get_condition().set_condition(true);
-            requests_.push_item(request);
-            break;
-        }
-        else if(request == EMPTY_CMD){
-            request = ENTER_CMD;
-        }
-        else if(request == PRINT){
-           std::cout<<"MESSAGE: CMD requested: "<<PRINT<<std::endl;
-           requests_.push_item(request);
-
-           auto response = responses_.pop_wait();
-           std::cout<<RESPONSE<<response<<std::endl;
-           request = ENTER_CMD;
-        }
-        else if(request == PRINT_GOAL){
-            std::cout<<"MESSAGE: CMD requested: "<<PRINT_GOAL<<std::endl;
-            requests_.push_item(request);
-            auto response = responses_.pop_wait();
-            std::cout<<RESPONSE<<response<<std::endl;
-            request = ENTER_CMD;
-        }
-        else if(request == SET_GOAL){
-
-            std::cout<<"MESSAGE: CMD requested: "<<SET_GOAL<<std::endl;
-            // then wait until we receive the new goal
-            std::vector<real_t> values = {0.0, 0.0};
-
-            std::cout<<RESPONSE<<"Enter new goal: "<<std::endl;
-            std::cout<<"Enter first coordinate of goal"<<std::endl;
-            std::cin>>values[0];
-            std::cout<<"Enter second coordinate of goal"<<std::endl;
-            std::cin>>values[1];
-            std::cout<<"Goal assigned: "<<values[0]<<","<<values[1]<<std::endl;
-
-            request = "GOAL;" + std::to_string(values[0]) + ";"+std::to_string(values[1]);
-            requests_.push_item(request);
-            request = ENTER_CMD;
-
-        }
-        else{
-            std::cout<<"You entered an unknown CMD. Try again"<<std::endl;
-            request = ENTER_CMD;
-        }
-    }
-
-    std::lock_guard<std::mutex> lock(msg_mutex);
-    std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
-}
-
-void
-ServerThread::run(){
-
-#ifdef USE_LOG
-    kernel::Logger::log_info("Starting Server Thread");
-#endif
-
-    /// create the tasks and assign them
-    /// to the queue
-    tasks_.reserve(5);
-
-    typedef ServerThread::RequestTask request_task_t;
-    typedef ServerThread::ClientTask client_task_t;
-    typedef ServerThread::StateEstimationThread state_est_task_t;
-    typedef ServerThread::PathConstructorThread path_cstr_task_t;
-    typedef ServerThread::PathFollowerThread path_follow_task_t;
-
-    tasks_.push_back(std::make_unique<state_est_task_t>(this->get_condition(), *map_));
-    tasks_.push_back(std::make_unique<path_cstr_task_t>(this->get_condition(), *map_));
-    tasks_.push_back(std::make_unique<request_task_t>(this->get_condition(), requests_, cmds_, responses_));
-    tasks_.push_back(std::make_unique<client_task_t>(this->get_condition(), requests_, responses_));
-
-    //tasks_.push_back(std::make_unique<path_follow_task_t>(this->get_condition(), responses_,
-    //                                                      path_control_input_, gradius_ ));
-
-    /// assign the observers
-    {
-        request_task_t* req_task = static_cast<request_task_t*>(tasks_[2].get());
-        req_task->attach_goal_observer(static_cast< path_cstr_task_t*>(tasks_[1].get())->gobserver);
         
-        req_task->attach_v_observer(static_cast<state_est_task_t*>(tasks_[0].get())->vobserver);
-        req_task->attach_w_observer(static_cast<state_est_task_t*>(tasks_[0].get())->wobserver);
-        //req_task->attach_goal_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->gobserver);
-
-        state_est_task_t* state_thread = static_cast<state_est_task_t*>(tasks_[0].get());
-        state_thread->attach_state_observer(static_cast<path_cstr_task_t*>(tasks_[1].get())->sobserver);        
-        state_thread->attach_state_observer(static_cast<request_task_t*>(tasks_[2].get())->sobserver);
-        //state_thread->attach_state_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->sobserver);
-
-        ///ask the state thread to update the state observers
-        state_thread->update_state_observers();
-
-        path_cstr_task_t* pconstruct_thread = static_cast< path_cstr_task_t*>(tasks_[1].get());        
-        pconstruct_thread->attach_path_observer(static_cast<request_task_t*>(tasks_[2].get())->pobserver);
-        //pconstruct_thread->attach_path_observer(static_cast<path_follow_task_t*>(tasks_[2].get())->pobserver);
-
-        this->attach_measurement_observer(state_thread->mobserver);
-
-        //path_follow_task_t* path_follow_thread = static_cast<path_follow_task_t*>(tasks_[2].get());
-        //path_follow_thread->attach_w_velocity_observer(state_thread->wobserver);
-
-    }
-
-    /// create a request so that we print the state
-    /// when the ClientTask starts
-    requests_.push_item(PRINT);
-
-    /// we also need to add a response so that the
-    /// ClientTask asks  the user to set the goal
-    /// enters the goal
-    requests_.push_item(SET_GOAL_SERVER);
-
-    /// set velocity request to start the simulation
-    requests_.push_item(V_CMD);
-
-    /// set angular velocity request to start the simulation
-    requests_.push_item(W_CMD);
-
-    /// add the tasks this is where tasks get executed
-    thread_pool_.add_tasks(tasks_);
-
-    while(!this->should_stop()){
-
-        auto measurement = get_measurement();
-        update_measurement_observers(measurement);
-        tasks_stopped();
+        if(sobserver.is_updated()){
+          sobserver.read(state_);
+        }
     }
 
     std::lock_guard<std::mutex> lock(msg_mutex);
     std::cout<<"MESSAGE: Task "+this->get_name()<<" exited simulation loop..."<<std::endl;
-
-#ifdef USE_LOG
-    kernel::Logger::log_info("Stopping Server Thread");
-#endif
 }
-
-void
-ServerThread::update_measurement_observers(MeasurmentObserver::measurement_resource_t& measurement){
-    for(uint_t o=0; o<m_observers_.size(); ++o){
-        m_observers_[o]->update(measurement);
-    }
-}
-
-const DynVec
-ServerThread::get_measurement()const{
-    return DynVec();
-}
-
-void
-ServerThread::tasks_stopped(){
-
-    if(threads_should_stop){
-
-        this->get_condition().set_condition(true);
-
-        for(uint_t t=0; t<tasks_.size(); ++t){
-           dynamic_cast<StoppableTask<StopSimulation>*>(tasks_[t].get())->get_condition().set_condition(true);
-        }
-    }
-}
-
 }
 
 
@@ -773,6 +422,11 @@ int main(){
 
     using namespace example;
 
+    
+    typedef StateEstimationThread state_est_task_t;
+    typedef PathConstructorThread path_cstr_task_t;
+    typedef PathFollowerThread path_follow_task_t;
+
     /// create the graph from the mesh
     Map map;
 
@@ -781,7 +435,7 @@ int main(){
         uint_t ny = 10;
 
         GeomPoint<2> start(0.0);
-        GeomPoint<2> end(1.0);
+        GeomPoint<2> end(10.0);
 
         Mesh<2> mesh;
 
@@ -841,25 +495,23 @@ int main(){
            vertex.data.position = element->centroid();
            vertex.data.occumancy_prob = occupamcy_prob[id];
         }
-
     }
 
-    const uint_t N_THREADS = 5;
-    const real_t RADIUS = 2.0/100.0;
+    State init_state;
+    init_state.set(0, {"X",0.5});
+    init_state.set(1, {"Y",0.5});
+    init_state.set(2, {"Theta",0.0});
+    
+    /// input for the path follower
+    CarrotChasingPathTrackControllerInput path_control_input;
+    path_control_input.lookahead_distance = 0.4;
+    path_control_input.n_sampling_points = 10;
+    path_control_input.k = 1.0;
 
-    StopSimulation stop_sim;
-
-    // the initial system state
-    SysState<5> init_state;
-
-    DiffDriveProperties properties;
-    properties.R = RADIUS;
-
-    /// the vehicle to simulate
-    DiffDriveVehicle vehicle(properties);
+    real_t gradius = 0.2;
 
     ThreadPoolOptions options;
-    options.n_threads = N_THREADS;
+    options.n_threads = 2;
     options.msg_on_start_up = true;
     options.msg_on_shut_down = true;
     options.msg_when_adding_tasks = true;
@@ -868,19 +520,81 @@ int main(){
     // executor
     ThreadPool pool(options);
 
-    CarrotChasingPathTrackControllerInput path_contorl_input;
-    path_contorl_input.lookahead_distance = 7.5;
-    path_contorl_input.n_sampling_points = 10;
-    path_contorl_input.k = 0.5;
-    path_contorl_input.waypoint_r = 1.5;
+    StopSimulation stop_sim;
+    std::vector<std::unique_ptr<kernel::TaskBase>> tasks;
+    tasks.reserve(2);
 
-    real_t gradius = 1.0;
+    tasks.push_back(std::make_unique<path_cstr_task_t>(stop_sim, map));
+    tasks.push_back(std::make_unique<path_follow_task_t>(stop_sim, path_control_input, gradius ));
 
-    // the server instance
-    ServerThread server(stop_sim, map, init_state,
-                        pool, path_contorl_input, gradius);
+    /// the state estimation
+    StateEstimationThread state_est_task(stop_sim, map);
 
-    server.run();
+    bool exit = false;
+
+    while(!exit){
+
+      std::vector<real_t> values = {0.0, 0.0};
+      std::cout<<RESPONSE<<"Enter new goal: "<<std::endl;
+      
+      values[0] = 9.5;
+      values[1] = 9.5;
+     
+      std::cout<<"Goal assigned: "<<values[0]<<","<<values[1]<<std::endl;
+      Goal goal(values);
+
+      real_t V = 0.5; 
+      init_state.set(3, {"V",V});
+    
+      real_t W = 0.0;
+      init_state.set(4, {"W",W});
+      
+      /// update the goal observers
+      static_cast<path_cstr_task_t*>(tasks[0].get())->gobserver.update(goal);
+      static_cast<path_follow_task_t*>(tasks[1].get())->gobserver.update(goal);
+
+      /// add the path observers that the PathConstructorThread
+      /// should update
+      static_cast<path_cstr_task_t*>(tasks[0].get())->attach_path_observer(static_cast<path_follow_task_t*>(tasks[1].get())->pobserver);
+    
+     
+      /// the state estimation task must know W
+      static_cast<path_follow_task_t*>(tasks[1].get())->attach_w_velocity_observer(state_est_task.wobserver);
+      static_cast<path_follow_task_t*>(tasks[1].get())->set_state(init_state);
+    
+      state_est_task.vobserver.update(V);
+      state_est_task.wobserver.update(W);
+      state_est_task.initialize();
+      state_est_task.set_state(init_state);
+
+      state_est_task.attach_state_observer(static_cast<path_cstr_task_t*>(tasks[0].get())->sobserver);        
+      state_est_task.attach_state_observer(static_cast<path_follow_task_t*>(tasks[1].get())->sobserver);
+
+      // add the tasks... 
+      pool.add_tasks(tasks);
+
+      /// run the task on the main thread
+      /// this should run until we meet
+      /// the goal
+      state_est_task.run();
+     
+    
+      {
+        std::lock_guard<std::mutex> lock(msg_mutex);
+        std::cout<<MESSAGE<<"GOAL "+goal.to_string()<<" REACHED WITH RADIOUS " + std::to_string(gradius)<<std::endl;
+        std::string answer;
+        
+        std::cout<<RESPONSE<<"Exit simulation: (y/n)"<<std::endl;
+        std::cin>>answer;
+
+        if(answer == "y"){
+          exit=true;
+        }
+      }
+
+      threads_should_stop = true;
+  }
+    
     pool.close();
     return 0;
 }

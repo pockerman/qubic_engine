@@ -87,9 +87,9 @@ make tests
 ### <a name="using_ros"></a> Robotics Simulations
 
 - <a href="#">Example 3: </a> Create a simple server to comminicate with ROS
-- <a href="examples/exe19/doc/exe.md">Example 19</a> Differential drive system simulation
+- <a href="examples/exe19/doc/exe.ipynb">Example 19</a> Differential drive system simulation
 - <a href="examples/exe21/doc/exe.md">Example 21</a> Pure pursuit path tracking
-- <a href="examples/exe23/doc/exe.md">Example 23</a> Follow the carrot path tracking
+- <a href="examples/exe23/doc/exe.ipynb">Example 23</a> Follow the carrot path tracking
 
 
 ### <a name="miscellaneous"></a>Miscellaneous

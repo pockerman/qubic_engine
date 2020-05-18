@@ -7,7 +7,9 @@ DiffDriveVehicle::DiffDriveVehicle(const DiffDriveProperties& properties)
     :
       properties_(properties),
       dynamics_()
-{}
+{
+		dynamics_.set_matrix_update_flag(properties_.update_description_matrices_on_evaluate);
+}
 
 void
 DiffDriveVehicle::set_velocity(real_t v){

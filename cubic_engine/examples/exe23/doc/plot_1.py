@@ -13,62 +13,20 @@ def main(filename):
     statex = []
     statey = []
 		
-    pathx = [0.5,
-1.5,
-2.5,
-3.5,
-3.5,
-3.5,
-3.5,
-4.5,
-4.5,
-5.5,
-5.5,
-6.5,
-7.5,
-7.5,
-7.5,
-7.5,
-8.5,
-9.5,
-9.5,]
-    
-    
-    pathy = [0.5,
-0.5,
-0.5,
-0.5,
-1.5,
-2.5,
-3.5,
-3.5,
-4.5,
-4.5,
-5.5,
-5.5,
-5.5,
-6.5,
-7.5,
-8.5,
-8.5,
-8.5,
-9.5,]
+    pathx = [0., 10.0, 20., 50., 60., 90., ]
+    pathy = [0.0, 0.0, 0.0, 30., 30., 0.0]
 
     look_ahead_x = []
     look_ahead_y = []
 
-    #closest_x = []
-    #closest_y = []
-		
+    
     for row in csv_file_reader:
 		
       if row_count > 1:
         statex.append(float(row[0]))
         statey.append(float(row[1]))
-        look_ahead_x.append(float(row[3]))
-        look_ahead_y.append(float(row[4]))
-        #closest_x.append(float(row[5]))
-        #closest_y.append(float(row[6]))
+        #look_ahead_x.append(float(row[3]))
+        #look_ahead_y.append(float(row[4]))
       row_count += 1
 		
     legend = []
@@ -82,12 +40,8 @@ def main(filename):
 
     if len(look_ahead_x) != 0:
       plt.plot(look_ahead_x, look_ahead_y, 'go')
-      #plt.plot(closest_x, closest_y, 'yo')
       legend.append("Lookahead Points")
-      #legend.append("Closest Points")
-			
-	  #legend.append("$\delta=3.5, k=0.1$")
-			
+      
     plt.xlabel('x')
     plt.ylabel('y')
     plt.legend(legend)

@@ -115,6 +115,10 @@ public:
     /// segment
     real_t get_velocity()const{return data_.v;}
 
+    /// \brief Returns the Euclidean distance between
+    /// the start and end vertices of the segmen
+    real_t length()const{return this->end().distance(this->start());}
+
 private:
 
     /// \brief list of internal points of

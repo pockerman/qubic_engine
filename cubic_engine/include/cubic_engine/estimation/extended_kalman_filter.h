@@ -105,6 +105,12 @@ public:
 
     /// \brief Returns the state property with the given name
     real_t get(const std::string& name)const{return motion_model_ptr_->get(name);}
+
+    /// \brief Returns the name-th matrix
+    const DynMat<real_t>& operator[](const std::string& name)const;
+
+    /// \brief Returns the name-th matrix
+    DynMat<real_t>& operator[](const std::string& name);
            
 protected:
 
@@ -163,6 +169,33 @@ ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::has_matrix(const std::st
 }
 
 template<typename MotionModelTp, typename ObservationModelTp>
+const DynMat<real_t>&
+ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::operator[](const std::string& name)const{
+
+    auto itr = matrices_.find(name);
+
+    if(itr == matrices_.end()){
+        throw std::invalid_argument("Matrix: "+name+" does not exist");
+    }
+
+    return itr->second;
+}
+
+template<typename MotionModelTp, typename ObservationModelTp>
+DynMat<real_t>&
+ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::operator[](const std::string& name){
+
+    auto itr = matrices_.find(name);
+
+    if(itr == matrices_.end()){
+        throw std::invalid_argument("Matrix: "+name+" does not exist");
+    }
+
+    return itr->second;
+}
+
+
+template<typename MotionModelTp, typename ObservationModelTp>
 void
 ExtendedKalmanFilter<MotionModelTp,
                      ObservationModelTp>::estimate(const std::tuple<motion_model_input_t,
@@ -181,8 +214,8 @@ ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::predict(const typename E
     /// motion model
     auto& state = motion_model_ptr_->evaluate(u);
 
-    auto& P = matrices_["P"];
-    auto& Q = matrices_["Q"];
+    auto& P = (*this)["P"];
+    auto& Q = (*this)["Q"];
 
     auto& L = motion_model_ptr_->get_matrix("L");
     auto L_T = trans(L);
@@ -200,8 +233,8 @@ ExtendedKalmanFilter<MotionModelTp,
                                                                                      ObservationModelTp>::observation_model_input_t&  z){
 
     auto& state = motion_model_ptr_->get_state();
-    auto& P = matrices_["P"];
-    auto& R = matrices_["R"];
+    auto& P = (*this)["P"];
+    auto& R = (*this)["R"];
 
     auto zpred = observation_model_ptr_->evaluate(z);
 
@@ -221,7 +254,7 @@ ExtendedKalmanFilter<MotionModelTp,
         auto S_inv = inv(S);
 
         if(has_matrix("K")){
-            auto& K = matrices_["K"];
+            auto& K = (*this)["K"];
             K = P*H_T*S_inv;
         }
         else{
@@ -229,7 +262,7 @@ ExtendedKalmanFilter<MotionModelTp,
             set_matrix("K", K);
         }
 
-        auto& K = matrices_["K"];
+        auto& K = (*this)["K"];
 
         auto innovation = z - zpred;
 
