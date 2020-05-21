@@ -17,7 +17,9 @@ namespace worlds {
 
 
 template<typename RewardTp>
-class GridWorld: public World<GridWorldAction, GridWorldState, typename RewardTp::value_t>
+class GridWorld: public World<GridWorldAction,
+                              GridWorldState,
+                              typename RewardTp::value_t>
 {
 public:
 
@@ -44,8 +46,14 @@ public:
     virtual void step(const action_t&)override final;
 
     /// \brief Restart the world. This means that
-    /// the state of the world will be that of...
+    /// the state of the world will be that of start
     void restart(const state_t& start, const state_t& goal);
+
+    /// \brief Restart the world with a list of goals
+    void restart(const state_t& start, std::vector<state_t*>&& goal);
+
+    /// \brief Restart the world but keep the goals
+    void restart(const state_t& state);
 
     /// \brief Set the state of the world
     void set_state(const state_t& state){current_state_ = &state;}
@@ -205,6 +213,30 @@ GridWorld<RewardTp>::restart(const typename GridWorld<RewardTp>::state_t& start,
     r_ = 0.0;
     finished_ = false;
 
+}
+
+template<typename RewardTp>
+void
+GridWorld<RewardTp>::restart(const typename GridWorld<RewardTp>::state_t& start,
+                             std::vector<typename GridWorld<RewardTp>::state_t*>&& goals){
+
+    start_ = &start;
+    goals_ = std::vector<const state_t*>();
+    goals_ = goals;
+    current_state_ = &get_state(start_->get_id());
+    r_ = 0.0;
+    finished_ = false;
+
+}
+
+template<typename RewardTp>
+void
+GridWorld<RewardTp>::restart(const const typename GridWorld<RewardTp>::state_t& start){
+
+    start_ = &start;
+    current_state_ = &get_state(start_->get_id());
+    r_ = 0.0;
+    finished_ = false;
 }
 
 template<typename RewardTp>

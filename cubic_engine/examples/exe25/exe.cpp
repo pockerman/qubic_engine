@@ -28,8 +28,122 @@ using kernel::CSVWriter;
 
 class RewardProducer
 {
+public:
 
+    typedef real_t value_t;
+
+    /// construcotr
+    RewardProducer();
+
+    /// returns the reward for the goal
+    real_t goal_reward()const{return 0.0;}
+
+    /// returns the reward for the action
+    /// at  state s when going to state sprime
+    template<typename ActionTp, typename StateTp>
+    real_t get_reward(const ActionTp& action,
+                      const StateTp& s,
+                      const StateTp& sprime)const;
+
+private:
+
+    /// table that holds the rewards
+    RewardTable<GridWorldAction, real_t> rewards_;
+
+    /// setup the rewards
+    void setup_rewards();
 };
+
+typedef GridWorld<RewardProducer> world_t;
+typedef world_t::state_t state_t;
+
+const uint_t N_CELLS = 4;
+
+void
+create_wolrd(world_t& w){
+
+   std::vector<state_t> world_states;
+   world_states.reserve(N_CELLS*N_CELLS);
+
+   uint_t counter=0;
+   for(uint_t i=0; i<N_CELLS; ++i){
+       for(uint_t j=0; j<N_CELLS; ++j){
+           world_states.push_back(state_t(counter++));
+       }
+   }
+
+   w.set_states(std::move(world_states));
+
+   counter=0;
+   for(uint_t i=0; i<N_CELLS*N_CELLS; ++i){
+
+       auto& state = w.get_state(i);
+
+       /// bottom row
+       if(i <4){
+
+           state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), nullptr);
+
+           if(i != 3){
+             state.set_transition(GridWorldAction::EAST, &w.get_state(i+1));
+           }
+           else{
+               state.set_transition(GridWorldAction::EAST, nullptr);
+           }
+
+           state.set_transition(GridWorldAction::NORTH, &w.get_state(N_CELLS + i));
+
+           if(i == 0){
+                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
+           }
+           else{
+               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &w.get_state(i-1));
+           }
+       }
+       else if(i >= 12 ){
+           /// top row
+
+           state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), &w.get_state(i - N_CELLS));
+
+           if(i != 15){
+             state.set_transition(GridWorldAction::EAST, &w.get_state(i+1));
+           }
+           else{
+               state.set_transition(GridWorldAction::EAST, nullptr);
+           }
+
+           state.set_transition(GridWorldAction::NORTH, nullptr);
+
+           if(i == 12){
+               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
+           }
+           else{
+              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &w.get_state(i-1));
+           }
+       }
+       else{
+
+           /// all rows in between
+           state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), &w.get_state(i - N_CELLS));
+
+           if(i != 11 && i != 7){
+               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), &w.get_state(i +1));
+           }
+           else{
+               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), nullptr);
+           }
+
+           state.set_transition(static_cast<GridWorldAction>(GridWorldAction::NORTH), &w.get_state(i + N_CELLS));
+
+           if(i != 4 && i != 8 ){
+              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &w.get_state(i-1));
+           }
+           else {
+              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
+           }
+       }
+   }
+}
 
 }
 
@@ -44,12 +158,16 @@ int main(){
 
         /// the world of the agent
         world_t world;
-
+        create_wolrd(world);
 
         std::cout<<"Number of states: "<<world.n_states()<<std::endl;
 
         state_t start(0);
-        state_t goal(11);
+        state_t goal1(3);
+        state_t goal2(12);
+
+        world.append_goal(goal1);
+        world.append_goal(goal2);
 
         /// simulation parameters
         /// number of episodes for the agent to learn.
@@ -59,23 +177,26 @@ int main(){
         const real_t GAMMA = 0.0;
         const real_t PENALTY = -100.0;
 
-        SarsaLearningInput qinput={ETA, EPSILON, GAMMA, true, true};
-        SarsaTableLearning<world_t> sarsalearner(std::move(qinput));
+        SyncValueFuncItrInput input={ETA, GAMMA, N_ITERATIONS, true};
+        SyncValueFuncItr<world_t> learner(std::move(input));
 
-        CSVWriter writer("agent_rewards.csv", ',', true);
-        writer.write_column_names({"Episode", "Reward"}, true);
+        //CSVWriter writer("agent_rewards.csv", ',', true);
+        //writer.write_column_names({"Episode", "Reward"}, true);
 
         std::vector<real_t> row(2);
-        sarsalearner.initialize(world, PENALTY);
+        learner.initialize(world, PENALTY);
 
-        auto& table = sarsalearner.get_table();
-        table.save_to_csv("table_rewards" + std::to_string(0) + ".csv");
+        world.restart(start);
+        auto result = learner.train();
 
-        for(uint_t episode=0; episode < N_ITERATIONS; ++episode){
+        //auto& table = sarsalearner.get_table();
+        //table.save_to_csv("table_rewards" + std::to_string(0) + ".csv");
+
+        /*for(uint_t episode=0; episode < N_ITERATIONS; ++episode){
 
             std::cout<<"At episode: "<<episode<<std::endl;
             world.restart(start, goal);
-            auto result = sarsalearner.train(goal);
+            auto result = learner.train();
 
             /// the total reward the agent obtained
             /// in this episode
@@ -87,7 +208,7 @@ int main(){
                 auto& table = sarsalearner.get_table();
                 table.save_to_csv("table_rewards" + std::to_string(episode) + ".csv");
             }
-        }
+        }*/
     }
     catch(std::exception& e){
 

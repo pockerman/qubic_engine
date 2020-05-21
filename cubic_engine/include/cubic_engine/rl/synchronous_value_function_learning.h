@@ -38,7 +38,6 @@ struct SyncValueFuncItrOutput
 
 /// \brief Synchronous value function iteration
 /// learning implementation
-///
 template<typename WorldTp>
 class SyncValueFuncItr: private boost::noncopyable
 {
@@ -65,8 +64,12 @@ public:
     /// \brief Constructor
     SyncValueFuncItr();
 
+    /// \brief Constructor
+    SyncValueFuncItr(SyncValueFuncItrInput&& input);
+
+
     /// \brief Train on the given world
-    output_t train(const state_t& goal );
+    output_t train();
 
     ///Initialize the tabular implementation
     void initialize(world_t& world, real_t init_val);
@@ -93,13 +96,12 @@ private:
 
 template<typename WorldTp>
 typename SyncValueFuncItr<WorldTp>::output_t
-SyncValueFuncItr<WorldTp>::train(const typename SyncValueFuncItr<WorldTp>::state_t& goal ){
+SyncValueFuncItr<WorldTp>::train(){
 
 
     while(itr_controller_.continue_iterations()){
 
         if(imput_.show_iterations){
-
             std::cout<<itr_controller_.get_state()<<std::endl;
         }
 
