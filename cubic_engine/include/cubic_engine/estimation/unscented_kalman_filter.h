@@ -7,6 +7,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <stdexcept>
 
 namespace cengine {
 namespace estimation {
@@ -57,6 +58,9 @@ public:
     /// \brief Set the matrix used by the filter
     void set_matrix(const std::string& name, const matrix_t& mat);
 
+    /// \brief Set the k parameter
+    void set_k(real_t k){k_=k;}
+
     /// \brief Returns true if the matrix with the given name exists
     bool has_matrix(const std::string& name)const;
 
@@ -93,6 +97,13 @@ protected:
     /// corresponding to each sigma point
     std::vector<real_t> w_;
 
+    /// \brief The k parameter of the model
+    real_t k_;
+
+    /// \brief Check the state of the instance before
+    /// doing any computations
+    void check_sanity_()const;
+
 };
 
 template<typename MotionModelTp, typename ObservationModelTp>
@@ -102,7 +113,8 @@ UnscentedKalmanFilter<MotionModelTp,ObservationModelTp>::UnscentedKalmanFilter()
     observation_model_ptr_(nullptr),
     matrices_(),
     sigma_points_(),
-    w_()
+    w_(),
+    k_(0.0)
 {}
 
 template<typename MotionModelTp, typename ObservationModelTp>
@@ -114,7 +126,8 @@ UnscentedKalmanFilter<MotionModelTp,
     observation_model_ptr_(&observation_model),
     matrices_(),
     sigma_points_(),
-    w_()
+    w_(),
+    k_(0.0)
 {}
 
 template<typename MotionModelTp,
@@ -122,6 +135,34 @@ template<typename MotionModelTp,
 UnscentedKalmanFilter<MotionModelTp,
                       ObservationModelTp>::~UnscentedKalmanFilter()
 {}
+
+template<typename MotionModelTp,
+         typename ObservationModelTp>
+void
+UnscentedKalmanFilter<MotionModelTp,
+ObservationModelTp>::check_sanity_()const{
+
+    if(!motion_model_ptr_){
+      throw std::logic_error("Motion model has not been set");
+    }
+
+    if(!observation_model_ptr_){
+      throw std::logic_error("Observation model has not been set");
+    }
+
+    if(sigma_points_.empty()){
+        throw std::logic_error("Sigma points list is empty");
+    }
+
+    if(w_.empty()){
+        throw std::logic_error("Weights list is empty");
+    }
+
+    if(w_.size() != sigma_points_.size()){
+        throw std::logic_error("Weights and sigma poinst lists have incompatible sizes");
+    }
+
+}
 
 template<typename MotionModelTp, typename ObservationModelTp>
 void
@@ -146,8 +187,152 @@ UnscentedKalmanFilter<MotionModelTp,
     return itr != matrices_.end();
 }
 
+template<typename MotionModelTp, typename ObservationModelTp>
+const DynMat<real_t>&
+UnscentedKalmanFilter<MotionModelTp,
+                      ObservationModelTp>::operator[](const std::string& name)const{
+
+    auto itr = matrices_.find(name);
+
+    if(itr == matrices_.end()){
+        throw std::invalid_argument("Matrix: "+name+" does not exist");
+    }
+
+    return itr->second;
 }
 
+template<typename MotionModelTp, typename ObservationModelTp>
+DynMat<real_t>&
+UnscentedKalmanFilter<MotionModelTp,
+                      ObservationModelTp>::operator[](const std::string& name){
+
+    auto itr = matrices_.find(name);
+
+    if(itr == matrices_.end()){
+        throw std::invalid_argument("Matrix: "+name+" does not exist");
+    }
+
+    return itr->second;
+}
+
+template<typename MotionModelTp, typename ObservationModelTp>
+void
+UnscentedKalmanFilter<MotionModelTp,
+                     ObservationModelTp>::estimate(const std::tuple<motion_model_input_t,
+                                                    observation_model_input_t>& input ){
+
+    predict(input.template get<0>());
+    update(input.template get<1>());
+}
+
+template<typename MotionModelTp, typename ObservationModelTp>
+void
+UnscentedKalmanFilter<MotionModelTp,
+                      ObservationModelTp>::predict(const motion_model_input_t& u){
+
+
+    check_sanity_();
+
+    static auto point_propagator = [this, &u](DynVec<real_t>& point){
+        point = motion_model_ptr_->evaluate(point, u);
+    };
+
+    /// propagate the sigma points
+    std::for_each(sigma_points_.begin(),
+                  sigma_points_.end(),
+                  point_propagator);
+
+    DynVec<real_t> total_state(get_state().dimension, 0.0);
+
+    /// update the state
+    for(uint_t p=0; p<sigma_points_.size(); ++p){
+        total_state += w_[p]*sigma_points_[p];
+    }
+
+    /// state = sum w_i*p_i
+    get_state().set(total_state);
+
+    DynMat<real_t> total_cov(get_state().dimension,
+                             get_state().dimension, 0.0);
+
+    /// predict the covariance matrix
+    /// update the state
+    for(uint_t p=0; p<sigma_points_.size(); ++p){
+        total_cov += w_[p]*(sigma_points_[p] - total_state)*trans(sigma_points_[p] - total_state);
+    }
+
+    auto& P = (*this)["P"];
+    auto& Q = (*this)["Q"];
+
+    P = total_cov + Q;
+}
+
+template<typename MotionModelTp, typename ObservationModelTp>
+void
+UnscentedKalmanFilter<MotionModelTp,
+                     ObservationModelTp>::update(const observation_model_input_t&  z){
+
+    check_sanity_();
+
+    /*auto& state = motion_model_ptr_->get_state();
+    auto& P = (*this)["P"];
+    auto& R = (*this)["R"];
+
+    auto zpred = observation_model_ptr_->evaluate(z);
+
+    auto& H = observation_model_ptr_->get_matrix("H");
+    auto H_T = trans(H);
+
+    /// compute \partial{h}/\partial{v} the jacobian of the observation model
+    /// w.r.t the error vector
+    auto& M = observation_model_ptr_->get_matrix("M");
+    auto M_T = trans(M);
+
+     try{
+
+        /// S = H*P*H^T + M*R*M^T
+        auto S = H*P*H_T + M*R*M_T;
+
+        auto S_inv = inv(S);
+
+        if(has_matrix("K")){
+            auto& K = (*this)["K"];
+            K = P*H_T*S_inv;
+        }
+        else{
+            auto K = P*H_T*S_inv;
+            set_matrix("K", K);
+        }
+
+        auto& K = (*this)["K"];
+
+        auto innovation = z - zpred;
+
+        if(K.columns() != innovation.size()){
+            throw std::runtime_error("Matrix columns: "+
+                                      std::to_string(K.columns())+
+                                      " not equal to vector size: "+
+                                      std::to_string(innovation.size()));
+        }
+
+        state.add(K*innovation);
+
+        IdentityMatrix<real_t> I(state.size());
+
+        /// update the covariance matrix
+        P =  (I - K*H)*P;
+    }
+    catch(...){
+
+        // this is a singular matrix what
+        // should we do? Simply use the predicted
+        // values and log the fact that there was a singular matrix
+
+        throw;
+    }*/
+}
+
+}
 }
 
 #endif // UNSCENTED_KALMAN_FILTER_H
