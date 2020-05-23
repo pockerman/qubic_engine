@@ -53,7 +53,7 @@ make tests
 
 - <a href="examples/exe1/doc/exe.ipynb">Example 1: </a> Using the ```KalmanFilter``` class
 - <a href="examples/exe2/doc/exe.ipynb">Example 2: </a> Using the ```ExtendedKalmanFilter``` class
-- <a href="examples/exe27/doc/exe.ipynb">Example 27: </a> Unscented Kalman Filter
+- <a href="examples/exe27/doc/exe.ipynb">Example 27: </a> Unscented Kalman Filte
 - Particle Filters
 
 ### <a name="control"></a> Control
