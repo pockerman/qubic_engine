@@ -52,7 +52,8 @@ public:
     ExtendedKalmanFilter();
 
     /// \brief Constructor
-    ExtendedKalmanFilter(motion_model_t& motion_model, const observation_model_t& observation_model);
+    ExtendedKalmanFilter(motion_model_t& motion_model,
+                         const observation_model_t& observation_model);
 
     /// \brief Destructor
     ~ExtendedKalmanFilter();
