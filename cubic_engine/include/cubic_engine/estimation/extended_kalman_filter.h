@@ -242,8 +242,8 @@ ExtendedKalmanFilter<MotionModelTp,
     auto& H = observation_model_ptr_->get_matrix("H");
     auto H_T = trans(H);
 
-    // compute \partial{h}/\partial{v} the jacobian of the observation model
-    // w.r.t the error vector
+    /// compute \partial{h}/\partial{v} the jacobian of the observation model
+    /// w.r.t the error vector
     auto& M = observation_model_ptr_->get_matrix("M");
     auto M_T = trans(M);
 
