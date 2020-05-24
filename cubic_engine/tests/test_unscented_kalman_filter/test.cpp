@@ -12,6 +12,7 @@ using uint_t = cengine::uint_t;
 using real_t = cengine::real_t;
 using cengine::DynVec;
 using cengine::DynMat;
+using cengine::IdentityMatrix;
 using cengine::estimation::UnscentedKalmanFilter;
 using kernel::dynamics::SysState;
 
@@ -81,3 +82,52 @@ TEST(TestUnscentedKalmanFilter, TestNoObservationModel){
     DynVec<real_t> u;
     ASSERT_THROW(ukf.update(u), std::logic_error);
 }
+
+/// \brief
+/// Scenario: Application instantiates filter without having initialized
+///           the sigma points
+/// Output:   std::logic_error is thrown
+TEST(TestUnscentedKalmanFilter, TestNoSigmaPoints){
+
+    using namespace test_data;
+    UnscentedKalmanFilter<TestMotionModel,
+                          TestObservationModel> ukf;
+
+    TestMotionModel mmodel;
+    ukf.set_motion_model(mmodel);
+
+    TestObservationModel omodel;
+    ukf.set_observation_model(omodel);
+
+    DynVec<real_t> u;
+    ASSERT_THROW(ukf.predict(u), std::logic_error);
+}
+
+
+/// \brief
+/// Scenario: Application instantiates filter without and initialializes
+///           the sigma points
+/// Output:   correct number of weights and sigma points
+TEST(TestUnscentedKalmanFilter, TestSigmaPointsInit){
+
+    using namespace test_data;
+    UnscentedKalmanFilter<TestMotionModel,
+                          TestObservationModel> ukf;
+
+    TestMotionModel mmodel;
+    ukf.set_motion_model(mmodel);
+
+    TestObservationModel omodel;
+    ukf.set_observation_model(omodel);
+
+    /// we also need to covariance matrix
+    IdentityMatrix<real_t> P(mmodel.state.dimension);
+    ukf.set_matrix("P", P);
+
+    ukf.initialize_sigma_points(1.2);
+
+    ASSERT_EQ(ukf.n_sigma_points(), 2*mmodel.state.dimension + 1);
+    ASSERT_EQ(ukf.n_weights(), 2*mmodel.state.dimension + 1);
+}
+
+
