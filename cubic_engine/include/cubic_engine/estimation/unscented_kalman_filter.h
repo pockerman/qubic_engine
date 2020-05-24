@@ -7,6 +7,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <cmath>
 #include <stdexcept>
 
 namespace cengine {
@@ -34,17 +35,27 @@ public:
     /// \brief Destructor
     ~UnscentedKalmanFilter();
 
+    /// \brief Initialize the filter. The unscented Kalman filter
+    /// uses so called sigma points for the prediction and the updates
+    /// we have therefore to initialize the filter
+    void initialize_sigma_points(real_t k);
+
     /// \brief Estimate the state. This function simply
     /// wraps the predict and update steps described by the
     /// functions below
-    void estimate(const std::tuple<motion_model_input_t, observation_model_input_t>& input );
+    void estimate(const std::tuple<motion_model_input_t,
+                                   observation_model_input_t>& input );
 
-    /// \brief Predicts the state vector x and the process covariance matrix P using
-    /// the given input control u accroding to the following equations
+    /// \brief Predicts the state vector
+    /// x and the process covariance matrix P using
+    /// the given input control u
+    /// accroding to the following equations
     void predict(const motion_model_input_t& input);
 
-    /// \brief Updates the gain matrix K, the  state vector x and covariance matrix P
-    /// using the given measurement z_k according to the following equations
+    /// \brief Updates the gain matrix K,
+    /// the  state vector x and covariance matrix P
+    /// using the given measurement z_k
+    /// according to the following equations
     void update(const observation_model_input_t& z);
 
     /// \brief Set the motion model
@@ -65,19 +76,29 @@ public:
     bool has_matrix(const std::string& name)const;
 
     /// \brief Returns the state
-    const state_t& get_state()const{return motion_model_ptr_->get_state();}
+    const state_t& get_state()const
+    {return motion_model_ptr_->get_state();}
 
     /// \brief Returns the state
     state_t& get_state(){return motion_model_ptr_->get_state();}
 
     /// \brief Returns the state property with the given name
-    real_t get(const std::string& name)const{return motion_model_ptr_->get(name);}
+    real_t get(const std::string& name)const
+    {return motion_model_ptr_->get(name);}
 
     /// \brief Returns the name-th matrix
     const DynMat<real_t>& operator[](const std::string& name)const;
 
     /// \brief Returns the name-th matrix
     DynMat<real_t>& operator[](const std::string& name);
+
+    /// \brief Helper for testing.
+    /// Returns the number of sigma points
+    uint_t n_sigma_points()const{return sigma_points_.size();}
+
+    /// \brief Helper for testing.
+    /// Returns the number of weights
+    uint_t n_weights()const{return w_.size();}
 
 protected:
 
@@ -104,10 +125,14 @@ protected:
     /// doing any computations
     void check_sanity_()const;
 
+    /// \brief update the sigma points
+    void update_sigma_points_();
+
 };
 
 template<typename MotionModelTp, typename ObservationModelTp>
-UnscentedKalmanFilter<MotionModelTp,ObservationModelTp>::UnscentedKalmanFilter()
+UnscentedKalmanFilter<MotionModelTp,
+                      ObservationModelTp>::UnscentedKalmanFilter()
     :
     motion_model_ptr_(nullptr),
     observation_model_ptr_(nullptr),
@@ -161,7 +186,65 @@ ObservationModelTp>::check_sanity_()const{
     if(w_.size() != sigma_points_.size()){
         throw std::logic_error("Weights and sigma poinst lists have incompatible sizes");
     }
+}
 
+template<typename MotionModelTp, typename ObservationModelTp>
+void
+UnscentedKalmanFilter<MotionModelTp,
+ObservationModelTp>::initialize_sigma_points(real_t k){
+
+    /// attempting to initialize without
+    /// the motion model is an error
+
+    if(!motion_model_ptr_){
+      throw std::logic_error("Motion model has not been set");
+    }
+
+    set_k(k);
+
+    const uint_t n = motion_model_ptr_->get_state().dimension;
+
+    sigma_points_.resize(2*n + 1, DynVec<real_t>());
+    w_.resize(2*n + 1);
+
+    w_[0] = k_/(n + k_);
+    auto begin = w_.begin();
+    begin++;
+    std::for_each(begin, w_.end(),
+                  [this, n](real_t& w){w = 0.5*(1/n + this->k_);});
+
+    /// update the sigma points
+    update_sigma_points_();
+}
+
+template<typename MotionModelTp,
+         typename ObservationModelTp>
+void
+UnscentedKalmanFilter<MotionModelTp,
+ObservationModelTp>::update_sigma_points_(){
+
+    auto state_vec = motion_model_ptr_->get_state().as_vector();
+
+    const uint_t n = state_vec.size();
+
+    /// the first sigma point is equal to the
+    /// current state vector
+    sigma_points_[0] = state_vec;
+
+    auto& P = (*this)["P"];
+    /// compute the Cholesky decomposition
+    /// of the current error covariance matrix
+    DynMat<real_t> L;
+    llh(P, L);
+
+    /// compute the remaining
+    /// sigma points;
+    for(uint_t i=1; i<=n; ++i){
+       auto col1 = column(L, i-1);
+       sigma_points_[i] = state_vec + std::sqrt(n + k_)*col1;
+       sigma_points_[i + n] = state_vec - std::sqrt(n+k_)*col1;
+
+    }
 }
 
 template<typename MotionModelTp, typename ObservationModelTp>
