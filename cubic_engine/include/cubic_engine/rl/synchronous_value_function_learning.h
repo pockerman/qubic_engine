@@ -67,9 +67,9 @@ public:
     /// \brief Constructor
     SyncValueFuncItr(SyncValueFuncItrInput&& input);
 
-
     /// \brief Train on the given world
-    output_t train();
+    template<typename DynamicsP>
+    output_t train(const DynamicsP& dynamics);
 
     ///Initialize the tabular implementation
     void initialize(world_t& world, real_t init_val);
@@ -90,13 +90,12 @@ private:
 
     /// \brief Pointer to the world
     world_t* world_;
-
-
 };
 
 template<typename WorldTp>
+template<typename DynamicsP>
 typename SyncValueFuncItr<WorldTp>::output_t
-SyncValueFuncItr<WorldTp>::train(){
+SyncValueFuncItr<WorldTp>::train(const DynamicsP& dynamics){
 
 
     while(itr_controller_.continue_iterations()){
@@ -128,7 +127,7 @@ SyncValueFuncItr<WorldTp>::train(){
 
                     if(state_prime){
 
-                        real_t p = world_->transition_dynamics(state_prime, state, action);
+                        real_t p = dynamics(state_prime, state, action);
                         real_t reward = world_->get_reward(state, action);
                         real_t vs_prime = vold_[state_prime->get_id()];
                         weighted_sum += reward + p*imput_.gamma*vs_prime;
