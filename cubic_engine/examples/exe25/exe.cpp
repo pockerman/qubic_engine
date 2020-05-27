@@ -43,7 +43,9 @@ public:
     template<typename ActionTp, typename StateTp>
     real_t get_reward(const ActionTp& action,
                       const StateTp& s,
-                      const StateTp& sprime)const;
+                      const StateTp& sprime)const{
+        return rewards_.get_reward(s.get_id(), action);
+    }
 
 private:
 
@@ -53,6 +55,73 @@ private:
     /// setup the rewards
     void setup_rewards();
 };
+
+RewardProducer::RewardProducer()
+    :
+   rewards_()
+{}
+
+void
+RewardProducer::setup_rewards(){
+
+    rewards_.set_reward(0, GridWorldAction::EAST, -1.0);
+    rewards_.set_reward(0, GridWorldAction::NORTH, -1.0);
+
+    rewards_.set_reward(1, GridWorldAction::EAST, -1.0);
+    rewards_.set_reward(1, GridWorldAction::NORTH, -1.0);
+    rewards_.set_reward(1, GridWorldAction::WEST, -1.0);
+
+    rewards_.set_reward(2, GridWorldAction::EAST, 0.0);
+    rewards_.set_reward(2, GridWorldAction::NORTH, -1.0);
+    rewards_.set_reward(2, GridWorldAction::WEST, -1.0);
+
+    rewards_.set_reward(4, GridWorldAction::EAST, -1.0);
+    rewards_.set_reward(4, GridWorldAction::NORTH, -1.0);
+    rewards_.set_reward(4, GridWorldAction::SOUTH, -1.0);
+
+    rewards_.set_reward(5, GridWorldAction::EAST, -1.0);
+    rewards_.set_reward(5, GridWorldAction::NORTH, -1.0);
+    rewards_.set_reward(5, GridWorldAction::SOUTH, -1.0);
+    rewards_.set_reward(5, GridWorldAction::WEST, -1.0);
+
+    rewards_.set_reward(6, GridWorldAction::EAST, -1.0);
+    rewards_.set_reward(6, GridWorldAction::NORTH, -1.0);
+    rewards_.set_reward(6, GridWorldAction::SOUTH, -1.0);
+    rewards_.set_reward(6, GridWorldAction::WEST, -1.0);
+
+    rewards_.set_reward(7, GridWorldAction::NORTH, -1.0);
+    rewards_.set_reward(7, GridWorldAction::SOUTH, 0.0);
+    rewards_.set_reward(7, GridWorldAction::WEST, -1.0);
+
+    rewards_.set_reward(8, GridWorldAction::EAST, -1.0);
+    rewards_.set_reward(8, GridWorldAction::NORTH, 0.0);
+    rewards_.set_reward(8, GridWorldAction::SOUTH, -1.0);
+
+    rewards_.set_reward(9, GridWorldAction::EAST, -1.0);
+    rewards_.set_reward(9, GridWorldAction::NORTH, -1.0);
+    rewards_.set_reward(9, GridWorldAction::SOUTH, -1.0);
+    rewards_.set_reward(9, GridWorldAction::WEST, -1.0);
+
+    rewards_.set_reward(10, GridWorldAction::EAST, -1.0);
+    rewards_.set_reward(10, GridWorldAction::NORTH, -1.0);
+    rewards_.set_reward(10, GridWorldAction::SOUTH, -1.0);
+    rewards_.set_reward(10, GridWorldAction::WEST, -1.0);
+
+    rewards_.set_reward(11, GridWorldAction::NORTH, -1.0);
+    rewards_.set_reward(11, GridWorldAction::SOUTH, -1.0);
+    rewards_.set_reward(11, GridWorldAction::WEST, -1.0);
+
+    rewards_.set_reward(13, GridWorldAction::EAST, -1.0);
+    rewards_.set_reward(13, GridWorldAction::SOUTH, -1.0);
+    rewards_.set_reward(13, GridWorldAction::WEST, 0.0);
+
+    rewards_.set_reward(14, GridWorldAction::EAST, -1.0);
+    rewards_.set_reward(14, GridWorldAction::SOUTH, -1.0);
+    rewards_.set_reward(14, GridWorldAction::WEST, -1.0);
+
+    rewards_.set_reward(15, GridWorldAction::SOUTH, -1.0);
+    rewards_.set_reward(15, GridWorldAction::WEST, -1.0);
+}
 
 typedef GridWorld<RewardProducer> world_t;
 typedef world_t::state_t state_t;
@@ -155,6 +224,11 @@ int main(){
 
         typedef GridWorld<RewardProducer> world_t;
         typedef world_t::state_t state_t;
+        typedef world_t::action_t action_t;
+
+        auto dynamics = [](const state_t&,const state_t&, action_t){
+          return 0.25;
+        };
 
         /// the world of the agent
         world_t world;
@@ -187,7 +261,7 @@ int main(){
         learner.initialize(world, PENALTY);
 
         world.restart(start);
-        auto result = learner.train();
+        auto result = learner.train(dynamics);
 
         //auto& table = sarsalearner.get_table();
         //table.save_to_csv("table_rewards" + std::to_string(0) + ".csv");
