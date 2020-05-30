@@ -250,7 +250,8 @@ ObservationModelTp>::update_sigma_points_(){
 template<typename MotionModelTp, typename ObservationModelTp>
 void
 UnscentedKalmanFilter<MotionModelTp,
-                      ObservationModelTp>::set_matrix(const std::string& name, const matrix_t& mat){
+                      ObservationModelTp>::set_matrix(const std::string& name,
+                                                      const matrix_t& mat){
 
     if(name != "Q" && name != "K" && name != "R" && name != "P"){
         throw std::logic_error("Invalid matrix name. Name: "+
@@ -357,62 +358,51 @@ UnscentedKalmanFilter<MotionModelTp,
 
     check_sanity_();
 
-    /*auto& state = motion_model_ptr_->get_state();
-    auto& P = (*this)["P"];
-    auto& R = (*this)["R"];
+    /// predict the measurements from
+    /// the redrawn sigma points
+    auto zpred_hat = observation_model_ptr_->evaluate(sigma_points_);
 
-    auto zpred = observation_model_ptr_->evaluate(z);
+    /// estimate mean and covariance
+    /// of predicted measurements
+    auto zpred = w_[0]*zpred_hat[0];
 
-    auto& H = observation_model_ptr_->get_matrix("H");
-    auto H_T = trans(H);
-
-    /// compute \partial{h}/\partial{v} the jacobian of the observation model
-    /// w.r.t the error vector
-    auto& M = observation_model_ptr_->get_matrix("M");
-    auto M_T = trans(M);
-
-     try{
-
-        /// S = H*P*H^T + M*R*M^T
-        auto S = H*P*H_T + M*R*M_T;
-
-        auto S_inv = inv(S);
-
-        if(has_matrix("K")){
-            auto& K = (*this)["K"];
-            K = P*H_T*S_inv;
-        }
-        else{
-            auto K = P*H_T*S_inv;
-            set_matrix("K", K);
-        }
-
-        auto& K = (*this)["K"];
-
-        auto innovation = z - zpred;
-
-        if(K.columns() != innovation.size()){
-            throw std::runtime_error("Matrix columns: "+
-                                      std::to_string(K.columns())+
-                                      " not equal to vector size: "+
-                                      std::to_string(innovation.size()));
-        }
-
-        state.add(K*innovation);
-
-        IdentityMatrix<real_t> I(state.size());
-
-        /// update the covariance matrix
-        P =  (I - K*H)*P;
+    for(uint_t p = 1; p<sigma_points_.size(); ++p){
+        zpred += w_[p]*zpred_hat[p];
     }
-    catch(...){
 
-        // this is a singular matrix what
-        // should we do? Simply use the predicted
-        // values and log the fact that there was a singular matrix
+    auto& R = (*this)["R"];
+    DynMat<real_t> Py = R;
 
-        throw;
-    }*/
+    for(uint_t p=0; p<sigma_points_.size(); ++p){
+        Py += w_[p]*(zpred_hat[p] - zpred)*trans(zpred_hat[p] - zpred);
+    }
+
+    auto Py_invs = inv(Py);
+    auto state_vec = motion_model_ptr_->get_state().as_vector();
+    DynMat<real_t> Pxy(motion_model_ptr_->get_state().dimension,
+                       zpred.size(), 0.0);
+
+    for(uint_t p=0; p<sigma_points_.size(); ++p){
+        Pxy += w_[p]*(sigma_points_[p] - state_vec)*trans(zpred_hat[p] - zpred);
+    }
+
+    if(has_matrix("K")){
+        auto& K = (*this)["K"];
+        K = Pxy*Py_invs;
+    }
+    else{
+        auto K = Pxy*Py_invs;
+        set_matrix("K", K);
+    }
+
+    auto& K = (*this)["K"];
+
+    /// update state
+    auto innovation = z - zpred;
+    motion_model_ptr_->get_state() += K*innovation;
+
+    auto& P = (*this)["P"];
+    P -= K*Py*trans(Py);
 }
 
 }
