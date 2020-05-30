@@ -2,7 +2,7 @@
 #include "cubic_engine/estimation/unscented_kalman_filter.h"
 #include "kernel/dynamics/system_state.h"
 
-
+#include <vector>
 #include <string>
 #include <gtest/gtest.h>
 
@@ -48,6 +48,14 @@ class TestObservationModel
 public:
 
     typedef DynVec<real_t> input_t;
+
+    DynVec<real_t> evaluate(const DynVec<real_t>& v1)const{
+        return DynVec<real_t>();
+    }
+
+    std::vector<DynVec<real_t>> evaluate(const std::vector<DynVec<real_t>>& v1)const{
+        return std::vector<DynVec<real_t>>();
+    }
 
 };
 }
