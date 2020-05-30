@@ -49,7 +49,7 @@ public:
     template<int other_dim>
     SysState(const SysState<other_dim>& other);
 
-    /// \brief Move copy constructor
+    /// \brief Copy assignement constructor
     SysState& operator=(const SysState<dim>& other);
 
     /// \brief Move copy constructor
@@ -57,6 +57,17 @@ public:
 
     /// \brief Move copy constructor
     SysState& operator=(SysState&& other);
+
+    /// \brief Add to this state the entries
+    /// of the give vector
+    SysState& operator+=(const DynVec<real_t>& vec);
+
+    /// \brief Subtract from this state the entries
+    /// of the give vector
+    SysState& operator-=(const DynVec<real_t>& vec);
+
+    /// \brief Scale this state by the given factor
+    SysState& operator*=(real_t val);
 
     /// \brief Returns the value for the variable name
     real_t get(const std::string& name)const;
@@ -112,6 +123,9 @@ public:
     template<typename Container>
     void add(const Container& container);
 
+    /// \brief Scale the values of the state
+    void scale(real_t val);
+
 private:
 
     std::array<std::pair<std::string, real_t>, dim> values_;
@@ -122,7 +136,6 @@ template<int dim>
 template<int dim1, int dim2>
 void
 SysState<dim>::extract(const SysState<dim1>& state, SysState<dim2>& other){
-
 
     static_assert (dim2 <= dim1, "Invalid dimension dim2>dim1");
 
@@ -218,6 +231,37 @@ SysState<dim>::operator=(SysState&& other){
 }
 
 template<int dim>
+SysState<dim>&
+SysState<dim>::operator+=(const DynVec<real_t>& vec){
+    add(vec);
+    return *this;
+}
+
+template<int dim>
+SysState<dim>&
+SysState<dim>::operator-=(const DynVec<real_t>& vec){
+    add(-1.0*vec);
+    return *this;
+}
+
+template<int dim>
+SysState<dim>&
+SysState<dim>::operator*=(real_t val){
+    scale(val);
+    return *this;
+}
+
+template<int dim>
+void
+SysState<dim>::scale(real_t val){
+    std::for_each(values_.begin(),
+                  values_.end(),
+                  [=](auto& item){
+        item.second *= val;
+    });
+}
+
+template<int dim>
 real_t
 SysState<dim>::get(const std::string& name)const{
 
@@ -308,9 +352,7 @@ SysState<dim>::set(const Container& container){
 template<int dim>
 void
 SysState<dim>::set(uint_t i, const std::pair<std::string, real_t>& value){
-
     values_[i] = value;
-
 }
 
 template<int dim>
