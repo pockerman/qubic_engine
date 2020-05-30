@@ -135,22 +135,23 @@ ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::ExtendedKalmanFilter()
 
 template<typename MotionModelTp, typename ObservationModelTp>
 ExtendedKalmanFilter<MotionModelTp,
-                     ObservationModelTp>::ExtendedKalmanFilter(typename ExtendedKalmanFilter<MotionModelTp,
-                                                                                             ObservationModelTp>::motion_model_t& motion_model,
-                                                               const typename ExtendedKalmanFilter<MotionModelTp,
-                                                                                                   ObservationModelTp>::observation_model_t& observation_model)
+                     ObservationModelTp>::ExtendedKalmanFilter(motion_model_t& motion_model,
+                                                               const observation_model_t& observation_model)
     :
     motion_model_ptr_(&motion_model),
     observation_model_ptr_(&observation_model)
 {}
 
 template<typename MotionModelTp, typename ObservationModelTp>
-ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::~ExtendedKalmanFilter()
+ExtendedKalmanFilter<MotionModelTp,
+                     ObservationModelTp>::~ExtendedKalmanFilter()
 {}
 
 template<typename MotionModelTp, typename ObservationModelTp>
 void
-ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::set_matrix(const std::string& name, const matrix_t& mat){
+ExtendedKalmanFilter<MotionModelTp,
+                     ObservationModelTp>::set_matrix(const std::string& name,
+                                                     const matrix_t& mat){
 
     if(name != "Q" && name != "K" && name != "R" && name != "P"){
         throw std::logic_error("Invalid matrix name. Name: "+
@@ -208,8 +209,7 @@ ExtendedKalmanFilter<MotionModelTp,
 
 template<typename MotionModelTp, typename ObservationModelTp>
 void
-ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::predict(const typename ExtendedKalmanFilter<MotionModelTp,
-                                                                ObservationModelTp>::motion_model_input_t& u){
+ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::predict(const motion_model_input_t& u){
 
     /// make a state predicion using the
     /// motion model
@@ -230,8 +230,7 @@ ExtendedKalmanFilter<MotionModelTp,ObservationModelTp>::predict(const typename E
 template<typename MotionModelTp, typename ObservationModelTp>
 void
 ExtendedKalmanFilter<MotionModelTp,
-                     ObservationModelTp>::update(const typename ExtendedKalmanFilter<MotionModelTp,
-                                                                                     ObservationModelTp>::observation_model_input_t&  z){
+                     ObservationModelTp>::update(const observation_model_input_t&  z){
 
     auto& state = motion_model_ptr_->get_state();
     auto& P = (*this)["P"];
