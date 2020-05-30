@@ -307,6 +307,7 @@ UnscentedKalmanFilter<MotionModelTp,
 
     predict(input.template get<0>());
     update(input.template get<1>());
+    update_sigma_points_();
 }
 
 template<typename MotionModelTp, typename ObservationModelTp>
@@ -314,7 +315,7 @@ void
 UnscentedKalmanFilter<MotionModelTp,
                       ObservationModelTp>::predict(const motion_model_input_t& u){
 
-
+    /// check if we are sane
     check_sanity_();
 
     static auto point_propagator = [this, &u](DynVec<real_t>& point){
@@ -364,9 +365,9 @@ UnscentedKalmanFilter<MotionModelTp,
 
     /// estimate mean and covariance
     /// of predicted measurements
-    auto zpred = w_[0]*zpred_hat[0];
+    DynVec<real_t> zpred(zpred_hat[0].size(), 0.0);
 
-    for(uint_t p = 1; p<sigma_points_.size(); ++p){
+    for(uint_t p = 0; p<sigma_points_.size(); ++p){
         zpred += w_[p]*zpred_hat[p];
     }
 
