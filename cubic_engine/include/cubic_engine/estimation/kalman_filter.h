@@ -26,8 +26,8 @@ namespace cengine
 /// x_k = \hat{x}_{k} + K_k * (z_k - h( \hat{x}_{k}, 0))
 /// P_k = (I - K_k * H_k) * \hat{P}_{k}
 ///
-/// where w_k and v_k  represent process and measurement noise respectively. They are assumed
-/// independent and normally distributed:
+/// where w_k and v_k  represent process and measurement noise respectively.
+/// They are assumed independent and normally distributed:
 ///
 /// p(w) ~ N(0,Q)
 /// p(v) ~ N(0,R)
@@ -194,7 +194,9 @@ KalmanFilter<MotionModelTp,ObservationModelTp>::operator[](const std::string& na
 
 template<typename MotionModelTp, typename ObservationModelTp>
 void
-KalmanFilter<MotionModelTp,ObservationModelTp>::set_matrix(const std::string& name, const matrix_t& mat){
+KalmanFilter<MotionModelTp,
+             ObservationModelTp>::set_matrix(const std::string& name,
+                                             const matrix_t& mat){
 
     if(name != "Q" && 
        name != "K" && 
@@ -262,8 +264,7 @@ KalmanFilter<MotionModelTp,
 template<typename MotionModelTp, typename ObservationModelTp>
 void
 KalmanFilter<MotionModelTp,
-             ObservationModelTp>::update(const typename KalmanFilter<MotionModelTp,
-                                                                     ObservationModelTp>::observation_model_input_t&  z){
+             ObservationModelTp>::update(const observation_model_input_t&  z){
 
     if(!motion_model_ptr_){
         throw std::runtime_error("Motion model has not been set");
