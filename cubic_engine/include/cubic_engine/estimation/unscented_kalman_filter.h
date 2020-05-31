@@ -100,6 +100,9 @@ public:
     /// Returns the number of weights
     uint_t n_weights()const{return w_.size();}
 
+    /// \brief update the sigma points
+    void update_sigma_points();
+
 protected:
 
     /// \brief pointer to the function that computes f
@@ -124,9 +127,6 @@ protected:
     /// \brief Check the state of the instance before
     /// doing any computations
     void check_sanity_()const;
-
-    /// \brief update the sigma points
-    void update_sigma_points_();
 
 };
 
@@ -214,14 +214,14 @@ ObservationModelTp>::initialize_sigma_points(real_t k){
                   [this, n](real_t& w){w = 0.5*(1/n + this->k_);});
 
     /// update the sigma points
-    update_sigma_points_();
+    update_sigma_points();
 }
 
 template<typename MotionModelTp,
          typename ObservationModelTp>
 void
 UnscentedKalmanFilter<MotionModelTp,
-ObservationModelTp>::update_sigma_points_(){
+ObservationModelTp>::update_sigma_points(){
 
     auto state_vec = motion_model_ptr_->get_state().as_vector();
 
@@ -307,7 +307,7 @@ UnscentedKalmanFilter<MotionModelTp,
 
     predict(input.template get<0>());
     update(input.template get<1>());
-    update_sigma_points_();
+    update_sigma_points();
 }
 
 template<typename MotionModelTp, typename ObservationModelTp>
@@ -403,7 +403,7 @@ UnscentedKalmanFilter<MotionModelTp,
     motion_model_ptr_->get_state() += K*innovation;
 
     auto& P = (*this)["P"];
-    P -= K*Py*trans(Py);
+    P -= K*Py*trans(K);
 }
 
 }
