@@ -48,6 +48,10 @@ public:
                       const StateTp& s,
                       const StateTp& sprime)const;
 
+    template<typename ActionTp, typename StateTp>
+    real_t get_reward(const ActionTp& action,
+                      const StateTp& s)const;
+
 private:
 
     /// table that holds the rewards
@@ -302,6 +306,15 @@ real_t
 RewardProducer::get_reward(const ActionTp& action,
                            const StateTp& s,
                            const StateTp& sprime)const{
+
+    return rewards_.get_reward(s.get_id(), action);
+
+}
+
+template<typename ActionTp, typename StateTp>
+real_t
+RewardProducer::get_reward(const ActionTp& action,
+                           const StateTp& s)const{
 
     return rewards_.get_reward(s.get_id(), action);
 
