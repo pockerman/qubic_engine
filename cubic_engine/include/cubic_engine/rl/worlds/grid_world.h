@@ -17,7 +17,9 @@ namespace worlds {
 
 
 template<typename RewardTp>
-class GridWorld: public World<GridWorldAction, GridWorldState, typename RewardTp::value_t>
+class GridWorld: public World<GridWorldAction,
+                              GridWorldState,
+                              typename RewardTp::value_t>
 {
 public:
 
@@ -44,15 +46,30 @@ public:
     virtual void step(const action_t&)override final;
 
     /// \brief Restart the world. This means that
-    /// the state of the world will be that of...
+    /// the state of the world will be that of start
     void restart(const state_t& start, const state_t& goal);
+
+    /// \brief Restart the world with a list of goals
+    void restart(const state_t& start, std::vector<state_t*>&& goal);
+
+    /// \brief Restart the world but keep the goals
+    void restart(const state_t& state);
 
     /// \brief Set the state of the world
     void set_state(const state_t& state){current_state_ = &state;}
 
+    /// \brief Append another goal
+    void append_goal(const state_t& goal){goals_.push_back(&goal);}
+
     /// \brief Returns the reward associated
     /// with the last state transition
     virtual reward_value_t reward()const override final{return r_;}
+
+    /// \brief Returns the reward for the given state
+    /// and the given actions
+    reward_value_t get_reward(const state_t& state, const action_t& action)const{
+        return reward_.get_reward(action, state);
+    }
 
     /// \brief The size of the world.  Namely,
     /// the total number of different positions in
@@ -80,13 +97,17 @@ public:
     /// \brief Returns true if the world is finished
     bool is_finished()const{return finished_;}
 
+    /// \brief Returns true if the given state is a goal state
+    bool is_goal_state(const state_t& state)const;
+
 private:
 
     /// \brief The starting state
     const state_t* start_;
 
-    /// \brief The goal state
-    const state_t* goal_;
+    /// \brief The goal states. More than one goal
+    /// states are allowed
+    std::vector<const state_t*> goals_;
 
     /// \brief The current state the world is in
     const state_t* current_state_;
@@ -116,7 +137,7 @@ GridWorld<RewardTp>::GridWorld()
     :
     World<GridWorldAction, GridWorldState, typename RewardTp::value_t>(),
     start_(nullptr),
-    goal_(nullptr),
+    goals_(),
     current_state_(nullptr),
     reward_(),
     r_(0.0),
@@ -140,11 +161,11 @@ GridWorld<RewardTp>::step(const typename GridWorld<RewardTp>::action_t& action){
        throw std::logic_error("Null current state pointer");
     }
 
-    if(goal_ == nullptr){
-       throw std::logic_error("Null goal pointer");
+    if(goals_.empty()){
+       throw std::logic_error("Empty goals list");
     }
 
-    if(*current_state_ == *goal_){
+    if(is_goal_state(*current_state_)){
         r_ = reward_.goal_reward();
         finished_ = true;
     }
@@ -156,9 +177,12 @@ GridWorld<RewardTp>::step(const typename GridWorld<RewardTp>::action_t& action){
         auto* next_state = const_cast<state_t*>(current_state_)->execute_action(action);
 
         if(next_state == nullptr){
-            // the agent just came out of the grid
-            // so finishe the game
+            /// the agent just came out of the grid
+            /// so finish the game
             finished_ = true;
+
+            /// what is the return for this?
+            r_ = reward_.get_reward(action, *current_state_);
         }
         else{
             r_ = reward_.get_reward(action, *current_state_, *next_state);
@@ -175,16 +199,50 @@ GridWorld<RewardTp>::set_states(std::vector<state_t>&& states){
 }
 
 template<typename RewardTp>
+bool
+GridWorld<RewardTp>::is_goal_state(const state_t& state)const{
+
+    return std::find_if(goals_.begin(),
+                        goals_.end(),
+                        [&](const auto* ptr){return ptr->get_id() == state.get_id();}) != goals_.end();
+}
+
+template<typename RewardTp>
 void
-GridWorld<RewardTp>::restart(const typename GridWorld<RewardTp>::state_t& start,
-                             const typename GridWorld<RewardTp>::state_t& goal){
+GridWorld<RewardTp>::restart(const state_t& start,
+                             const state_t& goal){
 
     start_ = &start;
-    goal_ = &goal;
+    goals_ = std::vector<const state_t*>();
+    goals_.push_back( &goal);
     current_state_ = &get_state(start_->get_id());
     r_ = 0.0;
     finished_ = false;
 
+}
+
+template<typename RewardTp>
+void
+GridWorld<RewardTp>::restart(const state_t& start,
+                             std::vector<state_t*>&& goals){
+
+    start_ = &start;
+    goals_ = std::vector<const state_t*>();
+    goals_ = goals;
+    current_state_ = &get_state(start_->get_id());
+    r_ = 0.0;
+    finished_ = false;
+
+}
+
+template<typename RewardTp>
+void
+GridWorld<RewardTp>::restart(const state_t& start){
+
+    start_ = &start;
+    current_state_ = &get_state(start_->get_id());
+    r_ = 0.0;
+    finished_ = false;
 }
 
 template<typename RewardTp>

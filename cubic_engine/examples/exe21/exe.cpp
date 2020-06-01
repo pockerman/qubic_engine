@@ -164,29 +164,29 @@ int main(){
 
     try{
             WaypointPath<2, Null, LineSegmentData> path;
-            path.reserve_n_waypoints(6);
+            path.reserve_nodes(6);
 
-            auto start = path.add_way_point(GeomPoint<2>({0.0, 0.0}), Null());
-            path.add_way_point(GeomPoint<2>({10.0, 0.0}), Null());
-            path.add_way_point(GeomPoint<2>({20.0, 0.0}), Null());
-            path.add_way_point(GeomPoint<2>({50.0, 30.0}), Null());
-            path.add_way_point(GeomPoint<2>({60.0, 30.0}), Null());
-            auto goal = path.add_way_point(GeomPoint<2>({90.0, 0.0}), Null());
+            auto start = path.add_node(GeomPoint<2>({0.0, 0.0}), Null());
+            path.add_node(GeomPoint<2>({10.0, 0.0}), Null());
+            path.add_node(GeomPoint<2>({20.0, 0.0}), Null());
+            path.add_node(GeomPoint<2>({50.0, 30.0}), Null());
+            path.add_node(GeomPoint<2>({60.0, 30.0}), Null());
+            auto goal = path.add_node(GeomPoint<2>({90.0, 0.0}), Null());
 
             LineSegmentData segmentdata = {1.0, 0.0, 0.0, 0.0};
 
-            path.reserve_n_segments(5);
-            path.add_segment(0, 1, segmentdata);
-            path.add_segment(1, 2, segmentdata);
+            path.reserve_elements(5);
+            path.add_element(0, 1, segmentdata);
+            path.add_element(1, 2, segmentdata);
 
             segmentdata.theta = kernel::UnitConverter::degrees_to_rad(45.0);
 
-            path.add_segment(2, 3, segmentdata);
+            path.add_element(2, 3, segmentdata);
             segmentdata.theta = 0.0;
-            path.add_segment(3, 4, segmentdata);
+            path.add_element(3, 4, segmentdata);
 
             segmentdata.theta = kernel::UnitConverter::degrees_to_rad(-45.0);
-            path.add_segment(4, 5, segmentdata);
+            path.add_element(4, 5, segmentdata);
 
             CarrotChasingPathTrackController<Null, LineSegmentData> controller;
             controller.set_lookahead_dist(7.5);
@@ -202,7 +202,7 @@ int main(){
             properties.Vmax = 2.0; //m/sec
             properties.Amax = 1.2; // m/sec^2
 
-            Agent agent(controller, goal, GOAL_RADIUS, properties);
+            Agent agent(controller, *goal, GOAL_RADIUS, properties);
 
             /// initialze the state of the agent at (0,0.5)
             agent.set_init_pos(0.0, 5.0);
