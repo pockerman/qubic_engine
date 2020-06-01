@@ -78,6 +78,11 @@ GridWorldState::is_active_action(uint_t i)const{
 }
 
 GridWorldAction
+GridWorldState::get_action(uint_t a)const{
+    return GridWorldState::get_action_from_idx(a);
+}
+
+GridWorldAction
 GridWorldState::get_action_for_neighbor(const GridWorldState& neighbor)const{
 
     auto begin = state_transitions_.begin();

@@ -58,6 +58,9 @@ public:
     /// active actions
     const std::vector<GridWorldAction> get_active_actions()const;
 
+    /// \brief Returns the a-th action
+    GridWorldAction get_action(uint_t a)const;
+
     /// \brief Return the GridWorldAction required to
     /// get to the neighbor element. If the neighbor
     /// does not exist return GridWorldAction::INVALID_ACTION
