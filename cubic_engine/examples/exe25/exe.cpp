@@ -47,6 +47,14 @@ public:
         return rewards_.get_reward(s.get_id(), action);
     }
 
+    // returns the reward for the action
+        /// at  state s when going to state sprime
+        template<typename ActionTp, typename StateTp>
+        real_t get_reward(const ActionTp& action,
+                          const StateTp& s)const{
+            return rewards_.get_reward(s.get_id(), action);
+        }
+
 private:
 
     /// table that holds the rewards
@@ -233,6 +241,7 @@ int main(){
         /// the world of the agent
         world_t world;
         create_wolrd(world);
+
 
         std::cout<<"Number of states: "<<world.n_states()<<std::endl;
 
