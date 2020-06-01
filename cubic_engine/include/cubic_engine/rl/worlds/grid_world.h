@@ -65,6 +65,12 @@ public:
     /// with the last state transition
     virtual reward_value_t reward()const override final{return r_;}
 
+    /// \brief Returns the reward for the given state
+    /// and the given actions
+    reward_value_t get_reward(const state_t& state, const action_t& action)const{
+        return reward_.get_reward(action, state);
+    }
+
     /// \brief The size of the world.  Namely,
     /// the total number of different positions in
     /// the grid
@@ -203,8 +209,8 @@ GridWorld<RewardTp>::is_goal_state(const state_t& state)const{
 
 template<typename RewardTp>
 void
-GridWorld<RewardTp>::restart(const typename GridWorld<RewardTp>::state_t& start,
-                             const typename GridWorld<RewardTp>::state_t& goal){
+GridWorld<RewardTp>::restart(const state_t& start,
+                             const state_t& goal){
 
     start_ = &start;
     goals_ = std::vector<const state_t*>();
@@ -217,8 +223,8 @@ GridWorld<RewardTp>::restart(const typename GridWorld<RewardTp>::state_t& start,
 
 template<typename RewardTp>
 void
-GridWorld<RewardTp>::restart(const typename GridWorld<RewardTp>::state_t& start,
-                             std::vector<typename GridWorld<RewardTp>::state_t*>&& goals){
+GridWorld<RewardTp>::restart(const state_t& start,
+                             std::vector<state_t*>&& goals){
 
     start_ = &start;
     goals_ = std::vector<const state_t*>();
@@ -231,7 +237,7 @@ GridWorld<RewardTp>::restart(const typename GridWorld<RewardTp>::state_t& start,
 
 template<typename RewardTp>
 void
-GridWorld<RewardTp>::restart(const const typename GridWorld<RewardTp>::state_t& start){
+GridWorld<RewardTp>::restart(const state_t& start){
 
     start_ = &start;
     current_state_ = &get_state(start_->get_id());
