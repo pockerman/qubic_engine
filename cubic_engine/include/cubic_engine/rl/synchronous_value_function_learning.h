@@ -17,6 +17,8 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
+#include <algorithm>
+#include <cmath>
 
 
 namespace cengine {
@@ -93,6 +95,35 @@ private:
 };
 
 template<typename WorldTp>
+SyncValueFuncItr<WorldTp>::SyncValueFuncItr()
+    :
+    imput_(),
+    itr_controller_(0, 1.0e-8),
+    vold_(),
+    v_(),
+    world_(nullptr)
+{}
+
+template<typename WorldTp>
+SyncValueFuncItr<WorldTp>::SyncValueFuncItr(SyncValueFuncItrInput&& input)
+    :
+    imput_(input),
+    itr_controller_(input.n_iterations, input.tol),
+    vold_(),
+    v_(),
+    world_(nullptr)
+{}
+
+template<typename WorldTp>
+void
+SyncValueFuncItr<WorldTp>::initialize(world_t& world, real_t init_val){
+
+    world_ = &world;
+    vold_.resize(world_->n_states(), init_val);
+    v_.resize(world_->n_states(), init_val);
+}
+
+template<typename WorldTp>
 template<typename DynamicsP>
 typename SyncValueFuncItr<WorldTp>::output_t
 SyncValueFuncItr<WorldTp>::train(const DynamicsP& dynamics){
@@ -100,6 +131,7 @@ SyncValueFuncItr<WorldTp>::train(const DynamicsP& dynamics){
 
     while(itr_controller_.continue_iterations()){
 
+        real_t delta = 0.0;
         if(imput_.show_iterations){
             std::cout<<itr_controller_.get_state()<<std::endl;
         }
@@ -108,7 +140,7 @@ SyncValueFuncItr<WorldTp>::train(const DynamicsP& dynamics){
         for(uint_t s=0; s<world_->n_states(); ++s){
 
             /// get the s-th state
-            auto state = world_->get_state();
+            auto state = world_->get_state(s);
 
             /// the world should know which state is terminal
             if(!world_->is_goal_state(state)){
@@ -122,20 +154,26 @@ SyncValueFuncItr<WorldTp>::train(const DynamicsP& dynamics){
                 /// state
                 for(uint_t a=0; a<state.n_actions(); ++a){
 
-                    auto action  = state.get_action(a);
-                    auto state_prime = state.apply_action(a);
+                    auto action = state.get_action(a);
+                    auto state_prime = state.execute_action(action);
 
                     if(state_prime){
 
-                        real_t p = dynamics(state_prime, state, action);
+                        real_t p = dynamics(*state_prime, state, action);
                         real_t reward = world_->get_reward(state, action);
                         real_t vs_prime = vold_[state_prime->get_id()];
-                        weighted_sum += reward + p*imput_.gamma*vs_prime;
+                        weighted_sum += reward + p*imput_.gamma*vs_prime;    
                     }
-
                 }
+
+                v_[state.get_id()] = weighted_sum;
+                delta = std::max(delta, std::fabs(old_v-weighted_sum));
             }
         }
+
+        /// update the vectors
+        vold_ = v_;
+        itr_controller_.update_residual(delta);
     }
 
 }
