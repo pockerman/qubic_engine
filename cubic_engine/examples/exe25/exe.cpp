@@ -234,9 +234,15 @@ int main(){
         typedef world_t::state_t state_t;
         typedef world_t::action_t action_t;
 
-        auto dynamics = [](const state_t&,const state_t&, action_t){
+        auto policy = [](const action_t&,const state_t&){
           return 0.25;
         };
+
+        auto dynamics = [](const state_t&, real_t, const state_t&, const action_t&){
+          return 1.0;
+        };
+
+        std::vector<real_t> rewards(1, -1.0);
 
         /// the world of the agent
         world_t world;
@@ -255,12 +261,12 @@ int main(){
         /// simulation parameters
         /// number of episodes for the agent to learn.
         const uint_t N_ITERATIONS = 500;
-        const real_t ETA = 0.1;
+        const real_t TOL = 1.0e-8;
         const real_t EPSILON = 0.3;
-        const real_t GAMMA = 0.0;
+        const real_t GAMMA = 1.0;
         const real_t PENALTY = -100.0;
 
-        SyncValueFuncItrInput input={ETA, GAMMA, N_ITERATIONS, true};
+        SyncValueFuncItrInput input={TOL, GAMMA, N_ITERATIONS, true};
         SyncValueFuncItr<world_t> learner(std::move(input));
 
         //CSVWriter writer("agent_rewards.csv", ',', true);
@@ -270,7 +276,7 @@ int main(){
         learner.initialize(world, PENALTY);
 
         world.restart(start);
-        auto result = learner.train(dynamics);
+        auto result = learner.train(policy, dynamics, rewards);
 
         //auto& table = sarsalearner.get_table();
         //table.save_to_csv("table_rewards" + std::to_string(0) + ".csv");
