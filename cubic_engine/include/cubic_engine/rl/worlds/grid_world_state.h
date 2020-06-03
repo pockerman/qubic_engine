@@ -66,6 +66,12 @@ public:
     /// does not exist return GridWorldAction::INVALID_ACTION
     GridWorldAction get_action_for_neighbor(const GridWorldState& neighbor)const;
 
+    /// \brief Returns a list with the transition
+    /// states the agent can transition to from this
+    /// state
+    std::vector<const GridWorldState*> get_states()const;
+
+
 private:
 
     /// \brief The id of the state
@@ -79,7 +85,6 @@ private:
     mutable uint_t previous_active_action_choice_{0};
 
 };
-
 
 inline
 bool operator==(const GridWorldState& s1, const GridWorldState& s2){
