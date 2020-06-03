@@ -70,8 +70,10 @@ public:
     SyncValueFuncItr(SyncValueFuncItrInput&& input);
 
     /// \brief Train on the given world
-    template<typename DynamicsP>
-    output_t train(const DynamicsP& dynamics);
+    template<typename PolicyTp, typename DynamicsP>
+    output_t train(PolicyTp& policy,
+                   const DynamicsP& dynamics,
+                   const std::vector<real_t>& rewards);
 
     ///Initialize the tabular implementation
     void initialize(world_t& world, real_t init_val);
@@ -124,9 +126,10 @@ SyncValueFuncItr<WorldTp>::initialize(world_t& world, real_t init_val){
 }
 
 template<typename WorldTp>
-template<typename DynamicsP>
+template<typename PolicyTp, typename DynamicsP>
 typename SyncValueFuncItr<WorldTp>::output_t
-SyncValueFuncItr<WorldTp>::train(const DynamicsP& dynamics){
+SyncValueFuncItr<WorldTp>::train(PolicyTp& policy, const DynamicsP& dynamics,
+                                 const std::vector<real_t>& rewards){
 
 
     while(itr_controller_.continue_iterations()){
@@ -155,15 +158,28 @@ SyncValueFuncItr<WorldTp>::train(const DynamicsP& dynamics){
                 for(uint_t a=0; a<state.n_actions(); ++a){
 
                     auto action = state.get_action(a);
-                    auto state_prime = state.execute_action(action);
 
-                    if(state_prime){
+                    /// get the probability at this state
+                    /// to take the action given action
+                    auto action_prob = policy(state, action);
 
-                        real_t p = dynamics(*state_prime, state, action);
-                        real_t reward = world_->get_reward(state, action);
-                        real_t vs_prime = vold_[state_prime->get_id()];
-                        weighted_sum += reward + p*imput_.gamma*vs_prime;    
+                    /// loop over the states we can transition
+                    /// to from this state
+                    auto transition_states = state.get_states();
+
+                    auto value = 0.0;
+                    for(uint_t os=0; os < transition_states.size();  ++os){
+                            if(transition_states[os]){
+                                for(uint_t ridx=0; ridx<rewards.size(); ++ridx){
+                                real_t r = rewards[ridx];
+                                real_t vs_prime = vold_[transition_states[os]->get_id()];
+                                value += dynamics(*transition_states[os], r, state, action)*
+                                        (r + imput_.gamma*vs_prime );
+                            }
+                        }
                     }
+
+                    weighted_sum += action_prob*value;
                 }
 
                 v_[state.get_id()] = weighted_sum;
