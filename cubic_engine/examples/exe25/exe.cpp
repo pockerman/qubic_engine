@@ -234,7 +234,7 @@ int main(){
         typedef world_t::state_t state_t;
         typedef world_t::action_t action_t;
 
-        auto policy = [](const action_t&,const state_t&){
+        auto policy = [](const action_t&, const state_t&){
           return 0.25;
         };
 
@@ -260,11 +260,9 @@ int main(){
 
         /// simulation parameters
         /// number of episodes for the agent to learn.
-        const uint_t N_ITERATIONS = 500;
+        const uint_t N_ITERATIONS = 3;
         const real_t TOL = 1.0e-8;
-        const real_t EPSILON = 0.3;
         const real_t GAMMA = 1.0;
-        const real_t PENALTY = -100.0;
 
         SyncValueFuncItrInput input={TOL, GAMMA, N_ITERATIONS, true};
         SyncValueFuncItr<world_t> learner(std::move(input));
@@ -273,10 +271,23 @@ int main(){
         //writer.write_column_names({"Episode", "Reward"}, true);
 
         std::vector<real_t> row(2);
-        learner.initialize(world, PENALTY);
+        learner.initialize(world, 0.0);
 
         world.restart(start);
-        auto result = learner.train(policy, dynamics, rewards);
+
+        while(learner.continue_iterations()){
+
+            std::cout<<"At iteration: "<<learner.get_current_iteration()<<std::endl;
+
+            learner.step(policy, dynamics);
+            auto values = learner.get_values();
+
+            for(auto c=0; c<values.size(); ++c){
+                std::cout<<"Cell: "<<c<<" value: "<<values[c]<<std::endl;
+            }
+        }
+
+        //auto result = learner.train(policy, dynamics);
 
         //auto& table = sarsalearner.get_table();
         //table.save_to_csv("table_rewards" + std::to_string(0) + ".csv");
