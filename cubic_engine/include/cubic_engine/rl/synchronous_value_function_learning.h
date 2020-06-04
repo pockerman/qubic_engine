@@ -72,11 +72,25 @@ public:
     /// \brief Train on the given world
     template<typename PolicyTp, typename DynamicsP>
     output_t train(PolicyTp& policy,
-                   const DynamicsP& dynamics,
-                   const std::vector<real_t>& rewards);
+                   const DynamicsP& dynamics);
+
+    /// \brief Performs one step of the train on the given world
+    template<typename PolicyTp, typename DynamicsP>
+    void step(PolicyTp& policy,
+              const DynamicsP& dynamics);
 
     ///Initialize the tabular implementation
     void initialize(world_t& world, real_t init_val);
+
+    /// \brief Returns true if iterations should be
+    /// continued
+    bool continue_iterations(){return itr_controller_.continue_iterations();}
+
+    /// \brief Access the value function table
+    const std::vector<real_t>& get_values()const{return v_;}
+
+    /// \breif Returns  the current iteration index
+    uint_t get_current_iteration()const{return itr_controller_.get_current_iteration();}
 
 private:
 
@@ -127,20 +141,84 @@ SyncValueFuncItr<WorldTp>::initialize(world_t& world, real_t init_val){
 
 template<typename WorldTp>
 template<typename PolicyTp, typename DynamicsP>
+void
+SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
+                                const DynamicsP& dynamics){
+    real_t delta = 0.0;
+
+    /// loop over the states of the world
+    for(uint_t s=0; s<world_->n_states(); ++s){
+
+        /// get the s-th state
+        auto state = world_->get_state(s);
+
+        /// the world should know which state is terminal
+        if(!world_->is_goal_state(state)){
+
+            /// this is not the goal state
+            real_t old_v = vold_[state.get_id()];
+
+            real_t weighted_sum = 0.0;
+
+            /// loop over all the actions allowed on this
+            /// state
+            for(uint_t a=0; a<state.n_actions(); ++a){
+
+                auto action = state.get_action(a);
+
+                /// get the probability at this state
+                /// to take the given action
+                auto action_prob = policy(action, state);
+
+                /// loop over the states we can transition
+                /// to from this state
+                auto transition_states = state.get_states();
+
+                auto value = 0.0;
+                for(uint_t os=0; os < transition_states.size();  ++os){
+                        if(transition_states[os]){
+
+                            /// the reward we will receive if at the
+                            /// current state we take the given action.
+                            /// This means that the agent transitions to
+                            /// transition_states[os]
+                            real_t r = world_->get_reward(state, action);
+                            real_t vs_prime = vold_[transition_states[os]->get_id()];
+                            value += dynamics(*transition_states[os], r, state, action)*
+                                    (r + imput_.gamma*vs_prime );
+
+                    }
+                }
+
+                weighted_sum += action_prob*value;
+            }
+
+            v_[state.get_id()] = weighted_sum;
+            delta = std::max(delta, std::fabs(old_v-weighted_sum));
+        }
+
+        /// update the vectors
+        vold_ = v_;
+        itr_controller_.update_residual(delta);
+}
+
+}
+template<typename WorldTp>
+template<typename PolicyTp, typename DynamicsP>
 typename SyncValueFuncItr<WorldTp>::output_t
-SyncValueFuncItr<WorldTp>::train(PolicyTp& policy, const DynamicsP& dynamics,
-                                 const std::vector<real_t>& rewards){
+SyncValueFuncItr<WorldTp>::train(PolicyTp& policy, const DynamicsP& dynamics){
 
 
     while(itr_controller_.continue_iterations()){
 
-        real_t delta = 0.0;
+        //real_t delta = 0.0;
         if(imput_.show_iterations){
             std::cout<<itr_controller_.get_state()<<std::endl;
         }
+        step(policy, dynamics);
 
         /// loop over the states of the world
-        for(uint_t s=0; s<world_->n_states(); ++s){
+        /*for(uint_t s=0; s<world_->n_states(); ++s){
 
             /// get the s-th state
             auto state = world_->get_state(s);
@@ -160,7 +238,7 @@ SyncValueFuncItr<WorldTp>::train(PolicyTp& policy, const DynamicsP& dynamics,
                     auto action = state.get_action(a);
 
                     /// get the probability at this state
-                    /// to take the action given action
+                    /// to take the given action
                     auto action_prob = policy(state, action);
 
                     /// loop over the states we can transition
@@ -170,12 +248,16 @@ SyncValueFuncItr<WorldTp>::train(PolicyTp& policy, const DynamicsP& dynamics,
                     auto value = 0.0;
                     for(uint_t os=0; os < transition_states.size();  ++os){
                             if(transition_states[os]){
-                                for(uint_t ridx=0; ridx<rewards.size(); ++ridx){
-                                real_t r = rewards[ridx];
+
+                                /// the reward we will receive if at the
+                                /// current state we take the given action.
+                                /// This means that the agent transitions to
+                                /// transition_states[os]
+                                real_t r = world_->get_reward(state, action);
                                 real_t vs_prime = vold_[transition_states[os]->get_id()];
                                 value += dynamics(*transition_states[os], r, state, action)*
                                         (r + imput_.gamma*vs_prime );
-                            }
+
                         }
                     }
 
@@ -189,15 +271,13 @@ SyncValueFuncItr<WorldTp>::train(PolicyTp& policy, const DynamicsP& dynamics,
 
         /// update the vectors
         vold_ = v_;
-        itr_controller_.update_residual(delta);
+        itr_controller_.update_residual(delta);*/
     }
 
 }
 
 
-
 }
-
 }
 
 #endif // SYNCHRONOUS_VALUE_FUNCTION_LEARNER_H
