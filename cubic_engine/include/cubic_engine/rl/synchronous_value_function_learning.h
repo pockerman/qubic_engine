@@ -184,8 +184,8 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
                             /// transition_states[os]
                             real_t r = world_->get_reward(state, action);
                             real_t vs_prime = vold_[transition_states[os]->get_id()];
-                            value += dynamics(*transition_states[os], r, state, action)*
-                                    (r + imput_.gamma*vs_prime );
+                            auto p= dynamics(*transition_states[os], r, state, action);
+                            value += p*(r + imput_.gamma*vs_prime );
 
                     }
                 }
