@@ -47,13 +47,13 @@ public:
         return rewards_.get_reward(s.get_id(), action);
     }
 
-    // returns the reward for the action
-        /// at  state s when going to state sprime
-        template<typename ActionTp, typename StateTp>
-        real_t get_reward(const ActionTp& action,
+    /// returns the reward for the action
+    /// at  state s when going to state sprime
+     template<typename ActionTp, typename StateTp>
+     real_t get_reward(const ActionTp& action,
                           const StateTp& s)const{
             return rewards_.get_reward(s.get_id(), action);
-        }
+     }
 
 private:
 
@@ -67,25 +67,32 @@ private:
 RewardProducer::RewardProducer()
     :
    rewards_()
-{}
+{
+    setup_rewards();
+}
 
 void
 RewardProducer::setup_rewards(){
 
     rewards_.set_reward(0, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(0, GridWorldAction::NORTH, -1.0);
+    rewards_.set_reward(0, GridWorldAction::SOUTH, -2.0);
+    rewards_.set_reward(0, GridWorldAction::WEST, -2.0);
 
     rewards_.set_reward(1, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(1, GridWorldAction::NORTH, -1.0);
     rewards_.set_reward(1, GridWorldAction::WEST, -1.0);
+    rewards_.set_reward(1, GridWorldAction::SOUTH, 0.0);
 
     rewards_.set_reward(2, GridWorldAction::EAST, 0.0);
     rewards_.set_reward(2, GridWorldAction::NORTH, -1.0);
     rewards_.set_reward(2, GridWorldAction::WEST, -1.0);
+    rewards_.set_reward(2, GridWorldAction::SOUTH, 0.0);
 
     rewards_.set_reward(4, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(4, GridWorldAction::NORTH, -1.0);
     rewards_.set_reward(4, GridWorldAction::SOUTH, -1.0);
+    rewards_.set_reward(4, GridWorldAction::WEST, -2.0);
 
     rewards_.set_reward(5, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(5, GridWorldAction::NORTH, -1.0);
@@ -100,10 +107,12 @@ RewardProducer::setup_rewards(){
     rewards_.set_reward(7, GridWorldAction::NORTH, -1.0);
     rewards_.set_reward(7, GridWorldAction::SOUTH, 0.0);
     rewards_.set_reward(7, GridWorldAction::WEST, -1.0);
+    rewards_.set_reward(7, GridWorldAction::EAST, -2.0);
 
     rewards_.set_reward(8, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(8, GridWorldAction::NORTH, 0.0);
     rewards_.set_reward(8, GridWorldAction::SOUTH, -1.0);
+    rewards_.set_reward(8, GridWorldAction::WEST, -2.0);
 
     rewards_.set_reward(9, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(9, GridWorldAction::NORTH, -1.0);
@@ -118,15 +127,20 @@ RewardProducer::setup_rewards(){
     rewards_.set_reward(11, GridWorldAction::NORTH, -1.0);
     rewards_.set_reward(11, GridWorldAction::SOUTH, -1.0);
     rewards_.set_reward(11, GridWorldAction::WEST, -1.0);
+    rewards_.set_reward(11, GridWorldAction::EAST, -2.0);
 
+    rewards_.set_reward(13, GridWorldAction::NORTH, -2.0);
     rewards_.set_reward(13, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(13, GridWorldAction::SOUTH, -1.0);
     rewards_.set_reward(13, GridWorldAction::WEST, 0.0);
 
+    rewards_.set_reward(14, GridWorldAction::NORTH, -2.0);
     rewards_.set_reward(14, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(14, GridWorldAction::SOUTH, -1.0);
     rewards_.set_reward(14, GridWorldAction::WEST, -1.0);
 
+    rewards_.set_reward(15, GridWorldAction::NORTH, -2.0);
+    rewards_.set_reward(15, GridWorldAction::EAST, -2.0);
     rewards_.set_reward(15, GridWorldAction::SOUTH, -1.0);
     rewards_.set_reward(15, GridWorldAction::WEST, -1.0);
 }
@@ -238,7 +252,14 @@ int main(){
           return 0.25;
         };
 
-        auto dynamics = [](const state_t&, real_t, const state_t&, const action_t&){
+        RewardProducer rproducer;
+        auto dynamics = [&rproducer](const state_t& s1, real_t,
+                const state_t& s2, const action_t& action){
+
+            if(rproducer.get_reward(action, s2) == -2.0){
+                return 0.0;
+            }
+
           return 1.0;
         };
 
@@ -251,7 +272,7 @@ int main(){
 
         std::cout<<"Number of states: "<<world.n_states()<<std::endl;
 
-        state_t start(0);
+        state_t start(15);
         state_t goal1(3);
         state_t goal2(12);
 
