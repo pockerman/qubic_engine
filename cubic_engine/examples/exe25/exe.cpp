@@ -76,23 +76,23 @@ RewardProducer::setup_rewards(){
 
     rewards_.set_reward(0, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(0, GridWorldAction::NORTH, -1.0);
-    rewards_.set_reward(0, GridWorldAction::SOUTH, -2.0);
-    rewards_.set_reward(0, GridWorldAction::WEST, -2.0);
+    rewards_.set_reward(0, GridWorldAction::SOUTH, -1.0);
+    rewards_.set_reward(0, GridWorldAction::WEST, -1.0);
 
     rewards_.set_reward(1, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(1, GridWorldAction::NORTH, -1.0);
     rewards_.set_reward(1, GridWorldAction::WEST, -1.0);
-    rewards_.set_reward(1, GridWorldAction::SOUTH, 0.0);
+    rewards_.set_reward(1, GridWorldAction::SOUTH, -1.0);
 
-    rewards_.set_reward(2, GridWorldAction::EAST, 0.0);
+    rewards_.set_reward(2, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(2, GridWorldAction::NORTH, -1.0);
     rewards_.set_reward(2, GridWorldAction::WEST, -1.0);
-    rewards_.set_reward(2, GridWorldAction::SOUTH, 0.0);
+    rewards_.set_reward(2, GridWorldAction::SOUTH, -1.0);
 
     rewards_.set_reward(4, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(4, GridWorldAction::NORTH, -1.0);
     rewards_.set_reward(4, GridWorldAction::SOUTH, -1.0);
-    rewards_.set_reward(4, GridWorldAction::WEST, -2.0);
+    rewards_.set_reward(4, GridWorldAction::WEST, -1.0);
 
     rewards_.set_reward(5, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(5, GridWorldAction::NORTH, -1.0);
@@ -105,14 +105,14 @@ RewardProducer::setup_rewards(){
     rewards_.set_reward(6, GridWorldAction::WEST, -1.0);
 
     rewards_.set_reward(7, GridWorldAction::NORTH, -1.0);
-    rewards_.set_reward(7, GridWorldAction::SOUTH, 0.0);
+    rewards_.set_reward(7, GridWorldAction::SOUTH, -1.0);
     rewards_.set_reward(7, GridWorldAction::WEST, -1.0);
-    rewards_.set_reward(7, GridWorldAction::EAST, -2.0);
+    rewards_.set_reward(7, GridWorldAction::EAST, -1.0);
 
     rewards_.set_reward(8, GridWorldAction::EAST, -1.0);
-    rewards_.set_reward(8, GridWorldAction::NORTH, 0.0);
+    rewards_.set_reward(8, GridWorldAction::NORTH, -1.0);
     rewards_.set_reward(8, GridWorldAction::SOUTH, -1.0);
-    rewards_.set_reward(8, GridWorldAction::WEST, -2.0);
+    rewards_.set_reward(8, GridWorldAction::WEST, -1.0);
 
     rewards_.set_reward(9, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(9, GridWorldAction::NORTH, -1.0);
@@ -127,20 +127,20 @@ RewardProducer::setup_rewards(){
     rewards_.set_reward(11, GridWorldAction::NORTH, -1.0);
     rewards_.set_reward(11, GridWorldAction::SOUTH, -1.0);
     rewards_.set_reward(11, GridWorldAction::WEST, -1.0);
-    rewards_.set_reward(11, GridWorldAction::EAST, -2.0);
+    rewards_.set_reward(11, GridWorldAction::EAST, -1.0);
 
-    rewards_.set_reward(13, GridWorldAction::NORTH, -2.0);
+    rewards_.set_reward(13, GridWorldAction::NORTH, -1.0);
     rewards_.set_reward(13, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(13, GridWorldAction::SOUTH, -1.0);
-    rewards_.set_reward(13, GridWorldAction::WEST, 0.0);
+    rewards_.set_reward(13, GridWorldAction::WEST, -1.0);
 
-    rewards_.set_reward(14, GridWorldAction::NORTH, -2.0);
+    rewards_.set_reward(14, GridWorldAction::NORTH, -1.0);
     rewards_.set_reward(14, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(14, GridWorldAction::SOUTH, -1.0);
     rewards_.set_reward(14, GridWorldAction::WEST, -1.0);
 
-    rewards_.set_reward(15, GridWorldAction::NORTH, -2.0);
-    rewards_.set_reward(15, GridWorldAction::EAST, -2.0);
+    rewards_.set_reward(15, GridWorldAction::NORTH, -1.0);
+    rewards_.set_reward(15, GridWorldAction::EAST, -1.0);
     rewards_.set_reward(15, GridWorldAction::SOUTH, -1.0);
     rewards_.set_reward(15, GridWorldAction::WEST, -1.0);
 }
@@ -173,19 +173,19 @@ create_wolrd(world_t& w){
        /// bottom row
        if(i <4){
 
-           state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), nullptr);
+           state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), &state);
 
            if(i != 3){
              state.set_transition(GridWorldAction::EAST, &w.get_state(i+1));
            }
            else{
-               state.set_transition(GridWorldAction::EAST, nullptr);
+               state.set_transition(GridWorldAction::EAST, &state);
            }
 
            state.set_transition(GridWorldAction::NORTH, &w.get_state(N_CELLS + i));
 
            if(i == 0){
-                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
+                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &state);
            }
            else{
                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &w.get_state(i-1));
@@ -200,13 +200,13 @@ create_wolrd(world_t& w){
              state.set_transition(GridWorldAction::EAST, &w.get_state(i+1));
            }
            else{
-               state.set_transition(GridWorldAction::EAST, nullptr);
+               state.set_transition(GridWorldAction::EAST, &state);
            }
 
-           state.set_transition(GridWorldAction::NORTH, nullptr);
+           state.set_transition(GridWorldAction::NORTH, &state);
 
            if(i == 12){
-               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
+               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &state);
            }
            else{
               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &w.get_state(i-1));
@@ -221,7 +221,7 @@ create_wolrd(world_t& w){
                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), &w.get_state(i +1));
            }
            else{
-               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), nullptr);
+               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), &state);
            }
 
            state.set_transition(static_cast<GridWorldAction>(GridWorldAction::NORTH), &w.get_state(i + N_CELLS));
@@ -230,7 +230,7 @@ create_wolrd(world_t& w){
               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &w.get_state(i-1));
            }
            else {
-              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
+              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &state);
            }
        }
    }
@@ -256,11 +256,11 @@ int main(){
         auto dynamics = [&rproducer](const state_t& s1, real_t,
                 const state_t& s2, const action_t& action){
 
-            if(rproducer.get_reward(action, s2) == -2.0){
+            /*if(rproducer.get_reward(action, s2) == -2.0){
                 return 0.0;
-            }
+            }*/
 
-          return 1.0;
+          return 0.25;
         };
 
         std::vector<real_t> rewards(1, -1.0);
@@ -306,6 +306,8 @@ int main(){
             for(auto c=0; c<values.size(); ++c){
                 std::cout<<"Cell: "<<c<<" value: "<<values[c]<<std::endl;
             }
+
+            break;
         }
 
         //auto result = learner.train(policy, dynamics);
