@@ -133,14 +133,26 @@ GridWorldState::get_random_active_action()const{
 
     auto idx = dis(rd);
 
-    /*while(idx == previous_active_action_choice_){
-        goto calculate;
-    }*/
-
     previous_active_action_choice_ = idx;
 
     return active_actions[idx];
 
+}
+
+std::vector<const GridWorldState*>
+GridWorldState::get_states()const{
+
+    std::vector<const GridWorldState*> states;
+    states.reserve(state_transitions_.size());
+
+    auto itr = state_transitions_.begin();
+    auto end = state_transitions_.end();
+
+    for(; itr != end; ++itr){
+        states.push_back(itr->second);
+    }
+
+    return states;
 }
 
 
