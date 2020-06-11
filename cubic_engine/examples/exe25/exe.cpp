@@ -1,18 +1,11 @@
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "kernel/utilities/csv_file_writer.h"
 #include "kernel/base/kernel_consts.h"
-#include "kernel/utilities/csv_file_writer.h"
 #include "cubic_engine/rl/worlds/grid_world.h"
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #include "cubic_engine/rl/synchronous_value_function_learning.h"
 #include "cubic_engine/rl/reward_table.h"
 
-#include <cmath>
-#include <utility>
-#include <tuple>
 #include <iostream>
-#include <random>
-#include <algorithm>
 
 namespace example
 {
@@ -255,11 +248,6 @@ int main(){
         RewardProducer rproducer;
         auto dynamics = [&rproducer](const state_t& s1, real_t,
                 const state_t& s2, const action_t& action){
-
-            /*if(rproducer.get_reward(action, s2) == -2.0){
-                return 0.0;
-            }*/
-
           return 0.25;
         };
 
@@ -281,15 +269,12 @@ int main(){
 
         /// simulation parameters
         /// number of episodes for the agent to learn.
-        const uint_t N_ITERATIONS = 3;
-        const real_t TOL = 1.0e-8;
+        const uint_t N_ITERATIONS = 160;
+        const real_t TOL = 0.001;
         const real_t GAMMA = 1.0;
 
         SyncValueFuncItrInput input={TOL, GAMMA, N_ITERATIONS, true};
         SyncValueFuncItr<world_t> learner(std::move(input));
-
-        //CSVWriter writer("agent_rewards.csv", ',', true);
-        //writer.write_column_names({"Episode", "Reward"}, true);
 
         std::vector<real_t> row(2);
         learner.initialize(world, 0.0);
@@ -305,33 +290,8 @@ int main(){
 
             for(auto c=0; c<values.size(); ++c){
                 std::cout<<"Cell: "<<c<<" value: "<<values[c]<<std::endl;
-            }
-
-            break;
-        }
-
-        //auto result = learner.train(policy, dynamics);
-
-        //auto& table = sarsalearner.get_table();
-        //table.save_to_csv("table_rewards" + std::to_string(0) + ".csv");
-
-        /*for(uint_t episode=0; episode < N_ITERATIONS; ++episode){
-
-            std::cout<<"At episode: "<<episode<<std::endl;
-            world.restart(start, goal);
-            auto result = learner.train();
-
-            /// the total reward the agent obtained
-            /// in this episode
-            auto reward = result.total_reward;
-            writer.write_row(std::make_tuple(episode, reward));
-            std::cout<<"At episode: "<<episode<<" total reward: "<<reward<<std::endl;
-
-            if(episode == N_ITERATIONS - 1){
-                auto& table = sarsalearner.get_table();
-                table.save_to_csv("table_rewards" + std::to_string(episode) + ".csv");
-            }
-        }*/
+            }   
+        }    
     }
     catch(std::exception& e){
 
