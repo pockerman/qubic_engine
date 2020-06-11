@@ -155,6 +155,8 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
         /// the world should know which state is terminal
         if(!world_->is_goal_state(state)){
 
+            //std::cout<<"At state: "<<state.get_id()<<std::endl;
+
             /// this is not the goal state
             real_t old_v = vold_[state.get_id()];
 
@@ -176,6 +178,7 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
 
                 auto value = 0.0;
                 for(uint_t os=0; os < transition_states.size();  ++os){
+
                         if(transition_states[os]){
 
                             /// the reward we will receive if at the
@@ -186,21 +189,21 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
                             real_t vs_prime = vold_[transition_states[os]->get_id()];
                             auto p= dynamics(*transition_states[os], r, state, action);
                             value += p*(r + imput_.gamma*vs_prime );
-
                     }
                 }
 
+                //std::cout<<"value is: "<<value<<std::endl;
                 weighted_sum += action_prob*value;
             }
 
             v_[state.get_id()] = weighted_sum;
             delta = std::max(delta, std::fabs(old_v-weighted_sum));
-        }
-
-        /// update the vectors
-        vold_ = v_;
-        itr_controller_.update_residual(delta);
+        }       
 }
+
+    itr_controller_.update_residual(delta);
+    /// update the vectors
+    vold_ = v_;
 
 }
 template<typename WorldTp>
