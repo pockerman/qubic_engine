@@ -53,14 +53,14 @@ make tests
 
 - <a href="examples/exe1/doc/exe.ipynb">Example 1: </a> Using the ```KalmanFilter``` class
 - <a href="examples/exe2/doc/exe.ipynb">Example 2: </a> Using the ```ExtendedKalmanFilter``` class
-- <a href="examples/exe27/doc/exe.ipynb">Example 27: </a> Unscented Kalman Filte
+- <a href="examples/exe27/doc/exe.ipynb">Example 27: </a> Unscented Kalman Filter
 - Particle Filters
 
 ### <a name="control"></a> Control
 
 - <a href="#">Example 4: </a> Using the ```PIDControl``` class
 - LQR Control
-- <a href="#">Example 28: </a> Develop a model predictive controller for differential drive system
+- <a href="examples/exe28/doc/exe.ipynb">Example 28: </a> Develop a model predictive controller for differential drive system
 
 ### <a name="statistics"></a> Statistics
 - <a href="examples/exe24/doc/exe.ipynb">Example 24</a> Sampling from multivariate normal distribution
@@ -89,9 +89,10 @@ make tests
 ### <a name="using_ros"></a> Robotics Simulations
 
 - <a href="#">Example 3: </a> Create a simple server to comminicate with ROS
-- <a href="examples/exe19/doc/exe.ipynb">Example 19</a> Differential drive system simulation
-- <a href="examples/exe21/doc/exe.md">Example 21</a> Pure pursuit path tracking
-- <a href="examples/exe23/doc/exe.ipynb">Example 23</a> Follow the carrot path tracking
+- <a href="examples/exe19/doc/exe.ipynb">Example 19:</a> Differential drive system simulation
+- <a href="examples/exe21/doc/exe.md">Example 21:</a> Pure pursuit path tracking
+- <a href="examples/exe23/doc/exe.ipynb">Example 23:</a> Follow the carrot path tracking
+- <a href="examples/exe29/doc/exe.ipynb">Example 29:</a> Path planning with rapidly-exploring random trees
 
 
 ### <a name="miscellaneous"></a>Miscellaneous
