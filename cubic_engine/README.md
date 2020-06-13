@@ -60,7 +60,7 @@ make tests
 
 - <a href="#">Example 4: </a> Using the ```PIDControl``` class
 - LQR Control
-- Model Predictive Control 
+- <a href="#">Example 28: </a> Develop a model predictive controller for differential drive system
 
 ### <a name="statistics"></a> Statistics
 - <a href="examples/exe24/doc/exe.ipynb">Example 24</a> Sampling from multivariate normal distribution
