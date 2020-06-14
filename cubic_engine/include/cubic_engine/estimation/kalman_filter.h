@@ -17,20 +17,24 @@ namespace cengine
 ///
 /// prediction step:
 ///
-/// \hat{x}_{k = F_k* x_{k-1} + B_k *  u_k + w_k
-/// \hat{P}_{k} = F_{k-1} * P_{k-1} * F_{k-1}^T +  Q_{k-1}
+/// \f[\hat{\mathbf{x}}_{k} = F_k \mathbf{x}_{k-1} + B_k   \mathbf{u}_k + \mathbf{w}_k\f]
+///
+/// \f[\hat{P}_{k} = F_{k-1}  P_{k-1}  F_{k-1}^T +  Q_{k-1}\f]
 ///
 /// update step:
 ///
-/// K_k = \hat{P}_{k} * H_{k}^T * (H_k * \hat{P}_{k} * H_{k}^T +  R_k )^{-1}
-/// x_k = \hat{x}_{k} + K_k * (z_k - h( \hat{x}_{k}, 0))
-/// P_k = (I - K_k * H_k) * \hat{P}_{k}
+/// \f[K_k = \hat{P}_{k}  H_{k}^T * (H_k  \hat{P}_{k} * H_{k}^T +  R_k )^{-1}\f]
 ///
-/// where w_k and v_k  represent process and measurement noise respectively.
+/// \f[\mathbf{x}_k = \hat{\mathbf{x}}_{k} + K_k  (z_k - h( \hat{x}_{k}, 0))\f]
+///
+/// \f[P_k = (I - K_k  H_k)  \hat{P}_{k}\f]
+///
+/// where \f$w_k\f$ and \f$v_k\f$  represent process and measurement noise respectively.
 /// They are assumed independent and normally distributed:
 ///
-/// p(w) ~ N(0,Q)
-/// p(v) ~ N(0,R)
+/// \f[p(w) \sim N(0,Q)\f]
+///
+/// \f[p(v) \sim N(0,R)\f]
 ///
 /// The gain matrix K says how much the predictions should be corrected
 /// The following matrices dimensions are assumed:
@@ -60,41 +64,53 @@ public:
     typedef DynVec<real_t> motion_model_error_t;
     typedef typename observation_model_t::input_t observation_model_input_t;
 
-    /// \brief Constructor
+    ///
+    ///  Constructor
+    ///
     KalmanFilter();
 
-    /// \brief Constructor
+    ///
+    /// Constructor
+    ///
     KalmanFilter(motion_model_t& motion_model, const observation_model_t& observation_model);
 
-    /// \brief Destructor
+    ///
+    /// Destructor
+    ///
     ~KalmanFilter();
 
+    ///
     /// \brief Estimate the state. This function simply
     /// wraps the predict and update steps described by the
     /// functions below
+    ///
     void estimate(const std::tuple<motion_model_input_t,
                                    motion_model_error_t,
                                    observation_model_input_t>& input );
 
-    /// \brief Predicts the state vector x and the process covariance matrix P using
+    ///
+    /// Predicts the state vector x and the process covariance matrix P using
     /// the given input control u accroding to the following equations
     ///
-    /// \hat{x}_{k = F_k* x_{k-1} + B_k *  u_k + w_k
-    /// \hat{P}_{k} = F_{k-1} * P_{k-1} * F_{k-1}^T +  Q_{k-1}
+    /// \f[\hat{x}_{k = F_k* x_{k-1} + B_k *  u_k + w_k\f]
     ///
-    /// where x_{k-1} is the state at the previous step, u_{k}
+    /// \f[\hat{P}_{k} = F_{k-1} * P_{k-1} * F_{k-1}^T +  Q_{k-1}\f]
+    ///
+    /// where \f$x_{k-1}\f$ is the state at the previous step, \f$u_{k}\f$
     /// is the control signal and w_k is the error associated with the
     /// control signal. In input argument passed to the function is meant
     /// to model in a tuple all the arguments needed. F, is the dynamics matrix
     /// and Q is the covariance matrix associate with the control signal
     ///
     /// The control input argument should supply both
-    /// u_k and w_k vectors
+    /// \f$u_k\f$ and \f$w_k\f$ vectors
+    ///
     ///
     void predict(const DynVec<real_t>& u,
                  const DynVec<real_t>& w);
 
-    /// \brief Updates the gain matrix K, the  state vector x and covariance matrix P
+    ///
+    /// Updates the gain matrix \f$K\f$, the  state vector \f$x\f$ and covariance matrix P
     /// using the given measurement z_k according to the following equations
     ///
     /// K_k = \hat{P}_{k} * H_{k}^T * (H_k * \hat{P}_{k} * H_{k}^T +  R_k )^{-1}
@@ -122,13 +138,19 @@ public:
     /// \brief Returns the state
     state_t& get_state(){return motion_model_ptr_->get_state();}
 
+    ///
     /// \brief Returns the state property with the given name
+    ///
     real_t get(const std::string& name)const{return motion_model_ptr_->get(name);}
 
+    ///
     /// \brief Returns the name-th matrix
+    ///
     const DynMat<real_t>& operator[](const std::string& name)const;
 
+    ///
     /// \brief Returns the name-th matrix
+    ///
     DynMat<real_t>& operator[](const std::string& name);
 
 protected:
