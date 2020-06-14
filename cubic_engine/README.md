@@ -2,6 +2,7 @@
 
 * [Dependencies](#dependencies)
 * [Installation](#nstallation)
+* [Documentation](#documentation)
 * [Examples Map](#examples_map)
     * [Filtering and Estimation](#filtering_and_esitmation)
     * [Control](#control)
@@ -46,6 +47,10 @@ make
 make install
 make tests
 ```
+
+## <a name="documentation"></a> Documentation
+
+You can find the HTML documentation <a href="https://pockerman.github.io/cubic_engine_doc/">here</a>
 
 ## <a name="examples_map"></a> Examples Map
 
