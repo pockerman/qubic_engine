@@ -24,6 +24,10 @@
 namespace cengine {
 namespace rl {
 
+///
+/// \brief The SyncValueFuncItrInput struct
+/// Helper for assembling the input for the SyncValueFuncItr class
+///
 struct SyncValueFuncItrInput
 {
     real_t tol;
@@ -32,81 +36,127 @@ struct SyncValueFuncItrInput
     bool show_iterations;
 };
 
+///
+/// \brief The SyncValueFuncItrOutput struct
+/// Helper for summarizing the output when the
+/// SyncValueFuncItr::train function is called
+///
 struct SyncValueFuncItrOutput
 {
     real_t total_reward;
     real_t total_time;
 };
 
-/// \brief Synchronous value function iteration
-/// learning implementation
+///
+/// \brief The SyncValueFuncItr class. Models
+/// the iterative policy evaluation algorithm for learning
+/// a value function V under a policy \f$\pi$\f. The  implementation
+/// uses a two array approach. Thus it is assumed the world,
+/// action and reward spaces are finite.
+///
 template<typename WorldTp>
 class SyncValueFuncItr: private boost::noncopyable
 {
 public:
 
+    ///
     /// \brief The type of the world
+    ///
     typedef WorldTp world_t;
 
+    ///
     /// \brief The type of the action
+    ///
     typedef typename world_t::action_t action_t;
 
+    ///
     /// \brief The type of the reward
+    ///
     typedef typename world_t::reward_value_t reward_value_t;
 
+    ///
     /// \brief The type of the state
+    ///
     typedef typename world_t::state_t state_t;
 
+    ///
     /// \brief The input to initialize the algorithm
+    ///
     typedef SyncValueFuncItrInput input_t;
 
+    ///
     /// \brief The output type the train method returns
+    ///
     typedef SyncValueFuncItrOutput output_t;
 
-    /// \brief Constructor
+    ///
+    /// \brief Default constructor
+    ///
     SyncValueFuncItr();
 
     /// \brief Constructor
     SyncValueFuncItr(SyncValueFuncItrInput&& input);
 
-    /// \brief Train on the given world
+    ///
+    /// \brief Train on the given world using the given policy
+    /// and the given dynamics function
+    ///
     template<typename PolicyTp, typename DynamicsP>
     output_t train(PolicyTp& policy,
                    const DynamicsP& dynamics);
 
+    ///
     /// \brief Performs one step of the train on the given world
+    ///
     template<typename PolicyTp, typename DynamicsP>
     void step(PolicyTp& policy,
               const DynamicsP& dynamics);
 
-    ///Initialize the tabular implementation
+    ///
+    /// \brief Initialize the underlying data structures
+    ///
     void initialize(world_t& world, real_t init_val);
 
-    /// \brief Returns true if iterations should be
-    /// continued
+    ///
+    /// \brief Returns true if iterations should be continued
+    ///
     bool continue_iterations(){return itr_controller_.continue_iterations();}
 
+    ///
     /// \brief Access the value function table
+    ///
     const std::vector<real_t>& get_values()const{return v_;}
 
-    /// \breif Returns  the current iteration index
+    ///
+    /// \brief Returns  the current iteration index
+    ///
     uint_t get_current_iteration()const{return itr_controller_.get_current_iteration();}
 
 private:
 
+    ///
     /// \brief The input provided to the algorithm
+    ///
     input_t imput_;
 
+    ///
     /// \brief The object that controls the iterations
+    ///
     kernel::IterativeAlgorithmController itr_controller_;
 
+    ///
     /// \brief The old value function for each state
+    ///
     std::vector<real_t> vold_;
 
+    ///
     /// \brief The current value function for each state
+    ///
     std::vector<real_t> v_;
 
+    ///
     /// \brief Pointer to the world
+    ///
     world_t* world_;
 };
 
