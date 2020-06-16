@@ -50,7 +50,7 @@ struct SyncValueFuncItrOutput
 ///
 /// The SyncValueFuncItr class. Models
 /// the iterative policy evaluation algorithm for learning
-/// a value function V under a policy \f$\pi\f$. The  implementation
+/// a value function \f$V\f$ under a policy \f$\pi\f$. The  implementation
 /// uses a two array approach. Thus it is assumed the world,
 /// action and reward spaces are finite.
 ///
@@ -196,10 +196,10 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
                                 const DynamicsP& dynamics){
     real_t delta = 0.0;
 
-    /// loop over the states of the world
+    // loop over the states of the world
     for(uint_t s=0; s<world_->n_states(); ++s){
 
-        /// get the s-th state
+        // get the s-th state
         auto state = world_->get_state(s);
 
         // the world should know which state is terminal
@@ -239,6 +239,7 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
                             value += p*(r + imput_.gamma*vs_prime );
                     }
                 }
+
                 weighted_sum += action_prob*value;
             }
 
@@ -251,8 +252,8 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
 
     // finally update the vectors
     vold_ = v_;
-
 }
+
 template<typename WorldTp>
 template<typename PolicyTp, typename DynamicsP>
 typename SyncValueFuncItr<WorldTp>::output_t
@@ -265,9 +266,7 @@ SyncValueFuncItr<WorldTp>::train(PolicyTp& policy, const DynamicsP& dynamics){
         }
         step(policy, dynamics);
     }
-
 }
-
 
 }
 }
