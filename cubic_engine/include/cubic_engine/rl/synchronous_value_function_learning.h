@@ -50,7 +50,7 @@ struct SyncValueFuncItrOutput
 ///
 /// \brief The SyncValueFuncItr class. Models
 /// the iterative policy evaluation algorithm for learning
-/// a value function V under a policy \f$\pi$\f. The  implementation
+/// a value function V under a policy. The  implementation
 /// uses a two array approach. Thus it is assumed the world,
 /// action and reward spaces are finite.
 ///
@@ -196,34 +196,32 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
                                 const DynamicsP& dynamics){
     real_t delta = 0.0;
 
-    /// loop over the states of the world
+    // loop over the states of the world
     for(uint_t s=0; s<world_->n_states(); ++s){
 
-        /// get the s-th state
+        // get the s-th state
         auto state = world_->get_state(s);
 
-        /// the world should know which state is terminal
+        // the world should know which state is terminal
         if(!world_->is_goal_state(state)){
 
-            //std::cout<<"At state: "<<state.get_id()<<std::endl;
-
-            /// this is not the goal state
+            // this is not the goal state
             real_t old_v = vold_[state.get_id()];
 
             real_t weighted_sum = 0.0;
 
-            /// loop over all the actions allowed on this
-            /// state
+            // loop over all the actions allowed on this
+            // state
             for(uint_t a=0; a<state.n_actions(); ++a){
 
                 auto action = state.get_action(a);
 
-                /// get the probability at this state
-                /// to take the given action
+                // get the probability at this state
+                // to take the given action
                 auto action_prob = policy(action, state);
 
-                /// loop over the states we can transition
-                /// to from this state
+                // loop over the states we can transition
+                // to from this state
                 auto transition_states = state.get_states();
 
                 auto value = 0.0;
@@ -231,10 +229,10 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
 
                         if(transition_states[os]){
 
-                            /// the reward we will receive if at the
-                            /// current state we take the given action.
-                            /// This means that the agent transitions to
-                            /// transition_states[os]
+                            // the reward we will receive if at the
+                            // current state we take the given action.
+                            // This means that the agent transitions to
+                            // transition_states[os]
                             real_t r = world_->get_reward(state, action);
                             real_t vs_prime = vold_[transition_states[os]->get_id()];
                             auto p= dynamics(*transition_states[os], r, state, action);
@@ -242,7 +240,7 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
                     }
                 }
 
-                //std::cout<<"value is: "<<value<<std::endl;
+               
                 weighted_sum += action_prob*value;
             }
 
