@@ -74,6 +74,7 @@ make tests
 - <a href="examples/example_27/doc/exe.md">Example 27: </a> Monte Carlo simulation for the Monty Hall Problem
 - <a href="examples/example_28/doc/exe.md">Example 28: </a> Newton's method
 - <a href="examples/example_29/doc/exe.md">Example 29: </a> Markov chain sampling
+- <a href="examples/example_30/doc/exe.ipynb">Example 30: </a> Nonlinear optimization
 
 
 ### <a name="physics_simulation"></a> Physics Simulation
