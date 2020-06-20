@@ -13,20 +13,31 @@
 
 namespace kernel{
 
+///
 /// \brief. Representation of a graph using adjacency lists.
 /// The underlying implementation uses Boost Graph library.
 /// This wrapper is introduced to simplify the creation
 /// and handling of the graph.
+///
 template<typename VertexData, typename EdgeData>
 class BoostSerialGraph
 {
 
 public:
 
+    ///
+    /// \brief vertex_data_t The type of the vertex data
+    ///
     typedef VertexData vertex_data_t;
+
+    ///
+    /// \brief edge_data_t The type of the edge data
+    ///
     typedef EdgeData   edge_data_t;
 
+    ///
     /// \brief Class that represents the Node of a graph
+    ///
     struct node_t
     {
         vertex_data_t data;
@@ -42,7 +53,14 @@ public:
         bool operator!=(const node_t& o)const{return !(*this==o);}
     };
 
+    ///
+    /// \brief vertex_type The vertex type
+    ///
     typedef node_t vertex_type;
+
+    ///
+    /// \brief edge_type The edge type
+    ///
     typedef GenericLine<vertex_type, EdgeData> edge_type;
 
 private:
@@ -53,59 +71,92 @@ private:
 
 public:
 
+    ///
+    /// \brief adjacency_iterator Adjacency iterator
+    ///
     typedef typename graph_type::adjacency_iterator adjacency_iterator;
 
+    ///
     /// \brief Constructor
+    ///
     explicit BoostSerialGraph(uint_t nvs=0);
 
+    ///
     /// \brief Add a vertex to the graph by providing the data
+    ///
     vertex_type& add_vertex(const VertexData& data);
 
+    ///
     /// \brief Add an edge formed by the two given vertices
+    ///
     edge_type& add_edge(uint_t v1, uint_t v2);
 
+    ///
     /// \brief Access the i-th vertex of the graph
+    ///
     const vertex_type& get_vertex(uint_t i)const;
 
+    ///
     /// \brief Access the i-th vertex of the graph
+    ///
     vertex_type& get_vertex(uint_t i);
 
+    ///
     /// \brief Access the vertex given the vertex descriptor
     /// This is needed when accessing the vertices using the adjacency_iterator
+    ///
     vertex_type& get_vertex(adjacency_iterator itr);
 
+    ///
     /// \brief Access the i-th edge of the graph with endpoints
     /// the given vertices
+    ///
     const edge_type& get_edge(uint_t v1, uint_t v2)const;
 
+    ///
     /// \brief Access the i-th edge of the graph with endpoints
     /// the given vertices
+    ///
     edge_type& get_edge(uint_t v1, uint_t v2);
 
+    ///
     /// \brief Returns the neighboring vertices for the given vertex id
+    ///
     std::pair<adjacency_iterator, adjacency_iterator> get_vertex_neighbors(uint_t id)const;
 
+    ///
     /// \brief Returns the neighboring vertices for the given vertex id
+    ///
     std::pair<adjacency_iterator, adjacency_iterator> get_vertex_neighbors(const vertex_type& v)const;
 
+    ///
     /// \brief Returns the number of vertices
+    ///
     uint_t n_vertices()const{return g_.num_vertices();}
 
     /// \brief Returns the maximum vertex index
     uint_t max_vertex_index()const noexcept{return g_.max_vertex_index();}
 
+    ///
     /// \brief Returns the number of edges
+    ///
     uint_t n_edges()const{return g_.num_edges();}
 
+    ///
     /// \brief Returns the maximum edge index
+    ///
     uint_t max_edge_index() const noexcept{return g_.max_edge_index();}
 
+    ///
     /// \brief Clear the graph
+    ///
     void clear(){g_.clear();}
 
 private:
 
+    ///
     /// \brief The actual graph
+    ///
     graph_type g_;
 };
 
