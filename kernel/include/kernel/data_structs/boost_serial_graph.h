@@ -281,7 +281,6 @@ typename BoostSerialGraph<VertexData,EdgeData>::edge_type&
 BoostSerialGraph<VertexData,EdgeData>::get_edge(uint_t v1, uint_t v2){
 
     return const_cast<BoostSerialGraph<VertexData,EdgeData>::edge_type&>(
-
                 static_cast<const BoostSerialGraph<VertexData,EdgeData>&>(*this).get_edge(v1,v2)
         );
 
