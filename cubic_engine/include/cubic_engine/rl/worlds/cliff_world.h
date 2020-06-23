@@ -15,7 +15,13 @@ namespace worlds {
 
 ///
 /// \brief CliffWorld class models the Environment
-/// for the cliff-world problem
+/// for the cliff-world problem. This is a standard un-discounted,
+/// episodic task, with start and goal states, and the usual actions
+/// causing movement up, down, right, and left.
+/// Reward is -1 on all transitions except
+/// those into the region marked Cliff.
+/// Stepping into this region incurs a reward of
+/// optimal path -100 and sends the agent instantly back to the start i.e. state zero
 ///
 class CliffWorld: public World<GridWorldAction, GridWorldState, real_t>
 {
