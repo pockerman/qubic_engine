@@ -43,8 +43,8 @@ int main(){
         /// number of episodes for the agent to learn.
         const uint_t N_ITERATIONS = 500;
         const real_t ETA = 0.1;
-        const real_t EPSILON = 0.3;
-        const real_t GAMMA = 0.0;
+        const real_t EPSILON = 0.1;
+        const real_t GAMMA = 1.0;
         const real_t PENALTY = -100.0;
 
         SarsaLearningInput qinput={ETA, EPSILON, GAMMA, true, true};
@@ -65,8 +65,7 @@ int main(){
             world.restart(start, goal);
             auto result = sarsalearner.train(goal);
 
-            /// the total reward the agent obtained
-            /// in this episode
+            /// the total reward the agent obtained in this episode
             auto reward = result.total_reward;
             writer.write_row(std::make_tuple(episode, reward));
             std::cout<<"At episode: "<<episode<<" total reward: "<<reward<<std::endl;
