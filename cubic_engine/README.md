@@ -6,8 +6,7 @@
 * [Examples Map](#examples_map)
     * [Filtering and Estimation](#filtering_and_esitmation)
     * [Control](#control)
-    * [Statistics](#statistics)
-    * [Machine Learning](#machine_learning)
+    * [Machine Learning & Statistics](#machine_learning)
     * [Reinforcement Learning](#reinforcement_learning)
     * [Robotics Simulations](#using_ros)
     * [Miscellaneous](#miscellaneous)
@@ -67,13 +66,11 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - LQR Control
 - Model Predictive Control 
 
-### <a name="statistics"></a> Statistics
+### <a name="machine_learning"></a> Machine Learning & Statistics
+
 - <a href="examples/exe24/doc/exe.ipynb">Example 24: </a> Sampling from multivariate normal distribution
-
-### <a name="machine_learning"></a> Machine Learning
-
 - <a href="examples/exe5/doc/exe.md">Example 5: </a> Simulate standard error for the mean
-- <a href="examples/exe7/doc/exe.md">Example 7: </a> Multithreaded batch gradient descent
+- <a href="examples/exe7/doc/exe.md">Example 7: </a> Multithreaded  gradient descent
 - <a href="examples/exe11/doc/exe.md">Example 11: </a> Neural Network with PyTorch
 - <a href="examples/exe12/doc/exe.md">Example 12: </a> Linear regression
 - <a href="examples/exe13/doc/exe.md">Example 13: </a> Logistic regression classification
