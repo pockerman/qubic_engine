@@ -1,5 +1,5 @@
 #include "cubic_engine/base/cubic_engine_types.h"
-
+#include "kernel/maths/matrix_utilities.h"
 #include <cmath>
 #include <iostream>
 #include <tuple>
@@ -37,11 +37,65 @@ int main() {
     X(5,0) = 3.;
     X(5,1) = 2.;
 
-    
+    // caluclate the sample variance
+    // of each of the 3 variables (columns)
+    auto col1 = kernel::get_column(X, 0);
+    auto col2 = kernel::get_column(X, 1);
+
+    auto col1_var = var(col1);
+    auto col2_var = var(col2);
+
+    std::cout<<"Variable 1 variance: "<<col1_var<<std::endl;
+    std::cout<<"Variable 2 variance: "<<col2_var<<std::endl;
+
+    // compute the total variance
+    auto total_var = col1_var + col2_var;
+
+    std::cout<<"Total variance: "<<total_var<<std::endl;
+
+    DynMat<real_t> U;
+    DynVec<real_t> s;
+    DynMat<real_t> V;
     try{
 
-        
-        }
+        std::cout<<"Variable 1 explains: "<<col1_var/total_var<<std::endl;
+        std::cout<<"Variable 2 explains: "<<col2_var/total_var<<std::endl;
+
+        svd(X, U, s, V );
+
+        std::cout<<"Singular values: "<<s<<std::endl;
+
+        // Principal axes in feature space,
+        // representing the directions of maximum variance in the data.
+        // these are the columns of the V matrix
+        std::cout<<"V matrix: "<<V<<std::endl;
+
+        // reconstruct the data set with PCA
+        // The full principal components decomposition of
+        // X can be given as T= XW
+        DynMat<real_t> T = X*V;
+
+        // caluclate the sample variance
+        // of each of the 3 variables (columns)
+        auto pca_col1 = kernel::get_column(T, 0);
+        auto pca_col2 = kernel::get_column(T, 1);
+
+        auto pca_col1_var = var(pca_col1);
+        auto pca_col2_var = var(pca_col2);
+
+        std::cout<<"PCA variable 1 variance: "<<pca_col1_var<<std::endl;
+        std::cout<<"PCA variable 2 variance: "<<pca_col2_var<<std::endl;
+
+        // this should be the same at the total variance
+        // compute the total variance
+        auto pca_total_var = pca_col1_var + pca_col2_var;
+
+        std::cout<<"PCA Total variance: "<<pca_total_var<<std::endl;
+
+        std::cout<<"PCA Variable 1 explains: "<<pca_col1_var/pca_total_var<<std::endl;
+        std::cout<<"PCA Variable 2 explains: "<<pca_col2_var/pca_total_var<<std::endl;
+
+
     }
     catch(std::runtime_error& e){
         std::cerr<<"Runtime error: "
