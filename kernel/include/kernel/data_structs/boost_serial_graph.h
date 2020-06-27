@@ -72,6 +72,11 @@ private:
 public:
 
     ///
+    /// \brief edge_iterator Edge iterator
+    ///
+    typedef typename graph_type::edge_iterator edge_iterator;
+
+    ///
     /// \brief adjacency_iterator Adjacency iterator
     ///
     typedef typename graph_type::adjacency_iterator adjacency_iterator;
@@ -120,6 +125,11 @@ public:
     edge_type& get_edge(uint_t v1, uint_t v2);
 
     ///
+    /// \brief edges Access the edges of the tree
+    ///
+    std::pair<edge_iterator,edge_iterator> edges()const;
+
+    ///
     /// \brief Returns the neighboring vertices for the given vertex id
     ///
     std::pair<adjacency_iterator, adjacency_iterator> get_vertex_neighbors(uint_t id)const;
@@ -134,7 +144,9 @@ public:
     ///
     uint_t n_vertices()const{return g_.num_vertices();}
 
+    ///
     /// \brief Returns the maximum vertex index
+    ///
     uint_t max_vertex_index()const noexcept{return g_.max_vertex_index();}
 
     ///
@@ -234,7 +246,7 @@ BoostSerialGraph<VertexData,EdgeData>::get_vertex(uint_t i)const{
 
 template<typename VertexData,typename EdgeData>
 typename BoostSerialGraph<VertexData,EdgeData>::vertex_type&
-BoostSerialGraph<VertexData,EdgeData>::get_vertex(typename BoostSerialGraph<VertexData,EdgeData>::adjacency_iterator itr){
+BoostSerialGraph<VertexData,EdgeData>::get_vertex(adjacency_iterator itr){
 
     return g_[*itr];
 }
@@ -311,6 +323,12 @@ BoostSerialGraph<VertexData,EdgeData>::get_vertex_neighbors(const typename Boost
     return get_vertex_neighbors(v.id);
 }
 
+template<typename VertexData,typename EdgeData>
+std::pair<typename BoostSerialGraph<VertexData,EdgeData>::edge_iterator,
+          typename BoostSerialGraph<VertexData,EdgeData>::edge_iterator>
+BoostSerialGraph<VertexData,EdgeData>::edges()const{
+    return boost::edges(g_);
+}
 
 template<typename VertexData,typename EdgeData>
 BoostSerialGraph<VertexData,EdgeData>::node_t::node_t()

@@ -5,6 +5,9 @@
 #include "kernel/data_structs/boost_serial_graph.h"
 
 #include"boost/noncopyable.hpp"
+#include <chrono>
+#include <iostream>
+
 
 namespace cengine {
 namespace search {
@@ -37,17 +40,49 @@ public:
     ///
     /// \brief node_t the vertex type
     ///
-    typedef typename kernel::BoostSerialGraph<node_data_t, edge_data_t>::vertex_type node_t;
+    typedef typename kernel::BoostSerialGraph<node_data_t,
+                                              edge_data_t>::vertex_type node_t;
 
     ///
     /// \brief edge_t The edge type
     ///
-    typedef typename kernel::BoostSerialGraph<node_data_t, edge_data_t>::edge_type edge_t;
+    typedef typename kernel::BoostSerialGraph<node_data_t,
+                                              edge_data_t>::edge_type edge_t;
+
+    ///
+    /// \brief edge_iterator Edge iterator
+    ///
+    typedef typename kernel::BoostSerialGraph<node_data_t,
+                                              edge_data_t>::edge_iterator edge_iterator;
+
+    ///
+    /// \brief adjacency_iterator Adjacency iterator
+    ///
+    typedef typename kernel::BoostSerialGraph<node_data_t,
+                                              edge_data_t>::adjacency_iterator adjacency_iterator;
 
     ///
     /// \brief RRT Default constructor. Creates an empty tree
     ///
     RRT();
+
+    ///
+    /// \brief get_vertex Returns the v-th vertex
+    ///
+    node_t& get_vertex(uint_t v){ return tree_.get_vertex(v);}
+
+    ///
+    /// \brief get_vertex Returns the v-th vertex
+    ///
+    const node_t& get_vertex(uint_t v)const{return tree_.get_vertex(v);}
+
+    ///
+    /// \brief Returns the neighboring vertices for the given vertex id
+    ///
+    std::pair<adjacency_iterator, adjacency_iterator>
+    get_vertex_neighbors(uint_t id)const{
+        return tree_.get_vertex_neighbors(id);
+    }
 
     ///
     /// \brief add_vertex Add a new vertex to the tree
@@ -59,6 +94,31 @@ public:
     /// \brief Add a new vertex in the tree that has the given data
     ///
     node_t& add_vertex(const node_data_t& data);
+
+    ///
+    /// \brief get_edge Returns  the edge between the vertices v1 and v2
+    /// \param v1 Vertex 1
+    /// \param v2 Vertex 2
+    ///
+    edge_t& get_edge(uint_t v1, uint_t v2){
+        return tree_.get_edge(v1, v2);
+    }
+
+    ///
+    /// \brief get_edge Returns  the edge between the vertices v1 and v2
+    /// \param v1 Vertex 1
+    /// \param v2 Vertex 2
+    ///
+    const edge_t& get_edge(uint_t v1, uint_t v2)const{
+        return tree_.get_edge(v1, v2);
+    }
+
+    ///
+    /// \brief edges Access the edges of the tree
+    ///
+    std::pair<edge_iterator, edge_iterator> edges()const{
+        return tree_.edges();
+    }
 
     ///
     /// \brief add_edge Add a new edge between the vertices v1 and v2
@@ -95,6 +155,14 @@ public:
     ///
     uint_t n_edges()const{return tree_.n_edges();}
 
+    ///
+    /// \brief set_show_iterations_flag Set the show_iterations_ flag
+    ///
+    void set_show_iterations_flag(bool val){show_iterations_ = val;}
+
+    ///
+    /// \brief Build the tree
+    ///
     template<typename StateSelector, typename InputSelector,
              typename MetricTp, typename DynamicsTp>
     void build(uint_t nitrs, const node_t& xinit,
@@ -110,12 +178,19 @@ private:
     ///
     kernel::BoostSerialGraph<node_data_t, edge_data_t> tree_;
 
+    ///
+    /// \brief show_iterations_ Flag indicating if information
+    /// on the iterations should be displayed
+    ///
+    bool show_iterations_;
+
 };
 
 template<typename NodeData, typename EdgeData>
 RRT<NodeData, EdgeData>::RRT()
     :
-      tree_()
+      tree_(),
+      show_iterations_(false)
 {}
 
 template<typename NodeData, typename EdgeData>
@@ -134,6 +209,9 @@ RRT<NodeTp, EdgeTp>::build(uint_t nitrs, const node_t& xinit,
                            const MetricTp& metric,
                            DynamicsTp& dynamics){
 
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
+
     // initialize the tree
     auto root = tree_.add_vertex(xinit.data);
 
@@ -141,8 +219,15 @@ RRT<NodeTp, EdgeTp>::build(uint_t nitrs, const node_t& xinit,
     // the tree
     for(uint_t itr=0; itr<nitrs; ++itr){
 
+        if(show_iterations_){
+            std::cout<<"At iteration: "<<itr<<std::endl;
+        }
+
         // select a new random state
         auto xrand = state_selector();
+
+
+        std::cout<<xrand.get("X")<<","<<xrand.get("Y")<<std::endl;
 
         // find the nearest neighbor between this tree
         // and the randomly selected state
@@ -160,6 +245,13 @@ RRT<NodeTp, EdgeTp>::build(uint_t nitrs, const node_t& xinit,
         // add a new edge
         auto new_e = add_edge(xnear.id, new_v.id);
         new_e.set_data(u);
+    }
+
+    end = std::chrono::system_clock::now();
+
+    if(show_iterations_){
+        std::chrono::duration<real_t> dur = end - start;
+        std::cout<<"Total build time: "<<dur.count()<<std::endl;
     }
 }
 
@@ -185,6 +277,8 @@ RRT<NodeData, EdgeData>::find_nearest_neighbor(const node_t& other,
 
     return tree_.get_vertex(result);
 }
+
+
 
 }
 
