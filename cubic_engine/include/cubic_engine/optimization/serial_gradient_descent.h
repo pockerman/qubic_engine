@@ -13,9 +13,10 @@
 namespace cengine
 {
         
-
+///
 /// \brief Implementation of the gradient descent (GC) algorithm
 /// for solving optimization problems.
+///
 template<typename ErrorFunction>
 class Gd: private boost::noncopyable
 {
