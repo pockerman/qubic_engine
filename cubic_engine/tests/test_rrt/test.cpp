@@ -18,33 +18,6 @@ using cengine::search::RRT;
 using cengine::IdentityMatrix;
 using kernel::dynamics::SysState;
 
-
-/*class TestMotionModel
-{
-public:
-
-    typedef DynVec<real_t> input_t;
-    typedef DynMat<real_t> matrix_t;
-    typedef SysState<2> state_t;
-    state_t state;
-
-    DynVec<real_t> evaluate(const DynVec<real_t>& v1,
-                            const DynVec<real_t>& u);
-
-    state_t& get_state(){return state;}
-    const state_t& get_state()const{return state;}
-
-    real_t get(const std::string&)const{return 0.0;}
-
-};
-
-DynVec<real_t>
-TestMotionModel::evaluate(const DynVec<real_t>& v1,
-                          const DynVec<real_t>& u){
-    return DynVec<real_t>(2, 0.0);
-
-}*/
-
 }
 
 ///
