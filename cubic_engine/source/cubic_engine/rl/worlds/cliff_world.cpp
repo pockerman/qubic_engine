@@ -86,10 +86,10 @@ CliffWorld::create_world(){
 
         if(id <12){
 
-            state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), nullptr);
+            state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), &state);
 
             if(id==0){
-              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
+              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &state);
             }
             else{
                 state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &states_[id-1]);
@@ -106,18 +106,18 @@ CliffWorld::create_world(){
 
         }
         else if (id>=36) {
-            state.set_transition(static_cast<GridWorldAction>(GridWorldAction::NORTH), nullptr);
+            state.set_transition(static_cast<GridWorldAction>(GridWorldAction::NORTH), &state);
             state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), &states_[id - N_CELLS_X]);
 
             if(id == 36){
-                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
+                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &state);
             }
             else{
                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &states_[id - 1]);
             }
 
             if(id == 47){
-               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), nullptr);
+               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), &state);
             }
             else{
                 state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), &states_[id + 1]);
@@ -129,14 +129,14 @@ CliffWorld::create_world(){
             state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), &states_[id - N_CELLS_X]);
 
             if(id == 12 || id == 24){
-                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
+                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &state);
             }
             else{
                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &states_[id - 1]);
             }
 
             if(id == 23 || id == 35){
-               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), nullptr);
+               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), &state);
             }
             else{
                 state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), &states_[id + 1]);
@@ -175,35 +175,35 @@ CliffWorld::RewardProducer::setup_rewards(){
             if(i==0){
                rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
                rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
-               rewards_.add_reward(i, GridWorldAction::SOUTH,  PENALTY);
-               rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
+               rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
+               rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
             }
             else if( i == 11){
                 rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
                 rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
-                rewards_.add_reward(i, GridWorldAction::SOUTH,  PENALTY);
-                rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
+                rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
+                rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
              }
         }
         else {
 
             if(i >= 36 ){
 
-                rewards_.add_reward(i, GridWorldAction::NORTH,  PENALTY);
+                rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
                 rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
 
                 if(i != 47){
                   rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
                 }
                 else{
-                    rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
+                    rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
                 }
 
                 if(i != 36){
                    rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
                 }
                 else{
-                    rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
+                    rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
                 }
             }
             else{
@@ -214,14 +214,14 @@ CliffWorld::RewardProducer::setup_rewards(){
                    rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
                 }
                 else{
-                    rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
+                    rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
                 }
 
                 if(i != 23 || i != 35){
                   rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
                 }
                 else{
-                   rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
+                   rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
                 }
 
                 if( i >= 24){
@@ -239,8 +239,6 @@ CliffWorld::RewardProducer::setup_rewards(){
                if(i == 23){
                   rewards_.add_reward(i, GridWorldAction::SOUTH,  0.0);
                }
-
-
             }
         }
 

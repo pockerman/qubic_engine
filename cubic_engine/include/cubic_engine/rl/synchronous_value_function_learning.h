@@ -24,6 +24,10 @@
 namespace cengine {
 namespace rl {
 
+///
+/// \brief The SyncValueFuncItrInput struct
+/// Helper for assembling the input for the SyncValueFuncItr class
+///
 struct SyncValueFuncItrInput
 {
     real_t tol;
@@ -32,81 +36,127 @@ struct SyncValueFuncItrInput
     bool show_iterations;
 };
 
+///
+/// \brief The SyncValueFuncItrOutput struct
+/// Helper for summarizing the output when the
+/// SyncValueFuncItr::train function is called
+///
 struct SyncValueFuncItrOutput
 {
     real_t total_reward;
     real_t total_time;
 };
 
-/// \brief Synchronous value function iteration
-/// learning implementation
+///
+/// The SyncValueFuncItr class. Models
+/// the iterative policy evaluation algorithm for learning
+/// a value function \f$V\f$ under a policy \f$\pi\f$. The  implementation
+/// uses a two array approach. Thus it is assumed the world,
+/// action and reward spaces are finite.
+///
 template<typename WorldTp>
 class SyncValueFuncItr: private boost::noncopyable
 {
 public:
 
+    ///
     /// \brief The type of the world
+    ///
     typedef WorldTp world_t;
 
+    ///
     /// \brief The type of the action
+    ///
     typedef typename world_t::action_t action_t;
 
+    ///
     /// \brief The type of the reward
+    ///
     typedef typename world_t::reward_value_t reward_value_t;
 
+    ///
     /// \brief The type of the state
+    ///
     typedef typename world_t::state_t state_t;
 
+    ///
     /// \brief The input to initialize the algorithm
+    ///
     typedef SyncValueFuncItrInput input_t;
 
+    ///
     /// \brief The output type the train method returns
+    ///
     typedef SyncValueFuncItrOutput output_t;
 
-    /// \brief Constructor
+    ///
+    /// \brief Default constructor
+    ///
     SyncValueFuncItr();
 
     /// \brief Constructor
     SyncValueFuncItr(SyncValueFuncItrInput&& input);
 
-    /// \brief Train on the given world
+    ///
+    /// \brief Train on the given world using the given policy
+    /// and the given dynamics function
+    ///
     template<typename PolicyTp, typename DynamicsP>
     output_t train(PolicyTp& policy,
                    const DynamicsP& dynamics);
 
+    ///
     /// \brief Performs one step of the train on the given world
+    ///
     template<typename PolicyTp, typename DynamicsP>
     void step(PolicyTp& policy,
               const DynamicsP& dynamics);
 
-    ///Initialize the tabular implementation
+    ///
+    /// \brief Initialize the underlying data structures
+    ///
     void initialize(world_t& world, real_t init_val);
 
-    /// \brief Returns true if iterations should be
-    /// continued
+    ///
+    /// \brief Returns true if iterations should be continued
+    ///
     bool continue_iterations(){return itr_controller_.continue_iterations();}
 
+    ///
     /// \brief Access the value function table
+    ///
     const std::vector<real_t>& get_values()const{return v_;}
 
-    /// \breif Returns  the current iteration index
+    ///
+    /// \brief Returns  the current iteration index
+    ///
     uint_t get_current_iteration()const{return itr_controller_.get_current_iteration();}
 
 private:
 
+    ///
     /// \brief The input provided to the algorithm
+    ///
     input_t imput_;
 
+    ///
     /// \brief The object that controls the iterations
+    ///
     kernel::IterativeAlgorithmController itr_controller_;
 
+    ///
     /// \brief The old value function for each state
+    ///
     std::vector<real_t> vold_;
 
+    ///
     /// \brief The current value function for each state
+    ///
     std::vector<real_t> v_;
 
+    ///
     /// \brief Pointer to the world
+    ///
     world_t* world_;
 };
 
@@ -146,34 +196,32 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
                                 const DynamicsP& dynamics){
     real_t delta = 0.0;
 
-    /// loop over the states of the world
+    // loop over the states of the world
     for(uint_t s=0; s<world_->n_states(); ++s){
 
-        /// get the s-th state
+        // get the s-th state
         auto state = world_->get_state(s);
 
-        /// the world should know which state is terminal
+        // the world should know which state is terminal
         if(!world_->is_goal_state(state)){
 
-            //std::cout<<"At state: "<<state.get_id()<<std::endl;
-
-            /// this is not the goal state
+            // this is not the goal state
             real_t old_v = vold_[state.get_id()];
 
             real_t weighted_sum = 0.0;
 
-            /// loop over all the actions allowed on this
-            /// state
+            // loop over all the actions allowed on this
+            // state
             for(uint_t a=0; a<state.n_actions(); ++a){
 
                 auto action = state.get_action(a);
 
-                /// get the probability at this state
-                /// to take the given action
+                // get the probability at this state
+                // to take the given action
                 auto action_prob = policy(action, state);
 
-                /// loop over the states we can transition
-                /// to from this state
+                // loop over the states we can transition
+                // to from this state
                 auto transition_states = state.get_states();
 
                 auto value = 0.0;
@@ -181,10 +229,10 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
 
                         if(transition_states[os]){
 
-                            /// the reward we will receive if at the
-                            /// current state we take the given action.
-                            /// This means that the agent transitions to
-                            /// transition_states[os]
+                            // the reward we will receive if at the
+                            // current state we take the given action.
+                            // This means that the agent transitions to
+                            // transition_states[os]
                             real_t r = world_->get_reward(state, action);
                             real_t vs_prime = vold_[transition_states[os]->get_id()];
                             auto p= dynamics(*transition_states[os], r, state, action);
@@ -192,7 +240,6 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
                     }
                 }
 
-                //std::cout<<"value is: "<<value<<std::endl;
                 weighted_sum += action_prob*value;
             }
 
@@ -202,83 +249,24 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
 }
 
     itr_controller_.update_residual(delta);
-    /// update the vectors
-    vold_ = v_;
 
+    // finally update the vectors
+    vold_ = v_;
 }
+
 template<typename WorldTp>
 template<typename PolicyTp, typename DynamicsP>
 typename SyncValueFuncItr<WorldTp>::output_t
 SyncValueFuncItr<WorldTp>::train(PolicyTp& policy, const DynamicsP& dynamics){
 
-
     while(itr_controller_.continue_iterations()){
 
-        //real_t delta = 0.0;
         if(imput_.show_iterations){
             std::cout<<itr_controller_.get_state()<<std::endl;
         }
         step(policy, dynamics);
-
-        /// loop over the states of the world
-        /*for(uint_t s=0; s<world_->n_states(); ++s){
-
-            /// get the s-th state
-            auto state = world_->get_state(s);
-
-            /// the world should know which state is terminal
-            if(!world_->is_goal_state(state)){
-
-                /// this is not the goal state
-                real_t old_v = vold_[state.get_id()];
-
-                real_t weighted_sum = 0.0;
-
-                /// loop over all the actions allowed on this
-                /// state
-                for(uint_t a=0; a<state.n_actions(); ++a){
-
-                    auto action = state.get_action(a);
-
-                    /// get the probability at this state
-                    /// to take the given action
-                    auto action_prob = policy(state, action);
-
-                    /// loop over the states we can transition
-                    /// to from this state
-                    auto transition_states = state.get_states();
-
-                    auto value = 0.0;
-                    for(uint_t os=0; os < transition_states.size();  ++os){
-                            if(transition_states[os]){
-
-                                /// the reward we will receive if at the
-                                /// current state we take the given action.
-                                /// This means that the agent transitions to
-                                /// transition_states[os]
-                                real_t r = world_->get_reward(state, action);
-                                real_t vs_prime = vold_[transition_states[os]->get_id()];
-                                value += dynamics(*transition_states[os], r, state, action)*
-                                        (r + imput_.gamma*vs_prime );
-
-                        }
-                    }
-
-                    weighted_sum += action_prob*value;
-                }
-
-                v_[state.get_id()] = weighted_sum;
-                delta = std::max(delta, std::fabs(old_v-weighted_sum));
-            }
-        }
-
-        /// update the vectors
-        vold_ = v_;
-        itr_controller_.update_residual(delta);*/
     }
-
 }
-
 
 }
 }

@@ -6,10 +6,11 @@
 #include <random>
 #include <set>
 
-namespace kernel
-{
+namespace kernel{
 
+///
 /// \brief Exchange the rows of the matrix
+///
 template<typename MatType>
 void exchange_rows(MatType& mat, uint_t r1, uint_t r2){
 
@@ -21,14 +22,18 @@ void exchange_rows(MatType& mat, uint_t r1, uint_t r2){
     }
 }
 
-/// \brief Shuffle the rows of the matrix. Returns a set with the rows that have been shuffled
+///
+/// \brief Shuffle the rows of the matrix.
+/// Returns a set with the rows that have been shuffled
+///
 template<typename MatType>
 std::set<uint_t> shuffle_matrix_rows(MatType& mat){
 
     uint_t min = 0;
     uint_t max = mat.rows();
 
-    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    //Will be used to obtain a seed for the random number engine
+    std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<uint_t> random(min, max);
 
@@ -55,6 +60,24 @@ std::set<uint_t> shuffle_matrix_rows(MatType& mat){
     return touched;
 }
 
+///
+/// \brief Extract the cidx-th column from the matrix
+///
+template<typename T>
+DynVec<T>
+get_column(const DynMat<T>& matrix, uint_t cidx){
+
+    DynVec<T> column(matrix.rows(), 0.0);
+
+    for(uint_t r=0; r<matrix.rows(); ++r){
+        column[r] =  matrix(r, cidx);
+    }
+    return column;
+}
+
+///
+/// \brief Extract the row_idx-th row from the matrix
+///
 template<typename T>
 DynVec<T>
 get_row(const DynMat<T>& matrix, uint_t row_idx){

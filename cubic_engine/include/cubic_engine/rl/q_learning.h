@@ -19,6 +19,9 @@
 namespace cengine {
 namespace rl{
 
+///
+/// \brief The QLearningInput struct
+/// Helper struct that assembles the input for the QTableLearning class.
 struct QLearningInput
 {
     real_t learning_rate;
@@ -29,63 +32,88 @@ struct QLearningInput
 };
 
 
-/// \brief Tabular implementation of Q-learning algorithm
+///
+/// \brief The QTableLearning class. Table based implementation
+/// of the Q-learning algorithm.
 template<typename WorldTp>
 class QTableLearning: private boost::noncopyable
 {
 
 public:
 
+    ///
     /// \brief The type of the world
+    ///
     typedef WorldTp world_t;
 
+    ///
     /// \brief The type of the action
+    ///
     typedef typename world_t::action_t action_t;
 
+    ///
     /// \brief The type of the reward
+    ///
     typedef typename world_t::reward_value_t reward_value_t;
 
+    ///
     /// \brief The type of the state
+    ///
     typedef typename world_t::state_t state_t;
 
+    ///
     /// \brief Constructor
+    ///
     QTableLearning(QLearningInput&& input);
 
+    ///
     /// \brief Train on the given world
+    ///
     void train(const state_t& goal );
 
-    ///Initialize the tabular implementation
+    ///
+    /// \brief Initialize the underlying data structures
+    ///
     void initialize(world_t& world, reward_value_t val);
 
-    /// \brief Returns the learnt tabular Qfunction
+    /// \brief Returns the learnt Qfunction
     const RewardTable<action_t, reward_value_t>& get_table()const{return qtable_;}
 
-    /// \brief Returns the learnt tabular Qfunction
+    ///
+    /// \brief Returns the learnt Qfunction
+    ///
     RewardTable<action_t, reward_value_t>& get_table(){return qtable_;}
 
 private:
 
+    ///
     /// \brief Basic input
+    ///
     QLearningInput input_;
 
+    ///
     /// \brief The QTable. A state is identified
     /// by an id. At each state a number of actions are
     /// possible. The score for each action is stored in
-    /// a contiguous array
+    /// a contiguous array.
+    ///
     RewardTable<action_t, reward_value_t> qtable_;
 
+    ///
     /// \brief The world used by the agent
+    ///
     world_t* world_ptr_;
 
-    /// \brief Flag indicating if the trainer
-    /// has been initialized
+    ///
+    /// \brief Flag indicating if the trainer has been initialized
+    ///
     bool is_initialized_;
 
-    /// \brief Initialize the QTable entries
-    /// for the given state
+    ///
+    /// \brief Initialize the QTable entries for the given state
+    ///
     template<typename StateTp>
     void initialize_state_(const StateTp& state, reward_value_t val);
-
 };
 
 template<typename WorldTp>
@@ -99,17 +127,15 @@ QTableLearning<WorldTp>::QTableLearning(QLearningInput&& input)
 
 template<typename WorldTp>
 void
-QTableLearning<WorldTp>::initialize(typename QTableLearning<WorldTp>::world_t& world,
-                                    typename QTableLearning<WorldTp>::reward_value_t val){
+QTableLearning<WorldTp>::initialize(world_t& world, reward_value_t val){
 
-
-    /// loop over the states of the world and initialize
-    /// the action scores
+    // loop over the states of the world and initialize
+    // the action scores
     for(uint_t s=0; s<world.n_states(); ++s){
         initialize_state_(world.get_state(s), val);
     }
 
-    /// finally set the world pointer
+    // finally set the world pointer
     world_ptr_ = &world;
     is_initialized_ = true;
 }
@@ -117,8 +143,7 @@ QTableLearning<WorldTp>::initialize(typename QTableLearning<WorldTp>::world_t& w
 template<typename WorldTp>
 template<typename StateTp>
 void
-QTableLearning<WorldTp>::initialize_state_(const StateTp& state,
-                                           typename QTableLearning<WorldTp>::reward_value_t val){
+QTableLearning<WorldTp>::initialize_state_(const StateTp& state, reward_value_t val){
 
     for(uint_t a = 0; a<state.n_actions(); ++a){
         if(state.is_active_action(a)){
@@ -139,7 +164,7 @@ QTableLearning<WorldTp>::train(const typename QTableLearning<WorldTp>::state_t& 
     uint_t itr_counter = 0;
     while( world_ptr_->get_current_state() != goal && !world_ptr_->is_finished()){
 
-        /// get the current state of the world
+        // get the current state of the world
         auto& state = world_ptr_->get_current_state();
 
         if(input_.show_iterations){
@@ -149,28 +174,27 @@ QTableLearning<WorldTp>::train(const typename QTableLearning<WorldTp>::state_t& 
 
         auto action_idx = qtable_.get_max_reward_action_at_state(state.get_id());
 
-        /// generate a random number
-        /// between 0 and 1
+        // generate a random number
+        // between 0 and 1
         auto r = 0.0;
         if(input_.use_exploration){
 
-            ///Will be used to obtain a seed for the random number engine
+            // Will be used to obtain a seed for the random number engine
             std::random_device rd;
 
-            ///Standard mersenne_twister_engine seeded with rd()
+            // Standard mersenne_twister_engine seeded with rd()
             std::mt19937 gen(rd());
             std::uniform_real_distribution<> dis(0.0, 1.1);
             r = dis(rd);
         }
 
-        /// replace with random action to
-        /// promote exploration
+        // replace with random action to promote exploration
         if(input_.use_exploration && r < input_.exploration_factor){
 
-            ///Will be used to obtain a seed for the random number engine
+            // Will be used to obtain a seed for the random number engine
             std::random_device rd;
 
-            ///Standard mersenne_twister_engine seeded with rd()
+            // Standard mersenne_twister_engine seeded with rd()
             std::mt19937 gen(rd());
             std::uniform_int_distribution<> dis(0, state.n_actions()-1);
             auto idx = dis(rd);
@@ -182,8 +206,8 @@ QTableLearning<WorldTp>::train(const typename QTableLearning<WorldTp>::state_t& 
         world_ptr_->step(action_idx);
         if(world_ptr_->is_finished()){
 
-            /// the action led to a catastrophy according to
-            /// the world
+            // the action led to a catastrophy according to
+            // the world
             if(input_.show_iterations){
 
 #if defined(__GNUC__) && (__GNUC___ > 7)
@@ -201,11 +225,11 @@ QTableLearning<WorldTp>::train(const typename QTableLearning<WorldTp>::state_t& 
         else{
 
 
-            /// get the reward
+            // get the reward
             auto reward = world_ptr_->reward();
             auto current_val = qtable_.get_reward(state.get_id(), action_idx);
 
-            /// update the table
+            // update the table
             auto& new_state = world_ptr_->get_current_state();
 
             auto future_reward = qtable_.get_max_reward_at_state(new_state.get_id());

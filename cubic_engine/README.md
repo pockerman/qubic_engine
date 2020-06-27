@@ -2,11 +2,11 @@
 
 * [Dependencies](#dependencies)
 * [Installation](#nstallation)
+* [Documentation](#documentation)
 * [Examples Map](#examples_map)
     * [Filtering and Estimation](#filtering_and_esitmation)
     * [Control](#control)
-    * [Statistics](#statistics)
-    * [Machine Learning](#machine_learning)
+    * [Machine Learning & Statistics](#machine_learning)
     * [Reinforcement Learning](#reinforcement_learning)
     * [Robotics Simulations](#using_ros)
     * [Miscellaneous](#miscellaneous)
@@ -47,6 +47,10 @@ make install
 make tests
 ```
 
+## <a name="documentation"></a> Documentation
+
+You can find the HTML documentation <a href="https://pockerman.github.io/cubic_engine_doc/">here</a>
+
 ## <a name="examples_map"></a> Examples Map
 
 ### <a name="filtering_and_esitmation"></a> Filtering and Estimation
@@ -62,13 +66,10 @@ make tests
 - LQR Control
 - <a href="examples/exe28/doc/exe.ipynb">Example 28: </a> Develop a model predictive controller for differential drive system
 
-### <a name="statistics"></a> Statistics
-- <a href="examples/exe24/doc/exe.ipynb">Example 24</a> Sampling from multivariate normal distribution
-
-### <a name="machine_learning"></a> Machine Learning
+### <a name="machine_learning"></a> Machine Learning & Statistics
 
 - <a href="examples/exe5/doc/exe.md">Example 5: </a> Simulate standard error for the mean
-- <a href="examples/exe7/doc/exe.md">Example 7: </a> Multithreaded batch gradient descent
+- <a href="examples/exe7/doc/exe.md">Example 7: </a> Multithreaded  gradient descent
 - <a href="examples/exe11/doc/exe.md">Example 11: </a> Neural Network with PyTorch
 - <a href="examples/exe12/doc/exe.md">Example 12: </a> Linear regression
 - <a href="examples/exe13/doc/exe.md">Example 13: </a> Logistic regression classification
@@ -78,13 +79,15 @@ make tests
 - <a href="examples/exe17/doc/exe.md">Example 17: </a> KMeans clustering
 - <a href="examples/exe18/doc/exe.md">Example 18: </a> KNN classification
 - <a href="examples/exe20/doc/exe.md">Example 20: </a> KNN classification with multiple threads
+- <a href="examples/exe24/doc/exe.ipynb">Example 24: </a> Sampling from multivariate normal distribution
+- <a href="examples/exe30/doc/exe.ipynb">Example 30: </a> PCA for dimensionality reduction
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
-- <a href="examples/exe6/doc/exe.md">Example 6: </a> Qlearning applied on simple ```GridWorld```
+- <a href="examples/exe6/doc/exe.ipynb">Example 6: </a> Qlearning applied on simple ```GridWorld```
 - <a href="examples/exe22/doc/exe.ipynb">Example 22: </a> SARSA learning applied on ```CliffWorld```
 - <a href="examples/exe25/doc/exe.ipynb">Example 25: </a> Iterative policy evaluation
-- Example 26: Policy iteration
+- <a href="examples/exe26/doc/exe.ipynb">Example 26: </a> Policy iteration 
 
 ### <a name="using_ros"></a> Robotics Simulations
 
@@ -93,7 +96,6 @@ make tests
 - <a href="examples/exe21/doc/exe.md">Example 21:</a> Pure pursuit path tracking
 - <a href="examples/exe23/doc/exe.ipynb">Example 23:</a> Follow the carrot path tracking
 - <a href="examples/exe29/doc/exe.ipynb">Example 29:</a> Path planning with rapidly-exploring random trees
-
 
 ### <a name="miscellaneous"></a>Miscellaneous
 
