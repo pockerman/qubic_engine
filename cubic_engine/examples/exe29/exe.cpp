@@ -11,6 +11,8 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#include <string>
+#include <fstream>
 
 namespace example
 {
@@ -24,8 +26,12 @@ using kernel::dynamics::SysState;
 
 const real_t TOL = 1.0e-8;
 const real_t DT = 0.5;
-const uint_t Nx = 100;
-const uint_t Ny = 100;
+const uint_t Nx = 50;
+const uint_t Ny = 50;
+const real_t Dx = 50.0/Nx;
+const real_t xstart = 0.0;
+const real_t Dy = 50.0/Ny;
+const real_t ystart = 0.0;
 
 typedef std::vector<SysState<2>> world_t;
 
@@ -33,19 +39,63 @@ typedef std::vector<SysState<2>> world_t;
 void create_world(world_t& world){
 
     world.resize(Nx*Ny);
-    real_t dx = 100.0/Nx;
-    real_t xstart = 0.0;
-    real_t dy = 100.0/Ny;
-    real_t ystart = 0.0;
 
     uint_t counter = 0;
     for(uint_t i =0; i<Nx; ++i){
-        for(uint_t j=0; j<Ny; ++i){
-          auto state = world[counter];
-          state.set(0, {"X", xstart + i*dx});
-          state.set(1, {"Y", ystart + j*dy});
+        for(uint_t j=0; j<Ny; ++j){
+          auto& state = world[counter++];
+          state.set(0, {"X", xstart + i*Dx});
+          state.set(1, {"Y", ystart + j*Dy});
         }
     }
+}
+
+void save(const RRT<SysState<2>, DynVec<real_t>>& rrt,
+          const std::string& filename){
+
+    // open the file stream
+    std::ofstream file;
+    file.open(filename, std::ios_base::out);
+
+    file<<rrt.n_vertices()<<std::endl;
+
+    for(uint_t v=0; v<rrt.n_vertices(); ++v){
+        auto vertex = rrt.get_vertex(v);
+        auto x = vertex.data.get("X");
+        auto y = vertex.data.get("Y");
+        file<<vertex.id<<","<<x<<","<<y<<std::endl;
+    }
+
+    file<<rrt.n_edges()<<std::endl;
+
+    /*for(uint_t v=0; v<rrt.n_vertices(); ++v){
+        auto vertex = rrt.get_vertex(v);
+        auto adjacency_list = rrt.get_vertex_neighbors(vertex.id);
+        auto begin = adjacency_list.first;
+        auto end = adjacency_list.second;
+        file<<vertex.id<<",";
+
+        while(begin != end){
+            auto nv = *begin;
+          file<<nv.data.id<<",";
+        }
+
+
+    }*/
+
+    //auto edges = rrt.edges();
+    //auto edges_b = edges.first;
+    //auto edges_e = edges.second;
+
+    /*while(edges_b != edges_e){
+
+        auto edge = *edges_b;
+        file<<edge.get_id()<<","<<edge.start().id<<","<<edge.end().id<<std::endl;
+        edges_b++;
+    }*/
+
+    file.close();
+
 }
 
 }
@@ -53,7 +103,6 @@ void create_world(world_t& world){
 int main() {
    
     using namespace example;
-    uint_t n_steps = 300;
 
     kernel::CSVWriter writer("state", kernel::CSVWriter::default_delimiter(), true);
     std::vector<std::string> names{"Time", "X", "Y"};
@@ -62,6 +111,11 @@ int main() {
     try{
 
         world_t world;
+
+        // create the nodes of the world
+        create_world(world);
+
+        std::cout<<"World size: "<<world.size()<<std::endl;
 
         // how to select a state from the world
         auto state_selector = [&world](){
@@ -94,11 +148,13 @@ int main() {
 
         // build the rrt
         SysState<2> xinit;
-        xinit.set(0, {"X", 50.0});
-        xinit.set(1, {"Y", 50.0});
+        xinit.set(0, {"X", 25.0});
+        xinit.set(1, {"Y", 25.0});
 
         RRT<SysState<2>, DynVec<real_t>> rrt;
-        rrt.build(4, xinit, state_selector, input_selector, metric, dynamics);
+        rrt.set_show_iterations_flag(true);
+        rrt.build(world.size(), xinit, state_selector, input_selector, metric, dynamics);
+        save(rrt, "rrt.txt");
 
     }
     catch(std::runtime_error& e){
