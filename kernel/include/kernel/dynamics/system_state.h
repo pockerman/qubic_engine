@@ -22,112 +22,173 @@ class SysState
 
 public:
 
+    ///
     /// \brief The dimension of the state
+    ///
     static const int dimension = dim;
 
+    ///
     /// \brief The type of the stored values
+    ///
     typedef std::array<std::pair<std::string, real_t>, dim> value_t;
 
+    ///
     /// \brief Extract a state of different dimension
+    ///
     template<int dim1, int dim2>
     static void extract(const SysState<dim1>& state, SysState<dim2>& other);
 
-    /// \brief Initialize the state with the given names and values
+    ///
+    /// \brief Constructor. Initialize the state with no names
+    ///
     SysState();
 
-    /// \brief Initialize the state with the given names and values
+    ///
+    /// \brief Constructor. Initialize the state with the given names and values
+    ///
     SysState(std::array<std::pair<std::string, real_t>, dim>&& values);
 
-    /// \brief Initialize the state with the given names
+    ///
+    /// \brief Constructor. Initialize the state with the given names
     /// all variables will be initialized with val
+    ///
     SysState(std::array<std::string, dim>&& names, real_t val);
 
+    ///
     /// \brief Copy constructor
+    ///
     SysState(const SysState<dim>& other);
 
+    ///
     /// \brief Copy constructor
+    ///
     template<int other_dim>
     SysState(const SysState<other_dim>& other);
 
+    ///
     /// \brief Copy assignement constructor
+    ///
     SysState& operator=(const SysState<dim>& other);
 
+    ///
     /// \brief Move copy constructor
+    ///
     SysState(SysState&& other);
 
+    ///
     /// \brief Move copy constructor
+    ///
     SysState& operator=(SysState&& other);
 
+    ///
     /// \brief Add to this state the entries
     /// of the give vector
+    ///
     SysState& operator+=(const DynVec<real_t>& vec);
 
+    ///
     /// \brief Subtract from this state the entries
     /// of the give vector
+    ///
     SysState& operator-=(const DynVec<real_t>& vec);
 
+    ///
     /// \brief Scale this state by the given factor
+    ///
     SysState& operator*=(real_t val);
 
+    ///
     /// \brief Returns the value for the variable name
+    ///
     real_t get(const std::string& name)const;
 
     /// \brief Returns the entries of this state
     /// as a DynVec
     DynVec<real_t> as_vector()const;
 
+    ///
     /// \brief Set the value for the variable name
+    ///
     void set(const std::string& name, real_t val);
 
+    ///
     /// \brief Set the name and value of the i-th variable
+    ///
     void set(uint_t i, const std::pair<std::string, real_t>& value);
 
+    ///
     /// \brief Set the values of state variables
     /// container must be of size dim.
+    ///
     template<typename Container>
     void set(const Container& container);
 
+    ///
     /// \brief Returns the size of the system
+    ///
     uint_t size()const{return dim;}
 
     /// \brief Returns a copy of the state values
     const std::array<real_t, dim> get_values()const;
 
+    ///
     /// \brief Returns a copy of the state names
+    ///
     const std::array<std::string_view, dim> get_names()const;
 
-    /// \brief Access operators
+    ///
+    /// \brief Access operator
+    ///
     real_t& operator[](uint_t);
 
-    /// \brief Access operators
+    ///
+    /// \brief Access operator
+    ///
     const real_t& operator[](uint_t)const;
 
-    /// \brief Access operators
+    ///
+    /// \brief Access operator
+    ///
     real_t& operator[](const std::string& name);
 
-    /// \brief Access operators
+    ///
+    /// \brief Access operator
+    ///
     const real_t& operator[](const std::string& name)const;
 
+    ///
     /// \brief clear the state
+    ///
     void clear();
 
+    ///
     /// \brief Print the state at the given stream
+    ///
     std::ostream& print(std::ostream& out)const;
 
+    ///
     /// \brief Return the state as string
+    ///
     const std::string as_string()const;
 
+    ///
     /// \brief increment the analogous entries of the
     /// state with the entries in the container
     /// The container must have same size as the state
+    ///
     template<typename Container>
     void add(const Container& container);
 
+    ///
     /// \brief Scale the values of the state
+    ///
     void scale(real_t val);
 
 private:
 
+    ///
+    /// \brief values_. Array holding the values of the state
+    ///
     std::array<std::pair<std::string, real_t>, dim> values_;
 
 };
