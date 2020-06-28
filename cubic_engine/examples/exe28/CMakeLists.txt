@@ -9,11 +9,11 @@ INCLUDE_DIRECTORIES(${KERNEL_INCL_DIR})
 INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
 
 # we need NLOpt for this tutorial
-INCLUDE_DIRECTORIES(/home/david/qi3/cubic_engine_external/nlopt/install/include)
+INCLUDE_DIRECTORIES(/home/alex/MySoftware/nlplot/install/include/)
 
 LINK_DIRECTORIES(${PROJECT_LIB_DIR})
 LINK_DIRECTORIES(${KERNEL_LIB_DIR})
-LINK_DIRECTORIES(/home/david/qi3/cubic_engine_external/nlopt/install/lib)
+LINK_DIRECTORIES(/home/alex/MySoftware/nlplot/install/lib)
 
 
 ADD_EXECUTABLE(${EXECUTABLE} ${SOURCE})
@@ -28,4 +28,4 @@ ENDIF()
 TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)
 TARGET_LINK_LIBRARIES(${EXECUTABLE} pthread)
 
-TARGET_LINK_LIBRARIES(${EXECUTABLE} lopt)
+TARGET_LINK_LIBRARIES(${EXECUTABLE} nlopt)
