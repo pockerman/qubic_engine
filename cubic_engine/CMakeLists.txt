@@ -35,7 +35,7 @@ SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/cubic_engine)
 SET(PWD ${PROJECT_SOURCE_DIR})
 SET(CMAKE_INSTALL_PREFIX ${PWD}/install)
 SET(MAGIC_ENUM_INCL_DIR " ")
-SET(BLAZE_INCL_DIR " ")
+SET(BLAZE_INCL_DIR "/home/alex/MySoftware/blaze/blaze-3.7/install/include")
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(CENGINE_DEBUG "ON")
