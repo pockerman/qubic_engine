@@ -72,20 +72,20 @@ namespace kernel_detail{
 
 /// \detailed Generic representation of a line
 /// representing two objects of type NodeT having
-/// cost CostTp. If the line does not have a cost then
+/// cost DataTp. If the line does not have a cost then
 /// we can use kernel_types::dummy_tag to simulate this.
 /// By default it id assumed that the type of the cost
 /// is kernel::real_type which depending on the configuration may be
 /// either single or double precision floating point number.
 
-template<typename NodeTp, typename CostTp=real_t>
+template<typename NodeTp, typename DataTp=real_t>
 class GenericLine: private kernel_detail::generic_line_base<NodeTp>
 {
 
 public:
 
     static const int dimension = NodeTp::dimension;
-    typedef CostTp cost_type;
+    typedef DataTp data_t;
     typedef kernel_detail::generic_line_base<NodeTp> base;
     typedef typename base::node_type node_type;
     typedef NodeTp point_t;
@@ -96,60 +96,77 @@ public:
     using base::set_id;
     using base::has_valid_id;
 
+    ///
     /// \brief Constructor
+    ///
     GenericLine();
 
+    ///
     /// \brief Constructor
+    ///
     GenericLine(const NodeTp& p1, const NodeTp& p2);
 
     /// \brief Constructor
-    GenericLine(const NodeTp& p1, const NodeTp& p2, uint_t id, const CostTp& cost = CostTp());
+    GenericLine(const NodeTp& p1, const NodeTp& p2, uint_t id, const data_t& cost = data_t());
 
+    ///
     /// \brief Returns the cost of the line
-    const CostTp& get_cost()const{return cost_;}
+    ///
+    const data_t& get_data()const{return cost_;}
 
+    ///
     /// \brief Returns the cost of the line
-    CostTp& get_cost(){return cost_;}
+    ///
+    data_t& get_data(){return cost_;}
 
+    ///
     /// \brief Set the cost of the line
-    void set_cost(const CostTp& cost){cost_= cost;}
+    ///
+    void set_data(const data_t& cost){cost_= cost;}
 
+    ///
     /// \brief Returns the v-th vertex of the segment
+    ///
     const point_t& get_vertex(uint_t v)const;
 
+    ///
     /// \brief Returns the v-th vertex of the segment
+    ///
     point_t& get_vertex(uint_t v);
 
 private:
 
-    /// \brief The cost
-    CostTp cost_;
+    ///
+    /// \brief The data the line may have
+    ///
+    data_t cost_;
 
 };
 
-template<typename NodeTp,typename CostTp>
-GenericLine<NodeTp,CostTp>::GenericLine()
+template<typename NodeTp,typename DataTp>
+GenericLine<NodeTp,DataTp>::GenericLine()
 :
 kernel_detail::generic_line_base<NodeTp>(),
 cost_()
 {}
 
-template<typename NodeTp,typename CostTp>
-GenericLine<NodeTp, CostTp>::GenericLine(const NodeTp& p1,const NodeTp& p2, uint_t id, const CostTp& cost)
+template<typename NodeTp,typename DataTp>
+GenericLine<NodeTp, DataTp>::GenericLine(const NodeTp& p1,const NodeTp& p2,
+                                         uint_t id, const DataTp& cost)
 :
 kernel_detail::generic_line_base<NodeTp>(p1,p2,id),
 cost_(cost)
 {}
 
-template<typename NodeTp,typename CostTp>
-GenericLine<NodeTp, CostTp>::GenericLine(const NodeTp& p1,const NodeTp& p2)
+template<typename NodeTp,typename DataTp>
+GenericLine<NodeTp, DataTp>::GenericLine(const NodeTp& p1,const NodeTp& p2)
 :
-GenericLine<NodeTp, CostTp>(p1,p2,kernel::KernelConsts::invalid_size_type(), CostTp())
+GenericLine<NodeTp, DataTp>(p1,p2,kernel::KernelConsts::invalid_size_type(), DataTp())
 {}
 
-template<typename NodeTp,typename CostTp>
-const typename GenericLine<NodeTp, CostTp>::point_t&
-GenericLine<NodeTp, CostTp>::get_vertex(uint_t v)const{
+template<typename NodeTp,typename DataTp>
+const typename GenericLine<NodeTp, DataTp>::point_t&
+GenericLine<NodeTp, DataTp>::get_vertex(uint_t v)const{
 
     if(v == 0){
         return this->start();
@@ -162,9 +179,9 @@ GenericLine<NodeTp, CostTp>::get_vertex(uint_t v)const{
 
 }
 
-template<typename NodeTp,typename CostTp>
-typename GenericLine<NodeTp, CostTp>::point_t&
-GenericLine<NodeTp, CostTp>::get_vertex(uint_t v){
+template<typename NodeTp,typename DataTp>
+typename GenericLine<NodeTp, DataTp>::point_t&
+GenericLine<NodeTp, DataTp>::get_vertex(uint_t v){
 
     if(v == 0){
         return this->start();
@@ -177,8 +194,9 @@ GenericLine<NodeTp, CostTp>::get_vertex(uint_t v){
 
 }
 
-
-/// \brief Partial specialization for lines having no cost
+///
+/// \brief Partial specialization for lines having no Data
+///
 template<typename NodeTp>
 class GenericLine<NodeTp, void>: private kernel_detail::generic_line_base<NodeTp>
 {
@@ -195,19 +213,29 @@ public:
     using base::set_id;
     using base::has_valid_id;
 
+    ///
     /// \brief Constructor
+    ///
     GenericLine();
 
+    ///
     /// \brief Constructor
+    ///
     GenericLine(const NodeTp& p1, const NodeTp& p2);
 
+    ///
     /// \brief Constructor
+    ///
     GenericLine(const NodeTp& p1, const NodeTp& p2, uint_t id);
 
+    ///
     /// \brief Returns the v-th vertex of the segment
+    ///
     const point_t& get_vertex(uint_t v)const;
 
+    ///
     /// \brief Returns the v-th vertex of the segment
+    ///
     point_t& get_vertex(uint_t v);
 };
 

@@ -11,49 +11,51 @@
 namespace kernel
 {
  
-/**
- * @brief A small struct that holds basic information
- * about the performance of an algorithm.
- */
+///
+/// \brief A small struct that holds basic information
+///about the performance of an algorithm.
+///
 struct AlgInfo
 {
-    /**
-     *@brief How many iterations the algorithm performed
-     */
+    ///
+    /// \brief How many iterations the algorithm performed
+    ///
     uint_t niterations;
 
-    /**
-     * @brief The residual after the algorithm terminated
-     */
+    ///
+    /// \brief The residual after the algorithm terminated
+    ///
     real_t residual;
 
-    /**
-     * @brief Flag indicating if the algorithm converged
-     */
+    ///
+    /// \brief Flag indicating if the algorithm converged
+    ///
     bool converged;
 
+    ///
     /// \brief The exit tolerace used
+    ///
     real_t tolerance;
 
-    /**
-     * @brief The total time duration of the algorithm
-     */
+    ///
+    /// \brief The total time duration of the algorithm
+    ///
     std::chrono::duration<real_t> runtime;
 
-     /**
-      * @brief How many threads the algorithm used
-      */
+     ///
+     /// \brief How many threads the algorithm used
+     ///
      uint_t nthreads;
 
-     /**
-      * @brief How many processors the algorithm used
-      */
+     ///
+     /// \brief How many processors the algorithm used
+     ///
      uint_t nprocs;
 
-     /**
-      * @brief Constructor
-      */
-      AlgInfo()
+     ///
+     /// \brief Constructor
+     ///
+     AlgInfo()
               :
              niterations(KernelConsts::invalid_size_type()),
              residual(std::numeric_limits<real_t>::max()),
@@ -63,8 +65,10 @@ struct AlgInfo
              nprocs(1)
       {}
 
+      ///
       /// \brief Print the information about the performance of
       /// the algorithm on the given stream
+      ///
       virtual std::ostream& print(std::ostream& out)const;
 };
 
