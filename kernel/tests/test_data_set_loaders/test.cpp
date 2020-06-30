@@ -1,14 +1,10 @@
 #include "kernel/utilities/data_set_loaders.h"
 #include "kernel/base/types.h"
 #include "kernel/base/exceptions.h"
+#include "kernel/maths/matrix_utilities.h"
 
 #include <vector>
 #include <gtest/gtest.h>
-
-namespace{
-
-}
-
 
 /***
  * Test Scenario:   The application attempts to load the reduced iris data set
@@ -124,6 +120,109 @@ TEST(TestDataSetLoaders, LoadXYSinuisoidDataSetNoOnes) {
         ASSERT_FALSE("A non expected exception was thrown");
     }
 }
+
+
+/***
+ * Test Scenario:   Test loading the wine data set without ones
+ * Expected Output:	matrix of 178x12, labels of 178
+ **/
+TEST(TestDataSetLoaders, TestLoadWineDataSetSetNoOnes) {
+
+
+    /// TODO: Is there a better way to do this?
+    try{
+
+        auto data = kernel::load_wine_data_set(false);
+        ASSERT_EQ(data.first.rows(), 178);
+        ASSERT_EQ(data.first.columns(), 12);
+
+        // test first row: 14.23,1.71,2.43,15.6,127,2.8,3.06,.28,2.29,5.64,1.04,3.92,1065
+
+        auto row = kernel::get_row(data.first, 0);
+        std::vector<double> first_vals{14.23,1.71,2.43,15.6,127,2.8,3.06,.28,2.29,5.64,1.04,3.92,1065};
+
+        for(std::size_t c=0; c<row.size(); ++c){
+            auto val = row[c];
+            ASSERT_NEAR(val, first_vals[c], 1.0e-10);
+        }
+
+        // test last row: 14.13,4.1,2.74,24.5,96,2.05,.76,.56,1.35,9.2,.61,1.6,560
+        row = kernel::get_row(data.first, data.first.rows()-1);
+        std::vector<double> last_vals{14.13,4.1,2.74,24.5,96,2.05,.76,.56,1.35,9.2,.61,1.6,560};
+
+        for(std::size_t c=0; c<row.size(); ++c){
+            auto val = row[c];
+            ASSERT_NEAR(val, last_vals[c], 1.0e-10);
+        }
+
+        ASSERT_EQ(data.second.size(), data.first.rows());
+
+        // there should be:
+        // class 1 59
+        // class 2 71
+        // class 3 48
+        auto class_1 = std::count(data.second.begin(),
+                                  data.second.end(), 1);
+
+        ASSERT_EQ(class_1, 59);
+
+        auto class_2 = std::count(data.second.begin(),
+                                  data.second.end(), 2);
+
+        ASSERT_EQ(class_2, 71);
+
+        auto class_3 = std::count(data.second.begin(),
+                                  data.second.end(), 3);
+
+        ASSERT_EQ(class_3, 48);
+    }
+    catch(...){
+
+        ASSERT_FALSE("A non expected exception was thrown");
+    }
+}
+
+/***
+ * Test Scenario:   Test loading the wine data set without ones
+ * Expected Output:	matrix of 178x12, labels of 178
+ **/
+TEST(TestDataSetLoaders, TestLoadWineDataSetSetWithOnes) {
+
+
+    /// TODO: Is there a better way to do this?
+    try{
+
+        auto data = kernel::load_wine_data_set(true);
+        ASSERT_EQ(data.first.rows(), 178);
+        ASSERT_EQ(data.first.columns(), 13);
+        ASSERT_EQ(data.second.size(), data.first.rows());
+
+        // there should be:
+        // class 1 59
+        // class 2 71
+        // class 3 48
+        auto class_1 = std::count(data.second.begin(),
+                                  data.second.end(), 1);
+
+        ASSERT_EQ(class_1, 59);
+
+        auto class_2 = std::count(data.second.begin(),
+                                  data.second.end(), 2);
+
+        ASSERT_EQ(class_2, 71);
+
+        auto class_3 = std::count(data.second.begin(),
+                                  data.second.end(), 3);
+
+        ASSERT_EQ(class_3, 48);
+    }
+    catch(...){
+
+        ASSERT_FALSE("A non expected exception was thrown");
+    }
+}
+
+
 
 
 

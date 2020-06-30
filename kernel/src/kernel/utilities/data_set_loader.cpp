@@ -623,4 +623,49 @@ DynMat<real_t> load_kmeans_test_data(){
 
 }
 
+std::pair<DynMat<real_t>,
+          DynVec<uint_t>> load_wine_data_set(bool add_ones_column){
+
+    uint_t ncols = add_ones_column?13:12;
+    uint col_start = add_ones_column?1:0;
+    uint_t nrows = 178;
+
+    std::string file(DATA_SET_FOLDER);
+    file += "/wine.data";
+
+    CSVFileReader reader(file);
+    DynMat<real_t> matrix(nrows, ncols, 0.0);
+
+    if(add_ones_column){
+        for(uint_t r=0; r<matrix.rows(); ++r){
+            matrix(r, 0) = 1.0;
+        }
+    }
+
+    // the labels
+    DynVec<uint_t> labels(nrows, 0);
+
+    for (uint_t r=0; r<nrows; ++r){
+
+        auto line = reader.read_line();
+
+        labels[r] = std::stoul (line[0], nullptr, 10);
+
+        std::vector<real_t> vals(line.size()-1, 0.0);
+
+        for(uint_t c=0; c<vals.size(); ++c){
+           vals[c] = std::atof(line[c+1].c_str());
+        }
+
+        uint_t clocal = 0;
+        for(uint c=col_start; c<matrix.columns(); ++c){
+           matrix(r, c) =  vals[clocal++];
+        }
+
+    }
+
+
+    return {matrix, labels};
+}
+
 }
