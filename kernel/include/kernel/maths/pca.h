@@ -37,6 +37,16 @@ public:
 private:
 
     ///
+    /// \brief n_components_ How many components to keep
+    ///
+    uint_t n_components_;
+
+    ///
+    /// \brief total_data_var_ The total variance of the data set
+    ///
+    real_t total_data_var_;
+
+    ///
     /// \brief U_ Matrix with the left eigenvectors
     ///
     DynMat<real_t> U_;
@@ -52,7 +62,6 @@ private:
     DynMat<real_t> V_;
 
 };
-
 
 }
 
