@@ -25,7 +25,7 @@ public:
     ///
     /// \brief fit Apply PCA to the given data
     ///
-    void fit(const DynMat<real_t>& data);
+    void fit(DynMat<real_t>& data);
 
     ///
     /// \brief reinitialize. Reinitialize the internal data structures.
@@ -34,7 +34,38 @@ public:
     ///
     void reinitialize(uint_t ncomponents);
 
+    ///
+    /// \brief get_explained_variance Returns the explained variance
+    /// \return
+    ///
+    const DynVec<real_t>& get_explained_variance()const{return explained_variance_;}
+
+    ///
+    /// \brief get_singular_values Returns the singular values from SVD
+    /// \return
+    ///
+    const DynVec<real_t>& get_singular_values()const{return s_;}
+
+
 private:
+
+    ///
+    /// \brief n_components_ How many components to keep
+    ///
+    uint_t n_components_;
+
+    ///
+    /// \brief total_data_var_ The total variance of the data set
+    ///
+    real_t total_data_var_;
+
+    ///
+    /// \brief explained_variance_.
+    /// The amount of variance explained by each of the selected components.
+    /// This is equal to n_components_ largest eigenvalues of the covariance matrix
+    /// of the given data set
+    ///
+    DynVec<real_t> explained_variance_;
 
     ///
     /// \brief U_ Matrix with the left eigenvectors
@@ -52,7 +83,6 @@ private:
     DynMat<real_t> V_;
 
 };
-
 
 }
 

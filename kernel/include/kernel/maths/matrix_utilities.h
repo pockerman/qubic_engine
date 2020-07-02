@@ -76,6 +76,42 @@ get_column(const DynMat<T>& matrix, uint_t cidx){
 }
 
 ///
+/// \brief get_column_means. Computes the means of the matrix columns
+///
+template<typename T>
+DynVec<real_t>
+get_column_means(const DynMat<T>& matrix){
+
+    DynVec<real_t> means(matrix.columns(), 0.0);
+
+    for(uint_t c=0; c<matrix.columns(); ++c){
+       auto column =  get_column(matrix, c);
+       means[c] = mean(column);
+    }
+
+    return means;
+
+}
+
+///
+/// \brief get_column_variances. Computes the variances of the matrix columns
+///
+template<typename T>
+DynVec<real_t>
+get_column_variances(const DynMat<T>& matrix){
+
+    DynVec<real_t> means(matrix.columns(), 0.0);
+
+    for(uint_t c=0; c<matrix.columns(); ++c){
+       auto column =  get_column(matrix, c);
+       means[c] = var(column);
+    }
+
+    return means;
+
+}
+
+///
 /// \brief Extract the row_idx-th row from the matrix
 ///
 template<typename T>
@@ -122,6 +158,21 @@ void extract_randomly(const DynMat<T>& matrix, std::vector<DynVec<T>>& rsult,
         touched.insert(idx);
     }
 }
+
+///
+/// \brief center_columns. Center the columns of the matrix around
+/// the given values
+///
+template<typename T>
+void center_columns(DynMat<T>& matrix, const DynVec<T>& vals){
+
+    for(uint_t r=0; r<matrix.rows(); ++r){
+        for (uint_t c=0; c<matrix.columns(); ++c){
+            matrix(r, c ) -= vals[c];
+        }
+    }
+}
+
 }
 
 #endif // MATRIX_SHUFFLER_H
