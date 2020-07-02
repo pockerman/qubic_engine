@@ -55,43 +55,53 @@ void test_case_1(){
     DynVec<real_t> s;
     DynMat<real_t> V;
 
+    std::cout<<"Variable 1 explains: "<<col1_var/total_var<<std::endl;
+    std::cout<<"Variable 2 explains: "<<col2_var/total_var<<std::endl;
 
-        std::cout<<"Variable 1 explains: "<<col1_var/total_var<<std::endl;
-        std::cout<<"Variable 2 explains: "<<col2_var/total_var<<std::endl;
+    svd(X, U, s, V );
 
-        svd(X, U, s, V );
+    std::cout<<"Singular values: "<<s<<std::endl;
 
-        std::cout<<"Singular values: "<<s<<std::endl;
+    auto sum_eigen_values = 0.0;
+    for(uint_t v=0; v<s.size(); ++v){
+       sum_eigen_values += s[v]*s[v];
+    }
 
-        // Principal axes in feature space,
-        // representing the directions of maximum variance in the data.
-        // these are the columns of the V matrix
-        std::cout<<"V matrix: "<<V<<std::endl;
+    std::cout<<"Sum eignenvalies: "<<sum_eigen_values<<std::endl;
+    std::cout<<"Variable 1 variance: "<<s[0]*s[0]<<std::endl;
+    std::cout<<"Variable 2 variance: "<<s[1]*s[1]<<std::endl;
+    std::cout<<"Variable 1 explains: "<<(s[0]*s[0])/sum_eigen_values<<std::endl;
+    std::cout<<"Variable 2 explains: "<<(s[1]*s[1])/sum_eigen_values<<std::endl;
 
-        // reconstruct the data set with PCA
-        // The full principal components decomposition of
-        // X can be given as T= XW
-        DynMat<real_t> T = X*V;
+    // Principal axes in feature space,
+    // representing the directions of maximum variance in the data.
+    // these are the columns of the V matrix
+    std::cout<<"V matrix: "<<V<<std::endl;
 
-        // caluclate the sample variance
-        // of each of the 3 variables (columns)
-        auto pca_col1 = kernel::get_column(T, 0);
-        auto pca_col2 = kernel::get_column(T, 1);
+    // reconstruct the data set with PCA
+    // The full principal components decomposition of
+    // X can be given as T= XW
+    DynMat<real_t> T = X*V;
 
-        auto pca_col1_var = var(pca_col1);
-        auto pca_col2_var = var(pca_col2);
+    // caluclate the sample variance
+    // of each of the 3 variables (columns)
+    auto pca_col1 = kernel::get_column(T, 0);
+    auto pca_col2 = kernel::get_column(T, 1);
 
-        std::cout<<"PCA variable 1 variance: "<<pca_col1_var<<std::endl;
-        std::cout<<"PCA variable 2 variance: "<<pca_col2_var<<std::endl;
+    auto pca_col1_var = var(pca_col1);
+    auto pca_col2_var = var(pca_col2);
 
-        // this should be the same at the total variance
-        // compute the total variance
-        auto pca_total_var = pca_col1_var + pca_col2_var;
+    std::cout<<"PCA variable 1 variance: "<<pca_col1_var<<std::endl;
+    std::cout<<"PCA variable 2 variance: "<<pca_col2_var<<std::endl;
 
-        std::cout<<"PCA Total variance: "<<pca_total_var<<std::endl;
+    // this should be the same at the total variance
+    // compute the total variance
+    auto pca_total_var = pca_col1_var + pca_col2_var;
 
-        std::cout<<"PCA Variable 1 explains: "<<pca_col1_var/pca_total_var<<std::endl;
-        std::cout<<"PCA Variable 2 explains: "<<pca_col2_var/pca_total_var<<std::endl;
+    std::cout<<"PCA Total variance: "<<pca_total_var<<std::endl;
+
+    std::cout<<"PCA Variable 1 explains: "<<pca_col1_var/pca_total_var<<std::endl;
+    std::cout<<"PCA Variable 2 explains: "<<pca_col2_var/pca_total_var<<std::endl;
 
 }
 
@@ -109,6 +119,7 @@ void test_case_2(){
     // with the largest variance
     PCA pca(3);
 
+    // transform the data
     pca.fit(data.first);
 
 
@@ -124,6 +135,7 @@ int main() {
     try{
 
         test_case_1();
+        test_case_2();
     }
     catch(std::runtime_error& e){
         std::cerr<<"Runtime error: "

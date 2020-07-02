@@ -12,7 +12,18 @@ PCA::PCA(uint_t ncomponents)
 {}
 
 void
-PCA::fit(const DynMat<real_t>& data){
+PCA::reinitialize(uint_t ncomponents){
+
+    n_components_ = ncomponents;
+    total_data_var_ = 0.0;
+
+    U_.clear();
+    s_.clear();
+    V_.clear();
+}
+
+void
+PCA::fit(DynMat<real_t>& data){
 
     if(n_components_ > data.columns()){
         throw std::logic_error("Number of components cannot be larger than the number of features");
@@ -21,6 +32,13 @@ PCA::fit(const DynMat<real_t>& data){
     // all the features are requested
     if(n_components_ == 0){
         n_components_ = data.columns();
+    }
+
+    // calculate total data variance
+    total_data_var_ = 0.0;
+
+    for(uint_t c=0; c<data.columns(); ++c){
+        total_data_var_ += var(kernel::get_column(data, c));
     }
 
     U_.clear();
@@ -33,26 +51,29 @@ PCA::fit(const DynMat<real_t>& data){
 
     if(n_components_ == data.columns()){
         V_ = std::move(V);
+        explained_variance_ = s_;
     }
     else{
 
-        V_.resize(data.rows(), n_components_);
+        V_.resize(data.columns(), n_components_);
+        explained_variance_.resize(n_components_, 0.0);
 
         for(uint_t c=0; c<n_components_; ++c){
+
+            explained_variance_[c] = s_[c]*s_[c];
             auto col = get_column(V, c);
+
+            for(uint_t r=0; r<V_.rows(); ++r){
+                V_(r,c) = col[r];
+            }
 
             // set the column to V_;
         }
 
     }
 
-    // get
-
-
-
-
+    // compute the transformed data
+    data = data*V_;
 
 }
-
-
 }

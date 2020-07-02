@@ -25,7 +25,7 @@ public:
     ///
     /// \brief fit Apply PCA to the given data
     ///
-    void fit(const DynMat<real_t>& data);
+    void fit(DynMat<real_t>& data);
 
     ///
     /// \brief reinitialize. Reinitialize the internal data structures.
@@ -45,6 +45,14 @@ private:
     /// \brief total_data_var_ The total variance of the data set
     ///
     real_t total_data_var_;
+
+    ///
+    /// \brief explained_variance_.
+    /// The amount of variance explained by each of the selected components.
+    /// This is equal to n_components_ largest eigenvalues of the covariance matrix
+    /// of the given data set
+    ///
+    DynVec<real_t> explained_variance_;
 
     ///
     /// \brief U_ Matrix with the left eigenvectors
