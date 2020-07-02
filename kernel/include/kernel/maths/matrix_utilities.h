@@ -158,6 +158,21 @@ void extract_randomly(const DynMat<T>& matrix, std::vector<DynVec<T>>& rsult,
         touched.insert(idx);
     }
 }
+
+///
+/// \brief center_columns. Center the columns of the matrix around
+/// the given values
+///
+template<typename T>
+void center_columns(DynMat<T>& matrix, const DynVec<T>& vals){
+
+    for(uint_t r=0; r<matrix.rows(); ++r){
+        for (uint_t c=0; c<matrix.columns(); ++c){
+            matrix(r, c ) -= vals[c];
+        }
+    }
+}
+
 }
 
 #endif // MATRIX_SHUFFLER_H
