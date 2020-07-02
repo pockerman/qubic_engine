@@ -2,9 +2,8 @@
 #include "kernel/maths/matrix_utilities.h"
 #include "kernel/utilities/data_set_loaders.h"
 #include "kernel/maths/pca.h"
-#include <cmath>
+
 #include <iostream>
-#include <tuple>
 
 namespace example
 {
@@ -68,8 +67,8 @@ void test_case_1(){
     }
 
     std::cout<<"Sum eignenvalies: "<<sum_eigen_values<<std::endl;
-    std::cout<<"Variable 1 variance: "<<s[0]*s[0]<<std::endl;
-    std::cout<<"Variable 2 variance: "<<s[1]*s[1]<<std::endl;
+    //std::cout<<"Variable 1 variance: "<<s[0]*s[0]<<std::endl;
+    //std::cout<<"Variable 2 variance: "<<s[1]*s[1]<<std::endl;
     std::cout<<"Variable 1 explains: "<<(s[0]*s[0])/sum_eigen_values<<std::endl;
     std::cout<<"Variable 2 explains: "<<(s[1]*s[1])/sum_eigen_values<<std::endl;
 
@@ -115,6 +114,17 @@ void test_case_2(){
     // extract the column means
     auto means = kernel::get_column_means(data.first);
 
+    // crenter the columns
+    kernel::center_columns(data.first, means);
+
+    auto variances = kernel::get_column_variances(data.first);
+    auto total_var = sum(variances);
+    std::cout<<"Total variance: "<<total_var<<std::endl;
+
+    for(uint_t c=0; c<variances.size(); ++c){
+        std::cout<<"Variable: "<<c<<" explains: "<<variances[c]/total_var<<std::endl;
+    }
+
     // keep the first three components
     // with the largest variance
     PCA pca(3);
@@ -122,7 +132,14 @@ void test_case_2(){
     // transform the data
     pca.fit(data.first);
 
+    auto singular_vals = pca.get_singular_values();
+    std::cout<<"Singular values: "<<singular_vals<<std::endl;
 
+    auto explained_var = pca.get_explained_variance();
+
+    for(uint_t c=0; c<explained_var.size(); ++c){
+        std::cout<<"Component: "<<c<<" explains: "<<explained_var[c]<<std::endl;
+    }
 
 }
 
@@ -134,7 +151,14 @@ int main() {
     
     try{
 
+        std::cout<<"========================="<<std::endl;
+        std::cout<<"Doing test 1"<<std::endl;
+        std::cout<<"========================="<<std::endl;
         test_case_1();
+
+        std::cout<<"========================="<<std::endl;
+        std::cout<<"Doing test 2"<<std::endl;
+        std::cout<<"========================="<<std::endl;
         test_case_2();
     }
     catch(std::runtime_error& e){

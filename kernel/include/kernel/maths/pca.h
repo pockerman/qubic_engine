@@ -34,6 +34,19 @@ public:
     ///
     void reinitialize(uint_t ncomponents);
 
+    ///
+    /// \brief get_explained_variance Returns the explained variance
+    /// \return
+    ///
+    const DynVec<real_t>& get_explained_variance()const{return explained_variance_;}
+
+    ///
+    /// \brief get_singular_values Returns the singular values from SVD
+    /// \return
+    ///
+    const DynVec<real_t>& get_singular_values()const{return s_;}
+
+
 private:
 
     ///
