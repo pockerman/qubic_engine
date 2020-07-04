@@ -4,11 +4,14 @@
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/geometry/generic_line.h"
+
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/undirected_graph.hpp>
 
 #include <utility>
+#include <vector>
+#include <iterator>
 #include <stdexcept>
 
 namespace kernel{
@@ -113,6 +116,12 @@ public:
     vertex_type& get_vertex(adjacency_iterator itr);
 
     ///
+    /// \brief Access the vertex given the vertex descriptor
+    /// This is needed when accessing the vertices using the adjacency_iterator
+    ///
+    const vertex_type& get_vertex(adjacency_iterator itr)const;
+
+    ///
     /// \brief Access the i-th edge of the graph with endpoints
     /// the given vertices
     ///
@@ -138,6 +147,12 @@ public:
     /// \brief Returns the neighboring vertices for the given vertex id
     ///
     std::pair<adjacency_iterator, adjacency_iterator> get_vertex_neighbors(const vertex_type& v)const;
+
+    ///
+    /// \brief get_vertex_neighbors_ids Returns the ids of the vertices
+    /// connectected with this vertex
+    ///
+    std::vector<uint_t> get_vertex_neighbors_ids(uint_t id)const;
 
     ///
     /// \brief Returns the number of vertices
@@ -214,13 +229,13 @@ BoostSerialGraph<VertexData,EdgeData>::add_edge(uint_t v1, uint_t v2){
     edge_t et;
     bool condition;
 
-    //get the vertices that correspond to the indices
-    vertex_t a = boost::vertex(v1,g_);
-    vertex_t b = boost::vertex(v2,g_);
+    // get the vertices that correspond to the indices
+    vertex_t a = boost::vertex(v1, g_);
+    vertex_t b = boost::vertex(v2, g_);
     uint_t idx = n_edges();
 
-    ///create an edge
-    boost::tie(et,condition) = boost::add_edge(a,b,g_);
+    // create an edge
+    boost::tie(et, condition) = boost::add_edge(a,b,g_);
     edge_type& edge = g_[et];
     edge.set_id(idx);
     return edge;
@@ -252,6 +267,13 @@ BoostSerialGraph<VertexData,EdgeData>::get_vertex(adjacency_iterator itr){
 }
 
 template<typename VertexData,typename EdgeData>
+const typename BoostSerialGraph<VertexData,EdgeData>::vertex_type&
+BoostSerialGraph<VertexData,EdgeData>::get_vertex(adjacency_iterator itr)const{
+
+    return g_[*itr];
+}
+
+template<typename VertexData,typename EdgeData>
 typename BoostSerialGraph<VertexData,EdgeData>::vertex_type&
 BoostSerialGraph<VertexData,EdgeData>::get_vertex(uint_t i){
 
@@ -259,6 +281,34 @@ BoostSerialGraph<VertexData,EdgeData>::get_vertex(uint_t i){
 
             static_cast<const BoostSerialGraph<VertexData,EdgeData>&>(*this).get_vertex(i)
     );
+}
+
+template<typename VertexData,typename EdgeData>
+std::vector<uint_t>
+BoostSerialGraph<VertexData,EdgeData>::get_vertex_neighbors_ids(uint_t id)const{
+
+    if(id >=n_vertices()){
+        throw std::logic_error("Invalid vertex index. Index "+
+                                std::to_string(id)+
+                                " not in [0,"+
+                                std::to_string(n_vertices())+
+                                ")");
+    }
+
+
+    auto vneighs = get_vertex_neighbors(id);
+    std::vector<uint_t> neighbors;
+    neighbors.reserve(std::distance(vneighs.first, vneighs.second));
+
+    auto start = vneighs.first;
+    auto end = vneighs.second;
+    while(start != end){
+        auto& vertex = get_vertex(start);
+        neighbors.push_back(vertex.id);
+        ++start;
+    }
+
+    neighbors;
 }
 
 

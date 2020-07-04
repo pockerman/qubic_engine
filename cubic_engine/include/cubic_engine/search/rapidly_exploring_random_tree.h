@@ -77,6 +77,18 @@ public:
     const node_t& get_vertex(uint_t v)const{return tree_.get_vertex(v);}
 
     ///
+    /// \brief Access the vertex given the vertex descriptor
+    /// This is needed when accessing the vertices using the adjacency_iterator
+    ///
+    node_t& get_vertex(adjacency_iterator itr){return tree_.get_vertex(itr);}
+
+    ///
+    /// \brief Access the vertex given the vertex descriptor
+    /// This is needed when accessing the vertices using the adjacency_iterator
+    ///
+    const node_t& get_vertex(adjacency_iterator itr)const{return  tree_.get_vertex(itr);}
+
+    ///
     /// \brief Returns the neighboring vertices for the given vertex id
     ///
     std::pair<adjacency_iterator, adjacency_iterator>
