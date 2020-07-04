@@ -5,7 +5,6 @@
 #include "kernel/maths/constants.h"
 #include "kernel/base/unit_converter.h"
 #include "kernel/utilities/common_uitls.h"
-#include "kernel/geometry/geom_point.h"
 
 #include <cmath>
 #include <iostream>
@@ -50,49 +49,51 @@ void create_world(world_t& world){
     }
 }
 
-void save(const RRT<SysState<2>, DynVec<real_t>>& rrt,
-          const std::string& filename){
+void save_vertices(const RRT<SysState<2>, DynVec<real_t>>& rrt,
+                   const std::string& filename){
 
     // open the file stream
     std::ofstream file;
     file.open(filename, std::ios_base::out);
 
-    file<<rrt.n_vertices()<<std::endl;
-
     for(uint_t v=0; v<rrt.n_vertices(); ++v){
-        auto vertex = rrt.get_vertex(v);
+        auto& vertex = rrt.get_vertex(v);
         auto x = vertex.data.get("X");
         auto y = vertex.data.get("Y");
         file<<vertex.id<<","<<x<<","<<y<<std::endl;
+
     }
+    file.close();
+}
 
-    file<<rrt.n_edges()<<std::endl;
+void save_connections(const RRT<SysState<2>, DynVec<real_t>>& rrt,
+                      const std::string& filename){
 
-    /*for(uint_t v=0; v<rrt.n_vertices(); ++v){
-        auto vertex = rrt.get_vertex(v);
-        auto adjacency_list = rrt.get_vertex_neighbors(vertex.id);
-        auto begin = adjacency_list.first;
-        auto end = adjacency_list.second;
+    // open the file stream
+    std::ofstream file;
+    file.open(filename, std::ios_base::out);
+
+    for(uint_t v=0; v<rrt.n_vertices(); ++v){
+
+        auto vneighs = rrt.get_vertex_neighbors(v);
+        auto& vertex = rrt.get_vertex(v);
+        auto start = vneighs.first;
+        auto end = vneighs.second;
+
         file<<vertex.id<<",";
+        while(start != end){
+            auto& neigh = rrt.get_vertex(start);
 
-        while(begin != end){
-            auto nv = *begin;
-          file<<nv.data.id<<",";
+            if (boost::next(start) != end){
+                    file<<neigh.id<<",";
+            }
+            else{
+               file<<neigh.id<<"\n";
+            }
+
+            ++start;
         }
-
-
-    }*/
-
-    //auto edges = rrt.edges();
-    //auto edges_b = edges.first;
-    //auto edges_e = edges.second;
-
-    /*while(edges_b != edges_e){
-
-        auto edge = *edges_b;
-        file<<edge.get_id()<<","<<edge.start().id<<","<<edge.end().id<<std::endl;
-        edges_b++;
-    }*/
+    }
 
     file.close();
 
@@ -132,7 +133,8 @@ int main() {
             return DynVec<real_t>(2, 0.0);
         };
 
-        // compute the dynamics of the model
+        // compute the dynamics of the model. The tree simply
+        // grows in the 45 degrees diagonal
         auto dynamics = [](const SysState<2>& s1, const DynVec<real_t>& u){
            SysState<2> s;
            s.set(0, {"X", 0.0});
@@ -154,7 +156,8 @@ int main() {
         RRT<SysState<2>, DynVec<real_t>> rrt;
         rrt.set_show_iterations_flag(true);
         rrt.build(world.size(), xinit, state_selector, input_selector, metric, dynamics);
-        save(rrt, "rrt.txt");
+        save_vertices(rrt, "rrt.txt");
+        save_connections(rrt, "rrt_connections.txt");
 
     }
     catch(std::runtime_error& e){
