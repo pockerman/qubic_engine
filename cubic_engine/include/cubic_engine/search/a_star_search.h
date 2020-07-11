@@ -61,7 +61,7 @@ namespace cengine
 /// boost_unidirected_serial_graph graph
 template<typename GraphTp, typename H>
 std::multimap<uint_t, uint_t>
-astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp::vertex_type& end, const H& h){
+astar_search(GraphTp& g, typename GraphTp::vertex_t& start, typename GraphTp::vertex_t& end, const H& h){
 
    std::multimap<uint_t, uint_t> came_from;
 
@@ -72,9 +72,9 @@ astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp:
    }
 
    typedef typename H::cost_t cost_t;
-   typedef typename GraphTp::vertex_type vertex_t;
+   typedef typename GraphTp::vertex_t vertex_t;
    typedef typename GraphTp::adjacency_iterator adjacency_iterator;
-   typedef typename GraphTp::vertex_type node_t;
+   typedef typename GraphTp::vertex_t node_t;
 
    std::set<node_t,astar_impl::id_astar_node_compare> explored;
    kernel::searchable_priority_queue<node_t, std::vector<node_t>, astar_impl::fcost_astar_node_compare> open;
@@ -85,7 +85,8 @@ astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp:
 
    //calculate the fCost from start node to the goal
    //at the moment this can be done only heuristically
-   start.data.fcost = h(start.data.position, end.data.position);
+   //start.data.fcost = h(start.data.position, end.data.position);
+   start.data.fcost = h(start, end);
    open.push(start);
 
    while(!open.empty()){
@@ -140,7 +141,7 @@ astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp:
 
          //this actually the cost of the path from the current node
          //to reach its neighbor
-         cost_t tg_cost = cv.data.gcost + h(cv.data.position, nv.data.position);
+         cost_t tg_cost = cv.data.gcost + h(cv, nv);//h(cv.data.position, nv.data.position);
 
          if (tg_cost >= nv.data.gcost) {
             continue; //this is not a better path
@@ -153,7 +154,7 @@ astar_search(GraphTp& g, typename GraphTp::vertex_type& start, typename GraphTp:
          nv.data.gcost = tg_cost;
 
          //acutally calculate f(nn) = g(nn)+h(nn)
-         nv.data.fcost = nv.data.gcost + h(nv.data.position, end.data.position);
+         nv.data.fcost = nv.data.gcost + h(nv, end);//h(nv.data.position, end.data.position);
 
          //if the neighbor not in open set add it
          open.push(nv);
