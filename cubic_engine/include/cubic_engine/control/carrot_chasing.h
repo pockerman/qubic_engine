@@ -20,12 +20,11 @@
 namespace cengine {
 namespace control {
 
-
+///
 /// \brief Helper class to assemble all the
 /// properties needed to initialize the
 /// CarrotChasingPathTrackController
-
-
+///
 struct CarrotChasingPathTrackControllerInput
 {
 
@@ -48,85 +47,124 @@ struct CarrotChasingPathTrackControllerInput
     real_t waypoint_r;
 };
 
-/// \brief The so-called carrot chasing path track controller
+///
+/// \brief The class CarrotChasingPathTrackController. Implements the so-called carrot chasing path track controller
+///
 template<typename PointData, typename SegmentData>
 class CarrotChasingPathTrackController:public kernel::ObserverBase<grids::WaypointPath<2, PointData, SegmentData>*>,
                                   private boost::noncopyable
 {
 public:
 
-
+    ///
     /// \brief The result returned by the controller
     /// upon calling execute
+    ///
     typedef  std::tuple<real_t, kernel::GeomPoint<2>, kernel::GeomPoint<2>>  result_t;
 
+    ///
     /// \brief The type of the base class
+    ///
     typedef kernel::ObserverBase<grids::WaypointPath<2, PointData, SegmentData>*> obsertver_base_t;
 
     /// \brief Expose the type of the path
     typedef typename kernel::ObserverBase<grids::WaypointPath<2,
                                                               PointData,
                                                               SegmentData>*>::resource_t  path_t;
+    ///
     /// \brief Constructor
+    ///
     CarrotChasingPathTrackController();
 
+    ///
     /// \brief Constructor
+    ///
     CarrotChasingPathTrackController(const CarrotChasingPathTrackControllerInput& input );
 
+    ///
     /// \brief Execute controller
+    ///
     std::tuple<real_t, kernel::GeomPoint<2>, kernel::GeomPoint<2>>
     execute(const kernel::dynamics::SysState<3>& state)const;
 
+    ///
     /// \brief Set the lookahead distance
+    ///
     void set_lookahead_dist(real_t dist){lookahead_distance_ = dist;}
 
+    ///
     /// \brief Set the number of sampling points to
     /// use when computing the closest point from the
     /// position to the path
+    ///
     void set_n_sampling_points(uint_t npoints){n_sampling_points_ = npoints; }
 
+    ///
     /// \brief Set the maximum allowed acceleration
+    ///
     void set_gain(real_t k){k_ = k;}
 
+    ///
     /// \brief Set the waypoint radius
+    ///
     void set_wpoint_radius(real_t r){waypoint_r_ = r;}
 
+    ///
     /// \brief Update. Notify the observer that the
     /// resource is observing has been changed
+    ///
     virtual void update(const path_t& resource) override final;
 
+    ///
     /// \brief Read the resource
+    ///
     virtual const path_t& read()const override final;
 
-    ///\brief Returns this as ObserverBase
+    ///
+    /// \brief Returns this as ObserverBase
+    ///
     obsertver_base_t& get_observer(){return *this;}
 
-    ///\brief Returns this as ObserverBase
+    ///
+    /// \brief Returns this as ObserverBase
+    ///
     const obsertver_base_t& get_observer()const{return *this;}
 
 private:
 
+    ///
     /// \brief The gain parameter
+    ///
     real_t k_;
 
+    ///
     /// \brief The lookahead distance
+    ///
     real_t lookahead_distance_;
 
+    ///
     /// \brief number of sampling poinst to use
     /// when computing the closest point from
     /// position to the path
+    ///
     uint_t n_sampling_points_;
 
+    ///
     /// \brief Tolerance used for calculations
+    ///
     real_t tol_;
 
+    ///
     /// \brief Radius within which it is
     /// assumed that the waypoint has been reached
+    ///
     real_t waypoint_r_;
 
     typedef typename path_t::element_t element_t;
 
+    ///
     /// \brief The current segment the algorithm is using
+    ///
     mutable const element_t* current_element_;
 
 };
@@ -146,7 +184,8 @@ CarrotChasingPathTrackController<PointData, SegmentData>::CarrotChasingPathTrack
 
 
 template<typename PointData, typename SegmentData>
-CarrotChasingPathTrackController<PointData, SegmentData>::CarrotChasingPathTrackController(const CarrotChasingPathTrackControllerInput& input )
+CarrotChasingPathTrackController<PointData,
+                                SegmentData>::CarrotChasingPathTrackController(const CarrotChasingPathTrackControllerInput& input )
     :
    kernel::ObserverBase<grids::WaypointPath<2, PointData, SegmentData>*>(),
    k_(input.k),
@@ -166,8 +205,8 @@ SegmentData>::execute(const kernel::dynamics::SysState<3>& state)const{
     const kernel::GeomPoint<2> p({state.get("X"), state.get("Y")});
     const real_t theta = state.get("Theta");
 
-    /// find out the segment at which
-    /// we are closest to
+    // find out the segment at which
+    // we are closest to
     const path_t& path=this->read();
 
     auto [closest_path_point, segment] = kernel::find_closest_point_to(path, p, n_sampling_points_, tol_);
@@ -178,18 +217,14 @@ SegmentData>::execute(const kernel::dynamics::SysState<3>& state)const{
      }
 
     current_element_ = segment;
-
-    //std::cout<<"Segment id:     "<<current_element_->get_id()<<std::endl;
-    //std::cout<<"Segment length: "<<current_element_->length()<<std::endl;
-
-    /// find the look ahead point
+    // find the look ahead point
     auto [found, lookahead_point] = kernel::find_point_on_line_distant_from_p(*current_element_,
                                                                               closest_path_point,
                                                                               lookahead_distance_,
                                                                                n_sampling_points_,
                                                                                tol_, true);
-    /// if we were not able to find a lookahead point
-    /// on the current_element using lookahead_distance_
+    // if we were not able to find a lookahead point
+    // on the current_element using lookahead_distance_
     if(!found){
 
            /// iteratively look on the next segments until
@@ -219,11 +254,7 @@ SegmentData>::execute(const kernel::dynamics::SysState<3>& state)const{
 
     }
 
-
     real_t theta_d = std::atan2(lookahead_point[1] - p[1], lookahead_point[0] - p[0]);
-    //std::cout<<"thetad:" <<kernel::UnitConverter::rad_to_degrees(theta_d)<<std::endl;
-    //std::cout<<"theta:" <<kernel::UnitConverter::rad_to_degrees(theta)<<std::endl;
-    //std::cout<<"Lookahead point:" <<lookahead_point[0]<<","<<lookahead_point[1]<<std::endl;
     return {k_*(theta_d - theta), lookahead_point, closest_path_point};
 
 }

@@ -99,65 +99,112 @@ void save_connections(const RRT<SysState<2>, DynVec<real_t>>& rrt,
 
 }
 
+void test_1(){
+
+    world_t world;
+
+    // create the nodes of the world
+    create_world(world);
+
+    std::cout<<"For test_1 world size: "<<world.size()<<std::endl;
+
+    // how to select a state from the world
+    auto state_selector = [&world](){
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> distrib(0, world.size()-1);
+        return world[distrib(gen)];
+    };
+
+
+    // compute the dynamics of the model. The tree simply
+    // grows in the 45 degrees diagonal
+    auto dynamics = [](const SysState<2>& s1, const SysState<2>& s2){
+       SysState<2> s;
+       s.set(0, {"X", 0.0});
+       s.set(1, {"Y", 0.0});
+       s["X"] = s1["X"] + 0.5;
+       s["Y"] = s1["Y"] + 0.5;
+       return std::make_tuple(s, DynVec<real_t>(2, 0.0));
+    };
+
+    // simply use l2 norm as the difference between
+    // the two states
+    auto metric = [](const SysState<2>& s1, const SysState<2>& s2 ){
+        return l2Norm(s1.as_vector()-s2.as_vector());
+    };
+
+    // build the rrt
+    SysState<2> xinit;
+    xinit.set(0, {"X", 25.0});
+    xinit.set(1, {"Y", 25.0});
+
+    RRT<SysState<2>, DynVec<real_t>> rrt;
+    rrt.set_show_iterations_flag(true);
+    rrt.build(world.size(), xinit, state_selector, metric, dynamics);
+    save_vertices(rrt, "rrt_test_1.txt");
+    save_connections(rrt, "rrt_connections_test_1.txt");
+}
+
+void test_2(){
+
+    world_t world;
+
+    // create the nodes of the world
+    create_world(world);
+
+    std::cout<<"For test_1 world size: "<<world.size()<<std::endl;
+
+    // how to select a state from the world
+    auto state_selector = [&world](){
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> distrib(0, world.size()-1);
+        return world[distrib(gen)];
+    };
+
+    // compute the dynamics of the model.
+    auto dynamics = [](const SysState<2>& s1, const SysState<2>& s2){
+       SysState<2> s;
+       s.set(0, {"X", 0.0});
+       s.set(1, {"Y", 0.0});
+       s["X"] = s1["X"] + (s2["X"] - s1["X"]);
+       s["Y"] = s1["Y"] + (s2["Y"] - s1["Y"]);
+
+       return std::make_tuple(s, DynVec<real_t>(2, 0.0));
+    };
+
+    // simply use l2 norm as the difference between
+    // the two states
+    auto metric = [](const SysState<2>& s1, const SysState<2>& s2 ){
+        return l2Norm(s1.as_vector()-s2.as_vector());
+    };
+
+    // build the rrt
+    SysState<2> xinit;
+    xinit.set(0, {"X", 25.0});
+    xinit.set(1, {"Y", 25.0});
+
+    RRT<SysState<2>, DynVec<real_t>> rrt;
+    rrt.set_show_iterations_flag(true);
+    rrt.build(1000, xinit, state_selector, metric, dynamics);
+    save_vertices(rrt, "rrt_test_2.txt");
+    save_connections(rrt, "rrt_connections_test_2.txt");
+
+}
+
 }
 
 int main() {
    
     using namespace example;
 
-    kernel::CSVWriter writer("state", kernel::CSVWriter::default_delimiter(), true);
-    std::vector<std::string> names{"Time", "X", "Y"};
-    writer.write_column_names(names);
-
     try{
 
-        world_t world;
-
-        // create the nodes of the world
-        create_world(world);
-
-        std::cout<<"World size: "<<world.size()<<std::endl;
-
-        // how to select a state from the world
-        auto state_selector = [&world](){
-
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            std::uniform_int_distribution<> distrib(0, world.size()-1);
-            return world[distrib(gen)];
-        };
-
-        // select the input that minimizes the
-        // distance between the two states
-        auto input_selector = [](const SysState<2>& s1, const SysState<2>& s2){
-            return DynVec<real_t>(2, 0.0);
-        };
-
-        // compute the dynamics of the model. The tree simply
-        // grows in the 45 degrees diagonal
-        auto dynamics = [](const SysState<2>& s1, const DynVec<real_t>& u){
-           SysState<2> s;
-           s.set(0, {"X", 0.0});
-           s.set(1, {"Y", 0.0});
-           s["X"] = s1["X"] + 0.5;
-           s["Y"] = s1["Y"] + 0.5;
-           return s;
-        };
-
-        auto metric = [](const SysState<2>& s1, const SysState<2>& s2 ){
-            return l2Norm(s1.as_vector()-s2.as_vector());
-        };
-
-        // build the rrt
-        SysState<2> xinit;
-        xinit.set(0, {"X", 25.0});
-        xinit.set(1, {"Y", 25.0});
-
-        RRT<SysState<2>, DynVec<real_t>> rrt;
-        rrt.set_show_iterations_flag(true);
-        rrt.build(world.size(), xinit, state_selector, input_selector, metric, dynamics);
-        save_vertices(rrt, "rrt.txt");
-        save_connections(rrt, "rrt_connections.txt");
+        //test_1();
+        test_2();
 
     }
     catch(std::runtime_error& e){
