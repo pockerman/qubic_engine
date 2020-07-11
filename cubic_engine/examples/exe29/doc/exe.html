@@ -13199,14 +13199,17 @@ div#notebook {
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 
-<pre><code>auto dynamics = [](const SysState&lt;2&gt;&amp; s1, const SysState&lt;2&gt;&amp; s2){
-           SysState&lt;2&gt; s;
-           s.set(0, {"X", 0.0});
-           s.set(1, {"Y", 0.0});
-           s["X"] = s1["X"] + 0.5;
-           s["Y"] = s1["Y"] + 0.5;
-           return std::make_tuple(s, DynVec&lt;real_t&gt;(2, 0.0));
-        };</code></pre>
+<pre><code>// compute the dynamics of the model. The tree simply
+    // grows in the 45 degrees diagonal
+    auto dynamics = [](const Node&amp; s1, const Node&amp; s2){
+       StateWrapper s;
+       s.state.set(0, {"X", 0.0});
+       s.state.set(1, {"Y", 0.0});
+       s.state["X"] = s1.data.state["X"] + 0.5;
+       s.state["Y"] = s1.data.state["Y"] + 0.5;
+
+       return std::make_tuple(s, DynVec&lt;real_t&gt;(2, 0.0));
+    };</code></pre>
 
 </div>
 </div>
@@ -13241,12 +13244,13 @@ div#notebook {
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 
-<pre><code>    auto dynamics = [](const SysState&lt;2&gt;&amp; s1, const SysState&lt;2&gt;&amp; s2){
-       SysState&lt;2&gt; s;
-       s.set(0, {"X", 0.0});
-       s.set(1, {"Y", 0.0});
-       s["X"] = s1["X"] + (s2["X"] - s1["X"]);
-       s["Y"] = s1["Y"] + (s2["Y"] - s1["Y"]);
+<pre><code>    // compute the dynamics of the model.
+    auto dynamics = [](const Node&amp; s1, const Node&amp; s2){
+       StateWrapper s;
+       s.state.set(0, {"X", 0.0});
+       s.state.set(1, {"Y", 0.0});
+       s.state["X"] = s1.data.state["X"] + (s2.data.state["X"] - s1.data.state["X"]);
+       s.state["Y"] = s1.data.state["Y"] + (s2.data.state["Y"] - s1.data.state["Y"]);
 
        return std::make_tuple(s, DynVec&lt;real_t&gt;(2, 0.0));
     };</code></pre>
@@ -13305,14 +13309,42 @@ div#notebook {
 <div class="text_cell_render border-box-sizing rendered_html">
 
 <pre><code>
-auto dynamics = [](const SysState&lt;2&gt;&amp; s1, const SysState&lt;2&gt;&amp; s2){
-           SysState&lt;2&gt; s;
-           s.set(0, {"X", 0.0});
-           s.set(1, {"Y", 0.0});
-           s["X"] = s1["X"] + 0.5;
-           s["Y"] = s1["Y"] + 0.5;
-           return std::make_tuple(s, DynVec&lt;real_t&gt;(2, 0.0));
-        };</code></pre>
+ // compute the dynamics of the model.
+    auto dynamics = [](const Node&amp; s1, const Node&amp; s2){
+       StateWrapper s;
+       s.state.set(0, {"X", 0.0});
+       s.state.set(1, {"Y", 0.0});
+       s.state["X"] = s1.data.state["X"] + (s2.data.state["X"] - s1.data.state["X"]);
+       s.state["Y"] = s1.data.state["Y"] + (s2.data.state["Y"] - s1.data.state["Y"]);
+
+       return std::make_tuple(s, DynVec&lt;real_t&gt;(2, 0.0));
+    };</code></pre>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Once the tree is built we use $A^*$ to find the path</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><img src="path_tol_2_5.png"
+     alt="RRT path"
+     style="float: left; margin-right: 10px; width: 500px;" /></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Note that the results may differ from run-to-run as this is a probabilistic algorithm.</p>
 
 </div>
 </div>
@@ -13330,6 +13362,7 @@ auto dynamics = [](const SysState&lt;2&gt;&amp; s1, const SysState&lt;2&gt;&amp;
 
 <pre><code>#include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/search/rapidly_exploring_random_tree.h"
+#include "cubic_engine/search/a_star_search.h"
 #include "kernel/utilities/csv_file_writer.h"
 #include "kernel/dynamics/system_state.h"
 #include "kernel/maths/constants.h"
@@ -13376,7 +13409,27 @@ const real_t xstart = 0.0;
 const real_t Dy = 50.0/Ny;
 const real_t ystart = 0.0;
 
-typedef std::vector&lt;SysState&lt;2&gt;&gt; world_t;
+struct StateWrapper;
+
+typedef std::vector&lt;StateWrapper&gt; world_t;
+
+struct StateWrapper
+{
+    SysState&lt;2&gt; state;
+    real_t gcost=std::numeric_limits&lt;real_t&gt;::max();
+    real_t fcost=std::numeric_limits&lt;real_t&gt;::max();
+    bool can_move()const{return true;}
+};
+
+struct Metric
+{
+    typedef real_t cost_t;
+
+    template&lt;typename Node&gt;
+    real_t operator()(const Node&amp; s1, const Node&amp; s2 )const{
+        return l2Norm(s1.data.state.as_vector()-s2.data.state.as_vector());
+    }
+};
 
 // create the world
 void create_world(world_t&amp; world){
@@ -13387,13 +13440,13 @@ void create_world(world_t&amp; world){
     for(uint_t i =0; i&lt;Nx; ++i){
         for(uint_t j=0; j&lt;Ny; ++j){
           auto&amp; state = world[counter++];
-          state.set(0, {"X", xstart + i*Dx});
-          state.set(1, {"Y", ystart + j*Dy});
+          state.state.set(0, {"X", xstart + i*Dx});
+          state.state.set(1, {"Y", ystart + j*Dy});
         }
     }
 }
 
-void save_vertices(const RRT&lt;SysState&lt;2&gt;, DynVec&lt;real_t&gt;&gt;&amp; rrt,
+void save_vertices(const RRT&lt;StateWrapper, DynVec&lt;real_t&gt;&gt;&amp; rrt,
                    const std::string&amp; filename){
 
     // open the file stream
@@ -13402,15 +13455,15 @@ void save_vertices(const RRT&lt;SysState&lt;2&gt;, DynVec&lt;real_t&gt;&gt;&amp;
 
     for(uint_t v=0; v&lt;rrt.n_vertices(); ++v){
         auto&amp; vertex = rrt.get_vertex(v);
-        auto x = vertex.data.get("X");
-        auto y = vertex.data.get("Y");
+        auto x = vertex.data.state.get("X");
+        auto y = vertex.data.state.get("Y");
         file&lt;&lt;vertex.id&lt;&lt;","&lt;&lt;x&lt;&lt;","&lt;&lt;y&lt;&lt;std::endl;
 
     }
     file.close();
 }
 
-void save_connections(const RRT&lt;SysState&lt;2&gt;, DynVec&lt;real_t&gt;&gt;&amp; rrt,
+void save_connections(const RRT&lt;StateWrapper, DynVec&lt;real_t&gt;&gt;&amp; rrt,
                       const std::string&amp; filename){
 
     // open the file stream
@@ -13445,6 +13498,10 @@ void save_connections(const RRT&lt;SysState&lt;2&gt;, DynVec&lt;real_t&gt;&gt;&a
 
 void test_1(){
 
+
+    typedef RRT&lt;StateWrapper, DynVec&lt;real_t&gt;&gt;::vertex_t Node;
+
+    // the world we work on
     world_t world;
 
     // create the nodes of the world
@@ -13464,27 +13521,27 @@ void test_1(){
 
     // compute the dynamics of the model. The tree simply
     // grows in the 45 degrees diagonal
-    auto dynamics = [](const SysState&lt;2&gt;&amp; s1, const SysState&lt;2&gt;&amp; s2){
-       SysState&lt;2&gt; s;
-       s.set(0, {"X", 0.0});
-       s.set(1, {"Y", 0.0});
-       s["X"] = s1["X"] + 0.5;
-       s["Y"] = s1["Y"] + 0.5;
+    auto dynamics = [](const Node&amp; s1, const Node&amp; s2){
+       StateWrapper s;
+       s.state.set(0, {"X", 0.0});
+       s.state.set(1, {"Y", 0.0});
+       s.state["X"] = s1.data.state["X"] + 0.5;
+       s.state["Y"] = s1.data.state["Y"] + 0.5;
+
        return std::make_tuple(s, DynVec&lt;real_t&gt;(2, 0.0));
     };
 
-    // simply use l2 norm as the difference between
-    // the two states
-    auto metric = [](const SysState&lt;2&gt;&amp; s1, const SysState&lt;2&gt;&amp; s2 ){
-        return l2Norm(s1.as_vector()-s2.as_vector());
-    };
+    Metric metric;
+    Node xinit;
 
     // build the rrt
-    SysState&lt;2&gt; xinit;
-    xinit.set(0, {"X", 25.0});
-    xinit.set(1, {"Y", 25.0});
+    StateWrapper sinit;
+    sinit.state.set(0, {"X", 25.0});
+    sinit.state.set(1, {"Y", 25.0});
 
-    RRT&lt;SysState&lt;2&gt;, DynVec&lt;real_t&gt;&gt; rrt;
+    xinit.data = sinit;
+
+    RRT&lt;StateWrapper, DynVec&lt;real_t&gt;&gt; rrt;
     rrt.set_show_iterations_flag(true);
     rrt.build(world.size(), xinit, state_selector, metric, dynamics);
     save_vertices(rrt, "rrt_test_1.txt");
@@ -13493,6 +13550,9 @@ void test_1(){
 
 void test_2(){
 
+    typedef RRT&lt;StateWrapper, DynVec&lt;real_t&gt;&gt;::vertex_t Node;
+
+    // the world we work on
     world_t world;
 
     // create the nodes of the world
@@ -13510,33 +13570,126 @@ void test_2(){
     };
 
     // compute the dynamics of the model.
-    auto dynamics = [](const SysState&lt;2&gt;&amp; s1, const SysState&lt;2&gt;&amp; s2){
-       SysState&lt;2&gt; s;
-       s.set(0, {"X", 0.0});
-       s.set(1, {"Y", 0.0});
-       s["X"] = s1["X"] + (s2["X"] - s1["X"]);
-       s["Y"] = s1["Y"] + (s2["Y"] - s1["Y"]);
+    auto dynamics = [](const Node&amp; s1, const Node&amp; s2){
+       StateWrapper s;
+       s.state.set(0, {"X", 0.0});
+       s.state.set(1, {"Y", 0.0});
+       s.state["X"] = s1.data.state["X"] + (s2.data.state["X"] - s1.data.state["X"]);
+       s.state["Y"] = s1.data.state["Y"] + (s2.data.state["Y"] - s1.data.state["Y"]);
 
        return std::make_tuple(s, DynVec&lt;real_t&gt;(2, 0.0));
     };
 
-    // simply use l2 norm as the difference between
-    // the two states
-    auto metric = [](const SysState&lt;2&gt;&amp; s1, const SysState&lt;2&gt;&amp; s2 ){
-        return l2Norm(s1.as_vector()-s2.as_vector());
-    };
+    Metric metric;
+    Node xinit;
 
     // build the rrt
-    SysState&lt;2&gt; xinit;
-    xinit.set(0, {"X", 25.0});
-    xinit.set(1, {"Y", 25.0});
+    StateWrapper sinit;
+    sinit.state.set(0, {"X", 25.0});
+    sinit.state.set(1, {"Y", 25.0});
 
-    RRT&lt;SysState&lt;2&gt;, DynVec&lt;real_t&gt;&gt; rrt;
+    xinit.data = sinit;
+
+    RRT&lt;StateWrapper, DynVec&lt;real_t&gt;&gt; rrt;
     rrt.set_show_iterations_flag(true);
     rrt.build(1000, xinit, state_selector, metric, dynamics);
     save_vertices(rrt, "rrt_test_2.txt");
     save_connections(rrt, "rrt_connections_test_2.txt");
 
+}
+
+void test_3(){
+
+
+    typedef RRT&lt;StateWrapper, DynVec&lt;real_t&gt;&gt;::vertex_t Node;
+
+    // the world we work on
+    world_t world;
+
+    // create the nodes of the world
+    create_world(world);
+
+    std::cout&lt;&lt;"For test_1 world size: "&lt;&lt;world.size()&lt;&lt;std::endl;
+
+    // how to select a state from the world
+    auto state_selector = [&amp;world](){
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution&lt;&gt; distrib(0, world.size()-1);
+        return world[distrib(gen)];
+    };
+
+    // compute the dynamics of the model.
+    auto dynamics = [](const Node&amp; s1, const Node&amp; s2){
+       StateWrapper s;
+       s.state.set(0, {"X", 0.0});
+       s.state.set(1, {"Y", 0.0});
+       s.state["X"] = s1.data.state["X"] + (s2.data.state["X"] - s1.data.state["X"]);
+       s.state["Y"] = s1.data.state["Y"] + (s2.data.state["Y"] - s1.data.state["Y"]);
+
+       return std::make_tuple(s, DynVec&lt;real_t&gt;(2, 0.0));
+    };
+
+    Metric metric;
+    RRT&lt;StateWrapper, DynVec&lt;real_t&gt;&gt; rrt;
+
+    Node xinit;
+
+    // build the rrt
+    StateWrapper sinit;
+    sinit.state.set(0, {"X", 25.0});
+    sinit.state.set(1, {"Y", 25.0});
+
+    xinit.data = sinit;
+
+    Node xgoal;
+
+    StateWrapper sgoal;
+    sgoal.state.set(0, {"X", 50.0});
+    sgoal.state.set(1, {"Y", 0.0});
+
+    xgoal.data = sgoal;
+
+
+    rrt.set_show_iterations_flag(true);
+    auto [found, root_id, goal_id] = rrt.build(3000, xinit, xgoal, state_selector, metric, dynamics, 2.0);
+    save_vertices(rrt, "rrt_test_3.txt");
+    save_connections(rrt, "rrt_connections_test_3.txt");
+
+    if(found){
+
+        std::cout&lt;&lt;"Root id: "&lt;&lt;root_id&lt;&lt;std::endl;
+        std::cout&lt;&lt;"Goal id: "&lt;&lt;goal_id&lt;&lt;std::endl;
+
+        auto&amp; root = rrt.get_vertex(root_id);
+        auto&amp; goal = rrt.get_vertex(goal_id);
+
+        std::cout&lt;&lt;"Goal coords: "&lt;&lt;goal.data.state.get("X")&lt;&lt;","&lt;&lt;goal.data.state.get("Y")&lt;&lt;std::endl;
+        auto path_connections = cengine::astar_search(rrt, goal, root, metric);
+
+        auto b = path_connections.begin();
+        auto e = path_connections.end();
+
+        std::cout&lt;&lt;"Size of path connections: "&lt;&lt;path_connections.size()&lt;&lt;std::endl;
+        auto path = cengine::reconstruct_a_star_path(path_connections, root_id);
+
+        // open the file stream
+        std::ofstream vfile;
+        vfile.open("rrt_test_3_path_v.txt", std::ios_base::out);
+
+        for(uint_t v=0; v&lt;path.size(); ++v){
+            auto&amp; vertex = rrt.get_vertex(path[v]);
+            auto x = vertex.data.state.get("X");
+            auto y = vertex.data.state.get("Y");
+            vfile&lt;&lt;vertex.id&lt;&lt;","&lt;&lt;x&lt;&lt;","&lt;&lt;y&lt;&lt;std::endl;
+
+        }
+        vfile.close();
+    }
+    else{
+        std::cout&lt;&lt;"Goal was not found"&lt;&lt;std::endl;
+    }
 }
 
 }
@@ -13548,7 +13701,8 @@ int main() {
     try{
 
         //test_1();
-        test_2();
+        //test_2();
+        test_3();
 
     }
     catch(std::runtime_error&amp; e){
@@ -13587,8 +13741,8 @@ int main() {
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><img src="line_rrt.png"
-     alt="Line RRT"
+<p><img src="path_tol_2.png"
+     alt="RRT path"
      style="float: left; margin-right: 10px; width: 500px;" /></p>
 
 </div>
