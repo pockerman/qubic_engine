@@ -47,6 +47,17 @@ namespace test_data
     fcost(o.fcost),
     position(o.position)
     {}
+
+    struct Metric
+    {
+        typedef real_t cost_t;
+
+        template<typename Node>
+        real_t operator()(const Node& s1, const Node& s2 )const{
+            kernel::EuclideanMetric metric;
+            metric(s1.data.position, s2.data.position);
+        }
+    };
 }
 
 /**
@@ -65,7 +76,8 @@ TEST(TestAStar, StarAndEndNodesAreTheSame) {
 
     auto v = graph.add_vertex(std::move(astar_node(vec)));
 
-    kernel::EuclideanMetric metric;
+    //kernel::EuclideanMetric metric;
+    test_data::Metric metric;
     std::multimap<uint_t, uint_t> path = astar_search(graph, graph.get_vertex(0), graph.get_vertex(0), metric);
 
     ASSERT_EQ(path.size(), static_cast<uint_t>(1));
@@ -99,7 +111,8 @@ TEST(TestAStar, LinearPath) {
     graph.add_edge(2,3);
     graph.add_edge(3,4);
 
-    kernel::EuclideanMetric metric;
+    //kernel::EuclideanMetric metric;
+    test_data::Metric metric;
     std::multimap<uint_t, uint_t> path = astar_search(graph, graph.get_vertex(0), graph.get_vertex(4), metric);
     std::vector<uint_t> waypoints = cengine::reconstruct_a_star_path(path,graph.get_vertex(4).id);
 
@@ -151,7 +164,8 @@ TEST(TestAStar, SearchPath) {
     graph.add_edge(1,3);
     graph.add_edge(3,7);
 
-    kernel::EuclideanMetric metric;
+    //kernel::EuclideanMetric metric;
+    test_data::Metric metric;
     std::multimap<uint_t, uint_t> path = astar_search(graph, graph.get_vertex(0), graph.get_vertex(7), metric);
     std::vector<uint_t> waypoints = cengine::reconstruct_a_star_path(path,graph.get_vertex(7).id);
 
