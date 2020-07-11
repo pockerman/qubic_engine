@@ -175,13 +175,25 @@ public:
     ///
     /// \brief Build the tree
     ///
-    template<typename StateSelector, typename InputSelector,
+    template<typename StateSelector,
              typename MetricTp, typename DynamicsTp>
     void build(uint_t nitrs, const node_t& xinit,
                const  StateSelector& state_selector,
-               const InputSelector& input_selector,
                const MetricTp& metric,
                DynamicsTp& dynamics);
+
+    ///
+    /// \brief Build the tree by using the given goal.
+    /// The  tree expands as long as the specified number
+    /// of nodes has not been reached or the goal is not found yet.
+    /// The algorithm terminates when either the number of nodes
+    /// specified is built or the goal is found
+    ///
+    template<typename StateSelector, typename MetricTp,
+             typename DynamicsTp, typename PathTp>
+    bool build(uint_t nitrs, const node_t& xinit,
+               const node_t& goal, const  StateSelector& state_selector,
+               const MetricTp& metric, DynamicsTp& dynamics, PathTp& path, real_t goal_radius);
 
 private:
 
@@ -212,20 +224,21 @@ RRT<NodeData, EdgeData>::add_vertex(const node_data_t& data){
 }
 
 template<typename NodeTp, typename EdgeTp>
-template<typename StateSelector, typename InputSelector,
-         typename MetricTp, typename DynamicsTp>
+template<typename StateSelector, typename MetricTp, typename DynamicsTp>
 void
 RRT<NodeTp, EdgeTp>::build(uint_t nitrs, const node_t& xinit,
                            const  StateSelector& state_selector,
-                           const InputSelector& input_selector,
                            const MetricTp& metric,
                            DynamicsTp& dynamics){
 
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
 
-    // initialize the tree
-    auto root = tree_.add_vertex(xinit.data);
+    // just in case clear what the tree has
+    clear();
+
+    // initialize the tree. This is the root node
+    tree_.add_vertex(xinit.data);
 
     // loop over the states and create
     // the tree
@@ -238,21 +251,18 @@ RRT<NodeTp, EdgeTp>::build(uint_t nitrs, const node_t& xinit,
         // select a new random state
         auto xrand = state_selector();
 
-
-        std::cout<<xrand.get("X")<<","<<xrand.get("Y")<<std::endl;
-
         // find the nearest neighbor between this tree
         // and the randomly selected state
-        auto xnear = find_nearest_neighbor(xrand, metric);
+        auto& xnear = find_nearest_neighbor(xrand, metric);
 
-        // select the input
-        auto u = input_selector(xrand, xnear.data);
+        // determine the new state. Move xnear
+        // towards xrand according to the prescribed dynamics
+        // also return the data required for the edge
+        // connecting xnew and xnear
+        auto [xnew, u] = dynamics(xnear.data, xrand);
 
-        // determine the new state
-        auto xnew = dynamics(xnear.data, u);
-
-        // add a new vertex
-        auto new_v = add_vertex(xnew);
+        // add a new vertex out of xnew
+        auto& new_v = add_vertex(xnew);
 
         // add a new edge
         auto new_e = add_edge(xnear.id, new_v.id);
@@ -265,6 +275,90 @@ RRT<NodeTp, EdgeTp>::build(uint_t nitrs, const node_t& xinit,
         std::chrono::duration<real_t> dur = end - start;
         std::cout<<"Total build time: "<<dur.count()<<std::endl;
     }
+}
+
+template<typename NodeData, typename EdgeData>
+template<typename StateSelector, typename MetricTp,
+         typename DynamicsTp, typename PathTp>
+bool
+RRT<NodeData, EdgeData>::build(uint_t nitrs, const node_t& xinit,
+                               const node_t& goal, const  StateSelector& state_selector,
+                               const MetricTp& metric, DynamicsTp& dynamics, PathTp& path, real_t goal_radius){
+
+
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
+
+    // just in case clear what the tree has
+    clear();
+
+    // start and goal are the same
+    // then there is nothing to do
+    if( metric(xinit, goal) < goal_radius ){
+        return true;
+    }
+
+    // initialize the tree. This is the root node
+    tree_.add_vertex(xinit.data);
+
+    // flag indicating that the goal is found
+    bool goal_found = false;
+
+    // loop over the states and create
+    // the tree
+    for(uint_t itr=0; (itr<nitrs && !goal_found); ++itr){
+
+        if(show_iterations_){
+            std::cout<<"At iteration: "<<itr<<std::endl;
+        }
+
+        // select a new random state
+        auto xrand = state_selector();
+
+        if(show_iterations_){
+            std::cout<<xrand.get("X")<<","<<xrand.get("Y")<<std::endl;
+        }
+
+        // find the nearest neighbor between this tree
+        // and the randomly selected state
+        auto& xnear = find_nearest_neighbor(xrand, metric);
+
+        // determine the new state. Move xnear
+        // towards xrand according to the prescribed dynamics
+        // also return the data required for the edge
+        // connecting xnew and xnear
+        auto [xnew, u] = dynamics(xnear.data, xrand);
+
+        // add a new vertex out of xnew
+        auto& new_v = add_vertex(xnew);
+
+        // add a new edge
+        auto new_e = add_edge(xnear.id, new_v.id);
+        new_e.set_data(u);
+
+        // if this new node is the goal then
+        // exit the loop
+        if(metric(new_v, goal) < goal_radius ){
+
+            // construct the path
+
+
+            goal_found=true;
+        }
+    }
+
+
+
+
+
+    end = std::chrono::system_clock::now();
+
+    if(show_iterations_){
+        std::chrono::duration<real_t> dur = end - start;
+        std::cout<<"Total build time: "<<dur.count()<<std::endl;
+    }
+
+    return goal_found;
 }
 
 template<typename NodeData, typename EdgeData>
