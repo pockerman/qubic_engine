@@ -234,6 +234,19 @@ PathConstructorThread::save_path(real_t duration){
     writer.write_mesh_nodes(path_);
 }
 
+struct Metric
+{
+    typedef real_t cost_t;
+
+
+    template<typename Node>
+    real_t operator()(const Node& s1, const Node& s2 )const{
+        kernel::LpMetric<2> metric;
+        return metric(s1.data.position, s2.data.position);
+        //return l2Norm(s1.data.state.as_vector()-s2.data.state.as_vector());
+    }
+};
+
 void
 PathConstructorThread::run(){
 
@@ -249,10 +262,11 @@ PathConstructorThread::run(){
     }
 
     /// both are updated so try to establish the path
-    typedef Map::vertex_type vertex_t;
+    typedef Map::vertex_t vertex_t;
 
     /// metric for A*
-    kernel::LpMetric<2> h;
+    //kernel::LpMetric<2>
+    Metric heuristic;
 
     Goal goal;
     State state;
@@ -312,7 +326,7 @@ PathConstructorThread::run(){
         goal_pos.id = goal_vertex_id;
 
         /// find the path we need the goal
-        auto path_connections = cengine::astar_search(const_cast<Map&>(*map_), start_pos, goal_pos, h );
+        auto path_connections = cengine::astar_search(const_cast<Map&>(*map_), start_pos, goal_pos, heuristic );
 
         if(path_connections.empty()){
 
