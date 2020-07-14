@@ -3,6 +3,7 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/data_structs/boost_serial_graph.h"
+#include "kernel/base/kernel_consts.h"
 
 #include"boost/noncopyable.hpp"
 #include <chrono>
@@ -28,9 +29,9 @@ class RRT: private boost::noncopyable
 public:
 
     ///
-    /// \brief node_data_t The type of node data
+    /// \brief vertex_data_t The type of node data
     ///
-    typedef NodeData node_data_t;
+    typedef NodeData vertex_data_t;
 
     ///
     /// \brief edge_data_t The type of the edge data
@@ -38,27 +39,27 @@ public:
     typedef EdgeData edge_data_t;
 
     ///
-    /// \brief node_t the vertex type
+    /// \brief vertex_t the vertex type
     ///
-    typedef typename kernel::BoostSerialGraph<node_data_t,
-                                              edge_data_t>::vertex_type node_t;
+    typedef typename kernel::BoostSerialGraph<vertex_data_t,
+                                              edge_data_t>::vertex_t vertex_t;
 
     ///
     /// \brief edge_t The edge type
     ///
-    typedef typename kernel::BoostSerialGraph<node_data_t,
-                                              edge_data_t>::edge_type edge_t;
+    typedef typename kernel::BoostSerialGraph<vertex_data_t,
+                                              edge_data_t>::edge_t edge_t;
 
     ///
     /// \brief edge_iterator Edge iterator
     ///
-    typedef typename kernel::BoostSerialGraph<node_data_t,
+    typedef typename kernel::BoostSerialGraph<vertex_data_t,
                                               edge_data_t>::edge_iterator edge_iterator;
 
     ///
     /// \brief adjacency_iterator Adjacency iterator
     ///
-    typedef typename kernel::BoostSerialGraph<node_data_t,
+    typedef typename kernel::BoostSerialGraph<vertex_data_t,
                                               edge_data_t>::adjacency_iterator adjacency_iterator;
 
     ///
@@ -69,12 +70,24 @@ public:
     ///
     /// \brief get_vertex Returns the v-th vertex
     ///
-    node_t& get_vertex(uint_t v){ return tree_.get_vertex(v);}
+    vertex_t& get_vertex(uint_t v){ return tree_.get_vertex(v);}
 
     ///
     /// \brief get_vertex Returns the v-th vertex
     ///
-    const node_t& get_vertex(uint_t v)const{return tree_.get_vertex(v);}
+    const vertex_t& get_vertex(uint_t v)const{return tree_.get_vertex(v);}
+
+    ///
+    /// \brief Access the vertex given the vertex descriptor
+    /// This is needed when accessing the vertices using the adjacency_iterator
+    ///
+    vertex_t& get_vertex(adjacency_iterator itr){return tree_.get_vertex(itr);}
+
+    ///
+    /// \brief Access the vertex given the vertex descriptor
+    /// This is needed when accessing the vertices using the adjacency_iterator
+    ///
+    const vertex_t& get_vertex(adjacency_iterator itr)const{return  tree_.get_vertex(itr);}
 
     ///
     /// \brief Returns the neighboring vertices for the given vertex id
@@ -85,15 +98,23 @@ public:
     }
 
     ///
+    /// \brief Returns the neighboring vertices for the given vertex id
+    ///
+    std::pair<adjacency_iterator, adjacency_iterator>
+    get_vertex_neighbors(const vertex_t& v)const{
+        return tree_.get_vertex_neighbors(v);
+    }
+
+    ///
     /// \brief add_vertex Add a new vertex to the tree
     /// \param node The new vertex to add
     ///
-    node_t& add_vertex(const node_t& node){ return tree_.add_vertex(node.data);}
+    vertex_t& add_vertex(const vertex_t& node){ return tree_.add_vertex(node.data);}
 
     ///
     /// \brief Add a new vertex in the tree that has the given data
     ///
-    node_t& add_vertex(const node_data_t& data);
+    vertex_t& add_vertex(const vertex_data_t& data);
 
     ///
     /// \brief get_edge Returns  the edge between the vertices v1 and v2
@@ -135,8 +156,17 @@ public:
     /// \return
     ///
     template<typename MetricTp>
-    const node_t& find_nearest_neighbor(const node_t& other,
-                                        const MetricTp& metric)const;
+    const vertex_t& find_nearest_neighbor(const vertex_t& other,
+                                          const MetricTp& metric)const;
+
+    ///
+    /// \brief find_nearest_neighbor find the nearest neighbor of other node in this tree
+    /// \param other The node for which to find the nearest neighbor
+    /// \return
+    ///
+    template<typename MetricTp>
+    const vertex_t& find_nearest_neighbor(const vertex_data_t& other,
+                                          const MetricTp& metric)const;
 
     ///
     /// \brief clear Clear the underlying tree
@@ -163,20 +193,32 @@ public:
     ///
     /// \brief Build the tree
     ///
-    template<typename StateSelector, typename InputSelector,
+    template<typename StateSelector,
              typename MetricTp, typename DynamicsTp>
-    void build(uint_t nitrs, const node_t& xinit,
+    void build(uint_t nitrs, const vertex_t& xinit,
                const  StateSelector& state_selector,
-               const InputSelector& input_selector,
                const MetricTp& metric,
                DynamicsTp& dynamics);
+
+    ///
+    /// \brief Build the tree by using the given goal.
+    /// The  tree expands as long as the specified number
+    /// of nodes has not been reached or the goal is not found yet.
+    /// The algorithm terminates when either the number of nodes
+    /// specified is built or the goal is found
+    ///
+    template<typename StateSelector, typename MetricTp, typename DynamicsTp>
+    std::tuple<bool, uint_t, uint_t>
+    build(uint_t nitrs, const vertex_t& xinit,
+               const vertex_t& goal, const  StateSelector& state_selector,
+               const MetricTp& metric, DynamicsTp& dynamics, real_t goal_radius);
 
 private:
 
     ///
     /// \brief tree_ The underlying tree data structure
     ///
-    kernel::BoostSerialGraph<node_data_t, edge_data_t> tree_;
+    kernel::BoostSerialGraph<vertex_data_t, edge_data_t> tree_;
 
     ///
     /// \brief show_iterations_ Flag indicating if information
@@ -194,26 +236,27 @@ RRT<NodeData, EdgeData>::RRT()
 {}
 
 template<typename NodeData, typename EdgeData>
-typename RRT<NodeData, EdgeData>::node_t&
-RRT<NodeData, EdgeData>::add_vertex(const node_data_t& data){
+typename RRT<NodeData, EdgeData>::vertex_t&
+RRT<NodeData, EdgeData>::add_vertex(const vertex_data_t& data){
     return tree_.add_vertex(data);
 }
 
 template<typename NodeTp, typename EdgeTp>
-template<typename StateSelector, typename InputSelector,
-         typename MetricTp, typename DynamicsTp>
+template<typename StateSelector, typename MetricTp, typename DynamicsTp>
 void
-RRT<NodeTp, EdgeTp>::build(uint_t nitrs, const node_t& xinit,
+RRT<NodeTp, EdgeTp>::build(uint_t nitrs, const vertex_t& xinit,
                            const  StateSelector& state_selector,
-                           const InputSelector& input_selector,
                            const MetricTp& metric,
                            DynamicsTp& dynamics){
 
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
 
-    // initialize the tree
-    auto root = tree_.add_vertex(xinit.data);
+    // just in case clear what the tree has
+    clear();
+
+    // initialize the tree. This is the root node
+    tree_.add_vertex(xinit.data);
 
     // loop over the states and create
     // the tree
@@ -226,21 +269,18 @@ RRT<NodeTp, EdgeTp>::build(uint_t nitrs, const node_t& xinit,
         // select a new random state
         auto xrand = state_selector();
 
-
-        std::cout<<xrand.get("X")<<","<<xrand.get("Y")<<std::endl;
-
         // find the nearest neighbor between this tree
         // and the randomly selected state
-        auto xnear = find_nearest_neighbor(xrand, metric);
+        auto& xnear = find_nearest_neighbor(xrand, metric);
 
-        // select the input
-        auto u = input_selector(xrand, xnear.data);
+        // determine the new state. Move xnear
+        // towards xrand according to the prescribed dynamics
+        // also return the data required for the edge
+        // connecting xnew and xnear
+        auto [xnew, u] = dynamics(xnear, xrand);
 
-        // determine the new state
-        auto xnew = dynamics(xnear.data, u);
-
-        // add a new vertex
-        auto new_v = add_vertex(xnew);
+        // add a new vertex out of xnew
+        auto& new_v = add_vertex(xnew);
 
         // add a new edge
         auto new_e = add_edge(xnear.id, new_v.id);
@@ -256,18 +296,94 @@ RRT<NodeTp, EdgeTp>::build(uint_t nitrs, const node_t& xinit,
 }
 
 template<typename NodeData, typename EdgeData>
+template<typename StateSelector, typename MetricTp, typename DynamicsTp>
+std::tuple<bool, uint_t, uint_t>
+RRT<NodeData, EdgeData>::build(uint_t nitrs, const vertex_t& xinit,
+                               const vertex_t& goal, const  StateSelector& state_selector,
+                               const MetricTp& metric, DynamicsTp& dynamics, real_t goal_radius){
+
+
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
+
+    // just in case clear what the tree has
+    clear();
+
+    // start and goal are the same
+    // then there is nothing to do
+    if( metric(xinit, goal) < goal_radius ){
+        return std::make_tuple(true, 0, 0);
+    }
+
+    // initialize the tree. This is the root node
+    auto& root = tree_.add_vertex(xinit.data);
+
+    // flag indicating that the goal is found
+    bool goal_found = false;
+
+    // the uid of the last vertex
+    uint_t last_v_id = kernel::KernelConsts::invalid_size_type();
+
+    // loop over the states and create
+    // the tree
+    for(uint_t itr=0; (itr<nitrs && !goal_found); ++itr){
+
+        //if(show_iterations_){
+        //    std::cout<<"At iteration: "<<itr<<std::endl;
+        //}
+
+        // select a new random state
+        auto xrand = state_selector();
+
+        // find the nearest neighbor between this tree
+        // and the randomly selected state
+        auto& xnear = find_nearest_neighbor(xrand, metric);
+
+        // determine the new state. Move xnear
+        // towards xrand according to the prescribed dynamics
+        // also return the data required for the edge
+        // connecting xnew and xnear
+        auto [xnew, u] = dynamics(xnear, xrand);
+
+        // add a new vertex out of xnew
+        auto& new_v = add_vertex(xnew);
+
+        // add a new edge
+        auto new_e = add_edge(xnear.id, new_v.id);
+        new_e.set_data(u);
+
+        // if this new node is the goal then
+        // exit the loop
+        if(metric(new_v, goal) < goal_radius ){
+            last_v_id =  new_v.id;
+            goal_found = true;
+            break;
+        }
+    }
+
+    end = std::chrono::system_clock::now();
+
+    //if(show_iterations_){
+        std::chrono::duration<real_t> dur = end - start;
+        std::cout<<"Total build time: "<<dur.count()<<std::endl;
+    //}
+
+    return std::make_tuple(goal_found, root.id, last_v_id);
+}
+
+template<typename NodeData, typename EdgeData>
 template<typename MetricTp>
-const typename RRT<NodeData, EdgeData>::node_t&
-RRT<NodeData, EdgeData>::find_nearest_neighbor(const node_t& other,
+const typename RRT<NodeData, EdgeData>::vertex_t&
+RRT<NodeData, EdgeData>::find_nearest_neighbor(const vertex_t& other,
                                                const MetricTp& metric)const{
 
-    auto dist = metric(tree_.get_vertex(0).data, other.data);
+    auto dist = metric(tree_.get_vertex(0), other);
     auto result = 0;
 
     for(uint_t v=1; v< tree_.n_vertices(); ++v){
-        auto vertex_data = tree_.get_vertex(v).data;
+        auto vertex_data = tree_.get_vertex(v);
 
-        auto new_dist = metric(vertex_data, other.data);
+        auto new_dist = metric(vertex_data, other);
 
         if(new_dist < dist){
             dist = new_dist;
@@ -276,6 +392,34 @@ RRT<NodeData, EdgeData>::find_nearest_neighbor(const node_t& other,
     }
 
     return tree_.get_vertex(result);
+}
+
+template<typename NodeData, typename EdgeData>
+template<typename MetricTp>
+const typename RRT<NodeData, EdgeData>::vertex_t&
+RRT<NodeData, EdgeData>::find_nearest_neighbor(const vertex_data_t& other,
+                                               const MetricTp& metric)const{
+
+    typedef typename RRT<NodeData, EdgeData>::vertex_t vertex_t;
+    vertex_t dummy;
+    dummy.data = other;
+
+    auto dist = metric(tree_.get_vertex(0), dummy);
+    auto result = 0;
+
+    for(uint_t v=1; v< tree_.n_vertices(); ++v){
+        auto vertex_data = tree_.get_vertex(v);
+
+        auto new_dist = metric(vertex_data, dummy);
+
+        if(new_dist < dist){
+            dist = new_dist;
+            result = v;
+        }
+    }
+
+    return tree_.get_vertex(result);
+
 }
 
 

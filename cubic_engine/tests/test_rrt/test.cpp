@@ -2,10 +2,13 @@
 #include "cubic_engine/search/rapidly_exploring_random_tree.h"
 #include "kernel/dynamics/system_state.h"
 
+#include <gtest/gtest.h>
+
 #include <vector>
 #include <string>
 #include <random>
-#include <gtest/gtest.h>
+#include <tuple>
+
 
 namespace test_data
 {    
@@ -41,6 +44,7 @@ TEST(TestRRT, TestBuild){
 
     using namespace test_data;
     RRT<SysState<2>, DynVec<real_t>> rrt;
+    typedef RRT<SysState<2>, DynVec<real_t>>::vertex_t node_t;
 
     auto idx = 0;
     auto state_selector = [&idx](){
@@ -66,31 +70,29 @@ TEST(TestRRT, TestBuild){
         return states[idx++];
     };
 
-    // select the input that minimizes the
-    // distance between the two states
-    auto input_selector = [](const SysState<2>& s1, const SysState<2>& s2){
-        return DynVec<real_t>(2, 0.0);
-    };
 
     // compute the dynamics of the model
-    auto dynamics = [](const SysState<2>& s1, const DynVec<real_t>& u){
+    auto dynamics = [](const node_t& s1, const node_t& /*s2*/){
        SysState<2> s;
        s.set(0, {"X", 0.0});
        s.set(1, {"Y", 0.0});
-       s["X"] = s1["X"] + 0.5;
-       return s;
+       s["X"] = s1.data["X"] + 0.5;
+       return std::make_tuple(s, DynVec<real_t>(2, 0.0));
     };
 
-    auto metric = [](const SysState<2>& s1, const SysState<2>& s2 ){
-        return l2Norm(s1.as_vector()-s2.as_vector());
+    auto metric = [](const node_t& s1, const node_t& s2 ){
+        return l2Norm(s1.data.as_vector()-s2.data.as_vector());
     };
 
     // build the rrt
     SysState<2> xinit;
     xinit.set(0, {"X", 0.0});
     xinit.set(1, {"Y", 0.0});
-    rrt.build(4, xinit, state_selector, input_selector, metric, dynamics);
 
+    node_t node;
+    node.data = xinit;
+
+    rrt.build(4, node, state_selector, metric, dynamics);
 
     // we should have 5 vertices
     ASSERT_EQ(rrt.n_vertices(), 5);
@@ -105,6 +107,7 @@ TEST(TestRRT, TestFindNearestNeighbor){
 
     using namespace test_data;
     RRT<SysState<2>, DynVec<real_t>> rrt;
+    typedef RRT<SysState<2>, DynVec<real_t>>::vertex_t node_t;
 
     auto idx = 0;
     auto state_selector = [&idx](){
@@ -130,30 +133,27 @@ TEST(TestRRT, TestFindNearestNeighbor){
         return states[idx++];
     };
 
-    // select the input that minimizes the
-    // distance between the two states
-    auto input_selector = [](const SysState<2>& s1, const SysState<2>& s2){
-        return DynVec<real_t>(2, 0.0);
-    };
-
     // compute the dynamics of the model
-    auto dynamics = [](const SysState<2>& s1, const DynVec<real_t>& u){
+    auto dynamics = [](const node_t& s1, const node_t& /*s2*/){
        SysState<2> s;
        s.set(0, {"X", 0.0});
        s.set(1, {"Y", 0.0});
-       s["X"] = s1["X"] + 0.5;
-       return s;
+       s["X"] = s1.data["X"] + 0.5;
+       return std::make_tuple(s, DynVec<real_t>(2, 0.0));
     };
 
-    auto metric = [](const SysState<2>& s1, const SysState<2>& s2 ){
-        return l2Norm(s1.as_vector()-s2.as_vector());
+    auto metric = [](const node_t& s1, const node_t& s2 ){
+        return l2Norm(s1.data.as_vector()-s2.data.as_vector());
     };
 
     // build the rrt
     SysState<2> xinit;
     xinit.set(0, {"X", 0.0});
     xinit.set(1, {"Y", 0.0});
-    rrt.build(4, xinit, state_selector, input_selector, metric, dynamics);
+
+    node_t troot;
+    troot.data  = xinit;
+    rrt.build(4, troot, state_selector,  metric, dynamics);
 
     // we should have 5 vertices
     ASSERT_EQ(rrt.n_vertices(), 5);
@@ -161,7 +161,7 @@ TEST(TestRRT, TestFindNearestNeighbor){
     // ... and four edges
     ASSERT_EQ(rrt.n_edges(), 4);
 
-    RRT<SysState<2>, DynVec<real_t>>::node_t node;
+    node_t node;
     node.data = xinit;
 
     auto root = rrt.find_nearest_neighbor(node, metric);
