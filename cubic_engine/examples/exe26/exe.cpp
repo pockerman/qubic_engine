@@ -13,17 +13,184 @@
 #include <iostream>
 #include <random>
 #include <algorithm>
+#include <cmath>
+#include <limits>
+
+namespace example
+{
+using cengine::uint_t;
+using cengine::real_t;
+using cengine::DynMat;
+using cengine::rl::worlds::GridWorldAction;
+using cengine::rl::SarsaTableLearning;
+using cengine::rl::SarsaLearningInput;
+using cengine::rl::RewardTable;
+using kernel::CSVWriter;
+
+// max number of cars in each location
+const uint_t MAX_CARS = 20;
+
+// max number of cars to move during night
+const uint_t MAX_MOVE_OF_CARS = 5;
+
+// expectation for rental requests in first location
+const uint_t RENTAL_REQUEST_FIRST_LOC = 3;
+
+// expectation for rental requests in second location
+const uint_t RENTAL_REQUEST_SECOND_LOC = 4;
+
+// expectation for # of cars returned in first location
+const uint_t RETURNS_FIRST_LOC = 3;
+
+// expectation for # of cars returned in second location
+const uint_t RETURNS_SECOND_LOC = 2;
+
+// discount factor
+const real_t DISCOUNT = 0.9;
+
+// credit earned by a car
+const real_t RENTAL_CREDIT = 10;
+
+// cost of moving a car
+const real_t MOVE_CAR_COST = 2;
+
+// all possible actions
+int actions[] = {-5, -4, -3, -2, -1,  0,  1,  2,  3,  4,  5};
+
+// An up bound for poisson distribution
+// If n is greater than this value, then the probability
+// of getting n is truncated to 0
+const uint_t POISSON_UPPER_BOUND = 11;
+
+real_t expected_return(state, int action, state_value, constant_returned_cars){
+
+    // initailize total return
+    real_t returns = 0.0;
+
+    // cost for moving cars
+    returns -= MOVE_CAR_COST * std::abs(action);
+
+    # moving cars
+    int NUM_OF_CARS_FIRST_LOC = std::min(state[0] - action, MAX_CARS);
+    int NUM_OF_CARS_SECOND_LOC = std::min(state[1] + action, MAX_CARS);
+
+    # go through all possible rental requests
+    for rental_request_first_loc in range(POISSON_UPPER_BOUND):
+        for rental_request_second_loc in range(POISSON_UPPER_BOUND):
+            # probability for current combination of rental requests
+            prob = poisson_probability(rental_request_first_loc, RENTAL_REQUEST_FIRST_LOC) * \
+                poisson_probability(rental_request_second_loc, RENTAL_REQUEST_SECOND_LOC)
+
+            num_of_cars_first_loc = NUM_OF_CARS_FIRST_LOC
+            num_of_cars_second_loc = NUM_OF_CARS_SECOND_LOC
+
+            # valid rental requests should be less than actual # of cars
+            valid_rental_first_loc = min(num_of_cars_first_loc, rental_request_first_loc)
+            valid_rental_second_loc = min(num_of_cars_second_loc, rental_request_second_loc)
+
+            # get credits for renting
+            reward = (valid_rental_first_loc + valid_rental_second_loc) * RENTAL_CREDIT
+            num_of_cars_first_loc -= valid_rental_first_loc
+            num_of_cars_second_loc -= valid_rental_second_loc
+
+            if constant_returned_cars:
+                // get returned cars, those cars can be used for renting tomorrow
+                returned_cars_first_loc = RETURNS_FIRST_LOC
+                returned_cars_second_loc = RETURNS_SECOND_LOC
+                num_of_cars_first_loc = min(num_of_cars_first_loc + returned_cars_first_loc, MAX_CARS)
+                num_of_cars_second_loc = min(num_of_cars_second_loc + returned_cars_second_loc, MAX_CARS)
+                returns += prob * (reward + DISCOUNT * state_value[num_of_cars_first_loc, num_of_cars_second_loc])
+            else:
+                for returned_cars_first_loc in range(POISSON_UPPER_BOUND):
+                    for returned_cars_second_loc in range(POISSON_UPPER_BOUND):
+                        prob_return = poisson_probability(
+                            returned_cars_first_loc, RETURNS_FIRST_LOC) * poisson_probability(returned_cars_second_loc, RETURNS_SECOND_LOC)
+                        num_of_cars_first_loc_ = min(num_of_cars_first_loc + returned_cars_first_loc, MAX_CARS)
+                        num_of_cars_second_loc_ = min(num_of_cars_second_loc + returned_cars_second_loc, MAX_CARS)
+                        prob_ = prob_return * prob
+                        returns += prob_ * (reward + DISCOUNT *
+                                            state_value[num_of_cars_first_loc_, num_of_cars_second_loc_])
+    return returns
+
+}
+
+
+void simulate(){
+
+    DynMat<real_t> value(MAX_CARS + 1, MAX_CARS + 1, 0.);
+    DynMat<int> policy(MAX_CARS + 1, MAX_CARS + 1, -1);
+
+    // how many iteration have we performed
+    uint_t iterations = 0;
+
+
+    while(true){
+
+        // policy evaluation (in-place)
+        while(true) {
+
+           // a copy of the current value function
+           auto old_value = value;
+
+           for(uint_t i=0; i<(MAX_CARS + 1); ++i){
+               for(uint_t j=0; j<(MAX_CARS + 1); ++j){
+
+                   auto new_state_value = expected_return([i, j], policy(i,j), value, constant_returned_cars);
+                   value(i,j) = new_state_value;
+               }
+
+               auto  max_value_change = std::fabs(old_value - value).max();
+               std::cout<<"max value change: "<<max_value_change<<std::endl;
+               if(max_value_change < 1e-4){
+                    break;
+               }
+           }
+        }
+
+        // policy improvement
+        bool policy_stable = true;
+
+        for(uint_t i=0; i<(MAX_CARS + 1); ++i){
+            for(uint_t j=0; j<(MAX_CARS + 1); ++j){
+
+                auto old_action = policy(i, j);
+                std::vector<real_t> action_returns;
+
+                for(uint_t a=0; a<11; ++a){
+
+                    auto action = actions[a];
+                    if((0 <= action <= i) || (-j <= action <= 0)){
+                        action_returns.push_back(expected_return([i, j], action, value, constant_returned_cars));
+                    }
+                    else{
+                        action_returns.push_back(std::numeric_limits<real_t>::min());
+                    }
+                }
+
+                auto new_action = actions[np.argmax(action_returns)]
+                policy(i, j) = new_action;
+                if( policy_stable && old_action != new_action){
+                        policy_stable = false;
+                }
+            }
+        }
+
+        if(policy_stable){
+            break;
+        }
+
+
+
+
+}
+
+}
 
 int main(){
 
-    using cengine::uint_t;
-    using cengine::real_t;
-    using cengine::rl::worlds::CliffWorld;
-    using cengine::rl::worlds::GridWorldAction;
-    using cengine::rl::SarsaTableLearning;
-    using cengine::rl::SarsaLearningInput;
-    using cengine::rl::RewardTable;
-    using kernel::CSVWriter;
+
+
+
 
     try{
 
