@@ -8,6 +8,7 @@
 #include <string>
 
 namespace cengine{
+namespace estimation{
 
 ///
 /// Implements the Extended Kalman filter algorithm.
@@ -292,6 +293,6 @@ ExtendedKalmanFilter<MotionModelTp,
 
 
 }
-
+}
 #endif	/* EXTENDED_KALMAN_FILTER_H */
 

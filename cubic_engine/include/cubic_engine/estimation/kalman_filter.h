@@ -6,9 +6,10 @@
 #include <stdexcept> //for std::invalid_argument
 
 
-namespace cengine
-{
+namespace cengine{
+namespace estimation{
 
+///
 /// \brief Linear Kalman Filter implementation.
 /// See: An Introduction to the Kalman Filter, TR 95-041
 /// by Greg Welch1 and Gary Bishop
@@ -50,6 +51,7 @@ namespace cengine
 /// K n x m
 /// Q n x n
 /// R m x m 
+///
 template<typename MotionModelTp, typename ObservationModelTp>
 class KalmanFilter: private boost::noncopyable
 {
@@ -65,17 +67,17 @@ public:
     typedef typename observation_model_t::input_t observation_model_input_t;
 
     ///
-    ///  Constructor
+    ///  \brief Constructor
     ///
     KalmanFilter();
 
     ///
-    /// Constructor
+    /// \brief Constructor
     ///
     KalmanFilter(motion_model_t& motion_model, const observation_model_t& observation_model);
 
     ///
-    /// Destructor
+    /// \brief Destructor
     ///
     ~KalmanFilter();
 
@@ -89,7 +91,7 @@ public:
                                    observation_model_input_t>& input );
 
     ///
-    /// Predicts the state vector x and the process covariance matrix P using
+    /// \brief Predicts the state vector x and the process covariance matrix P using
     /// the given input control u accroding to the following equations
     ///
     /// \f[\hat{x}_{k = F_k* x_{k-1} + B_k *  u_k + w_k\f]
@@ -110,7 +112,7 @@ public:
                  const DynVec<real_t>& w);
 
     ///
-    /// Updates the gain matrix \f$K\f$, the  state vector \f$x\f$ and covariance matrix P
+    /// \brief Updates the gain matrix \f$K\f$, the  state vector \f$x\f$ and covariance matrix P
     /// using the given measurement z_k according to the following equations
     ///
     /// K_k = \hat{P}_{k} * H_{k}^T * (H_k * \hat{P}_{k} * H_{k}^T +  R_k )^{-1}
@@ -118,7 +120,9 @@ public:
     /// P_k = (I - K_k * H_k) * \hat{P}_{k}
     void update(const observation_model_input_t& z);
 
+    ///
     /// \brief Set the motion model
+    ///
     void set_motion_model(motion_model_t& motion_model)
     {motion_model_ptr_ = &motion_model;}
 
@@ -126,16 +130,24 @@ public:
     void set_observation_model(const observation_model_t& observation_model)
     {observation_model_ptr_ = &observation_model;}
 
+    ///
     /// \brief Set the matrix used by the filter
+    ///
     void set_matrix(const std::string& name, const matrix_t& mat);
 
+    ///
     /// \brief Returns true if the matrix with the given name exists
+    ///
     bool has_matrix(const std::string& name)const;
 
+    ///
     /// \brief Returns the state
+    ///
     const state_t& get_state()const{return motion_model_ptr_->get_state();}
 
+    ///
     /// \brief Returns the state
+    ///
     state_t& get_state(){return motion_model_ptr_->get_state();}
 
     ///
@@ -155,13 +167,19 @@ public:
 
 protected:
 
+    ///
     /// \brief pointer to the function that computes f
+    ///
     motion_model_t* motion_model_ptr_;
 
+    ///
     /// \brief pointer to the function that computes h
+    ///
     const observation_model_t* observation_model_ptr_;
 
+    ///
     /// \brief Matrices used by the filter internally
+    ///
     std::map<std::string, matrix_t> matrices_;
 };
 
@@ -262,20 +280,20 @@ KalmanFilter<MotionModelTp,
         throw std::runtime_error("Motion model has not been set");
     }
 
-    /// make a state predicion using the
-    /// motion model
+    // make a state predicion using the
+    // motion model
     auto& state = motion_model_ptr_->get_state();
     auto x = state.as_vector();
 
-    /// get the matrix that describes the dynamics
-    /// of the system
+    // get the matrix that describes the dynamics
+    // of the system
     auto& F = motion_model_ptr_->get_matrix("F");
     auto& B = (*this)["B"];
 
     x = F*x + B*u + w;
     state.set(x);
 
-    /// predict the covariance matrix
+    // predict the covariance matrix
     auto& P = (*this)["P"];
     auto& Q = (*this)["Q"];
     auto F_T = trans( F );
@@ -333,7 +351,7 @@ KalmanFilter<MotionModelTp,
 
       IdentityMatrix<real_t> I(state.size());
 
-      /// update covariance matrix
+      // update covariance matrix
       P = (I - K*H)*P;
     }
     catch(...){
@@ -345,5 +363,6 @@ KalmanFilter<MotionModelTp,
         throw;
     }
 }
-    
+
+}
 }
