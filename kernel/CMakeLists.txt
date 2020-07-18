@@ -57,6 +57,7 @@ SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/kernel)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 SET(MAGIC_ENUM_INCL_DIR " ")
 SET(BLAZE_INCL_DIR "/home/alex/MySoftware/blaze/blaze-3.7/install/include")
+SET(NLOHMANN_JSON_INCL_DIR "/home/alex/MySoftware/nlohman_json/install/include")
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(KERNEL_DEBUG "ON")
