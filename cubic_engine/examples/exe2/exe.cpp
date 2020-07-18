@@ -17,7 +17,7 @@ namespace example
 using cengine::uint_t;
 using cengine::real_t;
 using kernel::dynamics::DiffDriveDynamics;
-using cengine::ExtendedKalmanFilter;
+using cengine::estimation::ExtendedKalmanFilter;
 using cengine::DynMat;
 using cengine::DynVec;
 using kernel::dynamics::SysState;

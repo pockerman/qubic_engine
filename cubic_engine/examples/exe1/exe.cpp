@@ -17,7 +17,7 @@ using cengine::uint_t;
 using cengine::DynMat;
 using cengine::DynVec;
 using cengine::DiagMat;
-using cengine::KalmanFilter;
+using cengine::estimation::KalmanFilter;
 using kernel::dynamics::MotionModelBase;
 using kernel::dynamics::DynamicsMatrixDescriptor;
 using kernel::dynamics::SysState;
