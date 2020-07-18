@@ -20,6 +20,7 @@
 - <a href="https://pytorch.org/">PyTorch</a> if PyTorch is enabled
 - <a href="https://github.com/pockerman/compute_engine/tree/master/kernel">```kernel```</a>
 - <a href="https://github.com/Neargye/magic_enum">```magic_enum```</a> only used if ```__GNUC__ >7 ```
+- <a href="https://github.com/nlohmann/json">Nlohmann JSON</a> used for JSON support
 
 ## <a name="nstallation"></a> Installation
 
@@ -38,13 +39,14 @@ specify the following:
 - ```CMAKE_INSTALL_PREFIX``` by default is set to ```${PWD}/install```
 - ```KERNEL_INCL_DIR``` and ```KERNEL_LIB_DIR``` by default these point to ```${PWD}../kernel/include``` and  ```${PWD}../kernel/install/lib``` respectively
 - ```MAGIC_ENUM_INCL_DIR``` if ```magic_enum``` can be supported by the compiler (```__GNUC__ >7 ```)
+- The ```NLOHMANN_JSON_INCL_DIR``` variable for the ```json.hpp``` header
+
 ```
 mkdir build
 cd build
 cmake ..
 make
 make install
-make tests
 ```
 
 ## <a name="documentation"></a> Documentation

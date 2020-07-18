@@ -19,6 +19,7 @@
 - <a href="https://github.com/google/googletest">GTest</a> if testing is enabled
 - <a href="https://github.com/trilinos/Trilinos">Trilinos</a> if it is enabled.
 - <a href="https://github.com/Neargye/magic_enum">```magic_enum```</a> only used if ```__GNUC__ >7 ```
+- <a href="https://github.com/nlohmann/json">Nlohmann JSON</a> used for JSON support
 
 ## <a name="nstallation"></a> Installation
 
@@ -35,6 +36,7 @@ specify the following:
 - ```USE_TRILINOS``` by default is ```OFF``` meaning do not use Trilinos. If the variable is set to ```ON``` then the following
 variables should also be set ```TRILINOS_INCL_DIR``` and ```TRILINOS_LIB_DIR```
 - ```MAGIC_ENUM_INCL_DIR``` if ```magic_enum``` can be supported by the compiler (```__GNUC__ >7 ```)
+- The ```NLOHMANN_JSON_INCL_DIR``` variable for the ```json.hpp``` header
 
 ```
 mkdir build
@@ -42,7 +44,6 @@ cd build
 cmake ..
 make
 make install
-make tests
 ```
 
 ## <a name="documentation"></a> Documentation
