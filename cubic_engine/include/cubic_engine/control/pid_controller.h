@@ -5,29 +5,41 @@
 
 #include <map>
 #include <string>
-namespace cengine
-{
+namespace cengine{
+namespace control{
 
+///
 /// \brief Implements a simple PID control
 /// for a scalar variable
+///
 class PIDControl
 {
 public:
 
+    ///
     /// \brief Constructor
+    ///
     PIDControl(real_t Kp, real_t Kd=0.0, real_t Ki=0.0);
 
+    ///
     /// \brief calcaulate the control to apply
+    ///
     real_t execute(real_t error, real_t dt);
 
+    ///
     /// \brief calculate the control to apply no time
     /// is accounted for so only PI contribution
+    ///
     real_t execute(real_t error);
 
+    ///
     /// \brief Set the parameter value
+    ///
     void set_paramter(const std::string& name, real_t val);
 
+    ///
     /// \brief Set the accummulated error
+    ///
     void set_error(real_t err){error_ = err;}
 
 private:
@@ -37,6 +49,7 @@ private:
 
 
 };
+}
 }
 
 #endif // PID_CONTROLLER_H
