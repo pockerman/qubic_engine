@@ -2,6 +2,7 @@
 #include "kernel/utilities/csv_file_writer.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/utilities/array_utils.h"
+#include "kernel/maths/matrix_utilities.h"
 
 #include <cmath>
 #include <utility>
@@ -137,12 +138,22 @@ real_t expected_return(int state[], int action, DynMat<real_t>& state_value, boo
 void simulate(bool constant_returned_cars){
 
     DynMat<real_t> value(MAX_CARS + 1, MAX_CARS + 1, 0.);
-    DynMat<int> policy(MAX_CARS + 1, MAX_CARS + 1, -1);
+    DynMat<int> policy(MAX_CARS + 1, MAX_CARS + 1, 0);
 
     // how many iteration have we performed
     uint_t iterations = 0;
 
     while(true){
+
+        std::string filename="policy_" + std::to_string(iterations) + ".csv";
+        CSVWriter policywriter(filename, ',', true);
+
+        for(uint_t r=0; r<policy.rows(); ++r){
+            auto row = kernel::get_row(policy, r);
+            policywriter.write_row(row);
+        }
+
+        std::cout<<"Iteration: "<<iterations<<std::endl;
 
         // policy evaluation (in-place)
         while(true) {
@@ -158,13 +169,14 @@ void simulate(bool constant_returned_cars){
                                                           value, constant_returned_cars);
                    value(i,j) = new_state_value;
                }
-
-               auto  max_value_change = max(abs(old_value - value));
-               std::cout<<"max value change: "<<max_value_change<<std::endl;
-               if(max_value_change < 1e-4){
-                    break;
-               }
            }
+
+           auto  max_value_change = max(abs(old_value - value));
+           std::cout<<"max value change: "<<max_value_change<<std::endl;
+           if(max_value_change < 1e-4){
+                    break;
+           }
+
         }
 
         // policy improvement
@@ -197,9 +209,20 @@ void simulate(bool constant_returned_cars){
             }
         }
 
+        std::cout<<"Policy stable: "<<std::boolalpha<<policy_stable<<std::endl;
         if(policy_stable){
+
+            CSVWriter valuewriter("value.csv", ',', true);
+
+            for(uint_t r=0; r<value.rows(); ++r){
+                auto row = kernel::get_row(value, r);
+                valuewriter.write_row(row);
+            }
+
             break;
         }
+
+        iterations += 1;
 }
 }
 

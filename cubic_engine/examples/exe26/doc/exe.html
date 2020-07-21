@@ -13211,30 +13211,7 @@ $$ \frac{\lambda^n}{n!}e^{-\lambda}$$
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>We assume that there can be no more than 20 cars at each location (any additional cars are returned to the nationwide company, and thus disappear from the problem) and a maximum of five cars can be moved from one location to the other in onenight.</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>Let $S=(S_1,S_2)$ be the tuple that denotes the number of cars at locations $L_1$ and $L_2$. The action set is</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-$$A=\{0,1,2,3,4,5\}$$
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>The discount rate is set to  $\gamma = 0.9$.</p>
+<p>We assume that there can be no more than 20 cars at each location (any additional cars are returned to the nationwide company, and thus disappear from the problem) and a maximum of five cars can be moved from one location to the other in one night. The discount rate is set to  $\gamma = 0.9$.</p>
 
 </div>
 </div>
@@ -13254,6 +13231,7 @@ $$A=\{0,1,2,3,4,5\}$$
 #include "kernel/utilities/csv_file_writer.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/utilities/array_utils.h"
+#include "kernel/maths/matrix_utilities.h"
 
 #include &lt;cmath&gt;
 #include &lt;utility&gt;
@@ -13263,7 +13241,7 @@ $$A=\{0,1,2,3,4,5\}$$
 #include &lt;algorithm&gt;
 #include &lt;cmath&gt;
 #include &lt;limits&gt;
-#include &lt;map&gt;</code></pre>
+#include &lt;map</code></pre>
 
 </div>
 </div>
@@ -13403,12 +13381,22 @@ real_t expected_return(int state[], int action, DynMat&lt;real_t&gt;&amp; state_
 void simulate(bool constant_returned_cars){
 
     DynMat&lt;real_t&gt; value(MAX_CARS + 1, MAX_CARS + 1, 0.);
-    DynMat&lt;int&gt; policy(MAX_CARS + 1, MAX_CARS + 1, -1);
+    DynMat&lt;int&gt; policy(MAX_CARS + 1, MAX_CARS + 1, 0);
 
     // how many iteration have we performed
     uint_t iterations = 0;
 
     while(true){
+
+        std::string filename="policy_" + std::to_string(iterations) + ".csv";
+        CSVWriter policywriter(filename, ',', true);
+
+        for(uint_t r=0; r&lt;policy.rows(); ++r){
+            auto row = kernel::get_row(policy, r);
+            policywriter.write_row(row);
+        }
+
+        std::cout&lt;&lt;"Iteration: "&lt;&lt;iterations&lt;&lt;std::endl;
 
         // policy evaluation (in-place)
         while(true) {
@@ -13424,13 +13412,14 @@ void simulate(bool constant_returned_cars){
                                                           value, constant_returned_cars);
                    value(i,j) = new_state_value;
                }
-
-               auto  max_value_change = max(abs(old_value - value));
-               std::cout&lt;&lt;"max value change: "&lt;&lt;max_value_change&lt;&lt;std::endl;
-               if(max_value_change &lt; 1e-4){
-                    break;
-               }
            }
+
+           auto  max_value_change = max(abs(old_value - value));
+           std::cout&lt;&lt;"max value change: "&lt;&lt;max_value_change&lt;&lt;std::endl;
+           if(max_value_change &lt; 1e-4){
+                    break;
+           }
+
         }
 
         // policy improvement
@@ -13463,9 +13452,20 @@ void simulate(bool constant_returned_cars){
             }
         }
 
+        std::cout&lt;&lt;"Policy stable: "&lt;&lt;std::boolalpha&lt;&lt;policy_stable&lt;&lt;std::endl;
         if(policy_stable){
+
+            CSVWriter valuewriter("value.csv", ',', true);
+
+            for(uint_t r=0; r&lt;value.rows(); ++r){
+                auto row = kernel::get_row(value, r);
+                valuewriter.write_row(row);
+            }
+
             break;
         }
+
+        iterations += 1;
 }
 }
 
@@ -13506,7 +13506,7 @@ int main(){
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><code></code></p>
+<p>The following image shows the policies and the final value function</p>
 
 </div>
 </div>
@@ -13514,7 +13514,9 @@ int main(){
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The following images shown the sum of rewards achieved by the algorithm for various values of $\epsilon$. We see that as $\epsilon$ is increased more exploration occurs.</p>
+<p><img src="policies.png"
+     alt="Policy and value function"
+     style="float: left; margin-right: 10px; width: 1000px;" /></p>
 
 </div>
 </div>
