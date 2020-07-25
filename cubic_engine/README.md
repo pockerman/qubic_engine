@@ -66,7 +66,7 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 
 - <a href="#">Example 4: </a> Using the ```PIDControl``` class
 - LQR Control
-- <a href="examples/exe28/doc/exe.ipynb">Example 28: </a> Develop a model predictive controller for differential drive system
+- <a href="examples/exe28/doc/exe.ipynb">Example 28: </a> Model-based control for cart-pole system
 
 ### <a name="machine_learning"></a> Machine Learning & Statistics
 
