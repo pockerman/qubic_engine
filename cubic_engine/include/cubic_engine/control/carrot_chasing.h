@@ -28,27 +28,38 @@ namespace control {
 struct CarrotChasingPathTrackControllerInput
 {
 
+    ///
     /// \brief The gain parameter
+    ///
     real_t k;
 
+    ///
     /// \brief The lookahead distance
+    ///
     real_t lookahead_distance;
 
+    ///
     /// \brief number of sampling poinst to use
     /// when computing the closest point from
     /// position to the path
+    ///
     uint_t n_sampling_points;
 
+    ///
     /// \brief Tolerance used for calculations
+    ///
     real_t tol;
 
+    ///
     /// \brief Radius within which it is
     /// assumed that the waypoint has been reached
+    ///
     real_t waypoint_r;
 };
 
 ///
-/// \brief The class CarrotChasingPathTrackController. Implements the so-called carrot chasing path track controller
+/// \brief The class CarrotChasingPathTrackController.
+/// Implements the so-called carrot chasing path track controller
 ///
 template<typename PointData, typename SegmentData>
 class CarrotChasingPathTrackController:public kernel::ObserverBase<grids::WaypointPath<2, PointData, SegmentData>*>,
