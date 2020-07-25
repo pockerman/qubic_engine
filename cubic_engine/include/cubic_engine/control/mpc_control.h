@@ -6,7 +6,9 @@
 namespace cengine {
 namespace control{
 
-
+///
+/// \brief The MPCController class.
+///
 template<typename OptimizerTp, typename ObserverTp, typename PredictorTp>
 class MPCController: private boost::noncopyable
 {
