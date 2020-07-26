@@ -144,6 +144,7 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/maths/functions/*.cpp
                  ${PROJECT_SRC_DIR}/maths/krylov_solvers/*.cpp
                  ${PROJECT_SRC_DIR}/maths/statistics/*.cpp
+				 ${PROJECT_SRC_DIR}/maths/optimization/*.cpp
                  ${PROJECT_SRC_DIR}/maths/*.cpp
                  ${PROJECT_SRC_DIR}/dynamics/*.cpp
                  ${PROJECT_SRC_DIR}/numerics/*.cpp
