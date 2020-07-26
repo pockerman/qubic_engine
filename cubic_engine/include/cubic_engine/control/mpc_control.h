@@ -6,8 +6,18 @@
 namespace cengine {
 namespace control{
 
+
 ///
-/// \brief The MPCController class.
+/// \brief The MPCInput struct. Wrap the input
+/// required by the the MPCController class
+///
+struct MPCInput
+{
+
+};
+
+///
+/// \brief The MPCController class. Linear constrained MPC controller
 ///
 template<typename OptimizerTp, typename ObserverTp, typename PredictorTp>
 class MPCController: private boost::noncopyable
@@ -36,8 +46,66 @@ public:
     ///
     typedef PredictorTp predictor_t;
 
+    ///
+    /// \brief MPCController. Constructor
+    ///
+    MPCController(const MPCInput&);
+
+    ///
+    /// \brief update. Update the controller
+    ///
+    void update();
+
+    ///
+    /// \brief solve. Solve the optimization problem
+    ///
+    void solve();
+
+    ///
+    /// \brief control_value Returns the control value computed
+    /// by the controller to be passed to the application
+    ///
+    control_output_t control_value()const;
+
+private:
+
+    ///
+    /// \brief input_
+    ///
+    MPCInput input_;
+
+    ///
+    /// \brief optimizer_ The optimizer to use
+    ///
+    optimizer_t optimizer_;
 
 };
+
+template<typename OptimizerTp, typename ObserverTp, typename PredictorTp>
+MPCController<OptimizerTp, ObserverTp, PredictorTp>::MPCController(const MPCInput& in)
+    :
+      input_(in),
+      optimizer_()
+{}
+
+
+template<typename OptimizerTp, typename ObserverTp, typename PredictorTp>
+void
+MPCController<OptimizerTp, ObserverTp, PredictorTp>::update(){
+
+}
+
+template<typename OptimizerTp, typename ObserverTp, typename PredictorTp>
+void
+MPCController<OptimizerTp, ObserverTp, PredictorTp>::solve(){
+
+}
+
+template<typename OptimizerTp, typename ObserverTp, typename PredictorTp>
+typename MPCController<OptimizerTp, ObserverTp, PredictorTp>::control_output_t
+MPCController<OptimizerTp, ObserverTp, PredictorTp>::control_value()const{
+
+}
 
 }
 
