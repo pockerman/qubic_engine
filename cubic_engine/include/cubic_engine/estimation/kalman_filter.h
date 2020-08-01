@@ -44,13 +44,13 @@ namespace estimation{
 /// control vector: u l x 1
 /// meas. vector:   y m x 1
 ///
-/// F n x n
-/// P n x n
-/// B n x l
-/// H m x n
-/// K n x m
-/// Q n x n
-/// R m x m 
+/// \f[ \mathbf{F} n \times n \f]
+/// \f[ \mathfb{P} n \times n \f]
+/// \f[ \mathbf{B} n \times l \f]
+/// \f[ \mathbf{H} m \times n \f]
+/// \f[ \mathbf{K} n \times m \f]
+/// \f[ \mathbf{Q} n \times n \f]
+/// \f[ \mathbf{R} m \times m \f]
 ///
 template<typename MotionModelTp, typename ObservationModelTp>
 class KalmanFilter: private boost::noncopyable

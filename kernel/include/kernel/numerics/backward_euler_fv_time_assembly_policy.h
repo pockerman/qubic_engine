@@ -134,7 +134,7 @@ BackwardEulerFVTimeAssemblyPolicy<dim, SpatialAssembly>::reinit(const Element<di
 
 template<int dim,typename SpatialAssembly>
 void
-SimpleFVTimeAssemblyPolicy<dim, SpatialAssembly>::assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x,
+BackwardEulerFVTimeAssemblyPolicy<dim, SpatialAssembly>::assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x,
                                           TrilinosEpetraVector& b, const std::vector<TrilinosEpetraVector>& old_solutions ){
 
     // loop over the elements
@@ -155,15 +155,18 @@ SimpleFVTimeAssemblyPolicy<dim, SpatialAssembly>::assemble(TrilinosEpetraMatrix&
 
 template<int dim,typename SpatialAssembly>
 void
-SimpleFVTimeAssemblyPolicy<dim, SpatialAssembly>::assemble_one_element(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x,
-                                                      TrilinosEpetraVector& b, const std::vector<TrilinosEpetraVector>& old_solutions ){
+BackwardEulerFVTimeAssemblyPolicy<dim,
+                                   SpatialAssembly>::assemble_one_element(TrilinosEpetraMatrix& mat,
+                                                                          TrilinosEpetraVector& x,
+                                                                          TrilinosEpetraVector& b,
+                                                                          const std::vector<TrilinosEpetraVector>& old_solutions ){
 
     auto dofs = spatial_assembly_.get_element_dofs(); //.size();
     auto elem_volume = spatial_assembly_.get_element_volume();
 
     std::vector<real_t> row_entries(dofs.size(), 0.0);
 
-    mat.set_entry(dofs[0].id, dofs[0].id, elem_->volume()/dt_);
+    mat.set_entry(dofs[0].id, dofs[0].id, elem_volume/dt_);
     auto old_sol = old_solutions[0][dofs[0].id];
     b.add(dofs[0].id, (old_sol*elem_volume)/dt_);
 }
