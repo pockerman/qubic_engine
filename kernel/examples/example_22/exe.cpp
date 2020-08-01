@@ -21,11 +21,11 @@
 #include "kernel/maths/functions/numeric_vector_function.h"
 
 #include "kernel/numerics/scalar_dirichlet_bc_function.h"
-#include "kernel/numerics/fv_grad_factory.h"
-#include "kernel/numerics/fv_grad_types.h"
-#include "kernel/numerics/scalar_fv_system.h"
+#include "kernel/numerics/fvm/fv_grad_factory.h"
+#include "kernel/numerics/fvm/fv_grad_types.h"
+#include "kernel/numerics/fvm/fv_scalar_system.h"
+#include "kernel/numerics/fvm/fv_laplace_assemble_policy.h"
 #include "kernel/numerics/trilinos_solution_policy.h"
-#include "kernel/numerics/fv_laplace_assemble_policy.h"
 #include "kernel/numerics/boundary_function_base.h"
 
 

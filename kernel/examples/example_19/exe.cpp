@@ -10,20 +10,21 @@
 #include "kernel/utilities/filtered_iterator.h"
 #include "kernel/discretization/element_mesh_iterator.h"
 #include "kernel/discretization/mesh_predicates.h"
-#include "kernel/numerics/scalar_fv_system.h"
+#include "kernel/numerics/fvm/fv_scalar_system.h"
+#include "kernel/numerics/fvm/fv_laplace_assemble_policy.h"
 #include "kernel/numerics/trilinos_solution_policy.h"
-#include "kernel/numerics/fv_laplace_assemble_policy.h"
+#include "kernel/numerics/fvm/fv_grad_factory.h"
+#include "kernel/numerics/fvm/fv_grad_types.h"
+#include "kernel/numerics/scalar_dirichlet_bc_function.h"
+#include "kernel/numerics/boundary_function_base.h"
 #include "kernel/maths/trilinos_epetra_matrix.h"
 #include "kernel/maths/trilinos_epetra_vector.h"
 #include "kernel/maths/krylov_solvers/trilinos_krylov_solver.h"
-#include "kernel/numerics/scalar_dirichlet_bc_function.h"
 #include "kernel/maths/krylov_solvers/krylov_solver_data.h"
 #include "kernel/maths/krylov_solvers/krylov_solver_type.h"
 #include "kernel/maths/krylov_solvers/preconditioner_type.h"
-#include "kernel/numerics/fv_grad_factory.h"
-#include "kernel/numerics/fv_grad_types.h"
 #include "kernel/maths/functions/numeric_scalar_function.h"
-#include "kernel/numerics/boundary_function_base.h"
+
 
 #include <cmath>
 #include <iostream>
