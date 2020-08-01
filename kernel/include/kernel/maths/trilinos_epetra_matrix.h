@@ -20,6 +20,10 @@ namespace numerics{
 /// forward declarations
 class TrilinosKrylovSolver;
 
+///
+/// \brief The TrilinosEpetraMatrix class.
+/// Wrapper to Trilinos::Epetra_CrsMatrix matrix class
+///
 class TrilinosEpetraMatrix
 {
 
