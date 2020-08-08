@@ -3,6 +3,7 @@
 #ifdef USE_TRILINOS
 
 #include "kernel/maths/solvers/solver_package_type.h"
+#include "kernel/maths/trilinos_epetra_multivector.h"
 
 #include <Teuchos_RCP.hpp>
 //#include <Teuchos_ScalarTraits.hpp>
@@ -21,7 +22,7 @@ namespace solvers {
 Amesos2Direct::Amesos2Direct(DirectSolverType dstype)
     :
       DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
-                       kernel::numerics::TrilinosEpetraVector>(SolverPackageType::TRI_AMESOS2),
+                       kernel::algebra::TrilinosEpetraMultiVector>(SolverPackageType::TRI_AMESOS2),
       dstype_(dstype)
 {}
 
@@ -61,13 +62,13 @@ Amesos2Direct::solve(const Amesos2Direct::matrix_t& A, Amesos2Direct::vector_t& 
       throw std::logic_error("Epetra_CrsMatrix has not been created");
     }
 
-    const auto* rhs = b.get_vector();
+    const auto* rhs = b.raw_trilinos_vec_ptr();
 
     if(!rhs){
       throw std::logic_error("Epetra_Vector  rhs has not been created");
     }
 
-    auto* sol = x.get_vector();
+    auto* sol = x.raw_trilinos_vec_ptr();
 
     if(!sol){
       throw std::logic_error("Epetra_Vector  solution has not been created");
@@ -75,9 +76,9 @@ Amesos2Direct::solve(const Amesos2Direct::matrix_t& A, Amesos2Direct::vector_t& 
 
 
     // Create solver interface to Superlu with Amesos2 factory method
-    //Amesos2::Solver<mat_t,vec_t>* solver = Amesos2::create<mat_t,vec_t>(dstype.c_str(), mat, sol, rhs);
+    Amesos2::Solver<mat_t,vec_t>* solver = Amesos2::create<mat_t,vec_t>(dstype.c_str(), mat, sol, rhs);
 
-    //solver->symbolicFactorization().numericFactorization().solve();
+    solver->symbolicFactorization().numericFactorization().solve();
 
 }
 

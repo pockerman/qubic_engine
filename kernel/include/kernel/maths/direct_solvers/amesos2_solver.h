@@ -8,15 +8,23 @@
 #include "kernel/maths/direct_solvers/direct_solver_base.h"
 #include "kernel/maths/direct_solvers/direct_solver_type.h"
 #include "kernel/maths/trilinos_epetra_matrix.h"
-#include "kernel/maths/trilinos_epetra_vector.h"
+//#include "kernel/maths/t
 
 namespace kernel {
+namespace algebra{
+class TrilinosEpetraMultiVector;
+}
+
+namespace numerics{
+class TrilinosEpetraMatrix;
+}
+
 namespace maths {
 namespace solvers {
 
 
 class Amesos2Direct: public DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
-                                             kernel::numerics::TrilinosEpetraVector>
+                                             kernel::algebra::TrilinosEpetraMultiVector>
 {
 
 public:
@@ -30,13 +38,13 @@ public:
     /// \brief matrix_t The matrix type the solver is using
     ///
     typedef typename DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
-                                      kernel::numerics::TrilinosEpetraVector>::matrix_t matrix_t;
+                                      kernel::algebra::TrilinosEpetraMultiVector>::matrix_t matrix_t;
 
     ///
     /// \brief vector_t The vector type the solver is using
     ///
     typedef typename DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
-                                      kernel::numerics::TrilinosEpetraVector>::vector_t vector_t;
+                                      kernel::algebra::TrilinosEpetraMultiVector>::vector_t vector_t;
 
 
     ///
