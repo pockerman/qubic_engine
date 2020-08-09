@@ -126,8 +126,8 @@ TrilinosEpetraMatrix::entry(uint_t i,  uint_t j)const{
 }
 
 void
-TrilinosEpetraMatrix::set_row_entries(const TrilinosEpetraMatrix::RowIndices& indices,
-                                          const TrilinosEpetraMatrix::RowEntries& entries)const{
+TrilinosEpetraMatrix::set_row_entries(const TrilinosEpetraMatrix::row_indices_t& indices,
+                                          const TrilinosEpetraMatrix::row_entries_t& entries)const{
 
     if(!mat_){
         throw std::logic_error("Matrix has not been initialized");
@@ -144,12 +144,12 @@ TrilinosEpetraMatrix::set_row_entries(const TrilinosEpetraMatrix::RowIndices& in
 
     if(mat_->Filled())
     {
-       success = mat_->ReplaceGlobalValues(row,num_entries,&entries[0], (int *)&indices[0]);
+       success = mat_->ReplaceGlobalValues(row, num_entries, &entries[0], (int *)&indices[0]);
     }
     else
     {
 
-      success = mat_->InsertGlobalValues(row,num_entries,&entries[0],(int*)&indices[0]);
+      success = mat_->InsertGlobalValues(row, num_entries, &entries[0], (int*)&indices[0]);
     }
 
     if(success != 0){
@@ -167,8 +167,6 @@ TrilinosEpetraMatrix::set_row_entries(uint_t r, real_t val){
     int local_row = mat_->LRID(static_cast<int>(r));
 
     if(local_row>=0){
-
-
 
         real_t* values = nullptr;
         int* col_indices = nullptr;
@@ -193,6 +191,31 @@ TrilinosEpetraMatrix::set_row_entries(uint_t r, real_t val){
            values[diag_index] = val;
          }
       }
+}
+
+void
+TrilinosEpetraMatrix::set_row_entries(uint_t r, const TrilinosEpetraMatrix::row_entries_t& entries){
+
+   //TrilinosEpetraMatrix::row_indices_t rows(entries.size(), r);
+   //set_row_entries(rows, entries);
+
+    if(!mat_){
+        throw std::logic_error("Matrix has not been initialized");
+    }
+
+    int global_row = static_cast<int>(r);
+    int num_entries = static_cast<int>(entries.size());
+    TrilinosEpetraMatrix::row_indices_t columns(n(), 0);
+    for(uint_t t=0; t<n(); ++t){
+       columns[t] = t;
+    }
+
+    auto success = mat_->InsertGlobalValues(global_row, num_entries, &entries[0], (int*)&columns[0]);
+
+
+    if(success != 0){
+        throw std::logic_error("An error occured whilst setting matrix row entries");
+    }
 }
 
 void
@@ -252,8 +275,8 @@ TrilinosEpetraMatrix::add_entry(uint_t i, uint_t j, real_t val){
 }
 
 void
-TrilinosEpetraMatrix::add_row_entries(TrilinosEpetraMatrix::RowIndices& indices,
-                                      TrilinosEpetraMatrix::RowEntries& entries){
+TrilinosEpetraMatrix::add_row_entries(TrilinosEpetraMatrix::row_indices_t& indices,
+                                      TrilinosEpetraMatrix::row_entries_t& entries){
 
     if(!mat_){
         throw std::logic_error("Matrix has not been initialized");

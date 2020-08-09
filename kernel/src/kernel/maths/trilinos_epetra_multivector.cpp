@@ -13,6 +13,13 @@ TrilinosEpetraMultiVector::TrilinosEpetraMultiVector()
       vec_()
 {}
 
+TrilinosEpetraMultiVector::TrilinosEpetraMultiVector(uint_t n, uint_t m, real_t val)
+    :
+      vec_()
+{
+    init(n, m, val);
+}
+
 std::ostream&
 TrilinosEpetraMultiVector::print(std::ostream& out)const{
 
