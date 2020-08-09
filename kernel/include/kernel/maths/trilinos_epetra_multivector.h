@@ -47,6 +47,12 @@ public:
     TrilinosEpetraMultiVector();
 
     ///
+    /// \brief Constructor. Construct a multi-vector
+    /// with n vectors each of which has m entries
+    ///
+    TrilinosEpetraMultiVector(uint_t n, uint_t m, real_t val);
+
+    ///
     /// \brief How many elements the vector has
     ///
     uint_t size()const;

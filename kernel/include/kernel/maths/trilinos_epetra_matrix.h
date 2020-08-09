@@ -32,8 +32,8 @@ public:
 
 
     typedef real_t value_t;
-    typedef std::vector<real_t> RowEntries;
-    typedef std::vector<uint_t> RowIndices;
+    typedef std::vector<real_t> row_entries_t;
+    typedef std::vector<uint_t> row_indices_t;
 
     ///
     /// \brief trilinos_matrix_t The type of the Trilinos matrix
@@ -82,6 +82,11 @@ public:
     void set_row_entries(uint_t r, real_t val);
 
     ///
+    /// \brief set_row_entries Set the entries for row r
+    ///
+    void set_row_entries(uint_t r, const row_entries_t& entries);
+
+    ///
     /// \brief Set the (i,j) entry of the matrix to val
     ///
     void set_entry(uint_t i,uint_t j,real_t val);
@@ -92,17 +97,20 @@ public:
     real_t entry(uint_t i,  uint_t j)const;
 
     ///
-    /// \brief Set the entries in RowIndices to the values in RowEntries
+    /// \brief Set the entries in row_indices to the values in row_entries
     ///
-    void set_row_entries(const RowIndices& indices,const RowEntries& entries)const;
+    void set_row_entries(const row_indices_t& indices,const row_entries_t& entries)const;
 
     ///
     /// \brief Add to the (i,j) entry of the matrix the value val
     ///
     void add_entry(uint_t i,uint_t j,real_t val);
 
-    /// \brief Add to the entries in RowIndices the values in RowEntries of the given Epetra_CrsMatrix
-    void add_row_entries(RowIndices& indices,RowEntries& entries);
+    ///
+    /// \brief Add to the entries in row_indices the
+    /// values in row_entries of the given Epetra_CrsMatrix
+    ///
+    void add_row_entries(row_indices_t& indices, row_entries_t& entries);
 
     ///
     /// \brief Signal the underlying Epetra_FECrsMatrix that filling
@@ -154,13 +162,10 @@ private:
    ///
    Epetra_SerialComm comm_;
 
+   ///
    /// \brief Pointer to the map needed by the Epetra_CrsMatrix
+   ///
    std::unique_ptr<Epetra_Map> epetra_map_;
-
-   ///
-   /// \brief Allow acces to TrilinosKrylovSolver class
-   ///
-   //friend class TrilinosKrylovSolver;
 
 };
 
