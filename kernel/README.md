@@ -66,6 +66,8 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 
 - <a href="examples/example_4/doc/exe.md">Example 4: </a> Multithreaded Jacobi Iterator
 - <a href="examples/example_6">Example 6: </a> Multithreaded Conjugate Gradient solver
+- <a href="examples/example_34/exe.ipynb">Example 34: </a> Use Trilinos ```Epetra_Vector``` and ```Epetra_CrsMatrix```
+- <a href="examples/example_33/exe.ipynb">Example 33: </a> Use Amesos2 Trilinos Package
 
 
 ### <a name="numerics"></a> Numerics

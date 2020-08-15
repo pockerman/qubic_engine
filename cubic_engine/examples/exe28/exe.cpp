@@ -2,6 +2,7 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/control/mpc_control.h"
+#include "cubic_engine/estimation/kalman_filter.h"
 #include "kernel/dynamics/cart_pole_dynamics.h"
 #include "kernel/base/angle_calculator.h"
 #include "kernel/utilities/csv_file_writer.h"
@@ -22,6 +23,9 @@ using cengine::uint_t;
 using cengine::real_t;
 using cengine::DynMat;
 using cengine::DynVec;
+using cengine::control::MPCInput;
+using cengine::control::MPCController;
+using cengine::estimation::KalmanFilter;
 using kernel::dynamics::SysState;
 using kernel::dynamics::CartPoleInput;
 using kernel::dynamics::CartPoleDynamics;
@@ -36,6 +40,10 @@ const real_t b = 0.1;
 const real_t fphi = 0.1;
 const real_t G = kernel::PhysicsConsts::gravity_constant();
 const real_t phi0 = 15*2*kernel::MathConsts::PI/360.;
+
+
+
+
 }
 
 int main() {
@@ -48,12 +56,13 @@ int main() {
     // initial state
     DynVec<real_t> init_state={0, 0, phi0, 0};
 
-    CartPoleDynamics dynmics(cpin, init_state);
-
     try{
 
-        // the system to control
+        // cart-pole dynamics instance
+        CartPoleDynamics dynmics(cpin, init_state);
 
+        // input to the controller
+        MPCInput input;
 
         // loop over the MPC steps
         for(uint_t s=0; s<N_STEPS; ++s){

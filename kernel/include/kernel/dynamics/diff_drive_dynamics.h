@@ -10,10 +10,12 @@
 namespace kernel{
 namespace dynamics{
 
+///
 /// \brief DiffDriveDynamics class. Describes the
 /// motion dynamics of a differential drive system. It implements
 /// the following equations
-class DiffDriveDynamics: public MotionModelBase<SysState<3>, DynamicsMatrixDescriptor,
+///
+class DiffDriveDynamics: public MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor,
                                                 real_t, real_t, std::array<real_t, 2>>
 {
 public:
@@ -21,28 +23,28 @@ public:
     ///
     /// \brief The type of the state handled by this dynamics object
     ///
-    typedef MotionModelBase<SysState<3>,
+    typedef MotionModelDynamicsBase<SysState<3>,
                             DynamicsMatrixDescriptor,
                             real_t, real_t, std::array<real_t, 2> >::state_t state_t;
 
     ///
     /// \brief input_t The type of the input for solving the dynamics
     ///
-    typedef MotionModelBase<SysState<3>,
+    typedef MotionModelDynamicsBase<SysState<3>,
                             DynamicsMatrixDescriptor,
                             real_t, real_t, std::array<real_t, 2> >::input_t input_t;
 
     ///
     /// \brief matrix_t Matrix type that describes the dynamics
     ///
-    typedef MotionModelBase<SysState<3>,
+    typedef MotionModelDynamicsBase<SysState<3>,
                             DynamicsMatrixDescriptor,
                             real_t, real_t, std::array<real_t, 2> >::matrix_t matrix_t;
 
     ///
     /// \brief vector_t
     ///
-    typedef MotionModelBase<SysState<3>,
+    typedef MotionModelDynamicsBase<SysState<3>,
                             DynamicsMatrixDescriptor,
                             real_t, real_t, std::array<real_t, 2> >::vector_t vector_t;
 
@@ -115,11 +117,6 @@ public:
     void update_matrices(const input_t& input);
 
     ///
-    /// \brief Set the time step
-    ///
-    void set_time_step(real_t dt){dt_ = dt;}
-
-    ///
     /// \brief Set the tolerance to use
     ///
     real_t set_tolerance(real_t tol){tol_ = tol;}
@@ -131,11 +128,6 @@ public:
     void initialize_matrices(const input_t& input);
 
 private:
-
-    ///
-    /// \brief The time step the integrator uses
-    ///
-    real_t dt_;
 
     ///
     /// \brief tolerance

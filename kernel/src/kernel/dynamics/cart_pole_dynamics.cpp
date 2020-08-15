@@ -6,21 +6,21 @@ namespace dynamics {
 
 CartPoleDynamics::CartPoleDynamics()
     :
-      MotionModelBase<SysState<4>, DynamicsMatrixDescriptor, real_t>(),
+      MotionModelDynamicsBase<SysState<4>, DynamicsMatrixDescriptor, real_t>(),
       input_()
 {}
 
 
 CartPoleDynamics::CartPoleDynamics(const CartPoleInput& input)
     :
-      MotionModelBase<SysState<4>, DynamicsMatrixDescriptor, real_t>(),
+      MotionModelDynamicsBase<SysState<4>, DynamicsMatrixDescriptor, real_t>(),
       input_(input)
 {}
 
 
 CartPoleDynamics::CartPoleDynamics(const CartPoleInput& input, const DynVec<real_t>& init_state)
     :
-      MotionModelBase<SysState<4>, DynamicsMatrixDescriptor, real_t>(),
+      MotionModelDynamicsBase<SysState<4>, DynamicsMatrixDescriptor, real_t>(),
       input_(input)
 {
     if(init_state.size() != 4){

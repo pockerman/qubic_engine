@@ -9,8 +9,7 @@ namespace dynamics{
 
 DiffDriveDynamics::DiffDriveDynamics()
     :
-  MotionModelBase<SysState<3>, DynamicsMatrixDescriptor, real_t, real_t, std::array<real_t, 2>>(),
-  dt_(0.0),
+  MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor, real_t, real_t, std::array<real_t, 2>>(),
   tol_(KernelConsts::tolerance())
 {
     this->state_.set(0, {"X", 0.0});
@@ -20,7 +19,8 @@ DiffDriveDynamics::DiffDriveDynamics()
 
 DiffDriveDynamics::DiffDriveDynamics(DiffDriveDynamics::state_t&& state)
     :
-      MotionModelBase<SysState<3>, DynamicsMatrixDescriptor, real_t, real_t, std::array<real_t, 2>>()
+      MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor,
+                              real_t, real_t, std::array<real_t, 2>>()
 {
     this->state_ = state;
 }
@@ -44,7 +44,7 @@ DiffDriveDynamics::integrate(real_t v, real_t w, const std::array<real_t, 2>& er
 
     if(std::fabs(w) < tol_){
         /// assume zero angular velocity
-       auto distance = 0.5*v*dt_;
+       auto distance = 0.5*v*get_time_step();
        auto xincrement = (distance + errors[0])*std::cos(values[2]  + errors[1]);
        auto yincrement = (distance + errors[0])*std::sin(values[2]  + errors[1]);
 
@@ -53,7 +53,7 @@ DiffDriveDynamics::integrate(real_t v, real_t w, const std::array<real_t, 2>& er
     }
     else{
 
-        this->state_[2] += w*dt_ + errors[1];
+        this->state_[2] += w*get_time_step() + errors[1];
 
         /// clip the value
         if(std::fabs(this->state_[2]) > MathConsts::PI){
@@ -103,8 +103,8 @@ DiffDriveDynamics::update_matrices(const DiffDriveDynamics::input_t& input){
 
    auto [v, w, errors] = input;
 
-   auto distance = 0.5*v*dt_;
-   auto orientation = w*dt_;
+   auto distance = 0.5*v*get_time_step();
+   auto orientation = w*get_time_step();
    auto values = this->state_.get_values();
   
    if(std::fabs(w) < tol_){
