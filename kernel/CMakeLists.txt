@@ -50,7 +50,7 @@ SET(ENABLE_TESTING "ON")
 SET(USE_OPENMP "ON")
 SET(USE_LOG "ON")
 SET(USE_FVM "ON")
-SET(USE_TRILINOS "OFF")
+SET(USE_TRILINOS "ON")
 SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install)
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/kernel)
@@ -83,8 +83,8 @@ IF( ${BLAZE_INCL_DIR} MATCHES " " )
 ENDIF()
 
 IF(USE_TRILINOS MATCHES "ON")
-    SET(TRILINOS_INCL_DIR " ")
-    SET(TRILINOS_LIB_DIR " ")
+    SET(TRILINOS_INCL_DIR "/home/alex/MySoftware/trilinos/install/include")
+    SET(TRILINOS_LIB_DIR "/home/alex/MySoftware/trilinos/install/lib")
     INCLUDE_DIRECTORIES(${TRILINOS_INCL_DIR})
     LINK_DIRECTORIES(${TRILINOS_LIB_DIR})
 ENDIF()
@@ -132,7 +132,6 @@ INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR})
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
 
-
 # use the Boost link directories
 LINK_DIRECTORIES(${BOOST_LIBRARYDIR})
 
@@ -144,7 +143,9 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/maths/functions/*.cpp
                  ${PROJECT_SRC_DIR}/maths/krylov_solvers/*.cpp
                  ${PROJECT_SRC_DIR}/maths/statistics/*.cpp
-				 ${PROJECT_SRC_DIR}/maths/optimization/*.cpp
+                 ${PROJECT_SRC_DIR}/maths/optimization/*.cpp
+                 ${PROJECT_SRC_DIR}/maths/solvers/*.cpp
+                 ${PROJECT_SRC_DIR}/maths/direct_solvers/*.cpp
                  ${PROJECT_SRC_DIR}/maths/*.cpp
                  ${PROJECT_SRC_DIR}/dynamics/*.cpp
                  ${PROJECT_SRC_DIR}/numerics/*.cpp

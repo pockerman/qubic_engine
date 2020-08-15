@@ -38,33 +38,6 @@ TrilinosEpetraMatrix::n() const{
     return mat_->NumGlobalCols();
 }
 
-void
-TrilinosEpetraMatrix::set_entry(uint_t i,uint_t j,real_t val){
-
-    if(!mat_){
-        throw std::logic_error("Matrix has not been initialized");
-    }
-
-    int epetra_i = static_cast<int>(i);
-    int epetra_j = static_cast<int>(j);
-    real_t epetra_value = val;
-
-    //if we have constructed with graph
-    //then InsertGlobalValues does not work
-    //only Replace
-    int success = 0;
-    if(mat_->Filled()){
-
-       success = mat_->ReplaceGlobalValues(epetra_i, 1, &epetra_value, &epetra_j);
-    }
-    else{
-       success = mat_->InsertGlobalValues (epetra_i, 1, &epetra_value, &epetra_j);
-    }
-
-    if(success != 0){
-        throw std::logic_error("An error occured whilst setting the matrix entry ");
-    }
-}
 
 real_t
 TrilinosEpetraMatrix::entry(uint_t i,  uint_t j)const{
@@ -126,8 +99,36 @@ TrilinosEpetraMatrix::entry(uint_t i,  uint_t j)const{
 }
 
 void
+TrilinosEpetraMatrix::set_entry(uint_t i,uint_t j, real_t val){
+
+    if(!mat_){
+        throw std::logic_error("Matrix has not been initialized");
+    }
+
+    int epetra_i = static_cast<int>(i);
+    int epetra_j = static_cast<int>(j);
+    real_t epetra_value = val;
+
+    //if we have constructed with graph
+    //then InsertGlobalValues does not work
+    //only Replace
+    int success = 0;
+    if(mat_->Filled()){
+
+       success = mat_->ReplaceGlobalValues(epetra_i, 1, &epetra_value, &epetra_j);
+    }
+    else{
+       success = mat_->InsertGlobalValues(epetra_i, 1, &epetra_value, &epetra_j);
+    }
+
+    if(success != 0){
+        throw std::logic_error("An error occured whilst setting the matrix entry ");
+    }
+}
+
+void
 TrilinosEpetraMatrix::set_row_entries(const TrilinosEpetraMatrix::row_indices_t& indices,
-                                          const TrilinosEpetraMatrix::row_entries_t& entries)const{
+                                      const TrilinosEpetraMatrix::row_entries_t& entries)const{
 
     if(!mat_){
         throw std::logic_error("Matrix has not been initialized");
@@ -178,7 +179,7 @@ TrilinosEpetraMatrix::set_row_entries(uint_t r, real_t val){
             throw std::logic_error("An error occured whilst setting the matrix row entries ");
         }
 
-        int* diag_find = std::find(col_indices,col_indices+num_entries,local_row);
+        int* diag_find = std::find(col_indices, col_indices+num_entries, local_row);
         int diag_index = (int)(diag_find-col_indices);
 
         for(int j=0; j<num_entries; ++j){
@@ -196,9 +197,6 @@ TrilinosEpetraMatrix::set_row_entries(uint_t r, real_t val){
 void
 TrilinosEpetraMatrix::set_row_entries(uint_t r, const TrilinosEpetraMatrix::row_entries_t& entries){
 
-   //TrilinosEpetraMatrix::row_indices_t rows(entries.size(), r);
-   //set_row_entries(rows, entries);
-
     if(!mat_){
         throw std::logic_error("Matrix has not been initialized");
     }
@@ -210,12 +208,28 @@ TrilinosEpetraMatrix::set_row_entries(uint_t r, const TrilinosEpetraMatrix::row_
        columns[t] = t;
     }
 
-    auto success = mat_->InsertGlobalValues(global_row, num_entries, &entries[0], (int*)&columns[0]);
+    if(columns.size() != entries.size()){
+        throw std::logic_error("Number of columns does not equal number of entries");
+    }
 
+
+    int success = 0;
+
+    if(mat_->Filled())
+    {
+       success = mat_->ReplaceGlobalValues(global_row, num_entries, &entries[0], (int *)&columns[0]);
+    }
+    else
+    {
+        success = mat_->InsertGlobalValues(global_row, num_entries, &entries[0],
+                                           (int*)&columns[0]);
+
+    }
 
     if(success != 0){
-        throw std::logic_error("An error occured whilst setting matrix row entries");
+        throw std::logic_error("An error occured whilst setting the matrix entry");
     }
+
 }
 
 void
@@ -364,19 +378,18 @@ TrilinosEpetraMatrix::add_row_entries(TrilinosEpetraMatrix::row_indices_t& indic
 
 void TrilinosEpetraMatrix::init(uint_t m , uint_t n, uint_t nz){
 
-    /// Epetra_Map constructor for a user-defined linear distribution of elements.
-    /// Creates a map that puts NumMyElements on the calling processor. If
-    ///   NumGlobalElements=-1, the number of global elements will be
-    ///   the computed sum of NumMyElements across all processors in the
-    ///   Epetra_Comm communicator.
+    // Epetra_Map constructor for a user-defined linear distribution of elements.
+    // Creates a map that puts NumMyElements on the calling processor. If
+    // NumGlobalElements=-1, the number of global elements will be
+    // the computed sum of NumMyElements across all processors in the
+    // Epetra_Comm communicator.
 
     auto NumMyElements = static_cast<int>(m);
     auto NumGlobalElements = static_cast<int>(m);
+
+    //zero based (C-style) indexing
     auto index_start = 0;
     epetra_map_.reset(new Epetra_Map(NumGlobalElements, NumMyElements,  index_start, comm_));
-
-   //zero based (C-style) indexing
-   //epetra_map_.reset(new Epetra_Map(NumGlobalElements, static_cast<int>(n), 0, comm_));
 
    //create the matrix
    mat_.reset(new Epetra_CrsMatrix (Copy, *epetra_map_.get(), static_cast<int>(nz)));

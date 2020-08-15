@@ -12,7 +12,7 @@ namespace dynamics{
 /// of a rigid body.
 
 template<typename StateTp, typename MatrixDescriptor, typename... InputTp>
-class MotionModelBase: private boost::noncopyable
+class MotionModelDynamicsBase: private boost::noncopyable
 {
 public:
 
@@ -27,7 +27,7 @@ public:
     static const uint_t state_dimension = StateTp::dimension;
 
     /// \brief Destructor
-    virtual ~MotionModelBase();
+    virtual ~MotionModelDynamicsBase();
 
     /// \brief Updates and returns the value of the state given the input
     virtual state_t& evaluate(const input_t& input)=0;
@@ -68,30 +68,54 @@ public:
     void set_state_name_value(uint_t i, const std::pair<std::string, real_t>&  val)
     {state_.set(i, val);}
 
+    ///
     /// \brief Set the name-th value of the state
+    ///
     void set_state_name_value(const std::string& name, real_t value)
     {state_.set(name,value);}
+
+    ///
+    /// \brief Set the time step
+    ///
+    void set_time_step(real_t dt){dt_ = dt;}
+
+    ///
+    /// \brief get_time_step Returns the sampling time the
+    /// dynamics model is using
+    ///
+    real_t get_time_step()const{return dt_;}
 
 protected:
 
     /// \brief Constructor
-    MotionModelBase();
+    MotionModelDynamicsBase();
 
+    ///
     /// \brief The object describing the state
     /// of the object of which its dynamics are
     /// described/modeled by this MotionModel
+    ///
     state_t state_;
 
+    ///
     /// \brief matrix descriptor
+    ///
     matrix_descriptor_t matrix_description_;
 
+    ///
     /// \brief flag indicating the update of the
     /// matrices the model is using to describe itself
+    ///
     bool update_description_matrices_on_evaluate_;
+
+    ///
+    /// \brief The time step the integrator uses
+    ///
+    real_t dt_;
 };
 
 template<typename StateTp, typename MatrixDescriptor, typename... InputTp>
-MotionModelBase<StateTp, MatrixDescriptor, InputTp...>::MotionModelBase()
+MotionModelDynamicsBase<StateTp, MatrixDescriptor, InputTp...>::MotionModelDynamicsBase()
     :
       state_(),
       matrix_description_(),
@@ -99,7 +123,7 @@ MotionModelBase<StateTp, MatrixDescriptor, InputTp...>::MotionModelBase()
 {}
 
 template<typename StateTp, typename MatrixDescriptor, typename... InputTp>
-MotionModelBase<StateTp, MatrixDescriptor, InputTp...>::~MotionModelBase()
+MotionModelDynamicsBase<StateTp, MatrixDescriptor, InputTp...>::~MotionModelDynamicsBase()
 {}
 }
 }

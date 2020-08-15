@@ -8,7 +8,7 @@
 #include "kernel/maths/direct_solvers/amesos2_solver.h"
 #include "kernel/maths/direct_solvers/direct_solver_type.h"
 #include "kernel/maths/trilinos_epetra_matrix.h"
-#include "kernel/maths/trilinos_epetra_vector.h"
+#include "kernel/maths/trilinos_epetra_multivector.h"
 
 #include <cmath>
 #include <iostream>
@@ -21,14 +21,14 @@ int main(){
             using kernel::uint_t;
             using kernel::maths::solvers::Amesos2Direct;
             using kernel::numerics::TrilinosEpetraMatrix;
-            using kernel::numerics::TrilinosEpetraVector;
+            using kernel::algebra::TrilinosEpetraMultiVector;
 
             // create the solver
             Amesos2Direct solver(kernel::maths::solvers::DirectSolverType::KLU2);
 
             TrilinosEpetraMatrix A;
-            TrilinosEpetraVector x;
-            TrilinosEpetraVector b;
+            TrilinosEpetraMultiVector x;
+            TrilinosEpetraMultiVector b;
 
             solver.solve(A, x, b);
 

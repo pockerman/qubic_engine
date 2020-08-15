@@ -59,7 +59,7 @@ struct CartPoleInput
 ///  \f$\dot{p}\f$ the cart velocity
 ///  \f$\phi\f$ the angle of the pendulum
 ///  \f$\dot{\phi}\f$
-class CartPoleDynamics: public MotionModelBase<SysState<4>, DynamicsMatrixDescriptor, real_t>
+class CartPoleDynamics: public MotionModelDynamicsBase<SysState<4>, DynamicsMatrixDescriptor, real_t>
 {
 
 public:
@@ -67,25 +67,25 @@ public:
     ///
     /// \brief The type of the state handled by this dynamics object
     ///
-    typedef MotionModelBase<SysState<4>,
+    typedef MotionModelDynamicsBase<SysState<4>,
                             DynamicsMatrixDescriptor, real_t>::state_t state_t;
 
     ///
     /// \brief input_t The type of the input for solving the dynamics
     ///
-    typedef MotionModelBase<SysState<4>,
+    typedef MotionModelDynamicsBase<SysState<4>,
                             DynamicsMatrixDescriptor, real_t>::input_t input_t;
 
     ///
     /// \brief matrix_t Matrix type that describes the dynamics
     ///
-    typedef MotionModelBase<SysState<4>,
+    typedef MotionModelDynamicsBase<SysState<4>,
                             DynamicsMatrixDescriptor, real_t>::matrix_t matrix_t;
 
     ///
     /// \brief vector_t
     ///
-    typedef MotionModelBase<SysState<4>,
+    typedef MotionModelDynamicsBase<SysState<4>,
                             DynamicsMatrixDescriptor, real_t>::vector_t vector_t;
 
     ///

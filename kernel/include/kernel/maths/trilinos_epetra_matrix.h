@@ -33,7 +33,7 @@ public:
 
     typedef real_t value_t;
     typedef std::vector<real_t> row_entries_t;
-    typedef std::vector<uint_t> row_indices_t;
+    typedef std::vector<int> row_indices_t;
 
     ///
     /// \brief trilinos_matrix_t The type of the Trilinos matrix
