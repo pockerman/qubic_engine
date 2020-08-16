@@ -18,7 +18,7 @@ namespace maths {
 namespace solvers{
 
 /// forward declaration to Amesos2 wrapper class
-class Amesos2Direct;
+class AmesosDirect;
 }
 }
 namespace numerics{
