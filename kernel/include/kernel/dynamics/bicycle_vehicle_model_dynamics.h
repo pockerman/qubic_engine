@@ -13,7 +13,8 @@ namespace dynamics{
 /// \brief The BicycleVehicleModelDynamics class.
 /// Implements the bicycle vehicle model dynamics
 ///
-class BicycleVehicleModelDynamics
+class BicycleVehicleModelDynamics: public MotionModelDynamicsBase<SysState<6>, DynamicsMatrixDescriptor,
+                                                                  real_t, real_t, std::array<real_t, 2>>
 {
 
 };

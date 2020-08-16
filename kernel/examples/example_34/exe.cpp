@@ -5,7 +5,7 @@
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/utilities/common_uitls.h"
-#include "kernel/maths/direct_solvers/amesos2_solver.h"
+#include "kernel/maths/direct_solvers/amesos_solver.h"
 #include "kernel/maths/direct_solvers/direct_solver_type.h"
 #include "kernel/maths/trilinos_epetra_matrix.h"
 #include "kernel/maths/trilinos_epetra_vector.h"
@@ -20,7 +20,7 @@ int main(){
 
             using kernel::real_t;
             using kernel::uint_t;
-            using kernel::maths::solvers::Amesos2Direct;
+            using kernel::maths::solvers::AmesosDirect;
             using kernel::numerics::TrilinosEpetraMatrix;
             using kernel::numerics::TrilinosEpetraVector;
             using kernel::algebra::TrilinosEpetraMultiVector;

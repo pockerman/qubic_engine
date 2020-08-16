@@ -1,5 +1,5 @@
-#ifndef AMESOS2_SOLVER_H
-#define AMESOS2_SOLVER_H
+#ifndef AMESOS_SOLVER_H
+#define AMESOS_SOLVER_H
 
 #include "kernel/base/config.h"
 
@@ -22,8 +22,22 @@ class TrilinosEpetraMatrix;
 namespace maths {
 namespace solvers {
 
+///
+/// \brief The AmesosDirectOptions struct. Helper struct
+/// that wraps parameters to be passed to the AmesosDirect class
+///
+struct AmesosDirectOptions
+{
 
-class Amesos2Direct: public DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
+   DirectSolverType dstype;
+   bool print_timing{true};
+   bool print_status{true};
+   bool do_symbolic_factorization{true};
+   bool do_numeric_factorization{true};
+
+};
+
+class AmesosDirect: public DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
                                              kernel::algebra::TrilinosEpetraMultiVector>
 {
 
@@ -32,7 +46,7 @@ public:
     ///
     /// \brief Amesos2Direct Constructor
     ///
-    Amesos2Direct(DirectSolverType dstype);
+    AmesosDirect(AmesosDirectOptions options);
 
     ///
     /// \brief matrix_t The matrix type the solver is using
@@ -46,19 +60,18 @@ public:
     typedef typename DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
                                       kernel::algebra::TrilinosEpetraMultiVector>::vector_t vector_t;
 
-
     ///
     /// \brief solve. Solve the system Ax=b
     ///
     virtual void solve(matrix_t& A, vector_t& x, vector_t& b )override final;
 
+
 private:
 
     ///
-    /// \brief dstype_ The type of the direct solver to use
-    /// This is converted internally so that Amesos2 package understands it
+    /// \brief options_ Options to configure the solver
     ///
-    DirectSolverType dstype_;
+    AmesosDirectOptions options_;
 };
 
 }
