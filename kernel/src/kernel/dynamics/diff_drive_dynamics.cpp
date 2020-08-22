@@ -9,8 +9,7 @@ namespace dynamics{
 
 DiffDriveDynamics::DiffDriveDynamics()
     :
-  MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor, real_t, real_t, std::array<real_t, 2>>(),
-  tol_(KernelConsts::tolerance())
+  MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor, real_t, real_t, std::array<real_t, 2>>()
 {
     this->state_.set(0, {"X", 0.0});
     this->state_.set(1, {"Y", 0.0});

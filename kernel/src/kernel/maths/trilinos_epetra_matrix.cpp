@@ -48,8 +48,8 @@ TrilinosEpetraMatrix::entry(uint_t i,  uint_t j)const{
 
     // Extract local indices in
     // the matrix.
-    int trilinos_i = mat_->GRID(static_cast<int>(i));
-    int trilinos_j = mat_->GCID(static_cast<int>(j));
+    trilinos_int_t trilinos_i = mat_->GRID(static_cast<trilinos_int_t>(i));
+    trilinos_int_t trilinos_j = mat_->GCID(static_cast<trilinos_int_t>(j));
 
     // If the data is not on the
     // present processor, we can't
@@ -62,9 +62,9 @@ TrilinosEpetraMatrix::entry(uint_t i,  uint_t j)const{
 
     // Prepare pointers for extraction
     // of a view of the row.
-    int nnz_present = mat_->NumMyEntries(trilinos_i);
-    int nnz_extracted;
-    int *col_indices;
+    trilinos_int_t nnz_present = mat_->NumMyEntries(trilinos_i);
+    trilinos_int_t nnz_extracted;
+    trilinos_int_t *col_indices;
     real_t *values;
 
     // Generate the view and make
@@ -79,9 +79,9 @@ TrilinosEpetraMatrix::entry(uint_t i,  uint_t j)const{
     // Search the index where we
     // look for the value, and then
     // finally get it.
-    int *el_find = std::find(col_indices, col_indices + nnz_present, trilinos_j);
+    trilinos_int_t *el_find = std::find(col_indices, col_indices + nnz_present, trilinos_j);
 
-    int local_col_index = (int)(el_find - col_indices);
+    trilinos_int_t local_col_index = (trilinos_int_t)(el_find - col_indices);
 
 
     // This is actually the only
@@ -105,14 +105,14 @@ TrilinosEpetraMatrix::set_entry(uint_t i,uint_t j, real_t val){
         throw std::logic_error("Matrix has not been initialized");
     }
 
-    int epetra_i = static_cast<int>(i);
-    int epetra_j = static_cast<int>(j);
+    trilinos_int_t epetra_i = static_cast<trilinos_int_t>(i);
+    trilinos_int_t epetra_j = static_cast<trilinos_int_t>(j);
     real_t epetra_value = val;
 
     //if we have constructed with graph
     //then InsertGlobalValues does not work
     //only Replace
-    int success = 0;
+    trilinos_int_t success = 0;
     if(mat_->Filled()){
 
        success = mat_->ReplaceGlobalValues(epetra_i, 1, &epetra_value, &epetra_j);
@@ -139,18 +139,18 @@ TrilinosEpetraMatrix::set_row_entries(const TrilinosEpetraMatrix::row_indices_t&
     }
 
     //the first entry is the diagonal entry and the row index
-    int row = static_cast<int>(indices[0]);
-    int num_entries = static_cast<int>(indices.size());
-    int success = 0;
+    trilinos_int_t row = static_cast<trilinos_int_t>(indices[0]);
+    trilinos_int_t num_entries = static_cast<trilinos_int_t>(indices.size());
+    trilinos_int_t success = 0;
 
     if(mat_->Filled())
     {
-       success = mat_->ReplaceGlobalValues(row, num_entries, &entries[0], (int *)&indices[0]);
+       success = mat_->ReplaceGlobalValues(row, num_entries, &entries[0], (trilinos_int_t *)&indices[0]);
     }
     else
     {
 
-      success = mat_->InsertGlobalValues(row, num_entries, &entries[0], (int*)&indices[0]);
+      success = mat_->InsertGlobalValues(row, num_entries, &entries[0], (trilinos_int_t *)&indices[0]);
     }
 
     if(success != 0){
@@ -165,13 +165,13 @@ TrilinosEpetraMatrix::set_row_entries(uint_t r, real_t val){
         throw std::logic_error("Matrix has not been initialized");
     }
 
-    int local_row = mat_->LRID(static_cast<int>(r));
+    trilinos_int_t local_row = mat_->LRID(static_cast<trilinos_int_t>(r));
 
     if(local_row>=0){
 
         real_t* values = nullptr;
-        int* col_indices = nullptr;
-        int num_entries;
+        trilinos_int_t* col_indices = nullptr;
+        trilinos_int_t num_entries;
 
         const int success = mat_->ExtractMyRowView(local_row,num_entries, values, col_indices);
 
@@ -179,10 +179,10 @@ TrilinosEpetraMatrix::set_row_entries(uint_t r, real_t val){
             throw std::logic_error("An error occured whilst setting the matrix row entries ");
         }
 
-        int* diag_find = std::find(col_indices, col_indices+num_entries, local_row);
-        int diag_index = (int)(diag_find-col_indices);
+        trilinos_int_t* diag_find = std::find(col_indices, col_indices+num_entries, local_row);
+        trilinos_int_t diag_index = (trilinos_int_t)(diag_find-col_indices);
 
-        for(int j=0; j<num_entries; ++j){
+        for(trilinos_int_t j=0; j<num_entries; ++j){
          if(diag_index != j )
             values[j] = val;
         }
@@ -201,8 +201,8 @@ TrilinosEpetraMatrix::set_row_entries(uint_t r, const TrilinosEpetraMatrix::row_
         throw std::logic_error("Matrix has not been initialized");
     }
 
-    int global_row = static_cast<int>(r);
-    int num_entries = static_cast<int>(entries.size());
+    trilinos_int_t global_row = static_cast<trilinos_int_t>(r);
+    trilinos_int_t num_entries = static_cast<trilinos_int_t>(entries.size());
     TrilinosEpetraMatrix::row_indices_t columns(n(), 0);
     for(uint_t t=0; t<n(); ++t){
        columns[t] = t;
@@ -217,12 +217,13 @@ TrilinosEpetraMatrix::set_row_entries(uint_t r, const TrilinosEpetraMatrix::row_
 
     if(mat_->Filled())
     {
-       success = mat_->ReplaceGlobalValues(global_row, num_entries, &entries[0], (int *)&columns[0]);
+       success = mat_->ReplaceGlobalValues(global_row, num_entries, &entries[0],
+                (trilinos_int_t *)&columns[0]);
     }
     else
     {
         success = mat_->InsertGlobalValues(global_row, num_entries, &entries[0],
-                                           (int*)&columns[0]);
+                                           (trilinos_int_t*)&columns[0]);
 
     }
 
@@ -239,8 +240,8 @@ TrilinosEpetraMatrix::add_entry(uint_t i, uint_t j, real_t val){
         throw std::logic_error("Matrix has not been initialized");
     }
 
-    int epetra_i = static_cast<int>(i);
-    int epetra_j = static_cast<int>(j);
+    trilinos_int_t epetra_i = static_cast<trilinos_int_t>(i);
+    trilinos_int_t epetra_j = static_cast<trilinos_int_t>(j);
 
     real_t epetra_value = val;
 
@@ -249,9 +250,9 @@ TrilinosEpetraMatrix::add_entry(uint_t i, uint_t j, real_t val){
 
     const Epetra_CrsGraph& graph = mat_->Graph();
 
-    int success = 0;
-    int numIndices=0;
-    int* indices = nullptr;
+    trilinos_int_t success = 0;
+    trilinos_int_t numIndices=0;
+    trilinos_int_t* indices = nullptr;
 
     graph.ExtractGlobalRowView(epetra_i, numIndices, indices);
 
@@ -264,7 +265,7 @@ TrilinosEpetraMatrix::add_entry(uint_t i, uint_t j, real_t val){
       //number of indices is not zero
       //attempt to find the column j
 
-      for(int i=0; i<numIndices; ++i){
+      for(trilinos_int_t i=0; i<numIndices; ++i){
 
         if(indices[i] == epetra_j) {
 
@@ -302,16 +303,16 @@ TrilinosEpetraMatrix::add_row_entries(TrilinosEpetraMatrix::row_indices_t& indic
 
 
     //the first entry is the diagonal entry and the row index
-    int row = static_cast<int>(indices[0]);
-    int num_entries = static_cast<int>(indices.size());
+    trilinos_int_t row = static_cast<trilinos_int_t>(indices[0]);
+    trilinos_int_t num_entries = static_cast<trilinos_int_t>(indices.size());
 
     //we need to determine if the (epetra_i,epetra_j) index exists
     //if it doesn't we need to call InsertGlobalValues
     const Epetra_CrsGraph& graph = mat_->Graph();
 
-    int success = 0;
-    int numIndices=0;
-    int* idxs_ptr = nullptr;
+    trilinos_int_t success = 0;
+    trilinos_int_t numIndices=0;
+    trilinos_int_t* idxs_ptr = nullptr;
 
      success = graph.ExtractGlobalRowView(row, numIndices, idxs_ptr);
 
@@ -329,35 +330,35 @@ TrilinosEpetraMatrix::add_row_entries(TrilinosEpetraMatrix::row_indices_t& indic
            throw std::logic_error("Matrix indices should be not contiguous");
        }
 
-       /// Insert a list of elements in a given global row of the matrix.
-       ///
-       /// This method is used to construct a matrix for the first time.  It cannot
-       /// be used if the matrix structure has already been fixed (via a call to FillComplete()).
-       /// If multiple values are inserted for the same matrix entry, the values are initially
-       /// stored separately, so memory use will grow as a result.  However, when FillComplete is called
-       /// the values will be summed together and the additional memory will be released.
-       ///
-       /// For example, if the values 2.0, 3.0 and 4.0 are all inserted in Row 1, Column 2, extra storage
-       /// is used to store each of the three values separately.  In this way, the insert process does not
-       /// require any searching and can be faster.  However, when FillComplete() is called, the values
-       /// will be summed together to equal 9.0 and only a single entry will remain in the matrix for
-       /// Row 1, Column 2.
-       ///
-       /// \param GlobalRow - (In) Row number (in global coordinates) to put elements.
-       /// \param NumEntries - (In) Number of entries.
-       /// \param Values - (In) Values to enter.
-       /// \param Indices - (In) Global column indices corresponding to values.
-       ///
-       /// \return Integer error code, set to 0 if successful. Note that if the
-       /// allocated length of the row has to be expanded, a positive warning code
-       /// will be returned.
-       ///
-       /// \warning This method may not be called once FillComplete() has been called.
-       ///
-       /// \pre IndicesAreLocal()==false && IndicesAreContiguous()==false
-       ///
-       ///
-       success = mat_->InsertGlobalValues (row, num_entries, &entries[0], (int*)&indices[0]);
+       // Insert a list of elements in a given global row of the matrix.
+       //
+       // This method is used to construct a matrix for the first time.  It cannot
+       // be used if the matrix structure has already been fixed (via a call to FillComplete()).
+       // If multiple values are inserted for the same matrix entry, the values are initially
+       // stored separately, so memory use will grow as a result.  However, when FillComplete is called
+       // the values will be summed together and the additional memory will be released.
+       //
+       // For example, if the values 2.0, 3.0 and 4.0 are all inserted in Row 1, Column 2, extra storage
+       // is used to store each of the three values separately.  In this way, the insert process does not
+       // require any searching and can be faster.  However, when FillComplete() is called, the values
+       // will be summed together to equal 9.0 and only a single entry will remain in the matrix for
+       // Row 1, Column 2.
+       //
+       // \param GlobalRow - (In) Row number (in global coordinates) to put elements.
+       // \param NumEntries - (In) Number of entries.
+       // \param Values - (In) Values to enter.
+       // \param Indices - (In) Global column indices corresponding to values.
+       //
+       // \return Integer error code, set to 0 if successful. Note that if the
+       // allocated length of the row has to be expanded, a positive warning code
+       // will be returned.
+       //
+       // \warning This method may not be called once FillComplete() has been called.
+       //
+       // \pre IndicesAreLocal()==false && IndicesAreContiguous()==false
+       //
+       //
+       success = mat_->InsertGlobalValues (row, num_entries, &entries[0], (trilinos_int_t*)&indices[0]);
 
        if(success != 0){
            throw std::logic_error("An error occured whilst adding the matrix entry. Error code is: " + std::to_string(success));
@@ -384,15 +385,15 @@ void TrilinosEpetraMatrix::init(uint_t m , uint_t n, uint_t nz){
     // the computed sum of NumMyElements across all processors in the
     // Epetra_Comm communicator.
 
-    auto NumMyElements = static_cast<int>(m);
-    auto NumGlobalElements = static_cast<int>(m);
+    auto NumMyElements = static_cast<trilinos_int_t>(m);
+    auto NumGlobalElements = static_cast<trilinos_int_t>(m);
 
     //zero based (C-style) indexing
     auto index_start = 0;
     epetra_map_.reset(new Epetra_Map(NumGlobalElements, NumMyElements,  index_start, comm_));
 
    //create the matrix
-   mat_.reset(new Epetra_CrsMatrix (Copy, *epetra_map_.get(), static_cast<int>(nz)));
+   mat_.reset(new Epetra_CrsMatrix (Copy, *epetra_map_.get(), static_cast<trilinos_int_t>(nz)));
 
 }
 
