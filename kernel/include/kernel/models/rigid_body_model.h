@@ -18,7 +18,7 @@ public:
     typedef DynamicsTp dynamics_t;
 
     ///
-    /// \brief RigidBodyModel. Constructur
+    /// \brief RigidBodyModel. Constructor
     ///
     RigidBodyModel();
 

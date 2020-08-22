@@ -117,11 +117,6 @@ public:
     void update_matrices(const input_t& input);
 
     ///
-    /// \brief Set the tolerance to use
-    ///
-    real_t set_tolerance(real_t tol){tol_ = tol;}
-
-    ///
     /// \brief Initialize the matrices describing the
     /// the dynamics
     ///
@@ -129,10 +124,6 @@ public:
 
 private:
 
-    ///
-    /// \brief tolerance
-    ///
-    real_t tol_;
 
     ///
     /// \brief The maximum angular velocity

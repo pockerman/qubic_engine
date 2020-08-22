@@ -16,6 +16,9 @@
 /*Use Trilinos*/
 #cmakedefine USE_TRILINOS
 
+/*Trilinos integer type*/
+#cmakedefine USE_TRILINOS_LONG_LONG_TYPE
+
 /*Path to the datasets*/
 #cmakedefine DATA_SET_FOLDER "@DATA_SET_FOLDER@"
 

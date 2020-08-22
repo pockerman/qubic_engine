@@ -1,39 +1,33 @@
-#include "kernel/dynamics/diff_drive_dynamics.h"
-#include "kernel/maths/constants.h"
-#include "kernel/base/kernel_consts.h"
-#include "kernel/utilities/common_uitls.h"
-#include <cmath>
-#include <iostream>
+#include "kernel/dynamics/bicycle_vehicle_model_dynamics.h"
+
 namespace kernel{
 namespace dynamics{
 
-DiffDriveDynamics::DiffDriveDynamics()
+
+BicycleVehicleModelDynamics::BicycleVehicleModelDynamics()
     :
-  MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor, real_t, real_t, std::array<real_t, 2>>()
+      BicycleVehicleModelDynamics::base_t()
 {
     this->state_.set(0, {"X", 0.0});
     this->state_.set(1, {"Y", 0.0});
-    this->state_.set(2, {"Theta", 0.0});
-}
-
-DiffDriveDynamics::DiffDriveDynamics(DiffDriveDynamics::state_t&& state)
-    :
-      MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor,
-                              real_t, real_t, std::array<real_t, 2>>()
-{
-    this->state_ = state;
+    this->state_.set(2, {"Phi", 0.0});
+    this->state_.set(3, {"V_x", 0.0});
+    this->state_.set(4, {"V_y", 0.0});
+    this->state_.set(5, {"r", 0.0});
+    this->state_.set(6, {"s", 0.0});
+    this->state_.set(7, {"d", 0.0});
+    this->state_.set(8, {"delta", 0.0});
+    this->state_.set(9, {"V_s", 0.0});
 }
 
 void
-DiffDriveDynamics::integrate(real_t v, real_t w, const std::array<real_t, 2>& errors){
+BicycleVehicleModelDynamics::integrate(const BicycleVehicleModelDynamics::input_t& input ){
 
-    auto values = state_.get_values();
+    /*auto values = state_.get_values();
 
-    if(std::fabs(w)>wmax_){
-        w = utils::sign(w)*wmax_;
-    }
 
-    /// before we do the integration 
+
+    /// before we do the integration
     /// update the matrices
     if(this->allows_matrix_updates()){
 
@@ -65,23 +59,23 @@ DiffDriveDynamics::integrate(real_t v, real_t w, const std::array<real_t, 2>& er
 
         this->state_[1] -= ((v/(2.0*w)) + errors[0])*(std::cos(this->state_[2]) -
                 std::cos(values[2]));
-    }
+    }*/
 }
 
-DiffDriveDynamics::state_t&
-DiffDriveDynamics::evaluate(const DiffDriveDynamics::input_t& input ){
-    auto [v, w, errors] = input;
-    integrate(v, w, errors);
-    return this->state_;
+BicycleVehicleModelDynamics::state_t&
+BicycleVehicleModelDynamics::evaluate(const BicycleVehicleModelDynamics::input_t& input ){
+    //auto [v, w, errors] = input;
+    //integrate(v, w, errors);
+    //return this->state_;
 }
 
-void 
-DiffDriveDynamics::initialize_matrices(const DiffDriveDynamics::input_t& input){
+void
+BicycleVehicleModelDynamics::initialize_matrices(const BicycleVehicleModelDynamics::input_t& input){
 
 
   /// if we initialize the matrices
   /// then we should set the matrix update flag to true
-  set_matrix_update_flag(true);
+  /*set_matrix_update_flag(true);
 
   if(!this->has_matrix("F")){
     matrix_t F(3,3, 0.0);
@@ -93,19 +87,19 @@ DiffDriveDynamics::initialize_matrices(const DiffDriveDynamics::input_t& input){
     this->set_matrix("L", L);
   }
 
-  update_matrices(input);
+  update_matrices(input);*/
 
 }
 
 void
-DiffDriveDynamics::update_matrices(const DiffDriveDynamics::input_t& input){
+BicycleVehicleModelDynamics::update_matrices(const BicycleVehicleModelDynamics::input_t& input){
 
-   auto [v, w, errors] = input;
+   /*auto [v, w, errors] = input;
 
    auto distance = 0.5*v*get_time_step();
    auto orientation = w*get_time_step();
    auto values = this->state_.get_values();
-  
+
    if(std::fabs(w) < tol_){
 
       auto& F = this->get_matrix("F");
@@ -155,7 +149,7 @@ DiffDriveDynamics::update_matrices(const DiffDriveDynamics::input_t& input){
       auto& L = this->get_matrix("L");
 
       L(0, 0) = std::sin(values[2] + orientation + errors[1])- std::sin(values[2]);
-                
+
       L(0, 1) = -((v/2.0*w) + errors[0])*std::cos(values[2] + orientation + errors[1])*
                 std::sin(values[2] + orientation + errors[1]);
 
@@ -163,8 +157,8 @@ DiffDriveDynamics::update_matrices(const DiffDriveDynamics::input_t& input){
       L(1, 1) = ((v/2.0*w) + errors[0])*std::sin(values[2] + orientation + errors[1]);
 
       L(2, 0) = 0.0;
-      L(2, 1) = 1.0; 
-   }
+      L(2, 1) = 1.0;
+   }*/
 
 }
 
