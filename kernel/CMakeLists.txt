@@ -57,6 +57,7 @@ SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install)
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/kernel)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
+SET(PROJECT_PATH ${PROJECT_SOURCE_DIR})
 SET(MAGIC_ENUM_INCL_DIR " ")
 SET(BLAZE_INCL_DIR "/home/alex/MySoftware/blaze/blaze-3.7/install/include")
 SET(NLOHMANN_JSON_INCL_DIR "/home/alex/MySoftware/nlohman_json/install/include")
@@ -133,6 +134,7 @@ SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
 INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR}) 
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
+INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})
 
 # use the Boost link directories
 LINK_DIRECTORIES(${BOOST_LIBRARYDIR})
@@ -155,7 +157,8 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/discretization/*.cpp
                  ${PROJECT_SRC_DIR}/discretization/utils/*.cpp
                  ${PROJECT_SRC_DIR}/geometry/*.cpp
-                 ${PROJECT_SRC_DIR}/patterns/*.cpp)
+                 ${PROJECT_SRC_DIR}/patterns/*.cpp
+                 ${PROJECT_SRC_DIR}/models/*.cpp)
 
 
 ADD_LIBRARY(${LIB_NAME} SHARED ${SRCS})

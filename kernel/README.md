@@ -7,6 +7,7 @@
     * [Multi-threading](#multi_threading)
     * [Linear Algebra](#linear_algebra)
     * [Numerics](#numerics)
+	* [Computational Mechanics](#computational_mechanics)
     * [Physics Simulation](#physics_simulation)
     * [Miscellaneous](#miscellaneous)
 
@@ -85,10 +86,7 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="examples/example_30/doc/exe.ipynb">Example 30: </a> Nonlinear optimization
 
 
-### <a name="physics_simulation"></a> Physics Simulation
-
-- <a href="#">Example 7: </a> Longitudinal Vehicle Model
-- <a href="examples/example_17/doc/exe.md">Example 17: </a>Simulate differential drive system
+### <a name="computational_mechanics"></a> Computational Mechanics
 - <a href="examples/example_19/doc/exe.md">Example 19: </a>Solve Laplace equation with collocated  FVM
 - <a href="examples/example_20/doc/exe.md">Example 20: </a>Solve Laplace equation with collocated  FVM and multiple threads
 - <a href="examples/example_21/doc/exe.md">Example 21: </a>Solve convection equation with FVM
@@ -96,6 +94,12 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="examples/example_23/doc/exe.md">Example 23: </a>Use Backward Euler time stepper
 - <a href="#">Example 24: </a>Solve incompressible Stokes equations
 - <a href="#">Example 25: </a>Solve incompressible Navier-Stokes equations
+
+
+### <a name="physics_simulation"></a> Physics Simulation
+- <a href="#">Example 7: </a> Longitudinal Vehicle Model
+- <a href="examples/example_17/doc/exe.md">Example 17: </a>Simulate differential drive system
+- <a href="examples/example_35/doc/exe.ipynb">Example 35: </a> Bicycle vehicle model
 
 
 ### <a name="miscellaneous"></a> Miscellaneous
