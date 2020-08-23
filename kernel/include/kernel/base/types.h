@@ -28,7 +28,7 @@ namespace kernel
     /// \brief Specify Trilinos integer type
     ///
     #ifdef USE_TRILINOS
-        #if USE_TRILINOS_LONG_LONG_TYPE
+        #ifdef USE_TRILINOS_LONG_LONG_TYPE
             typedef long long trilinos_int_t;
         #else
             typedef int  trilinos_int_t;

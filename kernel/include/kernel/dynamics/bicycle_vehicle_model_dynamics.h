@@ -56,6 +56,12 @@ public:
     ///
     void update_matrices(const input_t& input);
 
+    ///
+    /// \brief load_from_json Load the description of the chassis from
+    /// the given json file
+    ///
+    void load_from_json(const std::string& filename){};
+
 private:
 
 };

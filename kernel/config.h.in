@@ -22,6 +22,10 @@
 /*Path to the datasets*/
 #cmakedefine DATA_SET_FOLDER "@DATA_SET_FOLDER@"
 
+/* Path to the project*/
+#cmakedefine PROJECT_PATH "@PROJECT_PATH@"
+
+
 
 
 #endif

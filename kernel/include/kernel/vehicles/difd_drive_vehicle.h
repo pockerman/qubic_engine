@@ -60,27 +60,35 @@ public:
     /// \brief Set the x-coordinate
     real_t set_x_position(real_t x){dynamics_.set_x_position(x);}
 
+    ///
     /// \brief Read the y-coordinate
+    ///
     real_t get_y_position()const{return dynamics_.get_y_position();}
 
     /// \brief Set the y-coordinate
     real_t set_y_position(real_t y){dynamics_.set_y_position(y);}
 
+    ///
     /// \brief Write the position to the given
     /// type. Type must support operator[]
+    ///
     template<typename Type>
     void get_position(Type& pos)const;
 
     /// \brief Read the orientation
     real_t get_orientation()const{return dynamics_.get_orientation();}
 
+    ///
     /// \brief Set the orientation
+    ///
     void set_orientation(real_t theta){dynamics_.set_orientation(theta);}
 
+    ///
     /// \brief Set the linear velocity of the vehicle.
     /// This sets the vr, vl assuming that the angular
     /// velocity of the vehicle is zero. If not use
     /// the set velocities function
+    ///
     void set_velocity(real_t v);
 
     /// \brief Set the linear and angular velocities
