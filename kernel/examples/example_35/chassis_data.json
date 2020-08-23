@@ -1,0 +1,8 @@
+{
+"metric_system":"SI",
+"mass":10.0,
+"inertia_moment":0.5,
+"l_R": 0.1,
+"l_F": 0.2,
+"tire_model":"
+}
