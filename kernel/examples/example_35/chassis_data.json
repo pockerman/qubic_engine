@@ -4,5 +4,6 @@
 "inertia_moment":0.5,
 "l_R": 0.1,
 "l_F": 0.2,
-"tire_model":"
+"left_tire_model_filename":"/home/alex/qi3/ce_diff_drive/kernel/examples/example_35/pacejka_model.json",
+"right_tire_model_filename:"/home/alex/qi3/ce_diff_drive/kernel/examples/example_35/pacejka_model.json"
 }

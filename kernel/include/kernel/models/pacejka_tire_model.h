@@ -18,6 +18,11 @@ public:
     typedef TireModelBase::force_t force_t;
 
     ///
+    /// \brief input_t The type of the input
+    ///
+    typedef TireModelBase::input_t input_t;
+
+    ///
     /// \brief PacejkaTireModel. Constructor
     ///
     PacejkaTireModel();
@@ -26,12 +31,18 @@ public:
     /// \brief compute_forces. Compute the forces
     /// exerted on the tire
     ///
-    virtual force_t compute_force()const override final;
+    virtual force_t compute_force(const input_t& input)const override final;
 
     ///
     /// \brief load_from_json Load the model from a JSON description
     ///
     virtual void load_from_json(const std::string& filename) override final;
+
+    ///
+    /// \brief get_scalar_property Returns the scalar
+    /// property with the given name
+    ///
+    real_t get_scalar_property(const std::string& name)const;
 
 private:
 
