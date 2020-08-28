@@ -21,8 +21,9 @@
 namespace cengine{
 namespace rl {
 
-
+///
 /// \brief Class to represent a reward table
+///
 template<typename ActionTp, typename RewardTp>
 class RewardTable
 {
@@ -31,18 +32,26 @@ public:
     typedef ActionTp action_t;
     typedef RewardTp reward_value_t;
 
+    ///
     /// \brief Constructor
+    ///
     RewardTable();
 
+    ///
     /// \brief Add a reward
+    ///
     void add_reward(uint_t state_id, const action_t& action, const reward_value_t& r);
 
+    ///
     /// \brief Set the reward corresponding to the
     /// given state/action pair
+    ///
     void set_reward(uint_t state_id, const action_t& action, const reward_value_t& r);
 
+    ///
     /// \brief Returns the rewrad associated with the
     /// given state when performing the given action
+    ///
     const reward_value_t get_reward(uint_t state_id, const action_t& action)const;
 
     /// \brief Returns the Action/Reward mapping for the

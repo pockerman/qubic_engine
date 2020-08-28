@@ -3,11 +3,17 @@
 
 #include "kernel/base/types.h"
 
+#include "boost/any.hpp"
+
 #include <string>
 #include <map>
+#include <memory>
 
 namespace kernel {
 namespace models {
+
+
+class TireModelBase;
 
 class BicycleVehicleChassis
 {
@@ -24,9 +30,19 @@ public:
     typedef DynVec<real_t> force_t;
 
     ///
+    /// \brief force_input_t Type of input for force calculation
+    ///
+    typedef std::map<std::string, boost::any> force_input_t;
+
+    ///
     /// \brief BicycleVehicleChassis. Constructor
     ///
     BicycleVehicleChassis();
+
+    ///
+    /// \brief ~BicycleVehicleChassis. Destructor
+    ///
+    ~BicycleVehicleChassis();
 
     ///
     /// \brief load_from_json Load the description of the chassis from
@@ -55,7 +71,7 @@ public:
     /// \brief compute_forces Compute the forces
     /// acting on the chassis
     ///
-    force_t compute_forces()const;
+    force_t compute_force(const force_input_t& input)const;
 
 private:
 
@@ -74,6 +90,21 @@ private:
     ///
     std::map<std::string, real_t> scalar_props_;
 
+    ///
+    /// \brief left_tire_ Pointer to the left tire model
+    ///
+    std::unique_ptr<TireModelBase> front_tire_;
+
+    ///
+    /// \brief left_tire_ Pointer to the right tire model
+    ///
+    std::unique_ptr<TireModelBase> rear_tire_;
+
+    ///
+    /// \brief get_property_from_input Returns the named property
+    /// from the given input
+    ///
+    const boost::any& get_property_from_input(const force_input_t& input, const std::string& name)const;
 
 };
 }
