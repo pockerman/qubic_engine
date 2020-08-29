@@ -11,12 +11,12 @@ namespace solvers{
 /// \brief The SolverPackageType enum Enumeration of the various
 /// solution packages
 ///
-enum class SolverPackageType{TRI_AMESOS, TRI_AZTECOO, INVALID_TYPE};
+enum class SolverPackageType{TRI_AMESOS, TRI_AZTECOO, BLAZE, INVALID_TYPE};
 
 ///
 /// \brief solver_package_type_to_string convert SolverPackageType to std::string
 ///
-std::string solver_package_type_to_string(SolverPackageType type);
+std::string type_to_string(SolverPackageType type);
 }
 }
 }

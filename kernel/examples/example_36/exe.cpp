@@ -2,12 +2,9 @@
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/utilities/common_uitls.h"
-#include "kernel/maths/trilinos_epetra_multivector.h"
-#include "kernel/maths/trilinos_epetra_matrix.h"
-#include "kernel/maths/trilinos_epetra_vector.h"
 #include "kernel/maths/optimization/admm.h"
 #include "kernel/maths/optimization/quadratic_problem.h"
-#include "kernel/maths/direct_solvers/amesos_solver.h"
+#include "kernel/maths/direct_solvers/blaze_direct_solver.h"
 
 
 #include <cmath>
@@ -20,55 +17,63 @@ int main(){
 
         using kernel::real_t;
         using kernel::uint_t;
-        using kernel::numerics::TrilinosEpetraMatrix;
-        using kernel::numerics::TrilinosEpetraVector;
-        using kernel::maths::algebra::TrilinosEpetraMultiVector;
+        using kernel::DynMat;
+        using kernel::DynVec;
+
         using kernel::maths::opt::ADMM;
         using kernel::maths::opt::ADMMData;
-        using kernel::maths::solvers::AmesosDirect;
-        using kernel::maths::solvers::AmesosDirectOptions;
-        using kernel::maths::solvers::DirectSolverBase;
+        using kernel::maths::solvers::BlazeDirectSolverConfig;
+        using kernel::maths::solvers::BlazeDirectSolver;
         using kernel::maths::opt::QuadraticProblem;
 
-        // number of constraints
-        const uint_t m = 30;
+        BlazeDirectSolverConfig config;
+        BlazeDirectSolver solver(config);
 
-        // number of state variables
-        const uint_t n = 20;
+        uint_t itrs = 1;
+        ADMMData<DynMat<real_t>, DynVec<real_t>>  admm_data(solver, 0.5, 0.5, itrs, 0.5);
+        ADMM<DynMat<real_t>, DynVec<real_t>> admm(admm_data);
 
-        // create a random matrix
+        QuadraticProblem<DynMat<real_t>, DynVec<real_t>> qp;
 
-        AmesosDirectOptions amesos_dir_options;
-        AmesosDirect direct_solver(amesos_dir_options);
+        qp.P.resize(2, 2);
+        qp.P(0, 0) = std::exp(-1.0);
+        qp.P(0, 1) = 0.0;
+        qp.P(1, 0) = 0.0;
+        qp.P(1, 1) = 2.0;
 
-        uint_t itrs = 100;
-        ADMMData<TrilinosEpetraMatrix,TrilinosEpetraMultiVector>  admm_data(direct_solver, 0.5, 0.5, itrs, 0.5);
-        ADMM<TrilinosEpetraMatrix,TrilinosEpetraMultiVector> admm(admm_data);
-
-        QuadraticProblem<TrilinosEpetraMatrix,TrilinosEpetraMultiVector> qp;
-
-        qp.P.init(2, 2, 0);
-        qp.P.set_entry(0, 0, std::exp(-1.0));
-        qp.P.set_entry(0, 1, 0.0);
-        qp.P.set_entry(1, 0, 0.0);
-        qp.P.set_entry(1, 1, 2.0);
-
-        qp.A.init(1, 2, 0);
-        qp.A.set_entry(0, 0, 1.0);
-        qp.A.set_entry(0, 1, 1.0);
+        qp.A.resize(1, 2);
+        qp.A(0, 0) = 0.0;
+        qp.A(0, 1) = 0.0;
 
         // initialize the state vector
-        qp.x.init(1, 2, 0.0);
+        qp.x.resize(2);
+        qp.x[0] = 0.0;
+        qp.x[1] = 0.0;
 
-        qp.q.init(1, 2, 0.0);
-        qp.q.set_entry(0, 0, -std::exp(-1.0));
-        qp.q.set_entry(0, 1, -2.0);
+        qp.q.resize(2);
+        qp.q[0] = -std::exp(-1.0);
+        qp.q[1] = -2.0;
 
-        qp.z.init(1, 1, 0.0);
+        qp.z.resize(qp.A.rows());
+
+        for(uint_t i=0; i<qp.z.size(); ++i){
+            qp.z[i] = 0.0;
+        }
 
         admm.solve(qp);
 
-        std::cout<<"QProblem solution "<<qp.x(0)<<std::endl;
+        //std::cout<<"QProblem solution "<<qp.x(0)<<std::endl;
+
+        DynMat<real_t> mat(3,3, 0.0);
+        mat(0,0) = 1.;
+        mat(1,1) = 1.;
+        mat(2,2) = 1.;
+
+        DynVec<real_t> x(3, 0.0);
+        DynVec<real_t> rhs(3, 1.0);
+        solve(mat, x, rhs);
+        std::cout<<x<<std::endl;
+
 
     }
     catch(std::logic_error& error){

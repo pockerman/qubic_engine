@@ -8,7 +8,6 @@
 #include "kernel/maths/direct_solvers/direct_solver_base.h"
 #include "kernel/maths/direct_solvers/direct_solver_type.h"
 #include "kernel/maths/trilinos_epetra_matrix.h"
-//#include "kernel/maths/t
 
 namespace kernel {
 namespace numerics{
@@ -23,10 +22,10 @@ class TrilinosEpetraMultiVector;
 namespace solvers {
 
 ///
-/// \brief The AmesosDirectOptions struct. Helper struct
+/// \brief The AmesosDirectConfig struct. Helper struct
 /// that wraps parameters to be passed to the AmesosDirect class
 ///
-struct AmesosDirectOptions
+struct AmesosDirectConfig
 {
 
    DirectSolverType dstype;
@@ -46,7 +45,7 @@ public:
     ///
     /// \brief Amesos2Direct Constructor
     ///
-    AmesosDirect(AmesosDirectOptions options);
+    AmesosDirect(AmesosDirectConfig options);
 
     ///
     /// \brief matrix_t The matrix type the solver is using
@@ -71,7 +70,7 @@ private:
     ///
     /// \brief options_ Options to configure the solver
     ///
-    AmesosDirectOptions options_;
+    AmesosDirectConfig options_;
 };
 
 }

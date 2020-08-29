@@ -20,7 +20,7 @@ namespace kernel {
 namespace maths {
 namespace solvers {
 
-AmesosDirect::AmesosDirect(AmesosDirectOptions options)
+AmesosDirect::AmesosDirect(AmesosDirectConfig options)
     :
       DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
                        kernel::maths::algebra::TrilinosEpetraMultiVector>(SolverPackageType::TRI_AMESOS),
@@ -43,7 +43,7 @@ AmesosDirect::solve(AmesosDirect::matrix_t& A, AmesosDirect::vector_t& x,
 
         std::cout<<"Using "<<dstype<<" direct solver"<<std::endl;
     }
-    else if(dstype == "KLU"){
+    else if(dstype == "LU"){
         dstype = "Klu";
         std::cout<<"Using "<<dstype<<" direct solver"<<std::endl;
     }

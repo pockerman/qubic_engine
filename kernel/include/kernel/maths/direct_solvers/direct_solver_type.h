@@ -7,7 +7,7 @@ namespace kernel{
 namespace maths {
 namespace solvers {
 
-enum class DirectSolverType{SUPER_LU, KLU, INVALID_TYPE};
+enum class DirectSolverType{SUPER_LU, LU, INVALID_TYPE};
 
 ///
 /// \brief solver_type_to_string convert SolverType to std::string
