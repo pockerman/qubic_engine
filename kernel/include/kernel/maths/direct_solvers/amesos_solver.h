@@ -11,15 +11,15 @@
 //#include "kernel/maths/t
 
 namespace kernel {
-namespace algebra{
-class TrilinosEpetraMultiVector;
-}
-
 namespace numerics{
 class TrilinosEpetraMatrix;
 }
 
 namespace maths {
+namespace algebra{
+class TrilinosEpetraMultiVector;
+}
+
 namespace solvers {
 
 ///
@@ -38,7 +38,7 @@ struct AmesosDirectOptions
 };
 
 class AmesosDirect: public DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
-                                             kernel::algebra::TrilinosEpetraMultiVector>
+                                             kernel::maths::algebra::TrilinosEpetraMultiVector>
 {
 
 public:
@@ -52,13 +52,13 @@ public:
     /// \brief matrix_t The matrix type the solver is using
     ///
     typedef typename DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
-                                      kernel::algebra::TrilinosEpetraMultiVector>::matrix_t matrix_t;
+                                      kernel::maths::algebra::TrilinosEpetraMultiVector>::matrix_t matrix_t;
 
     ///
     /// \brief vector_t The vector type the solver is using
     ///
     typedef typename DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
-                                      kernel::algebra::TrilinosEpetraMultiVector>::vector_t vector_t;
+                                      kernel::maths::algebra::TrilinosEpetraMultiVector>::vector_t vector_t;
 
     ///
     /// \brief solve. Solve the system Ax=b

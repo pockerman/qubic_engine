@@ -5,6 +5,7 @@
 #include <exception>
 
 namespace kernel {
+namespace maths{
 namespace algebra{
 
 
@@ -225,7 +226,7 @@ TrilinosEpetraMultiVector::scale(real_t factor){
 
 
 
-
+}
 }
 }
 

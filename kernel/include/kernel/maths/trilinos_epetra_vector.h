@@ -23,9 +23,6 @@ class AmesosDirect;
 }
 namespace numerics{
 
-/// forward declarations
-class TrilinosKrylovSolver;
-
 ///
 /// \brief The TrilinosEpetraVector class This is a wrapper to the
 /// serial Trilinos Epetra_Vector class
@@ -168,15 +165,6 @@ private:
     ///
     Epetra_SerialComm comm_;
 
-    ///
-    /// \brief Allow acces to TrilinosKrylovSolver class
-    ///
-    //friend class TrilinosKrylovSolver;
-
-    ///
-    /// \brief Allow access to Amesos2Direct class
-    ///
-    //friend class Amesos2Direct;
 };
 
 

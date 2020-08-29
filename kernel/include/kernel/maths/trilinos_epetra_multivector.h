@@ -13,6 +13,7 @@
 #include <Epetra_Map.h>
 
 namespace kernel {
+namespace maths {
 namespace algebra{
 
 
@@ -88,6 +89,31 @@ public:
     const trilinos_vector_t* raw_trilinos_vec_ptr()const{return vec_.get();}
 
     ///
+    /// \brief Pointer to the array of doubles containing the
+    /// local values of the ith vector in the multi-vector.
+    ///
+    real_t* const & operator[](uint_t i)const;
+
+    ///
+    /// \brief Pointer to the array of doubles containing the
+    /// local values of the ith vector in the multi-vector.
+    ///
+    real_t*& operator[](uint_t i);
+
+    ///
+    /// Vector access function.
+    /// \brief An Epetra_Vector pointer to the ith vector in the multi-vector.
+    ///
+    Epetra_Vector * & operator () (uint_t i)
+    {return vec_->operator()(static_cast<int>(i));}
+
+    /// Vector access function.
+    /// \brief An Epetra_Vector pointer to the ith vector in the multi-vector.
+    ///
+    const Epetra_Vector * & operator () (uint_t i) const
+    {return static_cast<const Epetra_MultiVector*>(vec_.get())->operator()(static_cast<int>(i));}
+
+    ///
     /// \brief Zero the entries
     ///
     void zero();
@@ -125,28 +151,6 @@ public:
     ///
     void add(const std::vector<uint_t>& dofs, const std::vector<real_t>& vals);
 
-    ///
-    /// \brief Pointer to the array of doubles containing the
-    /// local values of the ith vector in the multi-vector.
-    ///
-    real_t* const & operator[](uint_t i)const;
-
-    ///
-    /// \brief Pointer to the array of doubles containing the
-    /// local values of the ith vector in the multi-vector.
-    ///
-    real_t*& operator[](uint_t i);
-
-    ///
-    /// \brief Returns the start of the vector
-    ///
-    //iterator begin();
-
-    ///
-    /// \brief Returns one past the end of the vector
-    ///
-    //iterator end();
-
 private:
 
     ///
@@ -168,6 +172,7 @@ private:
 
 };
 
+}
 }
 }
 #endif

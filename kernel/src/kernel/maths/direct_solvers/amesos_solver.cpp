@@ -23,7 +23,7 @@ namespace solvers {
 AmesosDirect::AmesosDirect(AmesosDirectOptions options)
     :
       DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
-                       kernel::algebra::TrilinosEpetraMultiVector>(SolverPackageType::TRI_AMESOS),
+                       kernel::maths::algebra::TrilinosEpetraMultiVector>(SolverPackageType::TRI_AMESOS),
       options_(options)
 {}
 

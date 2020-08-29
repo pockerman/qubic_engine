@@ -32,8 +32,9 @@ cmake_minimum_required(VERSION 3.0)
 #ADD_SUBDIRECTORY(example_30)
 #ADD_SUBDIRECTORY(example_32)
 #ADD_SUBDIRECTORY(example_33)
-#ADD_SUBDIRECTORY(example_34)
+ADD_SUBDIRECTORY(example_34)
 ADD_SUBDIRECTORY(example_35)
+ADD_SUBDIRECTORY(example_36)
 
 
 
