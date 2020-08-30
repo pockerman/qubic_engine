@@ -18,6 +18,16 @@ struct QuadraticProblem
     vector_t q;
     vector_t z;
 
+    ///
+    /// \brief l. Min constraints vector
+    ///
+    vector_t l;
+
+    ///
+    /// \brief u. Max constraints vector
+    ///
+    vector_t u;
+
 };
 
 
