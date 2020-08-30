@@ -8,25 +8,24 @@
 #include "kernel/maths/direct_solvers/direct_solver_base.h"
 #include "kernel/maths/direct_solvers/direct_solver_type.h"
 #include "kernel/maths/trilinos_epetra_matrix.h"
-//#include "kernel/maths/t
 
 namespace kernel {
-namespace algebra{
-class TrilinosEpetraMultiVector;
-}
-
 namespace numerics{
 class TrilinosEpetraMatrix;
 }
 
 namespace maths {
+namespace algebra{
+class TrilinosEpetraMultiVector;
+}
+
 namespace solvers {
 
 ///
-/// \brief The AmesosDirectOptions struct. Helper struct
+/// \brief The AmesosDirectConfig struct. Helper struct
 /// that wraps parameters to be passed to the AmesosDirect class
 ///
-struct AmesosDirectOptions
+struct AmesosDirectConfig
 {
 
    DirectSolverType dstype;
@@ -38,7 +37,7 @@ struct AmesosDirectOptions
 };
 
 class AmesosDirect: public DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
-                                             kernel::algebra::TrilinosEpetraMultiVector>
+                                             kernel::maths::algebra::TrilinosEpetraMultiVector>
 {
 
 public:
@@ -46,19 +45,19 @@ public:
     ///
     /// \brief Amesos2Direct Constructor
     ///
-    AmesosDirect(AmesosDirectOptions options);
+    AmesosDirect(AmesosDirectConfig options);
 
     ///
     /// \brief matrix_t The matrix type the solver is using
     ///
     typedef typename DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
-                                      kernel::algebra::TrilinosEpetraMultiVector>::matrix_t matrix_t;
+                                      kernel::maths::algebra::TrilinosEpetraMultiVector>::matrix_t matrix_t;
 
     ///
     /// \brief vector_t The vector type the solver is using
     ///
     typedef typename DirectSolverBase<kernel::numerics::TrilinosEpetraMatrix,
-                                      kernel::algebra::TrilinosEpetraMultiVector>::vector_t vector_t;
+                                      kernel::maths::algebra::TrilinosEpetraMultiVector>::vector_t vector_t;
 
     ///
     /// \brief solve. Solve the system Ax=b
@@ -71,7 +70,7 @@ private:
     ///
     /// \brief options_ Options to configure the solver
     ///
-    AmesosDirectOptions options_;
+    AmesosDirectConfig options_;
 };
 
 }

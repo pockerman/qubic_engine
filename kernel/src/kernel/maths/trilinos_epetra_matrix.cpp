@@ -2,6 +2,8 @@
 
 #ifdef USE_TRILINOS
 
+#include <Epetra_RowMatrixTransposer.h>
+
 #include <exception>
 #include <algorithm>
 #include <iostream>
@@ -15,6 +17,16 @@ TrilinosEpetraMatrix::TrilinosEpetraMatrix()
                            comm_(),
                            epetra_map_()
 {}
+
+TrilinosEpetraMatrix::TrilinosEpetraMatrix(uint m, uint nnz)
+    :
+      mat_(),
+      comm_(),
+      epetra_map_()
+{
+  init(m, m, nnz);
+  zero();
+}
 
 TrilinosEpetraMatrix::~TrilinosEpetraMatrix()
 {}
@@ -96,6 +108,49 @@ TrilinosEpetraMatrix::entry(uint_t i,  uint_t j)const{
     }
 
     return value;
+}
+
+
+TrilinosEpetraMatrix::row_entries_t
+TrilinosEpetraMatrix::get_row_entries(uint_t r)const{
+
+    if(!mat_){
+        throw std::logic_error("Matrix has not been initialized");
+    }
+
+    if(r >= m()){
+        throw std::logic_error("Invalid row index");
+    }
+
+    TrilinosEpetraMatrix::row_entries_t row_entries;
+    trilinos_int_t r_idx = static_cast<trilinos_int_t>(r);
+
+    real_t* values = nullptr;
+    trilinos_int_t* col_indices = nullptr;
+    trilinos_int_t num_entries=0;
+    int success = mat_->ExtractMyRowView(r_idx, num_entries, values, col_indices);
+
+    if(success != 0){
+        throw std::logic_error("An error occurresd whist extracting row view");
+    }
+
+    row_entries.assign(&values[0], &values[num_entries]);
+
+    return row_entries;
+
+}
+
+void
+TrilinosEpetraMatrix::compute_transpose(TrilinosEpetraMatrix& mat)const{
+
+    throw std::logic_error("Not implemented");
+    /*if(!mat_){
+        throw std::logic_error("Matrix has not been initialized");
+    }
+
+    Epetra_RowMatrixTransposer transposer(mat_.get());
+    Epetra_CrsMatrix* crs_mat = mat.get_matrix();
+    transposer.CreateTranspose(false, crs_mat);*/
 }
 
 void
@@ -392,8 +447,8 @@ void TrilinosEpetraMatrix::init(uint_t m , uint_t n, uint_t nz){
     auto index_start = 0;
     epetra_map_.reset(new Epetra_Map(NumGlobalElements, NumMyElements,  index_start, comm_));
 
-   //create the matrix
-   mat_.reset(new Epetra_CrsMatrix (Copy, *epetra_map_.get(), static_cast<trilinos_int_t>(nz)));
+    //create the matrix
+    mat_.reset(new Epetra_CrsMatrix (Copy, *epetra_map_.get(), static_cast<trilinos_int_t>(nz)));
 
 }
 

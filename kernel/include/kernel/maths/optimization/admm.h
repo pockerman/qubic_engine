@@ -4,15 +4,20 @@
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/maths/solvers/solver_base.h"
+#include "kernel/maths/direct_solvers/direct_solver_base.h"
 #include "kernel/maths/solvers/solver_type.h"
+#include "kernel/maths/optimization/quadratic_problem.h"
+#include "kernel/maths/matrix_utilities.h"
 #include "kernel/base/config.h"
 
 #ifdef USE_TRILINOS
 #include "kernel/maths/trilinos_epetra_matrix.h"
 #include "kernel/maths/trilinos_epetra_multivector.h"
+#include "kernel/maths/trilinos_epetra_vector.h"
 #endif
 
-#include <stdexcept>
+#include <iostream>
+
 
 namespace kernel{
 namespace maths {
@@ -30,7 +35,7 @@ struct ADMMData
     ///
     /// \brief vector_t The vector type the solver is using
     ///
-    typedef MatrixTp vector_t;
+    typedef VectorTp vector_t;
 
     ///
     /// \brief solver_t The type of the solver used by ADMM
@@ -50,7 +55,7 @@ struct ADMMData
     ///
     /// \brief apha Relaxation factor
     ///
-    real_t apha;
+    real_t alpha;
 
     ///
     /// \brief max_n_iterations. The maximum number of iterations
@@ -67,21 +72,11 @@ struct ADMMData
     ///
     solver_t& solver;
 
-
     ///
     /// \brief ADMMData Constructor
     ///
-    ADMMData(solver_t& solver, real_t rho, real_t sigma, uint_t iterations, real_t tolerance);
-
-    ///
-    /// \brief ADMMData Constructor
-    ///
-    ADMMData(solver_t& solver, real_t rho, real_t sigma);
-
-    ///
-    /// \brief ADMMData Constructor
-    ///
-    ADMMData(solver_t& solver, real_t rho, real_t sigma, uint_t iterations);
+    ADMMData(solver_t& solver, real_t rho,
+             real_t sigma, uint_t iterations, real_t tolerance);
 
 };
 
@@ -92,25 +87,11 @@ ADMMData<MatrixTp, VectorTp>::ADMMData(typename ADMMData<MatrixTp, VectorTp>::so
     :
     rho(rho_),
     sigma(sigma_),
-    apha(0.5),
+    alpha(0.5),
     max_n_iterations(iterations),
     tol(tolerance),
     solver(solver_)
 {}
-
-template<typename MatrixTp, typename VectorTp>
-ADMMData<MatrixTp, VectorTp>::ADMMData(typename ADMMData<MatrixTp, VectorTp>::solver_t& solver_, real_t rho_, real_t sigma_)
-    :
-      ADMMData(solver_, rho_, sigma_, 1000, KernelConsts::tolerance())
-{}
-
-template<typename MatrixTp, typename VectorTp>
-ADMMData<MatrixTp, VectorTp>::ADMMData(typename ADMMData<MatrixTp, VectorTp>::solver_t& solver,
-                                       real_t rho, real_t sigma, uint_t iterations)
-    :
-    ADMMData(solver, rho, sigma, iterations, KernelConsts::tolerance())
-{}
-
 
 
 ///
@@ -138,115 +119,54 @@ public:
     ///
     /// \brief vector_t The vector type the solver is using
     ///
-    typedef MatrixTp vector_t;
+    typedef VectorTp vector_t;
 
     ///
     /// \brief ADMM Constructor
     ///
     ADMM(ADMMData<matrix_t, vector_t>& data);
 
-#ifdef USE_TRILINOS
     ///
     /// \brief solve
     ///
-    void solve(kernel::numerics::TrilinosEpetraMatrix& P,
-               kernel::numerics::TrilinosEpetraMatrix& A);
+    void solve(QuadraticProblem<matrix_t, vector_t>& qp)const;
 
     ///
     /// \brief solve_direct
     ///
-    void solve_direct(kernel::numerics::TrilinosEpetraMatrix& P,
-                      kernel::numerics::TrilinosEpetraMatrix& A);
+    void solve_direct(QuadraticProblem<matrix_t, vector_t>& qp)const;
 
     ///
     /// \brief solve_direct
     ///
-    void solve_iterative(kernel::numerics::TrilinosEpetraMatrix& P,
-                        kernel::numerics::TrilinosEpetraMatrix& A);
-#endif
+    void solve_iterative(QuadraticProblem<matrix_t, vector_t>& qp)const;
 
 private:
 
+    ///
+    /// \brief data_. Data used by the solver
+    ///
     ADMMData<matrix_t, vector_t>& data_;
+
+    ///
+    /// \brief update_direct_rhs_ Update the rhs vector
+    ///
+    void update_direct_rhs_(vector_t& rhs, const vector_t& y,
+                            const QuadraticProblem<matrix_t, vector_t>& qp)const;
+
+    ///
+    /// \brief update_direct_matrix_ Build the matrix needed for direct solution
+    ///
+    void update_direct_matrix_(matrix_t& mat, const QuadraticProblem<matrix_t, vector_t>& qp)const;
+
+    ///
+    /// \brief project_vector_. Project z vector from the QP instance
+    /// to min-max constraints
+    ///
+    void project_vector_(QuadraticProblem<matrix_t, vector_t>& qp,
+                             const vector_t& ztilda, const vector_t& y)const;
 };
 
-template<typename MatrixTp, typename VectorTp>
-ADMM<MatrixTp, VectorTp>::ADMM(ADMMData<matrix_t, vector_t>& data)
-    :
-    data_(data)
-{}
-
-#ifdef USE_TRILINOS
-template<>
-void
-ADMM<kernel::numerics::TrilinosEpetraMatrix,
-     kernel::algebra::TrilinosEpetraMultiVector>::solve(kernel::numerics::TrilinosEpetraMatrix& P,
-                                                        kernel::numerics::TrilinosEpetraMatrix& A){
-
-
-
-    if(data_.solver.type() == kernel::maths::solvers::SolverType::DIRECT){
-        solve_direct(P, A);
-    }
-    else if(data_.solver.type() == kernel::maths::solvers::SolverType::ITERATIVE){
-        solve_iterative(P,A);
-    }
-    else{
-        throw std::logic_error("Uniknown SolverType. SolverType should be DIRECT or ITERATIVE");
-    }
-}
-
-template<>
-void
-ADMM<kernel::numerics::TrilinosEpetraMatrix,
-     kernel::algebra::TrilinosEpetraMultiVector>::solve_direct(kernel::numerics::TrilinosEpetraMatrix& P,
-                                                               kernel::numerics::TrilinosEpetraMatrix& A){
-
-    // sol has two components x and v
-    kernel::algebra::TrilinosEpetraMultiVector sol;
-    kernel::algebra::TrilinosEpetraMultiVector rhs;
-
-    //solver_ptr_->solve(A, sol, rhs);
-
-    kernel::algebra::TrilinosEpetraMultiVector z;
-    kernel::algebra::TrilinosEpetraMultiVector x;
-
-    // the Lagrangian multipliers
-    kernel::algebra::TrilinosEpetraMultiVector y;
-
-    //z = z + (1.0/rho_)*()
-
-
-}
-
-
-template<>
-void
-ADMM<kernel::numerics::TrilinosEpetraMatrix,
-     kernel::algebra::TrilinosEpetraMultiVector>::solve_iterative(kernel::numerics::TrilinosEpetraMatrix& P,
-                                                                  kernel::numerics::TrilinosEpetraMatrix& A){
-
-    // sol has two components x and v
-    kernel::algebra::TrilinosEpetraMultiVector sol;
-    kernel::algebra::TrilinosEpetraMultiVector rhs;
-
-    //solver_ptr_->solve(A, sol, rhs);
-
-    kernel::algebra::TrilinosEpetraMultiVector z;
-    kernel::algebra::TrilinosEpetraMultiVector x;
-
-    // the Lagrangian multipliers
-    kernel::algebra::TrilinosEpetraMultiVector y;
-
-    //z = z + (1.0/rho_)*()
-
-
-}
-
-
-
-
-#endif
 
 }
 }

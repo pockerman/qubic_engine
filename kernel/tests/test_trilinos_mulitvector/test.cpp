@@ -17,7 +17,7 @@ TEST(TrilinosEpetraMultiVector, InitNxN) {
      /// Test Scenario:   Initialize an n x n multi-vector
      /// Expected Output: An n x n multi-vector should be created
 
-    kernel::algebra::TrilinosEpetraMultiVector vector;
+    kernel::maths::algebra::TrilinosEpetraMultiVector vector;
     vector.init(10, true);
 
     ASSERT_EQ(vector.size(), 10);
@@ -29,7 +29,7 @@ TEST(TrilinosEpetraMultiVector, InitNxM) {
      /// Test Scenario:   Initialize an n x m multi-vector
      /// Expected Output: An n x m multi-vector should be created
 
-    kernel::algebra::TrilinosEpetraMultiVector vector;
+    kernel::maths::algebra::TrilinosEpetraMultiVector vector;
     vector.init(10, 5, true);
 
     ASSERT_EQ(vector.size(), 5);
@@ -43,7 +43,7 @@ TEST(TrilinosEpetraMultiVector, Set) {
      /// Expected Output: An 1 x 5 multi-vector should be created
      ///                  with entries equal to 10
 
-    kernel::algebra::TrilinosEpetraMultiVector vector;
+    kernel::maths::algebra::TrilinosEpetraMultiVector vector;
     vector.init(1, 5, true);
 
     vector.set_entry(0, 0, 10.);
@@ -61,7 +61,7 @@ TEST(TrilinosEpetraMultiVector, Add) {
      /// Expected Output: An 1 x 5 multi-vector should be created
      ///                  with entry 3 equal to 2
 
-    kernel::algebra::TrilinosEpetraMultiVector vector;
+    kernel::maths::algebra::TrilinosEpetraMultiVector vector;
     vector.init(1, 5, true);
 
     vector.set_entry(0, 3, 1.);

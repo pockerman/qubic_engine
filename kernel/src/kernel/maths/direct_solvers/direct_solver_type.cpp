@@ -10,8 +10,8 @@ std::string solver_type_to_string(DirectSolverType type){
     switch(type){
     case DirectSolverType::SUPER_LU:
         return "SUPER_LU";
-    case DirectSolverType::KLU:
-        return "KLU";
+    case DirectSolverType::LU:
+        return "LU";
     }
 
     return "INVALID_TYPE";

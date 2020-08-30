@@ -23,7 +23,7 @@ int main(){
             using kernel::maths::solvers::AmesosDirect;
             using kernel::numerics::TrilinosEpetraMatrix;
             using kernel::numerics::TrilinosEpetraVector;
-            using kernel::algebra::TrilinosEpetraMultiVector;
+            using kernel::maths::algebra::TrilinosEpetraMultiVector;
 
 
             typedef TrilinosEpetraMatrix::row_entries_t row_entries_t;
