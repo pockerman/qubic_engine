@@ -26,15 +26,9 @@ BlazeDirectSolver::solve(BlazeDirectSolver::matrix_t& A,
         throw std::logic_error("Invalid rhs size");
     }
 
-    std::cout<<A<<std::endl;
-    std::cout<<x<<std::endl;
-    std::cout<<b<<std::endl;
-    //auto rslt = A*x;
-
-
     // main solve method from Blaze
     // TODO: How to specify LU decomposition?
-    solve( A, x, b );
+    blaze::solve( A, x, b );
 
 }
 
