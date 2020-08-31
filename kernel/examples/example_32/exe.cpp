@@ -21,7 +21,7 @@ int main(){
             using kernel::uint_t;
             using kernel::maths::solvers::AmesosDirect;
             using kernel::numerics::TrilinosEpetraMatrix;
-            using kernel::algebra::TrilinosEpetraMultiVector;
+            using kernel::maths::algebra::TrilinosEpetraMultiVector;
 
             // create the solver
             /*AmesosDirect solver(kernel::maths::solvers::DirectSolverType::KLU);

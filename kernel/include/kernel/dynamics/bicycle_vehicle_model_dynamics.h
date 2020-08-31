@@ -6,6 +6,10 @@
 #include "kernel/dynamics/motion_model_base.h"
 #include "kernel/dynamics/dynamics_matrix_descriptor.h"
 
+#include "boost/any.hpp"
+#include <map>
+#include <string>
+
 namespace kernel{
 namespace dynamics{
 
@@ -14,12 +18,13 @@ namespace dynamics{
 /// Implements the bicycle vehicle model dynamics.
 ///
 class BicycleVehicleModelDynamics: public MotionModelDynamicsBase<SysState<10>, DynamicsMatrixDescriptor,
-                                                                  real_t, real_t, std::array<real_t, 2>>
+                                                                  std::map<std::string, boost::any>>
 {
 
 public:
     typedef MotionModelDynamicsBase<SysState<10>, DynamicsMatrixDescriptor,
-                                    real_t, real_t, std::array<real_t, 2>> base_t;
+                                    std::map<std::string, boost::any>> base_t;
+
     typedef base_t::state_t state_t;
     typedef state_t output_t;
     typedef base_t::input_t input_t;

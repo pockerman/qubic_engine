@@ -13,14 +13,14 @@ namespace dynamics{
 /// \brief Base class for deriving motion models.
 /// Motion models describe the dynamics or kinematics
 /// of a rigid body.
-template<typename StateTp, typename MatrixDescriptor, typename... InputTp>
+template<typename StateTp, typename MatrixDescriptor, typename InputTp>
 class MotionModelDynamicsBase: private boost::noncopyable
 {
 public:
 
     typedef StateTp state_t;
     typedef state_t output_t;
-    typedef std::tuple<InputTp...> input_t;
+    typedef InputTp input_t;
     typedef MatrixDescriptor matrix_descriptor_t;
     typedef typename matrix_descriptor_t::matrix_t matrix_t;
     typedef typename matrix_descriptor_t::vector_t vector_t;
@@ -155,8 +155,8 @@ protected:
 
 };
 
-template<typename StateTp, typename MatrixDescriptor, typename... InputTp>
-MotionModelDynamicsBase<StateTp, MatrixDescriptor, InputTp...>::MotionModelDynamicsBase()
+template<typename StateTp, typename MatrixDescriptor, typename InputTp>
+MotionModelDynamicsBase<StateTp, MatrixDescriptor, InputTp>::MotionModelDynamicsBase()
     :
       state_(),
       matrix_description_(),
@@ -165,8 +165,8 @@ MotionModelDynamicsBase<StateTp, MatrixDescriptor, InputTp...>::MotionModelDynam
       tol_(KernelConsts::tolerance())
 {}
 
-template<typename StateTp, typename MatrixDescriptor, typename... InputTp>
-MotionModelDynamicsBase<StateTp, MatrixDescriptor, InputTp...>::~MotionModelDynamicsBase()
+template<typename StateTp, typename MatrixDescriptor, typename InputTp>
+MotionModelDynamicsBase<StateTp, MatrixDescriptor, InputTp>::~MotionModelDynamicsBase()
 {}
 }
 }

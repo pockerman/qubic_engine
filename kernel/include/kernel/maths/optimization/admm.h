@@ -9,6 +9,7 @@
 #include "kernel/maths/optimization/quadratic_problem.h"
 #include "kernel/maths/matrix_utilities.h"
 #include "kernel/base/config.h"
+#include "kernel/base/kernel_consts.h"
 
 #ifdef USE_TRILINOS
 #include "kernel/maths/trilinos_epetra_matrix.h"
@@ -24,7 +25,7 @@ namespace maths {
 namespace opt{
 
 template<typename MatrixTp, typename VectorTp>
-struct ADMMData
+struct ADMMConfig
 {
 
     ///
@@ -70,18 +71,34 @@ struct ADMMData
     ///
     /// \brief solver. Reference to the solver used by ADMM
     ///
-    solver_t& solver;
+    solver_t* solver;
 
     ///
     /// \brief ADMMData Constructor
     ///
-    ADMMData(solver_t& solver, real_t rho,
+    ADMMConfig();
+
+    ///
+    /// \brief ADMMData Constructor
+    ///
+    ADMMConfig(solver_t& solver, real_t rho,
              real_t sigma, uint_t iterations, real_t tolerance);
 
 };
 
 template<typename MatrixTp, typename VectorTp>
-ADMMData<MatrixTp, VectorTp>::ADMMData(typename ADMMData<MatrixTp, VectorTp>::solver_t& solver_,
+ADMMConfig<MatrixTp, VectorTp>::ADMMConfig()
+    :
+    rho(0.5),
+    sigma(0.5),
+    alpha(0.5),
+    max_n_iterations(0),
+    tol(KernelConsts::tolerance()),
+    solver(nullptr)
+{}
+
+template<typename MatrixTp, typename VectorTp>
+ADMMConfig<MatrixTp, VectorTp>::ADMMConfig(typename ADMMConfig<MatrixTp, VectorTp>::solver_t& solver_,
                                        real_t rho_, real_t sigma_,
                                        uint_t iterations, real_t tolerance)
     :
@@ -90,7 +107,7 @@ ADMMData<MatrixTp, VectorTp>::ADMMData(typename ADMMData<MatrixTp, VectorTp>::so
     alpha(0.5),
     max_n_iterations(iterations),
     tol(tolerance),
-    solver(solver_)
+    solver(&solver_)
 {}
 
 
@@ -122,9 +139,19 @@ public:
     typedef VectorTp vector_t;
 
     ///
+    /// \brief output_t The optimizer output
+    ///
+    typedef vector_t output_t;
+
+    ///
+    /// \brief config_t Configuration type
+    ///
+    typedef ADMMConfig<matrix_t, vector_t> config_t;
+
+    ///
     /// \brief ADMM Constructor
     ///
-    ADMM(ADMMData<matrix_t, vector_t>& data);
+    ADMM(const config_t& data);
 
     ///
     /// \brief solve
@@ -146,7 +173,7 @@ private:
     ///
     /// \brief data_. Data used by the solver
     ///
-    ADMMData<matrix_t, vector_t>& data_;
+    const ADMMConfig<matrix_t, vector_t>* data_;
 
     ///
     /// \brief update_direct_rhs_ Update the rhs vector

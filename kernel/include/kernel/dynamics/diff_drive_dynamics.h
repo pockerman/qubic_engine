@@ -6,7 +6,11 @@
 #include "kernel/dynamics/motion_model_base.h"
 #include "kernel/dynamics/dynamics_matrix_descriptor.h"
 
+#include "boost/any.hpp"
+
 #include <array>
+#include <map>
+
 namespace kernel{
 namespace dynamics{
 
@@ -15,8 +19,8 @@ namespace dynamics{
 /// motion dynamics of a differential drive system. It implements
 /// the following equations
 ///
-class DiffDriveDynamics: public MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor,
-                                                real_t, real_t, std::array<real_t, 2>>
+class DiffDriveDynamics: public MotionModelDynamicsBase<SysState<3>,
+        DynamicsMatrixDescriptor, std::map<std::string, boost::any>>
 {
 public:
 
@@ -25,28 +29,28 @@ public:
     ///
     typedef MotionModelDynamicsBase<SysState<3>,
                             DynamicsMatrixDescriptor,
-                            real_t, real_t, std::array<real_t, 2> >::state_t state_t;
+                            std::map<std::string, boost::any> >::state_t state_t;
 
     ///
     /// \brief input_t The type of the input for solving the dynamics
     ///
     typedef MotionModelDynamicsBase<SysState<3>,
                             DynamicsMatrixDescriptor,
-                            real_t, real_t, std::array<real_t, 2> >::input_t input_t;
+                            std::map<std::string, boost::any> >::input_t input_t;
 
     ///
     /// \brief matrix_t Matrix type that describes the dynamics
     ///
     typedef MotionModelDynamicsBase<SysState<3>,
                             DynamicsMatrixDescriptor,
-                            real_t, real_t, std::array<real_t, 2> >::matrix_t matrix_t;
+                            std::map<std::string, boost::any> >::matrix_t matrix_t;
 
     ///
     /// \brief vector_t
     ///
     typedef MotionModelDynamicsBase<SysState<3>,
                             DynamicsMatrixDescriptor,
-                            real_t, real_t, std::array<real_t, 2> >::vector_t vector_t;
+                            std::map<std::string, boost::any> >::vector_t vector_t;
 
     ///
     /// \brief Constructor
@@ -65,15 +69,9 @@ public:
     virtual state_t& evaluate(const input_t& input )override;
 
     ///
-    /// \brief Integrate the new state.
-    ///
-    void integrate(real_t v, real_t w)
-    {integrate(v, w, {{0.0, 0.0}});}
-
-    ///
     /// \brief Integrate the new state. It also uses error terms
     ///
-    void integrate(real_t v, real_t w, const std::array<real_t, 2>& errors);
+    void integrate(const input_t& input);
 
     ///
     /// \brief Read the x-coordinate

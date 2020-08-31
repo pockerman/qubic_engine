@@ -6,6 +6,9 @@
 #include "kernel/dynamics/motion_model_base.h"
 #include "kernel/dynamics/dynamics_matrix_descriptor.h"
 
+#include "boost/any.hpp"
+#include <string>
+
 namespace kernel {
 namespace dynamics {
 
@@ -13,17 +16,17 @@ namespace dynamics {
 /// \brief The CartPoleInput struct. Wraps the parameters
 /// used as input for the CartPoleDynamics class
 ///
-struct CartPoleInput
+struct CartPoleConfig
 {
     ///
     /// \brief cart_m_. Mass of the cart
     ///
-    real_t cart_m{0.0};
+    real_t M{0.0};
 
     ///
     /// \brief pole_m_. Mass of the pole
     ///
-    real_t pole_m{0.0};
+    real_t m{0.0};
 
     ///
     /// \brief b_. Friction term
@@ -59,7 +62,8 @@ struct CartPoleInput
 ///  \f$\dot{p}\f$ the cart velocity
 ///  \f$\phi\f$ the angle of the pendulum
 ///  \f$\dot{\phi}\f$
-class CartPoleDynamics: public MotionModelDynamicsBase<SysState<4>, DynamicsMatrixDescriptor, real_t>
+class CartPoleDynamics: public MotionModelDynamicsBase<SysState<4>,
+        DynamicsMatrixDescriptor, std::map<std::string, boost::any>>
 {
 
 public:
@@ -68,25 +72,25 @@ public:
     /// \brief The type of the state handled by this dynamics object
     ///
     typedef MotionModelDynamicsBase<SysState<4>,
-                            DynamicsMatrixDescriptor, real_t>::state_t state_t;
+                            DynamicsMatrixDescriptor, std::map<std::string, boost::any>>::state_t state_t;
 
     ///
     /// \brief input_t The type of the input for solving the dynamics
     ///
     typedef MotionModelDynamicsBase<SysState<4>,
-                            DynamicsMatrixDescriptor, real_t>::input_t input_t;
+                            DynamicsMatrixDescriptor, std::map<std::string, boost::any>>::input_t input_t;
 
     ///
     /// \brief matrix_t Matrix type that describes the dynamics
     ///
     typedef MotionModelDynamicsBase<SysState<4>,
-                            DynamicsMatrixDescriptor, real_t>::matrix_t matrix_t;
+                            DynamicsMatrixDescriptor, std::map<std::string, boost::any>>::matrix_t matrix_t;
 
     ///
     /// \brief vector_t
     ///
     typedef MotionModelDynamicsBase<SysState<4>,
-                            DynamicsMatrixDescriptor, real_t>::vector_t vector_t;
+                            DynamicsMatrixDescriptor, std::map<std::string, boost::any>>::vector_t vector_t;
 
     ///
     /// \brief CartPoleDynamics Constructor
@@ -96,12 +100,12 @@ public:
     ///
     /// \brief CartPoleDynamics Constructor
     ///
-    CartPoleDynamics(const CartPoleInput& input);
+    CartPoleDynamics(const CartPoleConfig& input);
 
     ///
     /// \brief CartPoleDynamics Constructor
     ///
-    CartPoleDynamics(const CartPoleInput& input, const DynVec<real_t>& init_state);
+    CartPoleDynamics(const CartPoleConfig& input, const DynVec<real_t>& init_state);
 
     ///
     /// \brief Evaluate the new state using the given input
@@ -112,13 +116,20 @@ public:
     ///
     /// \brief Integrate the new state.
     ///
-    void integrate(real_t f)
-    {integrate(f, 0.0);}
+    void integrate(const input_t& input);
 
     ///
-    /// \brief Integrate the new state. It also uses error terms
+    /// \brief updates the matrices used to describe this
+    /// motion model
     ///
-    void integrate(real_t v, real_t err);
+    void update_matrices(const input_t& input);
+
+    ///
+    /// \brief Initialize the matrices describing the
+    /// the dynamics
+    ///
+    void initialize_matrices(const input_t& input);
+
 
 private:
 
@@ -126,7 +137,7 @@ private:
     ///
     /// \brief input_ Various constants that describe the dynamics
     ///
-    CartPoleInput input_;
+    CartPoleConfig config_;
 
 };
 

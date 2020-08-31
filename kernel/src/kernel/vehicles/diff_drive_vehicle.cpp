@@ -3,7 +3,7 @@
 namespace kernel
 {
 
-DiffDriveVehicle::DiffDriveVehicle(const DiffDriveProperties& properties)
+DiffDriveVehicle::DiffDriveVehicle(const DiffDriveConfig& properties)
     :
       properties_(properties),
       dynamics_()
@@ -50,7 +50,12 @@ DiffDriveVehicle::integrate(real_t v, real_t w, const std::array<real_t, 2>& err
     auto velocity = get_velcoty();
     auto wvelocity = get_w_velocity();
 
-    dynamics_.integrate(v, w, errors);
+    dynamics::DiffDriveDynamics::input_t input;
+    input.insert_or_assign("v", velocity);
+    input.insert_or_assign("w", wvelocity);
+    input.insert_or_assign("errors", errors);
+
+    dynamics_.integrate(input);
 }
 
 

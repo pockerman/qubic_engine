@@ -6,9 +6,9 @@ namespace maths {
 namespace opt{
 
 template<typename MatrixTp, typename VectorTp>
-ADMM<MatrixTp, VectorTp>::ADMM(ADMMData<matrix_t, vector_t>& data)
+ADMM<MatrixTp, VectorTp>::ADMM(const config_t& config)
     :
-    data_(data)
+    data_(&config)
 {}
 
 template<>
@@ -18,11 +18,11 @@ ADMM<DynMat<real_t>, DynVec<real_t>>::update_direct_rhs_(DynVec<real_t>& rhs,
                                                          const QuadraticProblem<DynMat<real_t>, DynVec<real_t>>& qp)const{
 
     for(uint_t i=0; i < qp.x.size(); ++i){
-       rhs[i] = data_.sigma*qp.x[i] - qp.q[i];
+       rhs[i] = data_->sigma*qp.x[i] - qp.q[i];
     }
 
     for(uint_t i=0; i < qp.z.size(); ++i){
-       rhs[i + qp.x.size()] = qp.z[i] - (1.0/data_.rho)*y[i];
+       rhs[i + qp.x.size()] = qp.z[i] - (1.0/data_->rho)*y[i];
     }
 }
 
@@ -41,7 +41,7 @@ ADMM<DynMat<real_t>, DynVec<real_t>>::update_direct_matrix_(DynMat<real_t>& mat,
         auto p_row_entries = get_row(qp.P, r);
 
         for(uint_t c=0; c<qp.P.columns(); ++c){
-            p_row_entries[c] += (c == r)? data_.sigma:0.0;
+            p_row_entries[c] += (c == r)? data_->sigma : 0.0;
         }
 
         auto at_row_entries = get_row(At, r);
@@ -58,7 +58,7 @@ ADMM<DynMat<real_t>, DynVec<real_t>>::update_direct_matrix_(DynMat<real_t>& mat,
     }
 
 
-    std::vector<real_t> unit_entries(qp.A.rows(), -1.0/data_.rho);
+    std::vector<real_t> unit_entries(qp.A.rows(), -1.0/data_->rho);
 
     // set the remaining m-rows
     for(uint_t r = 0; r<qp.A.rows(); ++r){
@@ -83,8 +83,9 @@ void
 ADMM<DynMat<real_t>, DynVec<real_t>>::project_vector_(QuadraticProblem<DynMat<real_t>, DynVec<real_t>>& qp,
                                                       const DynVec<real_t>& ztilda, const DynVec<real_t>& y)const{
 
-    auto rho_inv = 1.0/data_.rho;
-    DynVec<real_t> tmp = data_.alpha*ztilda + (1.0 - data_.alpha)*qp.z + rho_inv*y;
+    auto rho_inv = 1.0/data_->rho;
+    auto alpha = data_->alpha;
+    DynVec<real_t> tmp = alpha*ztilda + (1.0 - alpha)*qp.z + rho_inv*y;
 
 
     if(qp.z.size() != tmp.size()){
@@ -138,6 +139,9 @@ template<>
 void
 ADMM<DynMat<real_t>, DynVec<real_t>>::solve_direct(QuadraticProblem<DynMat<real_t>, DynVec<real_t>>& qp)const{
 
+    if(data_->solver == nullptr){
+        throw std::logic_error("nullptr solver pointer");
+    }
 
     if(qp.P.rows() != qp.x.size()){
         throw std::logic_error("Number of rows not equal to state vector size");
@@ -154,6 +158,8 @@ ADMM<DynMat<real_t>, DynVec<real_t>>::solve_direct(QuadraticProblem<DynMat<real_
     if(qp.P.rows() != qp.A.columns()){
        throw std::logic_error("Number of rows not equal to number of columns");
     }
+
+    const auto alpha = data_->alpha;
 
     DynMat<real_t> mat(qp.P.rows() + qp.A.rows(), qp.P.rows() + qp.A.rows(), 0.0);
     DynVec<real_t> sol(qp.x.size() + qp.A.rows(), 0.0);
@@ -174,12 +180,12 @@ ADMM<DynMat<real_t>, DynVec<real_t>>::solve_direct(QuadraticProblem<DynMat<real_
 
     DynVec<real_t> z_tilda(qp.z.size(), 0.0);
 
-    real_t rho_inv = 1.0/data_.rho;
+    real_t rho_inv = 1.0/data_->rho;
 
-    for(uint_t itr=0; itr<data_.max_n_iterations; ++itr){
+    for(uint_t itr=0; itr<data_->max_n_iterations; ++itr){
 
         // solve linear system
-        data_.solver.solve(mat, sol, rhs);
+        data_->solver->solve(mat, sol, rhs);
 
         // update z tilda vector
         for(uint_t c=0; c<qp.z.size(); ++c){
@@ -188,7 +194,7 @@ ADMM<DynMat<real_t>, DynVec<real_t>>::solve_direct(QuadraticProblem<DynMat<real_
 
         // update solution
         for(uint_t c=0; c<qp.x.size(); ++c){
-            qp.x[c] = data_.alpha*sol[c] +(1.0 - data_.alpha)*qp.x[c];
+            qp.x[c] = alpha*sol[c] +(1.0 - alpha)*qp.x[c];
         }
 
         // constrain the vector
@@ -196,7 +202,7 @@ ADMM<DynMat<real_t>, DynVec<real_t>>::solve_direct(QuadraticProblem<DynMat<real_
 
         // update y vector
         for(uint_t c=0; c<y.size(); ++c){
-            y[c] += data_.rho*(data_.alpha*z_tilda[c] + (1. - data_.alpha)*zold[c] - qp.z[c]);
+            y[c] += data_->rho*(alpha*z_tilda[c] + (1. - alpha)*zold[c] - qp.z[c]);
         }
 
         // update rhs
@@ -238,10 +244,14 @@ template<typename MatrixTp, typename VectorTp>
 void
 ADMM<MatrixTp, VectorTp>::solve(QuadraticProblem<MatrixTp, VectorTp>& qp)const{
 
-    if(data_.solver.type() == kernel::maths::solvers::SolverType::DIRECT){
+    if(data_->solver == nullptr){
+        throw std::logic_error("nullptr solver pointer");
+    }
+
+    if(data_->solver->type() == kernel::maths::solvers::SolverType::DIRECT){
         solve_direct(qp);
     }
-    else if(data_.solver.type() == kernel::maths::solvers::SolverType::ITERATIVE){
+    else if(data_->solver->type() == kernel::maths::solvers::SolverType::ITERATIVE){
         solve_iterative(qp);
     }
     else{

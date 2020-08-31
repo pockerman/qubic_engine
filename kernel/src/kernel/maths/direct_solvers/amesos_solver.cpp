@@ -28,8 +28,8 @@ AmesosDirect::AmesosDirect(AmesosDirectConfig options)
 {}
 
 void
-AmesosDirect::solve(AmesosDirect::matrix_t& A, AmesosDirect::vector_t& x,
-                     AmesosDirect::vector_t& b ){
+AmesosDirect::solve(const AmesosDirect::matrix_t& A, AmesosDirect::vector_t& x,
+                     const AmesosDirect::vector_t& b )const{
 
     std::string dstype = solver_type_to_string(options_.dstype);
     Amesos factory;
@@ -57,22 +57,24 @@ AmesosDirect::solve(AmesosDirect::matrix_t& A, AmesosDirect::vector_t& x,
       throw std::logic_error("Epetra_CrsMatrix has not been created");
     }
 
-    auto* rhs = b.raw_trilinos_vec_ptr();
+    const auto* rhs = b.raw_trilinos_vec_ptr();
 
     if(!rhs){
       throw std::logic_error("Epetra_MultiVector  rhs has not been created");
     }
 
-    auto*& vec_rhs = rhs->operator()(0);
+
     auto* sol = x.raw_trilinos_vec_ptr();
 
     if(!sol){
       throw std::logic_error("Epetra_MultiVector solution has not been created");
     }
 
+    auto*& vec_rhs = rhs->operator()(0);
     auto*& vec = sol->operator()(0);
 
-    Epetra_LinearProblem Problem(mat, vec, vec_rhs);
+    Epetra_LinearProblem Problem(const_cast<Epetra_CrsMatrix*>(mat), vec,
+                                 const_cast<Epetra_MultiVector*>(rhs));
 
     // Create solver interface to the requested
     // solver with Amesos factory method

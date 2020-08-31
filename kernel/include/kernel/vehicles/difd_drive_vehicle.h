@@ -8,7 +8,7 @@
 
 namespace kernel{
 
-struct DiffDriveProperties
+struct DiffDriveConfig
 {
     /// \brief The radius of the wheels
     real_t R;
@@ -44,7 +44,7 @@ public:
     typedef dynamics::DiffDriveDynamics::state_t state_t;
 
     /// \brief constructor
-    DiffDriveVehicle(const DiffDriveProperties& properties);
+    DiffDriveVehicle(const DiffDriveConfig& properties);
 
     /// \brief integrate the diff drive system
     /// by passing the linear and angular velocities and an velocities
@@ -110,7 +110,7 @@ public:
 private:
 
     /// \brief The properties of the robot
-    DiffDriveProperties properties_;
+    DiffDriveConfig properties_;
 
     /// \brief The object that handles the dynamics
     dynamics::DiffDriveDynamics dynamics_;

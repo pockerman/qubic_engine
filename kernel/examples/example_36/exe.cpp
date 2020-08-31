@@ -21,7 +21,7 @@ int main(){
         using kernel::DynVec;
 
         using kernel::maths::opt::ADMM;
-        using kernel::maths::opt::ADMMData;
+        using kernel::maths::opt::ADMMConfig;
         using kernel::maths::solvers::BlazeDirectSolverConfig;
         using kernel::maths::solvers::BlazeDirectSolver;
         using kernel::maths::opt::QuadraticProblem;
@@ -30,7 +30,7 @@ int main(){
         BlazeDirectSolver solver(config);
 
         uint_t itrs = 60;
-        ADMMData<DynMat<real_t>, DynVec<real_t>>  admm_data(solver, .1, 0.01, itrs, 1.8);
+        ADMMConfig<DynMat<real_t>, DynVec<real_t>>  admm_data(solver, .1, 0.01, itrs, 1.8);
         ADMM<DynMat<real_t>, DynVec<real_t>> admm(admm_data);
 
         QuadraticProblem<DynMat<real_t>, DynVec<real_t>> qp;

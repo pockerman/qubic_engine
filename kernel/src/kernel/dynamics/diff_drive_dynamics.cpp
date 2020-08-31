@@ -2,6 +2,8 @@
 #include "kernel/maths/constants.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/utilities/common_uitls.h"
+#include "kernel/utilities/input_resolver.h"
+
 #include <cmath>
 #include <iostream>
 namespace kernel{
@@ -9,7 +11,7 @@ namespace dynamics{
 
 DiffDriveDynamics::DiffDriveDynamics()
     :
-  MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor, real_t, real_t, std::array<real_t, 2>>()
+  MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor, std::map<std::string, boost::any>>()
 {
     this->state_.set(0, {"X", 0.0});
     this->state_.set(1, {"Y", 0.0});
@@ -19,25 +21,27 @@ DiffDriveDynamics::DiffDriveDynamics()
 DiffDriveDynamics::DiffDriveDynamics(DiffDriveDynamics::state_t&& state)
     :
       MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor,
-                              real_t, real_t, std::array<real_t, 2>>()
+                              std::map<std::string, boost::any>>()
 {
     this->state_ = state;
 }
 
 void
-DiffDriveDynamics::integrate(real_t v, real_t w, const std::array<real_t, 2>& errors){
+DiffDriveDynamics::integrate(const DiffDriveDynamics::input_t& input){
 
     auto values = state_.get_values();
+
+    auto w = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("w", input);
+    auto v = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("v", input);
+    auto errors = utils::InputResolver<std::map<std::string, boost::any>, std::array<real_t, 2>>::resolve("errors", input);
 
     if(std::fabs(w)>wmax_){
         w = utils::sign(w)*wmax_;
     }
 
-    /// before we do the integration 
-    /// update the matrices
+    // before we do the integration
+    // update the matrices
     if(this->allows_matrix_updates()){
-
-      DiffDriveDynamics::input_t input(v,w,errors);
       update_matrices(input);
     }
 
@@ -70,8 +74,7 @@ DiffDriveDynamics::integrate(real_t v, real_t w, const std::array<real_t, 2>& er
 
 DiffDriveDynamics::state_t&
 DiffDriveDynamics::evaluate(const DiffDriveDynamics::input_t& input ){
-    auto [v, w, errors] = input;
-    integrate(v, w, errors);
+    integrate(input);
     return this->state_;
 }
 
@@ -79,8 +82,8 @@ void
 DiffDriveDynamics::initialize_matrices(const DiffDriveDynamics::input_t& input){
 
 
-  /// if we initialize the matrices
-  /// then we should set the matrix update flag to true
+  // if we initialize the matrices
+  // then we should set the matrix update flag to true
   set_matrix_update_flag(true);
 
   if(!this->has_matrix("F")){
@@ -100,7 +103,9 @@ DiffDriveDynamics::initialize_matrices(const DiffDriveDynamics::input_t& input){
 void
 DiffDriveDynamics::update_matrices(const DiffDriveDynamics::input_t& input){
 
-   auto [v, w, errors] = input;
+   auto w = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("w", input);
+   auto v = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("v", input);
+   auto errors = utils::InputResolver<std::map<std::string, boost::any>, std::array<real_t, 2>>::resolve("errors", input);
 
    auto distance = 0.5*v*get_time_step();
    auto orientation = w*get_time_step();
