@@ -40,7 +40,7 @@ public:
     ///
     /// \brief solve. Solve the system Ax=b
     ///
-    virtual void solve(matrix_t& A, vector_t& x, vector_t& b )=0;
+    virtual void solve(const matrix_t& A, vector_t& x, const vector_t& b )const=0;
 
     ///
     /// \brief type Returns the type of the solver

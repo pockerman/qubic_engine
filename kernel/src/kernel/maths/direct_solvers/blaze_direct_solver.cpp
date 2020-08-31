@@ -15,8 +15,9 @@ BlazeDirectSolver::BlazeDirectSolver(const BlazeDirectSolverConfig& config)
 {}
 
 void
-BlazeDirectSolver::solve(BlazeDirectSolver::matrix_t& A,
-                         BlazeDirectSolver::vector_t& x, BlazeDirectSolver::vector_t& b ){
+BlazeDirectSolver::solve(const BlazeDirectSolver::matrix_t& A,
+                         BlazeDirectSolver::vector_t& x,
+                         const BlazeDirectSolver::vector_t& b )const{
 
     if(A.columns() != x.size()){
         throw std::logic_error("Invalid Matrix-Vector size");

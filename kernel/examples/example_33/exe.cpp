@@ -20,9 +20,9 @@ int main(){
             using kernel::real_t;
             using kernel::uint_t;
             using kernel::maths::solvers::AmesosDirect;
-            using  kernel::maths::solvers::AmesosDirectOptions;
+            using  kernel::maths::solvers::AmesosDirectConfig;
             using kernel::numerics::TrilinosEpetraMatrix;
-            using kernel::algebra::TrilinosEpetraMultiVector;
+            using kernel::maths::algebra::TrilinosEpetraMultiVector;
 
             typedef TrilinosEpetraMatrix::row_entries_t row_entries_t;
             TrilinosEpetraMatrix A;
@@ -60,8 +60,8 @@ int main(){
             }
 
             std::cout<<"Solving system"<<std::endl;
-            AmesosDirectOptions options;
-            options.dstype = kernel::maths::solvers::DirectSolverType::KLU;
+            AmesosDirectConfig options;
+            options.dstype = kernel::maths::solvers::DirectSolverType::LU;
 
             // create the solver
             AmesosDirect solver(options);
