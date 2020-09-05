@@ -18,7 +18,7 @@ namespace control{
 /// \brief The MPCInput struct. Wrap the input
 /// required by the the MPCController class
 ///
-template<typename OptimizerTp, typename ObserverTp, typename PredictorTp>
+template<typename OptimizerTp, typename ObserverTp, typename EstimatorTp>
 struct MPCConfig
 {
     ///
@@ -44,17 +44,22 @@ struct MPCConfig
     ///
     /// \brief predictor_t The type of the predictor
     ///
-    typedef PredictorTp predictor_t;
+    typedef EstimatorTp estimator_t;
 
     ///
     /// \brief predictor_config_t Configuration type of the predictor
     ///
-    typedef typename predictor_t::config_t predictor_config_t;
+    typedef typename estimator_t::config_t estimator_config_t;
 
     ///
     /// \brief vector_t Type of vector
     ///
-    typedef typename OptimizerTp::vector_t vector_t;
+    typedef typename optimizer_t::vector_t vector_t;
+
+    ///
+    /// \brief matrix_t Type of matrix
+    ///
+    typedef typename optimizer_t::matrix_t matrix_t;
 
     ///
     /// \brief opt_config The configuration of the optimizer
@@ -69,22 +74,12 @@ struct MPCConfig
     ///
     /// \brief pred_config The configuration of the predictor
     ///
-    predictor_config_t pred_config;
+    estimator_config_t estimator_config;
 
     ///
     /// \brief x_ref Reference state
     ///
     vector_t x_ref;
-
-    ///
-    /// \brief min min constraints
-    ///
-    vector_t min;
-
-    ///
-    /// \brief max max constraints
-    ///
-    vector_t max;
 
 };
 
@@ -129,9 +124,36 @@ public:
     typedef std::map<std::string, boost::any> input_t;
 
     ///
+    /// \brief vector_t Type of vector
+    ///
+    typedef typename optimizer_t::vector_t vector_t;
+
+    ///
+    /// \brief matrix_t Type of matrix
+    ///
+    typedef typename optimizer_t::matrix_t matrix_t;
+
+    ///
+    /// \brief quadratic_t The type of the quadratic problem to solve
+    ///
+    typedef kernel::maths::opt::QuadraticProblem<matrix_t, vector_t> quadratic_t;
+
+    ///
     /// \brief MPCController. Constructor
     ///
     MPCController(const config_t& config);
+
+    ///
+    /// \brief get_qp Returns read/write reference to the quadratic problem
+    /// to be solved
+    ///
+    quadratic_t& get_qp(){return qp_;}
+
+    ///
+    /// \brief get_qp Returns read reference to the quadratic problem
+    /// to be solved
+    ///
+    const quadratic_t& get_qp()const{return qp_;}
 
     ///
     /// \brief update. Update the controller
@@ -171,6 +193,11 @@ private:
     ///
     estimator_t estimator_;
 
+    ///
+    /// \brief qp The quadratic problem to solve for
+    ///
+    quadratic_t qp_;
+
 };
 
 template<typename OptimizerTp, typename ObserverTp, typename PredictorTp>
@@ -179,7 +206,7 @@ MPCController<OptimizerTp, ObserverTp, PredictorTp>::MPCController(const config_
       config_(config),
       optimizer_(config.opt_config),
       observer_(config.obs_config),
-      estimator_(config.pred_config)
+      estimator_(config.estimator_config)
 {}
 
 
@@ -194,17 +221,18 @@ void
 MPCController<OptimizerTp, ObserverTp, PredictorTp>::solve(const input_t& input){
 
     // input for the estimator
-    auto estimator_in = kernel::utils::InputResolver<input_t, std::string>::resolve("estimator_input", input);
+    auto estimator_in = kernel::utils::InputResolver<input_t, typename PredictorTp::input_t>::resolve("estimator_input", input);
 
     // state estimation
     estimator_.estimate(estimator_in);
 
+    // get the state from the estimator
+    auto& state = estimator_.get_state();
 
-    kernel::maths::opt::QuadraticProblem<typename OptimizerTp::matrix_t,
-                                         typename OptimizerTp::vector_t> qp;
+    //qp_.x = state.as_vector() -  config_.x_ref;
 
     // optimizer solve the quadratic problem
-    optimizer_.solve(qp);
+    optimizer_.solve(qp_);
 
 }
 

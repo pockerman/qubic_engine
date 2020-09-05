@@ -237,8 +237,6 @@ KalmanFilter<MotionModelTp,
     set_matrix("Q", config.Q);
     set_matrix("K", config.K);
     set_matrix("R", config.R);
-
-
 }
 
 template<typename MotionModelTp, typename ObservationModelTp>

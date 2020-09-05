@@ -8,10 +8,12 @@
 #include "kernel/dynamics/system_state.h"
 #include "kernel/dynamics/cart_pole_dynamics.h"
 #include "kernel/maths/constants.h"
-#include "kernel/utilities/csv_file_writer.h"
-#include "kernel/utilities/common_uitls.h"
 #include "kernel/maths/direct_solvers/blaze_direct_solver.h"
 #include "kernel/maths/optimization/admm.h"
+#include "kernel/maths/matrix_utilities.h"
+#include "kernel/utilities/csv_file_writer.h"
+#include "kernel/utilities/common_uitls.h"
+
 
 
 #include <cmath>
@@ -34,7 +36,6 @@ using kernel::dynamics::CartPoleDynamics;
 using kernel::maths::opt::ADMMConfig;
 using kernel::maths::opt::ADMM;
 using kernel::Null;
-
 
 
 // Problem constants
@@ -65,6 +66,8 @@ public:
 
     typedef Null input_t;
 
+    const DynMat<real_t>& get_matrix(const std::string& name)const{}
+
 };
 
 
@@ -85,7 +88,10 @@ int main() {
     try{
 
         // cart-pole dynamics instance
-        CartPoleDynamics dynmics(cpconfig, init_state);
+        CartPoleDynamics dynamics(cpconfig, init_state);
+
+        // observation model
+        ObservationModel obs_model;
 
         typedef MPCConfig<ADMM<DynMat<real_t>, DynVec<real_t>>,
                           Observer, kalman_filter_t> mpc_config_t;
@@ -99,12 +105,45 @@ int main() {
         // configuration of the controller
         mpc_config_t   config;
 
-        config.min = DynVec<real_t>({-1.0, -100, -100, -100});
-        config.max = DynVec<real_t>({1.0, 100.0, 100, 100});
+        std::cout<<"Set up configuration for Quadratic problem"<<std::endl;
+
+        // reference state
         config.x_ref = DynVec<real_t>({0.3, 0.0, 0.0, 0.0});
+
+        std::cout<<"Set up configuration for Kalman Filter"<<std::endl;
+
+        // set up configuration for Kalman Filter
+        config.estimator_config.Q = 10. * kernel::create_identity_matrix<real_t>(init_state.size());
+
+        // set up configuration for Kalman Filter
+        config.estimator_config.R = kernel::create_identity_matrix<real_t>(2);
+
+        // set up configuration for Kalman Filter
+        config.estimator_config.P = kernel::create_identity_matrix<real_t>(init_state.size());
+
+        // set up configuration for Kalman Filter
+        config.estimator_config.B = kernel::create_identity_matrix<real_t>(init_state.size());
+
+        config.estimator_config.motion_model = &dynamics;
+        config.estimator_config.observation_model = &obs_model;
+
 
         // MPC controller
         mpc_control_t mpc_control(config);
+
+        std::cout<<"Setup MPC quadratic problem"<<std::endl;
+
+        // minimum constraints
+        mpc_control.get_qp().l =  DynVec<real_t>({-1.0, -100, -100, -100});
+
+        // maximum constraints
+        mpc_control.get_qp().u = DynVec<real_t>({1.0, 100.0, 100, 100});
+
+        // setup cost for states
+        mpc_control.get_qp().P = kernel::create_diagonal_matrix<real_t>({1.0, 0, 5.0, 0});
+
+
+        std::cout<<"Starting simulation"<<std::endl;
 
         // loop over the MPC steps
         for(uint_t s=0; s<N_STEPS; ++s){
