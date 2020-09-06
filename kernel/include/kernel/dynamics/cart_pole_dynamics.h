@@ -130,6 +130,12 @@ public:
     ///
     void initialize_matrices(const input_t& input);
 
+    ///
+    /// \brief load_from_json Load the dynamics configuration  from
+    /// the given json file
+    ///
+    void load_from_json(const std::string& filename){};
+
 
 private:
 

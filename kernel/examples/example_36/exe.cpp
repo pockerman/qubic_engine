@@ -63,9 +63,6 @@ int main(){
         qp.u.resize(qp.A.rows());
         qp.u[0] = 1.0;
 
-        //qp.l.resize(qp.A.rows());
-        //qp.l[0] = 1.0;
-
         admm.solve(qp);
 
         std::cout<<"QProblem solution: "<<std::endl;

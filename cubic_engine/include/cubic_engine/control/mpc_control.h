@@ -1,6 +1,7 @@
 #ifndef MPC_CONTROL_H
 #define MPC_CONTROL_H
 
+#include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/utilities/input_resolver.h"
 #include "kernel/maths/optimization/quadratic_problem.h"
 
@@ -18,7 +19,7 @@ namespace control{
 /// \brief The MPCInput struct. Wrap the input
 /// required by the the MPCController class
 ///
-template<typename OptimizerTp, typename ObserverTp, typename PredictorTp>
+template<typename OptimizerTp, typename ObserverTp, typename EstimatorTp>
 struct MPCConfig
 {
     ///
@@ -44,17 +45,22 @@ struct MPCConfig
     ///
     /// \brief predictor_t The type of the predictor
     ///
-    typedef PredictorTp predictor_t;
+    typedef EstimatorTp estimator_t;
 
     ///
     /// \brief predictor_config_t Configuration type of the predictor
     ///
-    typedef typename predictor_t::config_t predictor_config_t;
+    typedef typename estimator_t::config_t estimator_config_t;
 
     ///
     /// \brief vector_t Type of vector
     ///
-    typedef typename OptimizerTp::vector_t vector_t;
+    typedef typename optimizer_t::vector_t vector_t;
+
+    ///
+    /// \brief matrix_t Type of matrix
+    ///
+    typedef typename optimizer_t::matrix_t matrix_t;
 
     ///
     /// \brief opt_config The configuration of the optimizer
@@ -69,7 +75,7 @@ struct MPCConfig
     ///
     /// \brief pred_config The configuration of the predictor
     ///
-    predictor_config_t pred_config;
+    estimator_config_t estimator_config;
 
     ///
     /// \brief x_ref Reference state
@@ -77,14 +83,26 @@ struct MPCConfig
     vector_t x_ref;
 
     ///
-    /// \brief min min constraints
+    /// \brief x0 The initial state
     ///
-    vector_t min;
+    vector_t x0;
 
     ///
-    /// \brief max max constraints
+    /// \brief x_previous The previous state solution
+    /// if not set then it is set equal to x0 upon
+    /// the setup function of the controller
     ///
-    vector_t max;
+    vector_t x_previous;
+
+    ///
+    /// \brief Np The prediction horizon
+    ///
+    uint_t Np;
+
+    ///
+    /// \brief Nu The control horizon
+    ///
+    uint_t Nu;
 
 };
 
@@ -129,14 +147,41 @@ public:
     typedef std::map<std::string, boost::any> input_t;
 
     ///
+    /// \brief vector_t Type of vector
+    ///
+    typedef typename optimizer_t::vector_t vector_t;
+
+    ///
+    /// \brief matrix_t Type of matrix
+    ///
+    typedef typename optimizer_t::matrix_t matrix_t;
+
+    ///
+    /// \brief quadratic_t The type of the quadratic problem to solve
+    ///
+    typedef kernel::maths::opt::QuadraticProblem<matrix_t, vector_t> quadratic_t;
+
+    ///
     /// \brief MPCController. Constructor
     ///
     MPCController(const config_t& config);
 
     ///
+    /// \brief get_qp Returns read/write reference to the quadratic problem
+    /// to be solved
+    ///
+    quadratic_t& get_qp(){return qp_;}
+
+    ///
+    /// \brief get_qp Returns read reference to the quadratic problem
+    /// to be solved
+    ///
+    const quadratic_t& get_qp()const{return qp_;}
+
+    ///
     /// \brief update. Update the controller
     ///
-    void update();
+    void update(const vector_t& state, const vector_t* state_ref=nullptr);
 
     ///
     /// \brief solve. Solve the optimization problem
@@ -147,7 +192,7 @@ public:
     /// \brief control_value Returns the control value computed
     /// by the controller to be passed to the application
     ///
-    control_output_t control_value()const;
+    const control_output_t& control_output()const{return control_out_;}
 
 private:
 
@@ -171,46 +216,69 @@ private:
     ///
     estimator_t estimator_;
 
+    ///
+    /// \brief qp The quadratic problem to solve for
+    ///
+    quadratic_t qp_;
+
+    ///
+    /// \brief control_out_ The output we update every
+    /// time the solve method is called
+    ///
+    control_output_t control_out_;
+
 };
 
-template<typename OptimizerTp, typename ObserverTp, typename PredictorTp>
-MPCController<OptimizerTp, ObserverTp, PredictorTp>::MPCController(const config_t& config)
+template<typename OptimizerTp, typename ObserverTp, typename EstimatorTp>
+MPCController<OptimizerTp, ObserverTp, EstimatorTp>::MPCController(const config_t& config)
     :
       config_(config),
       optimizer_(config.opt_config),
       observer_(config.obs_config),
-      estimator_(config.pred_config)
+      estimator_(config.estimator_config)
 {}
 
 
-template<typename OptimizerTp, typename ObserverTp, typename PredictorTp>
+template<typename OptimizerTp, typename ObserverTp, typename EstimatorTp>
 void
-MPCController<OptimizerTp, ObserverTp, PredictorTp>::update(){
+MPCController<OptimizerTp, ObserverTp, EstimatorTp>::update(const vector_t& state, const vector_t* state_ref){
+
+    config_.x_previous = state;
+
+    // update the reference state if needed
+    if(state_ref){
+        config_.x_ref = *state_ref;
+    }
 
 }
 
-template<typename OptimizerTp, typename ObserverTp, typename PredictorTp>
+template<typename OptimizerTp, typename ObserverTp, typename EstimatorTp>
 void
-MPCController<OptimizerTp, ObserverTp, PredictorTp>::solve(const input_t& input){
+MPCController<OptimizerTp, ObserverTp, EstimatorTp>::solve(const input_t& input){
 
     // input for the estimator
-    auto estimator_in = kernel::utils::InputResolver<input_t, std::string>::resolve("estimator_input", input);
+    auto estimator_in = kernel::utils::InputResolver<input_t,
+            typename EstimatorTp::input_t>::resolve("estimator_input", input);
 
-    // state estimation
-    estimator_.estimate(estimator_in);
+    // solve over the prediction
 
+    for(uint_t itr=0; itr<config_.Np; ++itr){
 
-    kernel::maths::opt::QuadraticProblem<typename OptimizerTp::matrix_t,
-                                         typename OptimizerTp::vector_t> qp;
+        // state estimation
+        estimator_.estimate(estimator_in);
 
-    // optimizer solve the quadratic problem
-    optimizer_.solve(qp);
+        // get the state from the estimator
+        auto& state = estimator_.get_state();
 
-}
+        // form the difference between
+        // state vector and state reference
+        qp_.x = state.as_vector() -  config_.x_ref;
 
-template<typename OptimizerTp, typename ObserverTp, typename PredictorTp>
-typename MPCController<OptimizerTp, ObserverTp, PredictorTp>::control_output_t
-MPCController<OptimizerTp, ObserverTp, PredictorTp>::control_value()const{
+        // optimizer solve the quadratic problem
+        optimizer_.solve(qp_);
+
+        // we can now return the control inputs
+    }
 
 }
 
