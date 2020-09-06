@@ -66,12 +66,36 @@ public:
 
     typedef Null input_t;
 
-    const DynMat<real_t>& get_matrix(const std::string& name)const{}
+    ObservationModel();
+
+    const DynMat<real_t>& get_matrix(const std::string& name)const{return H_;}
+
+private:
+
+    DynMat<real_t> H_;
 
 };
 
+ObservationModel::ObservationModel()
+    :
+      H_(2, 4, 0.0)
+{
+   H_(0,0) = 1.0;
+   H_(1, 1)= 1,0;
+}
+
 
 typedef KalmanFilter<CartPoleDynamics, ObservationModel> kalman_filter_t;
+
+typedef MPCConfig<ADMM<DynMat<real_t>, DynVec<real_t>>,
+                  Observer, kalman_filter_t> mpc_config_t;
+
+typedef MPCController<ADMM<DynMat<real_t>, DynVec<real_t>>,
+        Observer, kalman_filter_t> mpc_control_t;
+
+typedef mpc_control_t::input_t mpc_input_t;
+
+typedef CartPoleDynamics::input_t system_input_t;
 
 }
 
@@ -87,19 +111,21 @@ int main() {
 
     try{
 
-        // cart-pole dynamics instance
+        // object describing the system dynamics
+        // we want to control
+        CartPoleDynamics system(cpconfig, init_state);
+
+        // the system does not have to update
+        // its matrix description
+        system.set_matrix_update_flag(false);
+
+        // object describing the cart-pole dynamics
         CartPoleDynamics dynamics(cpconfig, init_state);
 
         // observation model
         ObservationModel obs_model;
 
-        typedef MPCConfig<ADMM<DynMat<real_t>, DynVec<real_t>>,
-                          Observer, kalman_filter_t> mpc_config_t;
-
-        typedef MPCController<ADMM<DynMat<real_t>, DynVec<real_t>>,
-                Observer, kalman_filter_t> mpc_control_t;
-
-        typedef typename mpc_control_t::input_t mpc_input_t;
+        // input instance for MPC controller
         mpc_input_t mpc_input;
 
         // configuration of the controller
@@ -124,8 +150,12 @@ int main() {
         // set up configuration for Kalman Filter
         config.estimator_config.B = kernel::create_identity_matrix<real_t>(init_state.size());
 
+        // motion and observation models
         config.estimator_config.motion_model = &dynamics;
         config.estimator_config.observation_model = &obs_model;
+
+        std::cout<<"Setup configuration for optimizer"<<std::endl;
+        config.opt_config.max_n_iterations = 10;
 
 
         // MPC controller
@@ -145,10 +175,17 @@ int main() {
 
         std::cout<<"Starting simulation"<<std::endl;
 
+        system_input_t sys_in;
+        sys_in["F"] = 0.0;
+
         // loop over the MPC steps
         for(uint_t s=0; s<N_STEPS; ++s){
 
             mpc_control.solve(mpc_input);
+
+            auto& out = mpc_control.control_output();
+            sys_in["F"] = out[0];
+            system.integrate(sys_in);
 
         }
 
