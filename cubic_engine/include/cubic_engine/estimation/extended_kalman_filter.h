@@ -8,6 +8,7 @@
 #include <string>
 
 namespace cengine{
+namespace estimation{
 
 ///
 /// Implements the Extended Kalman filter algorithm.
@@ -241,14 +242,14 @@ ExtendedKalmanFilter<MotionModelTp,
     auto& H = observation_model_ptr_->get_matrix("H");
     auto H_T = trans(H);
 
-    /// compute \partial{h}/\partial{v} the jacobian of the observation model
-    /// w.r.t the error vector
+    // compute \partial{h}/\partial{v} the jacobian of the observation model
+    // w.r.t the error vector
     auto& M = observation_model_ptr_->get_matrix("M");
     auto M_T = trans(M);
 
      try{
 
-        /// S = H*P*H^T + M*R*M^T
+        // S = H*P*H^T + M*R*M^T
         auto S = H*P*H_T + M*R*M_T;
 
         auto S_inv = inv(S);
@@ -292,6 +293,6 @@ ExtendedKalmanFilter<MotionModelTp,
 
 
 }
-
+}
 #endif	/* EXTENDED_KALMAN_FILTER_H */
 

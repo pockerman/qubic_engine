@@ -14,9 +14,11 @@ class TrilinosEpetraVector;
 class TrilinosKrylovSolver;
 struct KrylovSolverResult;
 
+///
 /// \brief A solution policy should
 /// expose the type of the matrix and vector
 /// data structures as well as the solver type
+///
 struct TrilinosSolutionPolicy
 {
     typedef TrilinosEpetraMatrix matrix_t;

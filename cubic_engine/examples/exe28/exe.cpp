@@ -1,14 +1,20 @@
-#include <nlopt.hpp> 
-
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/estimation/unscented_kalman_filter.h"
-#include "kernel/dynamics/diff_drive_dynamics.h"
+#include "cubic_engine/control/mpc_control.h"
+#include "cubic_engine/estimation/kalman_filter.h"
+
 #include "kernel/base/angle_calculator.h"
-#include "kernel/utilities/csv_file_writer.h"
-#include "kernel/dynamics/system_state.h"
-#include "kernel/maths/constants.h"
+#include "kernel/base/physics_constants.h"
 #include "kernel/base/unit_converter.h"
+#include "kernel/dynamics/system_state.h"
+#include "kernel/dynamics/cart_pole_dynamics.h"
+#include "kernel/maths/constants.h"
+#include "kernel/maths/direct_solvers/blaze_direct_solver.h"
+#include "kernel/maths/optimization/admm.h"
+#include "kernel/maths/matrix_utilities.h"
+#include "kernel/utilities/csv_file_writer.h"
 #include "kernel/utilities/common_uitls.h"
+
+
 
 #include <cmath>
 #include <iostream>
@@ -19,217 +25,170 @@ namespace example
 
 using cengine::uint_t;
 using cengine::real_t;
-using kernel::dynamics::DiffDriveDynamics;
-using cengine::estimation::UnscentedKalmanFilter;
 using cengine::DynMat;
 using cengine::DynVec;
+using cengine::control::MPCConfig;
+using cengine::control::MPCController;
+using cengine::estimation::KalmanFilter;
 using kernel::dynamics::SysState;
+using kernel::dynamics::CartPoleConfig;
+using kernel::dynamics::CartPoleDynamics;
+using kernel::maths::opt::ADMMConfig;
+using kernel::maths::opt::ADMM;
+using kernel::Null;
 
-const real_t TOL = 1.0e-8;
-const real_t DT = 0.5;
-const real_t STD_RADAR_RHO = 0.01;
-const real_t STD_RADAR_THETA = 0.01;
-const real_t STD_RADAR_RHO_D = 0.01;
 
-class MotionModel
+// Problem constants
+const uint_t N_STEPS = 300;
+const real_t DT = 0.001;
+const real_t M = 0.5;
+const real_t m = 0.2;
+const real_t L = 0.3;
+const real_t b = 0.1;
+const real_t fphi = 0.1;
+const real_t G = kernel::PhysicsConsts::gravity_constant();
+const real_t phi0 = 15*2*kernel::MathConsts::PI/360.;
+
+class Observer
 {
 public:
 
-    typedef DynMat<real_t> matrix_t;
-    typedef SysState<3> state_t;
-    typedef std::tuple<real_t, real_t,
-                       std::array<real_t, state_t::dimension>> input_t;
+    typedef Null config_t;
 
-    /// constructor
-    MotionModel();
+    Observer(const config_t&)
+    {}
 
-    /// evaluate the motion model
-    DynVec<real_t> evaluate(const DynVec<real_t>& vec,
-                            const input_t& input);
-
-    state_t& get_state(){return state_;}
-    const state_t& get_state()const{return state_;}
-    real_t get(const std::string& name)const{return state_.get(name);}
-
-private:
-
-    /// the state to track
-    SysState<3> state_;
 };
-
-MotionModel::MotionModel()
-    :
-      state_()
-{
-   state_.set(0, {"X", 0.0});
-   state_.set(1, {"Y", 0.0});
-   state_.set(2, {"Theta", 0.0});
-}
-
-DynVec<real_t>
-MotionModel::evaluate(const DynVec<real_t>& vec,
-                      const input_t& input){
-
-    DynVec<real_t> result(vec.size(), 0.0);
-    if(std::fabs(std::get<1>(input)) < TOL){
-
-       real_t v = std::get<0>(input);
-       auto errors = std::get<2>(input);
-       auto distance = v*DT;
-       auto xincrement = (distance + errors[0])*std::cos(state_["Theta"]  + errors[1]);
-       auto yincrement = (distance + errors[0])*std::sin(state_["Theta"]  + errors[1]);
-
-       result [0] = vec [0] + xincrement;
-       result [1] = vec [1] + yincrement;
-       result [2] = vec [2];
-    }
-    else{
-        real_t v = std::get<0>(input);
-        real_t w = std::get<1>(input);
-        auto errors = std::get<2>(input);
-
-        result[0] = vec[0] + (v/w  + errors[0])*(std::sin(state_["Theta"] + w*DT) - std::sin(state_["Theta"]));
-        result[1] = vec[1] - (v/w  + errors[0])*(-std::cos(state_["Theta"] + w*DT) + std::cos(state_["Theta"]));
-        result[2] = vec[2] + w*DT + errors[1];
-
-    }
-
-    return result;
-}
-
-
 class ObservationModel
 {
 
 public:
 
-    typedef  DynVec<real_t> input_t;
+    typedef Null input_t;
 
     ObservationModel();
 
-    std::vector<DynVec<real_t>>
-    evaluate(const std::vector<DynVec<real_t>>& sigma)const;
+    const DynMat<real_t>& get_matrix(const std::string& name)const{return H_;}
 
 private:
 
+    DynMat<real_t> H_;
 
 };
 
-ObservationModel::ObservationModel() 
-{}
-
-std::vector<DynVec<real_t>>
-ObservationModel::evaluate(const std::vector<DynVec<real_t>>& sigma)const{
-
-    std::vector<DynVec<real_t>> result(sigma.size());
-
-    for(uint_t sp=0; sp<sigma.size(); ++sp){
-
-        auto& vec = result[sp];
-        vec.resize(2, 0.0);
-
-        auto x = sigma[sp][0];
-        auto y = sigma[sp][1];
-        auto theta = sigma[sp][2];
-
-        vec[0] = std::sqrt(kernel::utils::sqr(x) +
-                           kernel::utils::sqr(y));
-        vec[1] = theta;
-
-    }
-
-    return result;
+ObservationModel::ObservationModel()
+    :
+      H_(2, 4, 0.0)
+{
+   H_(0,0) = 1.0;
+   H_(1, 1)= 1,0;
 }
 
-const DynVec<real_t> get_measurement(const SysState<3>& state){
-   return DynVec<real_t>({0.0, 0.0});
-}
 
+typedef KalmanFilter<CartPoleDynamics, ObservationModel> kalman_filter_t;
+
+typedef MPCConfig<ADMM<DynMat<real_t>, DynVec<real_t>>,
+                  Observer, kalman_filter_t> mpc_config_t;
+
+typedef MPCController<ADMM<DynMat<real_t>, DynVec<real_t>>,
+        Observer, kalman_filter_t> mpc_control_t;
+
+typedef mpc_control_t::input_t mpc_input_t;
+
+typedef CartPoleDynamics::input_t system_input_t;
 
 }
 
 int main() {
    
     using namespace example;
-    uint_t n_steps = 300;
 
-    ///
-    auto time = 0.0;
+    // wrap the system constants
+    CartPoleConfig cpconfig = {M, m, b, fphi, L, DT, G};
 
-    /// angular velocity
-    auto w = 0.0;
-
-    /// linear velocity
-    auto vt = 1.0;
-
-    std::array<real_t, MotionModel::state_t::dimension> motion_control_error;
-    for(uint_t i=0; i<motion_control_error.size(); ++i){
-        motion_control_error[i] = 0.0;
-    }
-
-    MotionModel motion_model;
-    ObservationModel observation;
-
-    UnscentedKalmanFilter<MotionModel, ObservationModel> ukf(motion_model, observation);
-
-    DynMat<real_t> R(2, 2, 0.0);
-    R(0,0) = STD_RADAR_RHO;
-    R(1, 1) = STD_RADAR_THETA;
-
-
-    DynMat<real_t> Q(MotionModel::state_t::dimension,
-                     MotionModel::state_t::dimension, 0.0);
-
-    DynMat<real_t> P(MotionModel::state_t::dimension,
-                     MotionModel::state_t::dimension, 0.0);
-
-    for(uint_t p=0; p<P.rows(); ++p){
-        P(p, p) = 1.0;
-    }
-
-    ukf.set_matrix("P", P);
-    ukf.set_matrix("R", R);
-    ukf.set_matrix("Q", Q);
-    ukf.initialize_sigma_points(1.0);
-
-    kernel::CSVWriter writer("state", kernel::CSVWriter::default_delimiter(), true);
-    std::vector<std::string> names{"Time", "X", "Y"};
-    writer.write_column_names(names);
+    // initial state
+    DynVec<real_t> init_state={0, 0, phi0, 0};
 
     try{
 
-        uint_t counter=0;
-        for(uint_t step=0; step < n_steps; ++step){
+        // object describing the system dynamics
+        // we want to control
+        CartPoleDynamics system(cpconfig, init_state);
 
-            std::cout<<"At step: "<<step<<" time: "<<time<<std::endl;
+        // the system does not have to update
+        // its matrix description
+        system.set_matrix_update_flag(false);
 
-            auto motion_input = std::make_tuple(vt, w, motion_control_error);
-            ukf.predict(motion_input);
+        // object describing the cart-pole dynamics
+        CartPoleDynamics dynamics(cpconfig, init_state);
 
-            auto& state = motion_model.get_state();
-            auto z = get_measurement(state);
-            ukf.update(z);
-            ukf.update_sigma_points();
+        // observation model
+        ObservationModel obs_model;
 
-            std::cout<<"Position: "
-                    <<ukf.get("X")
-                    <<", "
-                    <<ukf.get("Y")
-                    <<std::endl;
-            std::cout<<"Orientation: "
-                    <<kernel::UnitConverter::rad_to_degrees(ukf.get("Theta"))
-                    <<std::endl;
-            std::cout<<"V: "<<vt<<", W: "<<w<<std::endl;
+        // input instance for MPC controller
+        mpc_input_t mpc_input;
 
-            std::vector<real_t> row(3, 0.0);
-            row[0] = time;
-            row[1] = state.get("X");
-            row[2] = state.get("Y");
-            writer.write_row(row);
+        // configuration of the controller
+        mpc_config_t   config;
 
-            time += DT;
-            counter++;
+        std::cout<<"Set up configuration for Quadratic problem"<<std::endl;
+
+        // reference state
+        config.x_ref = DynVec<real_t>({0.3, 0.0, 0.0, 0.0});
+
+        std::cout<<"Set up configuration for Kalman Filter"<<std::endl;
+
+        // set up configuration for Kalman Filter
+        config.estimator_config.Q = 10. * kernel::create_identity_matrix<real_t>(init_state.size());
+
+        // set up configuration for Kalman Filter
+        config.estimator_config.R = kernel::create_identity_matrix<real_t>(2);
+
+        // set up configuration for Kalman Filter
+        config.estimator_config.P = kernel::create_identity_matrix<real_t>(init_state.size());
+
+        // set up configuration for Kalman Filter
+        config.estimator_config.B = kernel::create_identity_matrix<real_t>(init_state.size());
+
+        // motion and observation models
+        config.estimator_config.motion_model = &dynamics;
+        config.estimator_config.observation_model = &obs_model;
+
+        std::cout<<"Setup configuration for optimizer"<<std::endl;
+        config.opt_config.max_n_iterations = 10;
+
+
+        // MPC controller
+        mpc_control_t mpc_control(config);
+
+        std::cout<<"Setup MPC quadratic problem"<<std::endl;
+
+        // minimum constraints
+        mpc_control.get_qp().l =  DynVec<real_t>({-1.0, -100, -100, -100});
+
+        // maximum constraints
+        mpc_control.get_qp().u = DynVec<real_t>({1.0, 100.0, 100, 100});
+
+        // setup cost for states
+        mpc_control.get_qp().P = kernel::create_diagonal_matrix<real_t>({1.0, 0, 5.0, 0});
+
+
+        std::cout<<"Starting simulation"<<std::endl;
+
+        system_input_t sys_in;
+        sys_in["F"] = 0.0;
+
+        // loop over the MPC steps
+        for(uint_t s=0; s<N_STEPS; ++s){
+
+            mpc_control.solve(mpc_input);
+
+            auto& out = mpc_control.control_output();
+            sys_in["F"] = out[0];
+            system.integrate(sys_in);
+
         }
+
     }
     catch(std::runtime_error& e){
         std::cerr<<"Runtime error: "

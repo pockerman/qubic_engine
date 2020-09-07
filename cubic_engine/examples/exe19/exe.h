@@ -41,7 +41,7 @@ namespace example{
 
 using cengine::real_t;
 using cengine::uint_t;
-using cengine::ExtendedKalmanFilter;
+using cengine::estimation::ExtendedKalmanFilter;
 using cengine::control::CarrotChasingPathTrackController;
 using cengine::grids::WaypointPath;
 using cengine::grids::WayPoint;

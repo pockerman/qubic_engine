@@ -7,6 +7,7 @@
     * [Multi-threading](#multi_threading)
     * [Linear Algebra](#linear_algebra)
     * [Numerics](#numerics)
+	* [Computational Mechanics](#computational_mechanics)
     * [Physics Simulation](#physics_simulation)
     * [Miscellaneous](#miscellaneous)
 
@@ -19,6 +20,7 @@
 - <a href="https://github.com/google/googletest">GTest</a> if testing is enabled
 - <a href="https://github.com/trilinos/Trilinos">Trilinos</a> if it is enabled.
 - <a href="https://github.com/Neargye/magic_enum">```magic_enum```</a> only used if ```__GNUC__ >7 ```
+- <a href="https://github.com/nlohmann/json">Nlohmann JSON</a> used for JSON support
 
 ## <a name="nstallation"></a> Installation
 
@@ -35,6 +37,7 @@ specify the following:
 - ```USE_TRILINOS``` by default is ```OFF``` meaning do not use Trilinos. If the variable is set to ```ON``` then the following
 variables should also be set ```TRILINOS_INCL_DIR``` and ```TRILINOS_LIB_DIR```
 - ```MAGIC_ENUM_INCL_DIR``` if ```magic_enum``` can be supported by the compiler (```__GNUC__ >7 ```)
+- The ```NLOHMANN_JSON_INCL_DIR``` variable for the ```json.hpp``` header
 
 ```
 mkdir build
@@ -42,7 +45,6 @@ cd build
 cmake ..
 make
 make install
-make tests
 ```
 
 ## <a name="documentation"></a> Documentation
@@ -65,6 +67,9 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 
 - <a href="examples/example_4/doc/exe.md">Example 4: </a> Multithreaded Jacobi Iterator
 - <a href="examples/example_6">Example 6: </a> Multithreaded Conjugate Gradient solver
+- <a href="examples/example_34/exe.ipynb">Example 34: </a> Use Trilinos ```Epetra_Vector``` and ```Epetra_CrsMatrix```
+- <a href="examples/example_33/exe.ipynb">Example 33: </a> Use Amesos2 Trilinos Package
+- <a href="examples/example_36/exe.ipynb">Example 36: </a> Alternating direction method of multipliers
 
 
 ### <a name="numerics"></a> Numerics
@@ -82,10 +87,7 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="examples/example_30/doc/exe.ipynb">Example 30: </a> Nonlinear optimization
 
 
-### <a name="physics_simulation"></a> Physics Simulation
-
-- <a href="#">Example 7: </a> Longitudinal Vehicle Model
-- <a href="examples/example_17/doc/exe.md">Example 17: </a>Simulate differential drive system
+### <a name="computational_mechanics"></a> Computational Mechanics
 - <a href="examples/example_19/doc/exe.md">Example 19: </a>Solve Laplace equation with collocated  FVM
 - <a href="examples/example_20/doc/exe.md">Example 20: </a>Solve Laplace equation with collocated  FVM and multiple threads
 - <a href="examples/example_21/doc/exe.md">Example 21: </a>Solve convection equation with FVM
@@ -93,6 +95,12 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="examples/example_23/doc/exe.md">Example 23: </a>Use Backward Euler time stepper
 - <a href="#">Example 24: </a>Solve incompressible Stokes equations
 - <a href="#">Example 25: </a>Solve incompressible Navier-Stokes equations
+
+
+### <a name="physics_simulation"></a> Physics Simulation
+- <a href="#">Example 7: </a> Longitudinal Vehicle Model
+- <a href="examples/example_17/doc/exe.md">Example 17: </a>Simulate differential drive system
+- <a href="examples/example_35/doc/exe.ipynb">Example 35: </a> Bicycle vehicle model
 
 
 ### <a name="miscellaneous"></a> Miscellaneous

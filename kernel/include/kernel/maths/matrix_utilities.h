@@ -5,6 +5,7 @@
 
 #include <random>
 #include <set>
+#include <initializer_list>
 
 namespace kernel{
 
@@ -172,6 +173,66 @@ void center_columns(DynMat<T>& matrix, const DynVec<T>& vals){
         }
     }
 }
+
+///
+/// \brief create_identity_matrix. Create an identity matrix
+/// with shape nrows x nrows.
+///
+template<typename T>
+DynMat<T> create_identity_matrix(uint_t nrows){
+
+    DynMat<T> mat(nrows, nrows);
+
+    for(uint_t r=0; r<nrows; ++r){
+        for(uint_t c=0; c<nrows; ++c){
+            if(c == r){
+                mat(r, r) = static_cast<T>(1);
+            }
+            else{
+               mat(r, c) = static_cast<T>(0);
+            }
+        }
+    }
+
+    return mat;
+}
+
+///
+/// \brief create_identity_matrix. Create a diagonal matrix
+/// with shape diagonal.size()  x diagonal.size().
+///
+template<typename T>
+DynMat<T> create_diagonal_matrix(const std::vector<T>& diagonal){
+
+    DynMat<T> mat(diagonal.size(), diagonal.size());
+
+    for(uint_t r=0; r<diagonal.size(); ++r){
+        for(uint_t c=0; c<diagonal.size(); ++c){
+            if(c == r){
+                mat(r, r) = diagonal[r];
+            }
+            else{
+               mat(r, c) = static_cast<T>(0);
+            }
+        }
+    }
+
+    return mat;
+}
+
+
+///
+/// \brief create_identity_matrix. Create an identity matrix
+/// with shape nrows x nrows.
+///
+template<typename T>
+DynMat<T> create_diagonal_matrix(const std::initializer_list<T>& diagonal){
+
+    std::vector<T> diag(diagonal.begin(), diagonal.end());
+    return create_diagonal_matrix(diag);
+}
+
+
 
 }
 
