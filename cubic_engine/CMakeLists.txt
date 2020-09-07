@@ -151,7 +151,6 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
                  ${PROJECT_SRC_DIR}/ml/unsupervised_learning/utils/*.cpp
                  ${PROJECT_SRC_DIR}/rl/*.cpp
                  ${PROJECT_SRC_DIR}/rl/*/*.cpp
-                 ${PROJECT_SRC_DIR}/optimization/utils/*.cpp
                  ${PROJECT_SRC_DIR}/maths/*.cpp)
 
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
