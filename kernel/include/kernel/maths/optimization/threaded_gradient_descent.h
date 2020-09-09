@@ -1,9 +1,9 @@
 #ifndef THREADED_BATCH_GRADIENT_DESCENT_H
 #define THREADED_BATCH_GRADIENT_DESCENT_H
 
-#include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/optimization/utils/gd_control.h"
-#include "cubic_engine/optimization/utils/gd_info.h"
+#include "kernel/base/types.h"
+#include "kernel/maths/optimization/utils/gd_control.h"
+#include "kernel/maths/optimization/utils/gd_info.h"
 #include "kernel/maths/functions/dummy_function.h"
 
 #include <boost/noncopyable.hpp>
@@ -11,11 +11,14 @@
 #include <iostream>
 #include <vector>
 
-namespace cengine
-{
+namespace kernel{
+namespace maths {
+namespace opt {
 
+///
 /// \brief Implementation of the gradient descent (GC) algorithm
 /// for solving optimization problems.
+///
 template<typename ErrorFunction>
 class ThreadedGd: private boost::noncopyable
 {
@@ -184,6 +187,8 @@ template<typename ErrorFunction>
 void
 ThreadedGd<ErrorFunction>::reset_control(const GDControl& control){
     input_.reset(control);
+}
+}
 }
 }
 

@@ -61,7 +61,7 @@ using kernel::Null;
 using kernel::ThreadedObserverBase;
 using kernel::dynamics::SysState;
 using kernel::dynamics::DiffDriveDynamics;
-using kernel::DiffDriveProperties;
+//using kernel::DiffDriveProperties;
 using kernel::DiffDriveVehicle;
 
 std::mutex msg_mutex;

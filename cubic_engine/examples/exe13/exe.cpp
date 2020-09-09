@@ -1,10 +1,9 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/supervised_learning/logistic_regression.h"
-#include "cubic_engine/optimization/serial_gradient_descent.h"
-#include "cubic_engine/optimization/utils/gd_control.h"
 #include "cubic_engine/maths/confusion_matrix.h"
-
+#include "kernel/maths/optimization/serial_gradient_descent.h"
+#include "kernel/maths/optimization/utils/gd_control.h"
 #include "kernel/maths/functions/real_vector_polynomial.h"
 #include "kernel/maths/errorfunctions/mse_function.h"
 #include "kernel/maths/functions/sigmoid_function.h"
@@ -18,8 +17,8 @@ int main(){
     using cengine::real_t;
     using cengine::DynMat;
     using cengine::DynVec;
-    using cengine::GDControl;
-    using cengine::Gd;
+    using kernel::maths::opt::GDControl;
+    using kernel::maths::opt::Gd;
     using cengine::LogisticRegression;
     using cengine::ConfusionMatrix;
     using kernel::RealVectorPolynomialFunction;

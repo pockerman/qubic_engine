@@ -1,9 +1,8 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/supervised_learning/regressor.h"
-#include "cubic_engine/optimization/serial_gradient_descent.h"
-#include "cubic_engine/optimization/utils/gd_control.h"
-
+#include "kernel/maths/optimization/serial_gradient_descent.h"
+#include "kernel/maths/optimization/utils/gd_control.h"
 #include "kernel/maths/functions/real_vector_polynomial.h"
 #include "kernel/maths/errorfunctions/mse_function.h"
 #include "kernel/utilities/data_set_loaders.h"
@@ -16,8 +15,8 @@ int main(){
     using cengine::real_t;
     using cengine::DynMat;
     using cengine::DynVec;
-    using cengine::GDControl;
-    using cengine::Gd;
+    using kernel::maths::opt::GDControl;
+    using kernel::maths::opt::Gd;
     using cengine::LinearRegression;
     using kernel::RealVectorPolynomialFunction;
     using kernel::MSEFunction;

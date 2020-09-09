@@ -1,7 +1,10 @@
-#include "cubic_engine/optimization/utils/gd_info.h"
+#include "kernel/maths/optimization/utils/gd_info.h"
 
-namespace cengine
-{
+namespace kernel{
+namespace maths {
+namespace opt {
+
+
 
 std::ostream&
 GDInfo::print(std::ostream& out)const{
@@ -11,4 +14,6 @@ GDInfo::print(std::ostream& out)const{
   return out;
 }
 
+}
+}
 }

@@ -1,9 +1,8 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/supervised_learning/logistic_regression.h"
-#include "cubic_engine/optimization/gradient_descent_wrapper.h"
-#include "cubic_engine/optimization/utils/gd_control.h"
-
+#include "kernel/maths/optimization/gradient_descent_wrapper.h"
+#include "kernel/maths/optimization/utils/gd_control.h"
 #include "kernel/maths/functions/real_vector_polynomial.h"
 #include "kernel/maths/errorfunctions/mse_function.h"
 #include "kernel/maths/functions/sigmoid_function.h"
@@ -18,8 +17,8 @@ int main(){
     using cengine::real_t;
     using cengine::DynMat;
     using cengine::DynVec;
-    using cengine::GDControl;
-    using cengine::GradientDescentWrapper;
+    using kernel::maths::opt::GDControl;
+    using kernel::maths::opt::GradientDescentWrapper;
     using cengine::LogisticRegression;
     using cengine::Null;
     using kernel::RealVectorPolynomialFunction;
@@ -30,8 +29,6 @@ int main(){
 
     typedef RealVectorPolynomialFunction hypothesis_t;
     typedef SigmoidFunction<RealVectorPolynomialFunction> transformer_t;
-
-
 
     try{
 

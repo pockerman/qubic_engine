@@ -1,13 +1,19 @@
 #ifndef GD_CONTROL_H
 #define GD_CONTROL_H
 
+#include "kernel/base/types.h"
 #include "kernel/utilities/iterative_algorithm_controller.h"
 #include "kernel/base/kernel_consts.h"
-#include "cubic_engine/base/cubic_engine_types.h"
 
-namespace cengine
-{
 
+namespace kernel{
+namespace maths {
+namespace opt {
+
+///
+/// \brief The GDControl struct Configuration for
+/// Gradient descent
+///
 struct GDControl: public kernel::IterativeAlgorithmController
 {
     constexpr static real_t DEFAULT_LEARNING_RATE = 0.01;
@@ -40,6 +46,8 @@ GDControl::reset(const GDControl& control){
     learning_rate = control.learning_rate;
 }
 
+}
+}
 }
 
 #endif // GD_CONTROL_H

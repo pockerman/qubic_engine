@@ -20,7 +20,7 @@ using cengine::grids::LineSegment;
 using cengine::grids::LineSegmentData;
 using kernel::GeomPoint;
 using kernel::dynamics::SysState;
-using kernel::DiffDriveProperties;
+using kernel::DiffDriveConfig;
 using kernel::Null;
 
 const real_t DT = 0.1;
@@ -34,7 +34,7 @@ public:
     /// Constructor
     Agent(CarrotChasingPathTrackController<Null, LineSegmentData>& path_ctrl_,
           const GeomPoint<2>& goal, real_t goal_r,
-          const  DiffDriveProperties& properties);
+          const  DiffDriveConfig& properties);
 
     /// execute the agent that is go to goal
     void execute();
@@ -71,7 +71,7 @@ private:
 
 Agent::Agent(CarrotChasingPathTrackController<Null, LineSegmentData>& path_ctrl,
              const GeomPoint<2>& goal,
-             real_t goal_r, const  DiffDriveProperties& properties)
+             real_t goal_r, const  DiffDriveConfig& properties)
     :
     controller_ptr_(&path_ctrl),
     platform_(properties),
@@ -196,7 +196,7 @@ int main(){
 
             controller.update(path);
 
-            DiffDriveProperties properties;
+            DiffDriveConfig properties;
             properties.R = 1.; //m
             properties.L = 0.5; //m
             properties.Vmax = 2.0; //m/sec

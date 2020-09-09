@@ -1,12 +1,17 @@
 #ifndef GD_INFO_H
 #define GD_INFO_H
 
-#include "cubic_engine/base/cubic_engine_types.h"
+#include "kernel/base/types.h"
 #include "kernel/utilities/algorithm_info.h"
 
-namespace cengine
-{
+namespace kernel{
+namespace maths {
+namespace opt {
 
+///
+/// \brief The GDInfo struct. Helper for wrapping
+/// up information on the Gradient Descent
+///
 struct GDInfo: public kernel::AlgInfo
 {
 
@@ -28,6 +33,8 @@ operator<<(std::ostream& out,const GDInfo& info){
     return info.print(out);
 }
 
+}
+}
 }
 
 #endif // GD_INFO_H
