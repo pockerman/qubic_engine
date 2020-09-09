@@ -98,7 +98,7 @@ int main() {
     auto time = 0.0;
 
     // the controller to use
-    cengine::PIDControl controller(Kp, Kd, Ki);
+    cengine::control::PIDControl controller(Kp, Kd, Ki);
     exe::VehicleDynamics dynamics(dt);
 
     kernel::CSVWriter writer("velocity", kernel::CSVWriter::default_delimiter(), true);

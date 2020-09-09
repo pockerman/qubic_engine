@@ -1,8 +1,7 @@
-
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/supervised_learning/regressor.h"
-#include "cubic_engine/optimization/serial_gradient_descent.h"
-#include "cubic_engine/optimization/utils/gd_control.h"
+#include "kernel/maths/optimization/serial_gradient_descent.h"
+#include "kernel/maths/optimization/utils/gd_control.h"
 #include "cubic_engine/maths/functions/lasso_function.h"
 #include "cubic_engine/maths/functions/ridge_function.h"
 #include "cubic_engine/maths/functions/elastic_net_function.h"
@@ -20,8 +19,8 @@ int main(){
     using cengine::real_t;
     using cengine::DynMat;
     using cengine::DynVec;
-    using cengine::GDControl;
-    using cengine::Gd;
+    using kernel::maths::opt::GDControl;
+    using kernel::maths::opt::Gd;
     using cengine::LinearRegression;
     using cengine::LassoFunction;
     using cengine::RidgeFunction;

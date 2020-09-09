@@ -2,15 +2,16 @@
 #define BATCH_GRADIENT_DESCENT_WRAPPER_H
 
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/optimization/utils/gd_control.h"
-#include "cubic_engine/optimization/utils/gd_info.h"
-#include "cubic_engine/optimization/serial_gradient_descent.h"
-#include "cubic_engine/optimization/threaded_gradient_descent.h"
+#include "kernel/maths/optimization/utils/gd_control.h"
+#include "kernel/maths/optimization/utils/gd_info.h"
+#include "kernel/maths/optimization/serial_gradient_descent.h"
+#include "kernel/maths/optimization/threaded_gradient_descent.h"
 
 #include <boost/noncopyable.hpp>
 
-namespace cengine
-{
+namespace kernel{
+namespace maths{
+namespace opt{
 
 template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
 class GradientDescentWrapper: private boost::noncopyable
@@ -184,6 +185,8 @@ GradientDescentWrapper<ErrorFunction, Null, Null>::reset_control(const GDControl
     input_.reset(control);
 }
 
+}
+}
 }
 
 #endif // BATCH_GRADIENT_DESCENT_WRAPPER_H

@@ -104,7 +104,11 @@ int main() {
 
     DiffDriveDynamics motion_model;
 
-    motion_model.initialize_matrices({1.0, 0.0, motion_control_error});
+    std::map<std::string, boost::any> input;
+    input["v"] = 1.0;
+    input["w"] = 0.0;
+    input["errors"] = motion_control_error;
+    motion_model.initialize_matrices(input);
     motion_model.set_time_step(dt);
 
     ObservationModel observation;
@@ -153,8 +157,14 @@ int main() {
             }
 
 
-            auto motion_input = std::make_tuple(vt, w, motion_control_error);
+            //auto motion_input = std::make_tuple(vt, w, motion_control_error);
+
+            std::map<std::string, boost::any> motion_input;
+            motion_input["v"] = vt;
+            motion_input["w"] = w;
+            motion_input["errors"] = motion_control_error;
             auto& exact_state = exact_motion_model.evaluate(motion_input);
+
 
             ekf.predict(motion_input);
 

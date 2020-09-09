@@ -111,7 +111,12 @@ StateEstimationThread::initialize(){
     motion_control_error[1] = 0.0;
 
     m_model_.set_time_step(DT);
-    m_model_.initialize_matrices(std::make_tuple(0.0, 0.0, motion_control_error));
+    std::map<std::string, boost::any> m_in;
+    m_in["v"] = 0.0;
+    m_in["w"] = 0.0;
+    m_in["errors"] = motion_control_error;
+
+    m_model_.initialize_matrices(m_in);
 
     {
       /// set the matrices
@@ -184,7 +189,11 @@ StateEstimationThread::run(){
       vobserver.read(v_ctrl_);
       wobserver.read(w_ctrl_);
 
-      auto motion_input = std::make_tuple(v_ctrl_, w_ctrl_, motion_control_error);
+      std::map<std::string, boost::any> motion_input;
+      motion_input["v"] = v_ctrl_;
+      motion_input["w"] = w_ctrl_;
+      motion_input["errors"] = motion_control_error;
+
       ekf_.predict(motion_input);
 
       auto measurement = o_model_.evaluate(ekf_.get_state().as_vector());
