@@ -15,9 +15,7 @@ namespace models {
 
 BicycleVehicleChassis::BicycleVehicleChassis()
     :
-      file_description_(KernelConsts::dummy_string()),
-      metric_system_(PhysicsConsts::default_metric_system()),
-      scalar_props_(),
+      helper_(),
       front_tire_(),
       rear_tire_()
 {}
@@ -35,11 +33,11 @@ BicycleVehicleChassis::load_from_json(const std::string& filename){
     // read from the file stream
     file_stream >> json_data;
 
-    metric_system_ = static_cast<std::string>(json_data["metric_system"]);
-    scalar_props_.insert_or_assign("mass", static_cast<real_t>(json_data["mass"]));
-    scalar_props_.insert_or_assign("inertia", static_cast<real_t>(json_data["inertia_moment"]));
-    scalar_props_.insert_or_assign("l_R", static_cast<real_t>(json_data["l_R"]));
-    scalar_props_.insert_or_assign("l_F", static_cast<real_t>(json_data["l_F"]));
+    helper_.set_metric_system(static_cast<std::string>(json_data["metric_system"]));
+    helper_.set_scalar_property("mass", static_cast<real_t>(json_data["mass"]));
+    helper_.set_scalar_property("inertia", static_cast<real_t>(json_data["inertia_moment"]));
+    helper_.set_scalar_property("l_R", static_cast<real_t>(json_data["l_R"]));
+    helper_.set_scalar_property("l_F", static_cast<real_t>(json_data["l_F"]));
 
     // load the tire model
     std::string front_tire_model_file = static_cast<std::string>(json_data["front_tire_model_filename"]);
@@ -49,26 +47,10 @@ BicycleVehicleChassis::load_from_json(const std::string& filename){
     rear_tire_ = TireModelFactory::build_from_json_file(rear_tire_model_file);
 
     // finally set the file
-    file_description_ = filename;
+    helper_.set_description_file(filename);
 
 }
 
-real_t
-BicycleVehicleChassis::get_scalar_property(const std::string& name)const{
-
-    auto itr = scalar_props_.find(name);
-
-    if(itr == scalar_props_.end()){
-        throw std::logic_error("Scalar property does not exist: " + name);
-    }
-
-    return itr->second;
-}
-
-void
-BicycleVehicleChassis::set_scalar_property(const std::string& name, real_t value){
-    scalar_props_.insert_or_assign(name, value);
-}
 
 BicycleVehicleChassis::force_t
 BicycleVehicleChassis::compute_force(const BicycleVehicleChassis::force_input_t& input)const{

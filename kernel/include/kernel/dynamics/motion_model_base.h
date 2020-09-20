@@ -79,7 +79,13 @@ public:
     ///
     /// \brief Returns the state property with the given name
     ///
-    real_t get(const std::string& name)const{return state_.get(name);}
+    real_t get_state_property(const std::string& name)const{return state_.get(name);}
+
+    ///
+    /// \brief Set the name-th value of the state
+    ///
+    void set_state_property(const std::string& name, real_t value)
+    {state_.set(name,value);}
 
     /// \brief Set the state names
     void set_state_name_value(uint_t i, const std::string& name, real_t val)
@@ -91,11 +97,6 @@ public:
     void set_state_name_value(uint_t i, const std::pair<std::string, real_t>&  val)
     {state_.set(i, val);}
 
-    ///
-    /// \brief Set the name-th value of the state
-    ///
-    void set_state_name_value(const std::string& name, real_t value)
-    {state_.set(name,value);}
 
     ///
     /// \brief Set the time step
