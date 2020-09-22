@@ -37,7 +37,7 @@ public:
     typedef GDInfo output_t;
 
     /// \brief Constructor
-    PYT_StochasticGD(const GDControl& control);
+    PYT_StochasticGD(const GDConfig& control);
 
 
     /// \brief Solves the optimization problem. Returns information
@@ -49,7 +49,7 @@ public:
 private:
 
     /// \brief Control of the algorithm
-    GDControl control_;
+    GDConfig control_;
 
     /// \brief Error function used
     error_t error_func_;
@@ -57,7 +57,7 @@ private:
 };
 
 template<typename ErrorFunction>
-PYT_StochasticGD<ErrorFunction>::PYT_StochasticGD(const GDControl& control)
+PYT_StochasticGD<ErrorFunction>::PYT_StochasticGD(const GDConfig& control)
     :
     control_(control),
     error_func_()

@@ -11,10 +11,10 @@ namespace maths {
 namespace opt {
 
 ///
-/// \brief The GDControl struct Configuration for
+/// \brief The GDConfig struct Configuration for
 /// Gradient descent
 ///
-struct GDControl: public kernel::IterativeAlgorithmController
+struct GDConfig: public kernel::IterativeAlgorithmController
 {
     constexpr static real_t DEFAULT_LEARNING_RATE = 0.01;
 
@@ -22,25 +22,25 @@ struct GDControl: public kernel::IterativeAlgorithmController
     real_t learning_rate;
 
     /// \brief Constructor
-    GDControl( uint_t max_num_itrs,
+    GDConfig( uint_t max_num_itrs,
                real_t tolerance=kernel::KernelConsts::tolerance(),
-               real_t eta=GDControl::DEFAULT_LEARNING_RATE );
+               real_t eta=GDConfig::DEFAULT_LEARNING_RATE );
 
     /// \brief reset
-    virtual void reset(const GDControl& control)final;
+    virtual void reset(const GDConfig& control)final;
 
 };
 
 
 inline
-GDControl::GDControl( uint_t max_num_itrs, real_t tolerance, real_t eta_ )
+GDConfig::GDConfig( uint_t max_num_itrs, real_t tolerance, real_t eta_ )
     :
 kernel::IterativeAlgorithmController(max_num_itrs,  tolerance),
 learning_rate(eta_)
 {}
 
 void
-GDControl::reset(const GDControl& control){
+GDConfig::reset(const GDConfig& control){
 
     this->kernel::IterativeAlgorithmController::reset(control);
     learning_rate = control.learning_rate;

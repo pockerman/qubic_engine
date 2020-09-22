@@ -33,7 +33,7 @@ public:
     typedef GDInfo output_t;
 
     /// \brief Constructor
-    ThreadedGd(const GDControl& input);
+    ThreadedGd(const GDConfig& input);
 
     /// \brief Solves the optimization problem. Returns information
     /// about the performance of the solver.
@@ -51,12 +51,12 @@ public:
                  const Options& options);
 
     /// \brief Reset the control
-    void reset_control(const GDControl& control);
+    void reset_control(const GDConfig& control);
 
 private:
 
     /// \brief The data the GD solver is using
-    GDControl input_;
+    GDConfig input_;
 
     /// \brief The error function to use
     error_t err_function_;
@@ -70,7 +70,7 @@ private:
 };
 template<typename ErrorFunction>
 inline
-ThreadedGd<ErrorFunction>::ThreadedGd(const GDControl& input)
+ThreadedGd<ErrorFunction>::ThreadedGd(const GDConfig& input)
     :
       input_(input),
       err_function_()
@@ -185,7 +185,7 @@ ThreadedGd<ErrorFunction>::do_solve_(const MatType& mat,const VecType& v, Hypoth
 
 template<typename ErrorFunction>
 void
-ThreadedGd<ErrorFunction>::reset_control(const GDControl& control){
+ThreadedGd<ErrorFunction>::reset_control(const GDConfig& control){
     input_.reset(control);
 }
 }

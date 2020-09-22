@@ -32,7 +32,7 @@ public:
     typedef GDInfo output_t;
     
     /// \brief Constructor
-    Gd(const GDControl& input);
+    Gd(const GDConfig& input);
     
     /// \brief Solves the optimization problem. Returns information
     /// about the performance of the solver.
@@ -46,12 +46,12 @@ public:
                  HypothesisFuncType& h, const RegularizerFunc& regularizer);
 
     /// \brief Reset the control
-    void reset_control(const GDControl& control);
+    void reset_control(const GDConfig& control);
       
 private:
     
     /// \brief The control data the GD solver is using
-    GDControl input_;
+    GDConfig input_;
 
     /// \brief The error function to use
     error_t err_function_;
@@ -66,7 +66,7 @@ private:
 
 template<typename ErrorFunction>
 inline
-Gd<ErrorFunction>::Gd(const GDControl& input)
+Gd<ErrorFunction>::Gd(const GDConfig& input)
     :
       input_(input),
       err_function_()
@@ -144,7 +144,7 @@ Gd<ErrorFunction>::do_solve_(const MatType& data,const VecType& y,
 
         if(input_.show_iterations()){
 
-            std::cout<<"BatchGD: iteration: "<<itr<<std::endl;
+            std::cout<<"GD: iteration: "<<itr<<std::endl;
             std::cout<<"\tJold: "<<j_old<<" Jcur: "<<j_current
                      <<" error std::fabs(Jcur-Jold): "<<error
                      <<" exit tolerance: "<<input_.get_exit_tolerance()<<std::endl;
@@ -152,7 +152,7 @@ Gd<ErrorFunction>::do_solve_(const MatType& data,const VecType& y,
 
         j_old = j_current;
 
-    }//itrs
+    }
 
 
     auto state = input_.get_state();
@@ -170,7 +170,7 @@ Gd<ErrorFunction>::do_solve_(const MatType& data,const VecType& y,
 
 template<typename ErrorFunction>
 void
-Gd<ErrorFunction>::reset_control(const GDControl& control){
+Gd<ErrorFunction>::reset_control(const GDConfig& control){
     input_.reset(control);
 }
         
