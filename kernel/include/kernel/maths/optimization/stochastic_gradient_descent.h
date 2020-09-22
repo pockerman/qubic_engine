@@ -38,8 +38,10 @@ public:
     /// \brief Solves the optimization problem. Returns information
     /// about the performance of the solver.
     ///
-    template<typename MatTp, typename VecTp, typename FunctionTp>
-    GDInfo solve(const MatTp& mat,const VecTp& v, FunctionTp& h)const;
+    template<typename MatTp, typename VecTp,
+             typename ErrFunctionTp, typename FunctionTp>
+    GDInfo solve(const MatTp& mat,const VecTp& v,
+                 const ErrFunctionTp& error_metric, FunctionTp& h)const;
 
 private:
 
@@ -64,21 +66,26 @@ SGD::SGD(const GDConfig& input)
 template<typename MatTp, typename VecTp,
          typename ErrFunctionTp, typename FunctionTp>
 GDInfo
+SGD::solve(const MatTp& mat,const VecTp& v,
+           const ErrFunctionTp& error_metric, FunctionTp& h)const{
+    return do_solve_(mat, v, error_metric, h);
+}
+
+template<typename MatTp, typename VecTp,
+         typename ErrFunctionTp, typename FunctionTp>
+GDInfo
 SGD::do_solve_(const MatTp& mat,const VecTp& v,
                const ErrFunctionTp& error_metric, FunctionTp& h)const{
 
-
-    auto total_error = error_metric.total_error();
     auto previous_error = error_metric.max_value();
 
     while(config_.continue_iterations()){
 
-        total_error = error_metric.total_error();
+        auto total_error = 0.0;
         for(uint_t exidx = 0; exidx < mat.rows(); ++ exidx){
 
             auto row = matrix_row_trait<MatTp>::get_row(mat, exidx);
-
-            auto err = v[exidx] - h.predict(row);
+            auto error = v[exidx] - h.predict(row);
 
             // get the gradients with respect to the coefficients
             auto j_grad = error_metric.gradient(row, v[exidx]);
@@ -91,41 +98,20 @@ SGD::do_solve_(const MatTp& mat,const VecTp& v,
 
             // reset again the coeffs
             h.set_coeffs(coeffs);
+            total_error += error;
         }
 
-        real_t error = std::fabs(previous_error - total_error);
-        config_.update_residual(error);
-        uint_t itr = config_.get_current_iteration();
+        real_t abs_error = std::fabs(previous_error - total_error);
+        config_.update_residual(abs_error);
         previous_error = total_error;
 
-
-        //update the coefficients
-        /*auto coeffs = h.coeffs();
-
-        for(uint_t c=0; c<ncoeffs; ++c){
-            coeffs[c] -= input_.learning_rate*j_grads[c];
-        }
-
-        // reset again the coeffs
-        h.set_coeffs(coeffs);
-
-        //recalculate...
-        j_current = err_function_.value(data, y).get_resource();
-
-        real_t error = std::fabs(j_current - j_old);
-        input_.update_residual(error);
-        uint_t itr = input_.get_current_iteration();
-
-        if(input_.show_iterations()){
+        uint_t itr = config_.get_current_iteration();
+        if(config_.show_iterations()){
 
             std::cout<<"SGD: iteration: "<<itr<<std::endl;
-            std::cout<<"\tJold: "<<j_old<<" Jcur: "<<j_current
-                     <<" error std::fabs(Jcur-Jold): "<<error
-                     <<" exit tolerance: "<<input_.get_exit_tolerance()<<std::endl;
+            std::cout<<"\t Error: "<<abs_error
+                     <<" exit tolerance: "<<config_.get_exit_tolerance()<<std::endl;
         }
-
-        j_old = j_current;*/
-
     }//itrs
 }
 

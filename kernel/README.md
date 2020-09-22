@@ -85,6 +85,7 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="examples/example_28/doc/exe.md">Example 28: </a> Newton's method
 - <a href="examples/example_29/doc/exe.md">Example 29: </a> Markov chain sampling
 - <a href="examples/example_30/doc/exe.ipynb">Example 30: </a> Nonlinear optimization
+- <a href="examples/exe37/doc/exe.ipynb">Example 37: </a> Stochastic gradient descent
 
 
 ### <a name="computational_mechanics"></a> Computational Mechanics
