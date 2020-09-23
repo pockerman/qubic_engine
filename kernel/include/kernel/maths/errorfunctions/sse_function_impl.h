@@ -28,7 +28,8 @@ SSEFunction<HypothesisFn, DataSetType,
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 typename SSEFunction<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::output_t
-SSEFunction<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::value(const DataSetType& dataset, const LabelsType& labels)const{
+SSEFunction<HypothesisFn, DataSetType,
+            LabelsType, RegularizerFn>::value(const DataSetType& dataset, const LabelsType& labels)const{
 
     if(dataset.rows() != labels.size()){
        throw std::invalid_argument("Invalid number of data points and labels vector size");
@@ -62,16 +63,34 @@ SSEFunction<HypothesisFn, DataSetType,
 
     for(uint_t rowIdx=0; rowIdx<dataset.rows(); ++rowIdx){
 
-        auto row = get_row(dataset, rowIdx);
-        auto diff = (labels[rowIdx] - h_ptr_->value(row));
-        auto hypothesis_grads = h_ptr_->coeff_grads(row);
+        auto grad = gradient(get_row(dataset, rowIdx), labels[rowIdx]);
+        gradients += grad;
 
-        for(int coeff=0; coeff<h_ptr_->n_coeffs(); ++coeff){
-            gradients[coeff] += -2.0*diff*hypothesis_grads[coeff];
-        }
+        /*for(int coeff=0; coeff<h_ptr_->n_coeffs(); ++coeff){
+            gradients[coeff] += grad[coeff];
+        }*/
     }
 
     return gradients;
+}
+
+template<typename HypothesisFn, typename DataSetType,
+         typename LabelsType, typename RegularizerFn>
+template<typename RowTp, typename LabelTp>
+DynVec<real_t>
+SSEFunction<HypothesisFn, DataSetType,
+            LabelsType, RegularizerFn>::gradient(const RowTp& row, const LabelTp& label)const{
+
+    DynVec<real_t> grad(h_ptr_->n_coeffs(), 0.0);
+
+    auto diff = (label - h_ptr_->value(row));
+    auto hypothesis_grads = h_ptr_->coeff_grads(row);
+
+    for(int coeff=0; coeff<h_ptr_->n_coeffs(); ++coeff){
+            grad[coeff] += -2.0*diff*hypothesis_grads[coeff];
+    }
+
+    return grad;
 }
 
 ///==============================================================================================

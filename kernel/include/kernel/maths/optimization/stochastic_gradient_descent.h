@@ -10,6 +10,7 @@
 #include <chrono>
 #include <iostream>
 #include <vector>
+#include <limits>
 
 namespace kernel {
 namespace maths{
@@ -77,7 +78,13 @@ GDInfo
 SGD::do_solve_(const MatTp& mat,const VecTp& v,
                const ErrFunctionTp& error_metric, FunctionTp& h)const{
 
-    auto previous_error = error_metric.max_value();
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
+
+    GDInfo result;
+    result.learning_rate = config_.learning_rate;
+
+    auto previous_error = std::numeric_limits<real_t>::min();
 
     while(config_.continue_iterations()){
 
@@ -85,7 +92,13 @@ SGD::do_solve_(const MatTp& mat,const VecTp& v,
         for(uint_t exidx = 0; exidx < mat.rows(); ++ exidx){
 
             auto row = matrix_row_trait<MatTp>::get_row(mat, exidx);
-            auto error = v[exidx] - h.predict(row);
+            auto val = h.value(row);
+
+            if(config_.show_iterations()){
+                std::cout<<"\t Hypothesis value: "<<val<<std::endl;
+            }
+
+            auto error = v[exidx] - val;
 
             // get the gradients with respect to the coefficients
             auto j_grad = error_metric.gradient(row, v[exidx]);
@@ -109,10 +122,24 @@ SGD::do_solve_(const MatTp& mat,const VecTp& v,
         if(config_.show_iterations()){
 
             std::cout<<"SGD: iteration: "<<itr<<std::endl;
-            std::cout<<"\t Error: "<<abs_error
-                     <<" exit tolerance: "<<config_.get_exit_tolerance()<<std::endl;
+            std::cout<<"\t eta: "<<config_.learning_rate
+                     <<" Error: "<<abs_error
+                     <<" Tol: "<<config_.get_exit_tolerance()<<std::endl;
         }
     }//itrs
+
+    auto state = config_.get_state();
+
+    end = std::chrono::system_clock::now();
+    result.runtime = end-start;
+    result.nprocs = 1;
+    result.nthreads = 1;
+    result.converged = state.converged;
+    result.residual = state.residual;
+    result.tolerance = state.tolerance;
+    result.niterations = state.num_iterations;
+
+    return result;
 }
 
 }
