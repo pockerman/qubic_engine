@@ -36,6 +36,7 @@ using kernel::dynamics::CartPoleDynamics;
 using kernel::maths::opt::ADMMConfig;
 using kernel::maths::opt::ADMM;
 using kernel::Null;
+using kernel::CSVWriter;
 
 
 // Problem constants
@@ -109,11 +110,19 @@ int main() {
     // initial state
     DynVec<real_t> init_state={0, 0, phi0, 0};
 
+    // object describing the system dynamics
+    // we want to control
+    CartPoleDynamics system(cpconfig, init_state);
+
+
+    CSVWriter csv_writer("state.csv", ',', true);
+    auto names = system.get_state_variables_names();
+    csv_writer.write_column_names(names);
+
+
     try{
 
-        // object describing the system dynamics
-        // we want to control
-        CartPoleDynamics system(cpconfig, init_state);
+
 
         // the system does not have to update
         // its matrix description
@@ -140,14 +149,8 @@ int main() {
 
         // set up configuration for Kalman Filter
         config.estimator_config.Q = 10. * kernel::create_identity_matrix<real_t>(init_state.size());
-
-        // set up configuration for Kalman Filter
         config.estimator_config.R = kernel::create_identity_matrix<real_t>(2);
-
-        // set up configuration for Kalman Filter
         config.estimator_config.P = kernel::create_identity_matrix<real_t>(init_state.size());
-
-        // set up configuration for Kalman Filter
         config.estimator_config.B = kernel::create_identity_matrix<real_t>(init_state.size());
 
         // motion and observation models
@@ -156,7 +159,6 @@ int main() {
 
         std::cout<<"Setup configuration for optimizer"<<std::endl;
         config.opt_config.max_n_iterations = 10;
-
 
         // MPC controller
         mpc_control_t mpc_control(config);
@@ -171,7 +173,6 @@ int main() {
 
         // setup cost for states
         mpc_control.get_qp().P = kernel::create_diagonal_matrix<real_t>({1.0, 0, 5.0, 0});
-
 
         std::cout<<"Starting simulation"<<std::endl;
 

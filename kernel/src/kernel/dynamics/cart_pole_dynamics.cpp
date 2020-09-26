@@ -88,6 +88,7 @@ CartPoleDynamics::integrate(const CartPoleDynamics::input_t& input){
     this->state_[2] += dt*values[3];
     this->state_[3] += dt*((M + m) * (g * sin_theta - fphi * omega) - m * l * omega * omega * sin_theta * cos_theta - (F - b * v) * cos_theta) / (l * (M + m * (1 - cos_theta_2)));
 
+
 }
 
 

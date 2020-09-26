@@ -6,6 +6,8 @@
 
 #include "boost/noncopyable.hpp"
 #include <memory>
+#include <vector>
+#include <string>
 
 namespace kernel{
 namespace dynamics{
@@ -51,6 +53,13 @@ public:
     ///
     state_t& get_state(){return state_;}
 
+    ///
+    /// \brief get_state_variables_names. Returns the name of the
+    /// variables in the state
+    ///
+    std::vector<std::string_view> get_state_variables_names()const
+    {return state_.get_names();}
+
     matrix_t& get_matrix(const std::string& name){return matrix_description_.get_matrix(name);}
     const matrix_t& get_matrix(const std::string& name)const{return matrix_description_.get_matrix(name);}
     void set_matrix(const std::string& name, const matrix_t& mat){matrix_description_.set_matrix(name, mat);}
@@ -74,7 +83,8 @@ public:
     /// \brief Returns true if the matrix with the given name 
     /// already exists
     ///
-    bool has_matrix(const std::string& name)const{return matrix_description_.has_matrix(name);}
+    bool has_matrix(const std::string& name)const
+    {return matrix_description_.has_matrix(name);}
 
     ///
     /// \brief Returns the state property with the given name

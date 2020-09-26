@@ -106,7 +106,7 @@ public:
     state_t& get_state(){return motion_model_ptr_->get_state();}
 
     /// \brief Returns the state property with the given name
-    real_t get(const std::string& name)const{return motion_model_ptr_->get(name);}
+    real_t get(const std::string& name)const{return motion_model_ptr_->get_state_property(name);}
 
     /// \brief Returns the name-th matrix
     const DynMat<real_t>& operator[](const std::string& name)const;

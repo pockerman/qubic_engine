@@ -7,6 +7,7 @@
 #include "kernel/discretization/mesh_predicates.h"
 #include <vector>
 #include <tuple>
+#include <initializer_list>
 
 namespace kernel{
 
@@ -28,7 +29,13 @@ public:
               bool open_file=false, const std::ios_base::openmode mode=std::ios_base::out);
 
     /// \brief Write the column names
-    void write_column_names(const std::vector<std::string>& col_names, bool wheader=true);
+    void write_column_names(const std::vector<std::string>& col_names, bool write_header=true);
+
+    /// \brief Write the column names
+    void write_column_names(const std::vector<std::string_view>& col_names, bool write_header=true);
+
+    /// \brief Write the column names
+    void write_column_names(const std::initializer_list<std::string_view>& col_names, bool write_header=true);
 
     /// \brief Write a row of the file
     template<typename T>

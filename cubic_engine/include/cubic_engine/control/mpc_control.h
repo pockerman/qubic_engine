@@ -16,7 +16,7 @@ namespace control{
 
 
 ///
-/// \brief The MPCInput struct. Wrap the input
+/// \brief The MPCConfig struct. Wrap the input
 /// required by the the MPCController class
 ///
 template<typename OptimizerTp, typename ObserverTp, typename EstimatorTp>
@@ -278,8 +278,8 @@ MPCController<OptimizerTp, ObserverTp, EstimatorTp>::solve(const input_t& input)
         optimizer_.solve(qp_);
 
         // we can now return the control inputs
+        control_out_ = qp_.x;
     }
-
 }
 
 }
