@@ -7,7 +7,7 @@ namespace kernel
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 SSEFunction<HypothesisFn, DataSetType,
-            LabelsType, RegularizerFn>::SSEFunction(const typename SSEFunction<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::hypothesis_t& h)
+            LabelsType, RegularizerFn>::SSEFunction(const hypothesis_t& h)
     :
    FunctionBase<ResultHolder<real_t>, DataSetType, LabelsType>(),
    h_ptr_(&h),
@@ -17,8 +17,8 @@ SSEFunction<HypothesisFn, DataSetType,
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 SSEFunction<HypothesisFn, DataSetType,
-            LabelsType, RegularizerFn>::SSEFunction(const typename SSEFunction<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::hypothesis_t& h,
-                                                    const typename SSEFunction<HypothesisFn, DataSetType, LabelsType, RegularizerFn>::regularizer_t& r)
+            LabelsType, RegularizerFn>::SSEFunction(const hypothesis_t& h,
+                                                    const regularizer_t& r)
     :
    FunctionBase<ResultHolder<real_t>, DataSetType, LabelsType>(),
    h_ptr_(&h),
@@ -65,10 +65,6 @@ SSEFunction<HypothesisFn, DataSetType,
 
         auto grad = gradient(get_row(dataset, rowIdx), labels[rowIdx]);
         gradients += grad;
-
-        /*for(int coeff=0; coeff<h_ptr_->n_coeffs(); ++coeff){
-            gradients[coeff] += grad[coeff];
-        }*/
     }
 
     return gradients;
@@ -87,7 +83,7 @@ SSEFunction<HypothesisFn, DataSetType,
     auto hypothesis_grads = h_ptr_->coeff_grads(row);
 
     for(int coeff=0; coeff<h_ptr_->n_coeffs(); ++coeff){
-            grad[coeff] += -2.0*diff*hypothesis_grads[coeff];
+            grad[coeff] = -2.0*diff*hypothesis_grads[coeff];
     }
 
     return grad;

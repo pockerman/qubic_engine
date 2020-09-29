@@ -5,7 +5,8 @@
 * [Documentation](#documentation)
 * [Examples Map](#examples_map)
     * [Multi-threading](#multi_threading)
-    * [Linear Algebra](#linear_algebra)
+    * [Computational Linear Algebra](#linear_algebra)
+	* [Optimization](#optimization)
     * [Numerics](#numerics)
 	* [Computational Mechanics](#computational_mechanics)
     * [Physics Simulation](#physics_simulation)
@@ -63,13 +64,19 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="examples/example_12">Example 12: </a> Producer-Consumer pattern
 - <a href="examples/example_13">Example 13: </a> ```parallel_for``` pattern with ```OMPExecutor``` class
 
-### <a name="linear_algebra"></a> Linear Algebra
+### <a name="linear_algebra"></a> Computational Linear Algebra
 
 - <a href="examples/example_4/doc/exe.md">Example 4: </a> Multithreaded Jacobi Iterator
 - <a href="examples/example_6">Example 6: </a> Multithreaded Conjugate Gradient solver
 - <a href="examples/example_34/exe.ipynb">Example 34: </a> Use Trilinos ```Epetra_Vector``` and ```Epetra_CrsMatrix```
 - <a href="examples/example_33/exe.ipynb">Example 33: </a> Use Amesos2 Trilinos Package
-- <a href="examples/example_36/exe.ipynb">Example 36: </a> Alternating direction method of multipliers
+
+
+### <a name="optimization"></a> Optimization
+
+- <a href="examples/example_30/doc/exe.ipynb">Example 30: </a> Nonlinear optimization
+- <a href="examples/example_36/exe.ipynb">Example 36: </a> Alternating Direction Method of Multipliers
+- <a href="examples/example_37/doc/exe.ipynb">Example 37: </a> Stochastic Gradient Descent
 
 
 ### <a name="numerics"></a> Numerics
@@ -84,8 +91,7 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="examples/example_27/doc/exe.md">Example 27: </a> Monte Carlo simulation for the Monty Hall Problem
 - <a href="examples/example_28/doc/exe.md">Example 28: </a> Newton's method
 - <a href="examples/example_29/doc/exe.md">Example 29: </a> Markov chain sampling
-- <a href="examples/example_30/doc/exe.ipynb">Example 30: </a> Nonlinear optimization
-- <a href="examples/exe37/doc/exe.ipynb">Example 37: </a> Stochastic gradient descent
+
 
 
 ### <a name="computational_mechanics"></a> Computational Mechanics

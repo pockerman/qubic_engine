@@ -88,25 +88,27 @@ SGD::do_solve_(const MatTp& mat,const VecTp& v,
 
     while(config_.continue_iterations()){
 
+        if(config_.show_iterations()){
+
+            std::cout<<"SGD: iteration: "<<config_.get_current_iteration()
+                     <<" eta: "<<config_.learning_rate<<std::endl;
+        }
+
+        // total error for iteration
         auto total_error = 0.0;
         for(uint_t exidx = 0; exidx < mat.rows(); ++ exidx){
 
+
             auto row = matrix_row_trait<MatTp>::get_row(mat, exidx);
             auto val = h.value(row);
-
-            if(config_.show_iterations()){
-                std::cout<<"\t Hypothesis value: "<<val<<std::endl;
-            }
-
             auto error = v[exidx] - val;
 
             // get the gradients with respect to the coefficients
             auto j_grad = error_metric.gradient(row, v[exidx]);
-
             auto coeffs = h.coeffs();
 
             for(uint_t c=0; c<coeffs.size(); ++c){
-               coeffs[c] += config_.learning_rate*j_grad[c];
+               coeffs[c] += -config_.learning_rate*j_grad[c];
             }
 
             // reset again the coeffs
@@ -121,9 +123,7 @@ SGD::do_solve_(const MatTp& mat,const VecTp& v,
         uint_t itr = config_.get_current_iteration();
         if(config_.show_iterations()){
 
-            std::cout<<"SGD: iteration: "<<itr<<std::endl;
-            std::cout<<"\t eta: "<<config_.learning_rate
-                     <<" Error: "<<abs_error
+            std::cout<<"\tAbsolute Total Error: "<<abs_error
                      <<" Tol: "<<config_.get_exit_tolerance()<<std::endl;
         }
     }//itrs

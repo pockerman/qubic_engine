@@ -25,13 +25,20 @@ public:
     ///
     RealVectorPolynomialFunction();
 
-    /// \brief Constructor Create a polynomial where each variable has order 1
+    ///
+    /// \brief Constructor Create a polynomial where
+    /// each variable has order 1
+    ///
     RealVectorPolynomialFunction(const std::vector<real_t>& coeffs);
 
+    ///
     /// \brief Constructor
+    ///
     RealVectorPolynomialFunction(const DynVec<real_t>& coeffs, const std::vector<int>& order);
 
+    ///
     /// \brief Build the function from the given coeffs and orders
+    ///
     void create_from(const DynVec<real_t>& coeffs, const std::vector<int>& order);
 
     ///
@@ -84,10 +91,13 @@ public:
     ///
     real_t coeff(uint_t c)const{return monomials_[c].coeff();}
 
+
+
 private:
 
-
+    ///
     /// \brief The monomials representing the polynomial
+    ///
     std::vector<Monomial> monomials_;
 
 };
