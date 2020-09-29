@@ -29,19 +29,36 @@ public:
     typedef HypothesisFn hypothesis_t;
     typedef RegularizerFn regularizer_t;
 
+    ///
     /// \brief Constructor
+    ///
     SSEFunction(const hypothesis_t& h);
 
+    ///
     /// \brief Constructor
+    ///
     SSEFunction(const hypothesis_t& h, const regularizer_t& r);
 
+    ///
     /// \brief Returns the value of the function
+    ///
     virtual output_t value(const DataSetType& dataset, const LabelsType& labels)const override final;
 
+    ///
     /// \brief Returns the gradients of the function
+    ///
     virtual DynVec<real_t> gradients(const DataSetType& dataset, const LabelsType& labels)const override final;
 
+    ///
+    /// \brief Returns the gradient of the function
+    /// on the given point
+    ///
+    template<typename RowTp, typename LabelTp>
+    DynVec<real_t> gradient(const RowTp& row, const LabelTp& label)const;
+
+    ///
     /// \brief Returns the number of coefficients
+    ///
     virtual uint_t n_coeffs()const override final{return 1;}
 
 private:

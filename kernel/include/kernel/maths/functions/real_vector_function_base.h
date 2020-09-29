@@ -7,10 +7,10 @@
 namespace kernel
 {
 
-/**
-  *Base class for modelling real vector valued functions
-  */
-
+///
+/// \brief The RealVectorValuedFunctionBase class.
+/// Base class for modelling real vector valued functions
+///
 class RealVectorValuedFunctionBase: public FunctionBase<real_t, DynVec<real_t> >
 {
 
@@ -20,30 +20,32 @@ public:
     typedef FunctionBase<real_t, DynVec<real_t>>::output_t output_t;
 
 
-    /**
-      * Destructor
-      */
+    ///
+    /// \brief Destructor
+    ///
     virtual ~RealVectorValuedFunctionBase(){}
 
 
-    /**
-      * Returns the gradient of the function for the i-th variable
-      */
+    ///
+    /// \brief Returns the gradient of the function for the i-th variable
+    ///
     virtual real_t grad(uint_t i, const DynVec<real_t>& point)const=0;
 
 
-    /**
-      * Returns the gradient of the function for the i-th coefficient
-      */
+    ///
+    /// \brief Returns the gradient of the function for the i-th coefficient
+    ///
     virtual real_t coeff_grad(uint_t i, const DynVec<real_t>& point)const=0;
 
 
 protected:
 
-    /**
-      * Constructor
-      */
+    ///
+    /// \brief Constructor
+    ///
     RealVectorValuedFunctionBase();
+
+private:
 
 };
 

@@ -105,6 +105,28 @@ RealVectorPolynomialFunction::value(const RealVectorPolynomialFunction::input_t&
 
         result += monomials_[i++].value(item);
     }
+
+    /*if(result >= 0.0){
+        return 1.0;
+    }
+
+    if(result < 0.0){
+        return 0.0;
+    }*/
+
+    /*if(this->is_max_clipped()){
+        if(result > this->get_max_clip_limit_value()){
+            result = this->get_max_clip_value();
+        }
+    }
+
+    if(this->is_min_clipped()){
+        if(result < this->get_min_clip_limit_value()){
+            result = this->get_min_clip_value();
+        }
+    }*/
+
+
     return result;
 }
 

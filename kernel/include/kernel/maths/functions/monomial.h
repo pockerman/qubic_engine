@@ -3,13 +3,16 @@
 
 #include "kernel/base/types.h"
 #include "kernel/maths/functions/function_base.h"
+
 #include <cmath>
+
+
 namespace kernel
 {
 
-/**
- * Represents a function of the form f(x) = a*x^k
- */
+///
+/// \brief Represents a function of the form f(x) = a*x^k
+///
 class Monomial: public FunctionBase<real_t, real_t>
 {
 
@@ -18,61 +21,62 @@ public:
     typedef real_t input_t;
     typedef FunctionBase<real_t, real_t>::output_t output_t;
 
-    /**
-      * Constructor
-      */
+    ///
+    /// \brief Constructor
+    ///
     Monomial();
 
-    /**
-      * Constructor
-      */
+    ///
+    /// \brief Constructor
+    ///
     Monomial(real_t coeff, int order);
 
-    /**
-     * Returns the value of the function
-     */
+    ///
+    /// \brief Returns the value of the function
+    ///
     virtual output_t value(const input_t& input)const override final;
 
-    /**
-      * Returns the gradients of the function
-      */
-    virtual DynVec<real_t> gradients(const input_t&  input)const override final{return DynVec<real_t>(1, coeff_*order_*std::pow(input, order_-1));}
+    ///
+    /// \brief Returns the gradients of the function
+    ///
+    virtual DynVec<real_t> gradients(const input_t&  input)const override final
+    {return DynVec<real_t>(1, coeff_*order_*std::pow(input, order_-1));}
 
-    /**
-      * Returns the gradient with respect to the coefficient
-      */
+    ///
+    /// \brief Returns the gradient with respect to the coefficient
+    ///
     real_t coeff_grad(const input_t& input)const{ return std::pow(input, order_);}
 
-     /**
-       * Returns the number of coefficients
-       */
+    ///
+    /// \brief Returns the number of coefficients
+    ///
     virtual uint_t n_coeffs()const final{return 1;}
 
-     /**
-       * create the monomial from the given data
-       */
+    ///
+    /// \brief Create the monomial from the given data
+    ///
     void create_from(const real_t coeffs, const int order);
 
-    /**
-      * Returns the coefficient
-      */
+    ///
+    /// \brief Returns the coefficient
+    ///
     real_t coeff()const{return coeff_;}
 
-    /**
-      * Set the coefficient
-      */
+    ///
+    /// \brief Set the coefficient
+    ///
     void set_coeff(real_t coeff){coeff_ = coeff;}
 
 private:
 
-     /**
-       * The coefficient
-       */
+     ///
+     /// \brief The coefficient
+     ///
      real_t coeff_;
 
-     /**
-       * The order of the monomial
-       */
+     ///
+     /// \brief The order of the monomial
+     ///
      int order_;
 };
 
