@@ -23,7 +23,9 @@ class LogisticRegression: private boost::noncopyable
     typedef TransformerType transformer_t;
     typedef uint_t output_t;
 
+    ///
     /// \brief Constructor
+    ///
     LogisticRegression();
 
     /// \brief Constructor. Set the initial coeffs of the
@@ -38,18 +40,24 @@ class LogisticRegression: private boost::noncopyable
     typename Trainer::output_t
     train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer);
 
+    ///
     /// \brief Train the model
+    ///
     template<typename DataSetType, typename LabelsType,
              typename Trainer, typename RegularizerType>
     typename Trainer::output_t
     train(const DataSetType& dataset, const LabelsType& labels,
           Trainer& trainer, const RegularizerType& regularizer);
 
+    ///
     /// \brief Predict the class for the given data point
+    ///
     template<typename DataPoint>
     output_t predict(const DataPoint& point)const;
 
+    ///
     /// \brief Predict on the data set
+    ///
     template<typename DataSet, typename OutputType>
     void predict(const DataSet& point, OutputType& out)const;
 
