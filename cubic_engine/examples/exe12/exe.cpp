@@ -15,7 +15,7 @@ int main(){
     using cengine::real_t;
     using cengine::DynMat;
     using cengine::DynVec;
-    using kernel::maths::opt::GDControl;
+    using kernel::maths::opt::GDConfig;
     using kernel::maths::opt::Gd;
     using cengine::LinearRegression;
     using kernel::RealVectorPolynomialFunction;
@@ -34,8 +34,8 @@ int main(){
         // set initial weights to 0
         LinearRegression regressor({0.0, 0.0});
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(),
-                          GDControl::DEFAULT_LEARNING_RATE);
+        GDConfig control(10000, kernel::KernelConsts::tolerance(),
+                          GDConfig::DEFAULT_LEARNING_RATE);
 
         Gd<error_t> gd(control);
 
