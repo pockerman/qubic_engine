@@ -76,7 +76,8 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 
 - <a href="examples/example_30/doc/exe.ipynb">Example 30: </a> Nonlinear optimization
 - <a href="examples/example_36/exe.ipynb">Example 36: </a> Alternating Direction Method of Multipliers
-- <a href="examples/example_37/doc/exe.ipynb">Example 37: </a> Stochastic Gradient Descent
+- <a href="examples/example_37/doc/exe.ipynb">Example 37: </a> Unconstrained optimization with Stochastic Gradient Descent
+- <a href="examples/example_38/doc/exe.ipynb">Example 38: </a> Unconstrained optimization with Gradient Descent
 
 
 ### <a name="numerics"></a> Numerics
