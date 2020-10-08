@@ -17,7 +17,7 @@ int main(){
     using cengine::real_t;
     using cengine::DynMat;
     using cengine::DynVec;
-    using kernel::maths::opt::GDControl;
+    using kernel::maths::opt::GDConfig;
     using kernel::maths::opt::GradientDescentWrapper;
     using cengine::LogisticRegression;
     using cengine::Null;
@@ -43,8 +43,8 @@ int main(){
             std::cout<<"Serial GD..."<<std::endl;
 
             typedef MSEFunction<transformer_t, DynMat<real_t>, DynVec<uint_t>> error_t;
-            GDControl control(10000, kernel::KernelConsts::tolerance(),
-                              GDControl::DEFAULT_LEARNING_RATE);
+            GDConfig control(10000, kernel::KernelConsts::tolerance(),
+                              GDConfig::DEFAULT_LEARNING_RATE);
 
             /// load the dataset
             auto dataset = kernel::load_reduced_iris_data_set();
@@ -78,7 +78,7 @@ int main(){
             /// we need a partitioned data set
             auto dataset = kernel::load_reduced_iris_data_set_with_partitions(executor.get_n_threads());
 
-            GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
+            GDConfig control(10000, kernel::KernelConsts::tolerance(), GDConfig::DEFAULT_LEARNING_RATE);
 
             // this is a serial implmentation
             GradientDescentWrapper<error_t, ThreadPool, Null> gd(control, executor, Null() );

@@ -19,7 +19,7 @@ int main(){
     using cengine::real_t;
     using cengine::DynMat;
     using cengine::DynVec;
-    using kernel::maths::opt::GDControl;
+    using kernel::maths::opt::GDConfig;
     using kernel::maths::opt::Gd;
     using cengine::LinearRegression;
     using cengine::LassoFunction;
@@ -53,8 +53,8 @@ int main(){
             lasso_t lasso(regressor.get_model(), LASSO_COEF, 1,
                           regressor.get_model().n_coeffs());
 
-            GDControl control(10000, kernel::KernelConsts::tolerance(),
-                                       GDControl::DEFAULT_LEARNING_RATE);
+            GDConfig control(10000, kernel::KernelConsts::tolerance(),
+                                       GDConfig::DEFAULT_LEARNING_RATE);
 
             typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, lasso_t> error_t;
             Gd<error_t> gd(control);
@@ -77,8 +77,8 @@ int main(){
             ridge_t ridge(regressor.get_model(), RIDGE_COEF, 1,
                           regressor.get_model().n_coeffs());
 
-            GDControl control(10000, kernel::KernelConsts::tolerance(),
-                              GDControl::DEFAULT_LEARNING_RATE);
+            GDConfig control(10000, kernel::KernelConsts::tolerance(),
+                              GDConfig::DEFAULT_LEARNING_RATE);
 
             // the error function to to use for measuring the error
             typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, ridge_t> error_t;
@@ -102,8 +102,8 @@ int main(){
              elastic_net_t elastic_net(regressor.get_model(), LASSO_COEF, RIDGE_COEF,
                                        1, regressor.get_model().n_coeffs());
 
-            GDControl control(10000, kernel::KernelConsts::tolerance(),
-                                       GDControl::DEFAULT_LEARNING_RATE);
+            GDConfig control(10000, kernel::KernelConsts::tolerance(),
+                                       GDConfig::DEFAULT_LEARNING_RATE);
 
             // the error function to to use for measuring the error
             typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, elastic_net_t> error_t;

@@ -42,7 +42,7 @@ public:
     ///
     /// \brief train. Train the algorithm
     ///
-    void train(const dataset_t& examples, const labels_t& labels)const;
+    void train(const dataset_t& examples, const labels_t& labels);
 
     ///
     /// \brief Predict the class for the given data point
@@ -115,8 +115,8 @@ void
 MultinomialNBC<DataSetTp, LabelsTp>::count_classes(std::map<uint_t, uint_t>& classes_counters,
                                                     const OtherLabelsTp& labels){
 
-    if(labels.empty()){
-        return;
+    if(labels.size() == 0){
+       throw std::logic_error("Empty labels vector??? Labels size is zero");
     }
 
     for(uint_t idx=0; idx < labels.size(); ++idx){
@@ -145,7 +145,7 @@ MultinomialNBC<DataSetTp, LabelsTp>::MultinomialNBC()
 template<typename DataSetTp, typename LabelsTp>
 void
 MultinomialNBC<DataSetTp, LabelsTp>::train(const DataSetTp& examples,
-                                           const LabelsTp& labels)const{
+                                           const LabelsTp& labels){
 
     // clear any occurences
     classes_counters_.empty();
@@ -245,8 +245,6 @@ MultinomialNBC<DataSetTp, LabelsTp>::get_data_point_class_probability(const Data
                                std::to_string(examples_ptr_->columns()));
     }
 
-
-
     // loop over all features in the point
     // and calculate p(c | x_i)
     // this is given as (Nyi + alpha)/(Ny + alpha*n)
@@ -270,7 +268,7 @@ MultinomialNBC<DataSetTp, LabelsTp>::get_data_point_class_probability(const Data
     std::for_each(nyis.begin(), nyis.end(),
                   [&, this](uint_t nyi){total_prob += (nyi + alpha_)/(ny + alpha_ * data_point.size());});
 
-    total_prob *= std::log(get_class_probability(cls));
+    total_prob *= std::log(get_class_probability(cls, examples_ptr_->rows()));
     return total_prob;
 }
 

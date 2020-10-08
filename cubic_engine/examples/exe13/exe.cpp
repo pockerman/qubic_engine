@@ -17,7 +17,7 @@ int main(){
     using cengine::real_t;
     using cengine::DynMat;
     using cengine::DynVec;
-    using kernel::maths::opt::GDControl;
+    using kernel::maths::opt::GDConfig;
     using kernel::maths::opt::Gd;
     using cengine::LogisticRegression;
     using cengine::ConfusionMatrix;
@@ -40,7 +40,7 @@ int main(){
 
         transformer_t sigmoid_h(classifier.get_model());
 
-        GDControl control(20000, 1.0e-4, 0.005);
+        GDConfig control(20000, 1.0e-4, 0.005);
         control.set_show_iterations_flag(true);
 
         Gd<error_t> gd(control);
