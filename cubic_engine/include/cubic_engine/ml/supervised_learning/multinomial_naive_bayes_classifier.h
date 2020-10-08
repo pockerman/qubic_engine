@@ -3,8 +3,10 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/base/kernel_consts.h"
+
 #include <map>
 #include <utility>
+#include <cmath>
 #include <stdexcept>
 
 namespace cengine{
@@ -14,7 +16,6 @@ namespace ml {
 /// \brief The MultinomialNBC class. Multinomial Naive Bayes
 /// classifer
 ///
-
 template<typename DataSetTp, typename LabelsTp>
 class MultinomialNBC
 {
@@ -100,6 +101,11 @@ private:
     ///
     const dataset_t* examples_ptr_;
 
+    ///
+    /// \brief alpha_ Smoothing parameter.
+    /// Default is 1.0 resulting to Laplace smoothing
+    ///
+    real_t alpha_;
 
 };
 
@@ -131,7 +137,8 @@ MultinomialNBC<DataSetTp, LabelsTp>::MultinomialNBC()
     :
       classes_counters_(),
       labels_ptr_(nullptr),
-      examples_ptr_(nullptr)
+      examples_ptr_(nullptr),
+      alpha_(1.0)
 
 {}
 
@@ -143,6 +150,9 @@ MultinomialNBC<DataSetTp, LabelsTp>::train(const DataSetTp& examples,
     // clear any occurences
     classes_counters_.empty();
     MultinomialNBC::count_classes(classes_counters_, labels);
+    labels_ptr_ = &labels;
+    examples_ptr_ = &examples;
+
 }
 
 template<typename DataSetTp, typename LabelsTp>
@@ -183,6 +193,14 @@ MultinomialNBC<DataSetTp, LabelsTp>::get_class_n_training_examples_with_feature_
                                                                                     uint_t featureidx,
                                                                                     const FeatureTp& val)const{
 
+    if(!examples_ptr_){
+        throw std::logic_error("Train set has not been set. Did you call train?");
+    }
+
+    if(!labels_ptr_){
+        throw std::logic_error("Labels set has not been set. Did you call train?");
+    }
+
     if(!data_set_has_class(cls))
         return 0;
 
@@ -210,10 +228,31 @@ template<typename DataPointTp>
 real_t
 MultinomialNBC<DataSetTp, LabelsTp>::get_data_point_class_probability(const DataPointTp& data_point,
                                                                        uint_t cls)const{
-    //loop over the features of test example
-    //find the probability that the feature has for the given class
-    real_t total_prob = 1.0;
 
+    if(!examples_ptr_){
+        throw std::logic_error("Train set has not been set. Did you call train?");
+    }
+
+    if(!labels_ptr_){
+        throw std::logic_error("Labels set has not been set. Did you call train?");
+    }
+
+
+    if(data_point.size() != examples_ptr_->columns()){
+        throw std::logic_error("Invalid point size. " +
+                               std::to_string(data_point.size()) +
+                               " not equal to: "+
+                               std::to_string(examples_ptr_->columns()));
+    }
+
+
+
+    // loop over all features in the point
+    // and calculate p(c | x_i)
+    // this is given as (Nyi + alpha)/(Ny + alpha*n)
+
+    auto ny = 0.0;
+    std::vector<uint_t> nyis(data_point.size(), 0);
     for(uint_t f=0; f<data_point.size(); ++f){
 
         //get the feature value
@@ -221,19 +260,17 @@ MultinomialNBC<DataSetTp, LabelsTp>::get_data_point_class_probability(const Data
 
         //how many times the feature with the given value
         //and the given class appears in the data set
-        auto appearance_times = get_class_n_training_examples_with_feature_val(cls,f,feature_val);
-
-        //ask the smoother to calculate the probability
-        real_t prob = this->smoother_(appearance_times, X->rows());
-
-        //ask the prob generator to calculate a probability
-        //value based on prob and the feature value
-        real_t prob2 = this->prob_generator_(prob,feature_val);
-
-        total_prob *= prob2;
+        nyis[f] = get_class_n_training_examples_with_feature_val(cls,f,feature_val);
+        ny += nyis[f];
     }
 
-    total_prob *= *get_class_probability(cls);
+    //loop over the features of test example
+    //find the probability that the feature has for the given class
+    real_t total_prob = 0.0;
+    std::for_each(nyis.begin(), nyis.end(),
+                  [&, this](uint_t nyi){total_prob += (nyi + alpha_)/(ny + alpha_ * data_point.size());});
+
+    total_prob *= std::log(get_class_probability(cls));
     return total_prob;
 }
 
@@ -241,6 +278,14 @@ template<typename DataSetTp, typename LabelsTp>
 template<typename DataPointTp>
 typename MultinomialNBC<DataSetTp, LabelsTp>::output_t
 MultinomialNBC<DataSetTp, LabelsTp>::predict(const DataPointTp& point)const{
+
+    if(!examples_ptr_){
+        throw std::logic_error("Train set has not been set. Did you call train?");
+    }
+
+    if(!labels_ptr_){
+        throw std::logic_error("Labels set has not been set. Did you call train?");
+    }
 
     //we loop over the classes and attempt to
     //calculate the probability that the data point
