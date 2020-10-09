@@ -7,30 +7,40 @@ namespace kernel {
 namespace maths {
 namespace stats {
 
-
+///
 /// \brief Simple implementation
 /// of multivariate normal distribution
-
+///
 class MultiNormalDist
 {
 
 public:
 
+    ///
     /// Constructor. Construct with
     /// mu = [0,0,...0] and sigma = diag(1,1,...1)
+    ///
     explicit MultiNormalDist(uint_t dimension);
 
+    ///
     /// Constructor
+    ///
     MultiNormalDist(const DynVec<real_t>& mu,
                     const DynMat<real_t>& sigma);
 
+    ///
     /// \brief Calculate the pdf at the given point
+    ///
     real_t pdf(const DynVec<real_t>& x)const;
 
+    ///
     /// \brief Returns the dimensions
+    ///
     uint_t get_dimension()const{return mu_.size();}
 
+    ///
     /// \brief Returns a vector of sampled values
+    ///
     DynVec<real_t> sample()const;
 
 
