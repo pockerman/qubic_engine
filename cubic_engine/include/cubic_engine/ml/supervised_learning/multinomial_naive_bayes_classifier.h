@@ -3,6 +3,7 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/maths/matrix_traits.h"
 
 #include <map>
 #include <utility>
@@ -71,7 +72,9 @@ public:
                                             uint_t cls)const;
 
     ///
-    ///
+    /// \brief Returns the number of training examples that
+    /// the feature at index featureidx has value val and the
+    /// example is classified with cls
     ///
     template<typename FeatureTp>
     uint_t get_class_n_training_examples_with_feature_val(uint_t cls,
@@ -325,6 +328,11 @@ MultinomialNBC<DataSetTp, LabelsTp>::predict(const dataset_t& examples, OutputSt
                                " but is " + std::to_string(out.size()));
     }
 
+    for(uint_t exe=0; exe<examples.rows(); ++ exe){
+
+        auto example = kernel::matrix_row_trait<dataset_t>::get_row(examples, exe);
+        out[exe] = predict(example);
+    }
 }
 
 
