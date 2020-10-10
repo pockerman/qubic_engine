@@ -16,9 +16,9 @@
 namespace kernel
 {
 
-/**
- * @brief The SSEFunction class. Models the Sum Squred Error
- */
+///
+/// \brief The SSEFunction class. Models the Sum Squred Error
+///
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn=DummyFunction<real_t, DataSetType, LabelsType>>
 class SSEFunction: public FunctionBase<ResultHolder<real_t>, DataSetType, LabelsType>
@@ -42,7 +42,8 @@ public:
     ///
     /// \brief Returns the value of the function
     ///
-    virtual output_t value(const DataSetType& dataset, const LabelsType& labels)const override final;
+    virtual output_t value(const DataSetType& dataset,
+                           const LabelsType& labels)const override final;
 
     ///
     /// \brief Returns the gradients of the function
@@ -61,9 +62,15 @@ public:
     ///
     virtual uint_t n_coeffs()const override final{return 1;}
 
+    ///
+    /// \brief Update the underlying model
+    ///
+    template<typename VectorContainerTp>
+    void update_model(const VectorContainerTp& coeffs);
+
 private:
 
-    const hypothesis_t* h_ptr_;
+    hypothesis_t* h_ptr_;
     const regularizer_t* r_ptr_;
 
 };

@@ -89,6 +89,16 @@ SSEFunction<HypothesisFn, DataSetType,
     return grad;
 }
 
+template<typename HypothesisFn, typename DataSetType,
+         typename LabelsType, typename RegularizerFn>
+template<typename VectorContainerTp>
+void
+SSEFunction<HypothesisFn, DataSetType,
+LabelsType, RegularizerFn>::update_model(const VectorContainerTp& coeffs){
+
+    h_ptr_->set_coeffs(coeffs);
+}
+
 ///==============================================================================================
 
 /// \brief base class for task description

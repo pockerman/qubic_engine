@@ -91,6 +91,23 @@ RealVectorPolynomialFunction::set_coeffs(const std::vector<real_t>& coeffs){
     }
 }
 
+void
+RealVectorPolynomialFunction::set_coeffs(const DynVec<real_t>& coeffs){
+
+    if(monomials_.size() != coeffs.size()){
+        throw std::invalid_argument("Monomials size "+std::to_string(monomials_.size()) +
+                                    " does not match the coeffs: "+std::to_string(coeffs.size()));
+    }
+
+    auto itr = coeffs.cbegin();
+
+    for(auto& monomial : monomials_){
+        monomial.set_coeff(*itr);
+        itr++;
+    }
+
+}
+
 RealVectorPolynomialFunction::output_t
 RealVectorPolynomialFunction::value(const RealVectorPolynomialFunction::input_t& input)const{
 
