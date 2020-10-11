@@ -128,11 +128,6 @@ Gd::solve(FunctionTp& function){
                      <<" ABS error: "<<error
                      <<" Exit Tol: "<<input_.get_exit_tolerance()<<std::endl;
         }
-
-        std::cout<<"\t Value function: "<<new_val<<std::endl;
-        std::cout<<"\t Old Val: "<<val_old<<std::endl;
-        std::cout<<"\t Gradients: "<<grads[0]<<","<<grads[1]<<std::endl;
-
         val_old = new_val;
     }
 

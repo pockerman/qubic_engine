@@ -5,10 +5,7 @@
 #include "kernel/maths/optimization/serial_gradient_descent.h"
 #include "kernel/maths/functions/function_base.h"
 
-#include <cmath>
 #include <iostream>
-#include <string>
-#include <utility>
 
 namespace example {
 
@@ -37,8 +34,10 @@ public:
     // the number of coefficients
     virtual uint_t n_coeffs()const override final{return 2;}
 
+    // reset the coefficients
     void set_coeffs(const DynVec<real_t>&  coeffs){coeffs_ = coeffs;}
 
+    // get a copy of the coefficients
     DynVec<real_t> coeffs()const{return coeffs_;}
 
 private:
@@ -55,10 +54,8 @@ Function::Function(const DynVec<real_t>& coeffs)
 
 Function::output_t
 Function::value(const DynVec<real_t>&  input)const{
-
-    std::cout<<"th1 "<<input[0]<<" th2 "<<input[1]<<std::endl;
     return 0.5*(kernel::utils::sqr(kernel::utils::sqr(input[0]) - input[1])) +
-           0.5*(kernel::utils::sqr(input[1] - 1.0));
+           0.5*(kernel::utils::sqr(input[0] - 1.0));
 }
 
 DynVec<real_t>
@@ -79,7 +76,7 @@ int main(){
     using namespace example;
     try{
 
-        GDConfig config(10, kernel::KernelConsts::tolerance(), 0.1);
+        GDConfig config(20, kernel::KernelConsts::tolerance(), 0.1);
         config.set_show_iterations_flag(true);
         Gd gd(config);
 
