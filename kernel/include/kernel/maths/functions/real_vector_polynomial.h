@@ -87,6 +87,11 @@ public:
     void set_coeffs(const std::vector<real_t>& coeffs);
 
     ///
+    /// \brief Returns the coefficients of the underlying monomials
+    ///
+    void set_coeffs(const DynVec<real_t>& coeffs);
+
+    ///
     /// \brief Returns the i-th coefficient
     ///
     real_t coeff(uint_t c)const{return monomials_[c].coeff();}

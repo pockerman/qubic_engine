@@ -7,7 +7,7 @@ namespace kernel
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 SSEFunction<HypothesisFn, DataSetType,
-            LabelsType, RegularizerFn>::SSEFunction(const hypothesis_t& h)
+            LabelsType, RegularizerFn>::SSEFunction(hypothesis_t& h)
     :
    FunctionBase<ResultHolder<real_t>, DataSetType, LabelsType>(),
    h_ptr_(&h),
@@ -17,7 +17,7 @@ SSEFunction<HypothesisFn, DataSetType,
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 SSEFunction<HypothesisFn, DataSetType,
-            LabelsType, RegularizerFn>::SSEFunction(const hypothesis_t& h,
+            LabelsType, RegularizerFn>::SSEFunction(hypothesis_t& h,
                                                     const regularizer_t& r)
     :
    FunctionBase<ResultHolder<real_t>, DataSetType, LabelsType>(),
@@ -87,6 +87,16 @@ SSEFunction<HypothesisFn, DataSetType,
     }
 
     return grad;
+}
+
+template<typename HypothesisFn, typename DataSetType,
+         typename LabelsType, typename RegularizerFn>
+template<typename VectorContainerTp>
+void
+SSEFunction<HypothesisFn, DataSetType,
+LabelsType, RegularizerFn>::update_model(const VectorContainerTp& coeffs){
+
+    h_ptr_->set_coeffs(coeffs);
 }
 
 ///==============================================================================================
@@ -278,8 +288,7 @@ SSEFunction<HypothesisFn, PartitionedType<DataSetType>,
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 SSEFunction<HypothesisFn, PartitionedType<DataSetType>,
-                  PartitionedType<LabelsType>, RegularizerFn>::SSEFunction(const typename SSEFunction<HypothesisFn, PartitionedType<DataSetType>,
-                                                                           PartitionedType<LabelsType>, RegularizerFn>::hypothesis_t& h)
+                  PartitionedType<LabelsType>, RegularizerFn>::SSEFunction(hypothesis_t& h)
     :
    FunctionBase<ResultHolder<real_t>, DataSetType, LabelsType>(),
    h_ptr_(&h),
@@ -293,10 +302,7 @@ template<typename HypothesisFn, typename DataSetType,
 SSEFunction<HypothesisFn,
             PartitionedType<DataSetType>,
             PartitionedType<LabelsType>,
-            RegularizerFn>::SSEFunction(const typename SSEFunction<HypothesisFn, PartitionedType<DataSetType>,
-                                                                   PartitionedType<LabelsType>, RegularizerFn>::hypothesis_t& h,
-                                        const typename SSEFunction<HypothesisFn, PartitionedType<DataSetType>,
-                                                                   PartitionedType<LabelsType>, RegularizerFn>::regularizer_t& r)
+            RegularizerFn>::SSEFunction(hypothesis_t& h, const regularizer_t& r)
     :
    FunctionBase<ResultHolder<real_t>, DataSetType, LabelsType>(),
    h_ptr_(&h),

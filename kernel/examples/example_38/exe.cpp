@@ -2,16 +2,10 @@
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/utilities/common_uitls.h"
-#include "kernel/maths/optimization/stochastic_gradient_descent.h"
-#include "kernel/maths/errorfunctions/sse_function.h"
-#include "kernel/maths/functions/real_vector_polynomial.h"
-#include "kernel/maths/functions/function_limiter.h"
-#include "kernel/maths/matrix_traits.h"
+#include "kernel/maths/optimization/serial_gradient_descent.h"
+#include "kernel/maths/functions/function_base.h"
 
-#include <cmath>
 #include <iostream>
-#include <string>
-#include <utility>
 
 namespace example {
 
@@ -19,63 +13,61 @@ using kernel::real_t;
 using kernel::uint_t;
 using kernel::DynMat;
 using kernel::DynVec;
-using kernel::RealVectorPolynomialFunction;
-using kernel::SSEFunction;
-using kernel::maths::functions::FunctionLimiter;
-using kernel::maths::opt::SGD;
+using kernel::maths::opt::Gd;
 using kernel::maths::opt::GDConfig;
 
-std::pair<DynMat<real_t>, DynVec<real_t>> create_data(){
+class Function: public kernel::FunctionBase<real_t, DynVec<real_t>>
+{
+public:
 
-    DynMat<real_t> mat(10, 3);
-    mat(0,0)=1.0;
-    mat(0,1)=2.7810836;
-    mat(0,2)=2.550537003;
+    typedef kernel::FunctionBase<real_t, DynVec<real_t>>::output_t output_t;
 
-    mat(1,0)=1.0;
-    mat(1,1)=1.465489372;
-    mat(1,2)=2.362125076;
+    // constructor
+    Function(const DynVec<real_t>& coeffs);
 
-    mat(2,0)=1.0;
-    mat(2,1)=3.396561688;
-    mat(2,2)=4.400293529;
+    // compute the value of the function
+    virtual output_t value(const DynVec<real_t>&  input)const override final;
 
-    mat(3,0)=1.0;
-    mat(3,1)=1.38807019;
-    mat(3,2)=1.850220317;
+    // compute the gradients of the function
+    virtual DynVec<real_t> gradients(const DynVec<real_t>&  input)const override final;
 
-    mat(4,0)=1.0;
-    mat(4,1)=3.06407232;
-    mat(4,2)=3.005305973;
+    // the number of coefficients
+    virtual uint_t n_coeffs()const override final{return 2;}
 
-    mat(5,0)=1.0;
-    mat(5,1)=7.627531214;
-    mat(5,2)=2.759262235;
+    // reset the coefficients
+    void set_coeffs(const DynVec<real_t>&  coeffs){coeffs_ = coeffs;}
 
-    mat(6,0)=1.0;
-    mat(6,1)=5.332441248;
-    mat(6,2)=2.088626775;
+    // get a copy of the coefficients
+    DynVec<real_t> coeffs()const{return coeffs_;}
 
-    mat(7,0)=1.0;
-    mat(7,1)=6.922596716;
-    mat(7,2)=1.77106367;
+private:
 
-    mat(8,0)=1.0;
-    mat(8,1)=8.675418651;
-    mat(8,2)=-0.242068655;
+    // coefficients vector
+    DynVec<real_t> coeffs_;
 
-    mat(9,0)=1.0;
-    mat(9,1)=7.673756466;
-    mat(9,2)=3.508563011;
+};
 
-    DynVec<real_t> vec(10, 0.0);
-    for(uint_t idx=5; idx<vec.size(); ++idx){
-       vec[idx] = 1.0;
-    }
+Function::Function(const DynVec<real_t>& coeffs)
+    :
+      coeffs_(coeffs)
+{}
 
-    return {mat, vec};
+Function::output_t
+Function::value(const DynVec<real_t>&  input)const{
+    return 0.5*(kernel::utils::sqr(kernel::utils::sqr(input[0]) - input[1])) +
+           0.5*(kernel::utils::sqr(input[0] - 1.0));
 }
 
+DynVec<real_t>
+Function::gradients(const DynVec<real_t>&  input)const{
+
+    auto grad1= 2.0*input[0]*(kernel::utils::sqr(input[0]) - input[1]) + (input[0] - 1.0);
+    auto grad2 = -(kernel::utils::sqr(input[0]) - input[1]);
+    DynVec<real_t> rslt(2, 0.0);
+    rslt[0] = grad1;
+    rslt[1] = grad2;
+    return rslt;
+}
 
 }
 
@@ -84,40 +76,16 @@ int main(){
     using namespace example;
     try{
 
-        typedef  SSEFunction<FunctionLimiter<RealVectorPolynomialFunction>,
-                             DynMat<real_t>, DynVec<real_t>> error_t;
-
-        auto data = create_data();
-        GDConfig config(5, kernel::KernelConsts::tolerance(), 0.1);
+        GDConfig config(20, kernel::KernelConsts::tolerance(), 0.1);
         config.set_show_iterations_flag(true);
-        SGD sgd(config);
+        Gd gd(config);
 
-        std::vector<int> order_coeffs(3, 0);
-        order_coeffs[1] = 1;
-        order_coeffs[2] = 1;
+        DynVec<real_t> coeffs(2, 0.0);
 
-        DynVec<real_t> coeffs(3, 0.0);
+        Function f(coeffs);
 
-        // the model to use
-        RealVectorPolynomialFunction model(coeffs, order_coeffs);
-        FunctionLimiter<RealVectorPolynomialFunction> limiter(model);
-        limiter.set_max_clip_value(1.0);
-        limiter.set_use_max_clip_value_flag(true);
-        limiter.set_max_limit_clip_value(0.0);
-        limiter.set_min_clip_value(0.0);
-        limiter.set_use_min_clip_value_flag(true);
-
-        // the error function
-        error_t err_func(limiter);
-
-        auto info = sgd.solve(data.first, data.second, err_func, model);
+        auto info = gd.solve(f);
         std::cout<<info<<std::endl;
-
-        for(uint_t idx=0; idx < data.first.rows(); ++idx){
-
-            auto value = limiter.value(kernel::matrix_row_trait<DynMat<real_t>>::get_row(data.first, idx));
-            std::cout<<"Predicted: "<<value<<" expected: "<<data.second[idx]<<std::endl;
-        }
 
     }
     catch(std::logic_error& error){
