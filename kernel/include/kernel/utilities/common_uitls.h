@@ -4,6 +4,9 @@
 namespace kernel {
 namespace utils {
 
+///
+/// \brief Returns the sign of the expression
+///
 template<typename T>
 int sign(const T& expr){
 
@@ -14,6 +17,9 @@ int sign(const T& expr){
     return 1;
 }
 
+///
+/// \brief Square the given expression
+///
 template<typename T>
 T sqr(const T& expr){
     return expr*expr;

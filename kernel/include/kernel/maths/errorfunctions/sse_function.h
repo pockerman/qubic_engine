@@ -32,12 +32,12 @@ public:
     ///
     /// \brief Constructor
     ///
-    SSEFunction(const hypothesis_t& h);
+    SSEFunction(hypothesis_t& h);
 
     ///
     /// \brief Constructor
     ///
-    SSEFunction(const hypothesis_t& h, const regularizer_t& r);
+    SSEFunction(hypothesis_t& h, const regularizer_t& r);
 
     ///
     /// \brief Returns the value of the function
@@ -90,10 +90,10 @@ public:
     typedef RegularizerFn regularizer_t;
 
     /// \brief Constructor
-    SSEFunction(const hypothesis_t& h);
+    SSEFunction(hypothesis_t& h);
 
     /// \brief Constructor
-    SSEFunction(const hypothesis_t& h, const regularizer_t& r);
+    SSEFunction(hypothesis_t& h, const regularizer_t& r);
 
     /// \brief Returns the value of the function
     virtual output_t value(const DataSetType& dataset, const LabelsType& labels)const override final;
@@ -118,7 +118,7 @@ public:
 
 private:
 
-    const hypothesis_t* h_ptr_;
+    hypothesis_t* h_ptr_;
     const regularizer_t* r_ptr_;
 
     template<typename Executor, typename Options>
