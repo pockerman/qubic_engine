@@ -164,7 +164,7 @@ template<typename MatType, typename VecType, typename HypothesisFuncType>
 GDInfo
 GradientDescentWrapper<ErrorFunction, Null, Null>::solve(const MatType& mat,const VecType& v, HypothesisFuncType& h){
 
-    Gd<ErrorFunction> gd(input_);
+    Gd gd(input_);
     return gd.solve(mat, v, h);
 }
 
@@ -175,7 +175,7 @@ GDInfo
 GradientDescentWrapper<ErrorFunction, Null, Null>::solve(const MatType& mat,const VecType& v,
                                                               HypothesisFuncType& h, const RegularizerFuncType& regularizer){
 
-    Gd<ErrorFunction> gd(input_);
+    Gd gd(input_);
     return gd.solve(mat, v, h, regularizer);
 }
 

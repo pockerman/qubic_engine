@@ -37,10 +37,10 @@ public:
     mse_detail();
 
     /// \brief Constructor
-    mse_detail(const hypothesis_t& h);
+    mse_detail(hypothesis_t& h);
 
     /// \brief Constructor
-    mse_detail(const hypothesis_t& h, const regularizer_t& r);
+    mse_detail(hypothesis_t& h, const regularizer_t& r);
 
     /// \brief Destructor
     virtual ~ mse_detail(){}
@@ -51,18 +51,35 @@ public:
     /// \brief Returns the gradients of the function
     virtual DynVec<real_t> gradients(const DataSetType& dataset, const LabelsType& labels)const override;
 
+    ///
     /// \brief Returns the number of coefficients
-    virtual uint_t n_coeffs()const override final{return 1;}
+    ///
+    virtual uint_t n_coeffs()const override final{return h_ptr_->n_coeffs();}
 
+    ///
     /// \brief Set the hypothesis pointer
-    void set_hypothesis_function(const hypothesis_t& h){h_ptr_ = &h;}
+    ///
+    void set_hypothesis_function(hypothesis_t& h){h_ptr_ = &h;}
 
+    ///
     /// \brief Set the regularization pointer
+    ///
     void set_regularizer_function(const regularizer_t& r){r_ptr_ = &r;}
+
+    ///
+    /// \brief Update the underlying model
+    ///
+    template<typename VectorContainerTp>
+    void update_model(const VectorContainerTp& coeffs){h_ptr_->set_coeffs(coeffs);}
+
+    ///
+    /// \brief coeffs. Returns the coefficients of the underlying model
+    ///
+    DynVec<real_t> coeffs()const{return h_ptr_->coeffs();}
 
 protected:
 
-    const hypothesis_t* h_ptr_;
+    hypothesis_t* h_ptr_;
     const regularizer_t* r_ptr_;
 
 };
@@ -85,10 +102,10 @@ public:
     MSEFunction();
 
     /// \brief Constructor
-    MSEFunction(const hypothesis_t& h);
+    MSEFunction(hypothesis_t& h);
 
     /// \brief Constructor
-    MSEFunction(const hypothesis_t& h, const regularizer_t& r);
+    MSEFunction(hypothesis_t& h, const regularizer_t& r);
 };
 
 /// \brief MSE function when using sigmoid transformation
@@ -112,24 +129,33 @@ public:
     typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>::hypothesis_t hypothesis_t;
     typedef typename detail::mse_detail<SigmoidFunction<HypothesisFn>, DataSetType, LabelsType, RegularizerFn>::regularizer_t regularizer_t;
 
+    ///
     /// \brief Constructor
+    ///
     MSEFunction();
 
+    ///
     /// \brief Constructor
-    MSEFunction(const hypothesis_t& h);
+    ///
+    MSEFunction(hypothesis_t& h);
 
+    ///
     /// \brief Constructor
-    MSEFunction(const hypothesis_t& h, const regularizer_t& r);
+    ///
+    MSEFunction(hypothesis_t& h, const regularizer_t& r);
 
+    ///
     /// \brief Returns the value of the function
+    ///
     virtual output_t value(const DataSetType& dataset, const LabelsType& labels)const override final;
 
 };
 
-
+///
 /// \brief he MSEFunction class. Models the Mean Squred Error
 /// This is a partial specialization to account for partitioned datasets
 ///  in this case we also allow parallel execution if an executor is given
+///
 template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 class MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
@@ -147,15 +173,16 @@ public:
     MSEFunction();
 
     /// \brief Constructor
-    MSEFunction(const hypothesis_t& h);
+    MSEFunction(hypothesis_t& h);
 
     /// \brief Constructor
-    MSEFunction(const hypothesis_t& h, const regularizer_t& r);
+    MSEFunction(hypothesis_t& h, const regularizer_t& r);
 
 
     /// \brief Returns the value of the function using the provided executor
     template<typename Executor, typename Options>
-    output_t value(const PartitionedType<DataSetType>& dataset, const PartitionedType<LabelsType>& labels,
+    output_t value(const PartitionedType<DataSetType>& dataset,
+                   const PartitionedType<LabelsType>& labels,
                    Executor& executor, const Options& options);
 
     /// \brief Returns the gradients of the function with respect to the
@@ -233,10 +260,10 @@ public:
     MSEFunction();
 
     /// \brief Constructor
-    MSEFunction(const hypothesis_t& h);
+    MSEFunction(hypothesis_t& h);
 
     /// \brief Constructor
-    MSEFunction(const hypothesis_t& h, const regularizer_t& r);
+    MSEFunction(hypothesis_t& h, const regularizer_t& r);
 
 
     /// \brief Returns the value of the function using the provided executor
