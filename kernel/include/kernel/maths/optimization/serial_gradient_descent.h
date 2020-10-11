@@ -175,7 +175,7 @@ Gd::do_solve_(const MatType& data,const VecType& y, FunctionTp& function){
         }
 
         // reset again the coeffs
-        function.set_coeffs(coeffs);
+        function.update_model(coeffs);
 
         //recalculate...
         j_current = function.value(data, y).get_resource();

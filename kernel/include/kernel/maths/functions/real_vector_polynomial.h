@@ -79,7 +79,7 @@ public:
     ///
     /// \brief Returns the coefficients of the underlying monomials
     ///
-    std::vector<real_t> coeffs()const;
+    DynVec<real_t> coeffs()const;
 
     ///
     /// \brief Returns the coefficients of the underlying monomials
@@ -95,8 +95,6 @@ public:
     /// \brief Returns the i-th coefficient
     ///
     real_t coeff(uint_t c)const{return monomials_[c].coeff();}
-
-
 
 private:
 

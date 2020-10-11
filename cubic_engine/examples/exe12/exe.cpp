@@ -18,12 +18,6 @@ int main(){
     using kernel::maths::opt::GDConfig;
     using kernel::maths::opt::Gd;
     using cengine::LinearRegression;
-    using kernel::RealVectorPolynomialFunction;
-    using kernel::MSEFunction;
-
-    typedef MSEFunction<RealVectorPolynomialFunction,
-            DynMat<real_t>,
-            DynVec<uint_t>> error_t;
 
     try{
 
@@ -35,9 +29,9 @@ int main(){
         LinearRegression regressor({0.0, 0.0});
 
         GDConfig control(10000, kernel::KernelConsts::tolerance(),
-                          GDConfig::DEFAULT_LEARNING_RATE);
+                         GDConfig::DEFAULT_LEARNING_RATE);
 
-        Gd<error_t> gd(control);
+        Gd gd(control);
 
         auto result = regressor.train(dataset.first, dataset.second, gd);
         std::cout<<result<<std::endl;

@@ -56,8 +56,8 @@ int main(){
             GDConfig control(10000, kernel::KernelConsts::tolerance(),
                                        GDConfig::DEFAULT_LEARNING_RATE);
 
-            typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, lasso_t> error_t;
-            Gd<error_t> gd(control);
+            //typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, lasso_t> error_t;
+            Gd gd(control);
 
             auto result = regressor.train(dataset.first, dataset.second, gd, lasso);
             std::cout<<result<<std::endl;
@@ -82,7 +82,7 @@ int main(){
 
             // the error function to to use for measuring the error
             typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, ridge_t> error_t;
-            Gd<error_t> gd(control);
+            Gd gd(control);
 
             auto result = regressor.train(dataset.first, dataset.second, gd, ridge);
             std::cout<<result<<std::endl;
@@ -107,7 +107,7 @@ int main(){
 
             // the error function to to use for measuring the error
             typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, elastic_net_t> error_t;
-            Gd<error_t> gd(control);
+            Gd gd(control);
 
             auto result = regressor.train(dataset.first, dataset.second, gd, elastic_net);
             std::cout<<result<<std::endl;

@@ -58,9 +58,14 @@ public:
     DynVec<real_t> gradient(const RowTp& row, const LabelTp& label)const;
 
     ///
+    /// \brief coeffs. Returns the coefficients of the underlying model
+    ///
+    DynVec<real_t> coeffs()const{return h_ptr_->coeffs();}
+
+    ///
     /// \brief Returns the number of coefficients
     ///
-    virtual uint_t n_coeffs()const override final{return 1;}
+    virtual uint_t n_coeffs()const override final{return h_ptr_->n_coeffs();}
 
     ///
     /// \brief Update the underlying model

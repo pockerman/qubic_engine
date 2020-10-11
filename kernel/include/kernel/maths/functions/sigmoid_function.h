@@ -16,8 +16,10 @@ public:
     typedef typename function_t::input_t input_t;
     typedef typename function_t::output_t output_t;
 
+    ///
     /// \brief Constructor
-    SigmoidFunction(const function_t& function);
+    ///
+    SigmoidFunction(function_t& function);
 
     /// \brief Returns the value of the function
     virtual output_t value(const input_t&  input)const final override;
@@ -34,14 +36,20 @@ public:
     /// \brief Returns the number of coefficients
     virtual uint_t n_coeffs()const final override{return function_ptr_->n_coeffs();}
 
+    template<typename VectorContainerTp>
+    void set_coeffs(const VectorContainerTp& coeffs){function_ptr_->set_coeffs(coeffs);}
+
+    DynVec<real_t> coeffs()const{return function_ptr_->coeffs();}
+
+
 private:
 
-    const function_t* function_ptr_;
+    function_t* function_ptr_;
 
 };
 
 template<typename FunctionType>
-SigmoidFunction<FunctionType>::SigmoidFunction(const function_t& function)
+SigmoidFunction<FunctionType>::SigmoidFunction(function_t& function)
     :
    function_ptr_(&function)
 {}

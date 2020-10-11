@@ -38,12 +38,12 @@ int main(){
         // set initial weights to 0
         LogisticRegression<hypothesis_t, transformer_t> classifier({0.0, 0.0, 0.0, 0.0, 0.0});
 
-        transformer_t sigmoid_h(classifier.get_model());
+
 
         GDConfig control(20000, 1.0e-4, 0.005);
         control.set_show_iterations_flag(true);
 
-        Gd<error_t> gd(control);
+        Gd gd(control);
 
         auto result = classifier.train(dataset.first, dataset.second, gd);
         std::cout<<result<<std::endl;
