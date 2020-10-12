@@ -37,6 +37,7 @@ OrdinaryLeastSquares::train(const DynMat<real_t>& dataset, const DynVec<real_t>&
     if(use_intercept_){
 
         DynVec<real_t> other_coeffs(hypothesis_.n_coeffs(), 0.0);
+        intercept_= coeffs[0];
         for(uint_t i=0; i<other_coeffs.size(); ++i){
            other_coeffs[i] = coeffs[i+1];
         }

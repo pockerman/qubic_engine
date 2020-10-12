@@ -42,6 +42,13 @@ public:
     ///
     real_t get_interception()const{return intercept_;}
 
+    ///
+    /// \brief coeff Returns the idx coefficient. Zero based
+    /// indexing is assumed. If you want access to the interception term use
+    /// get_interception
+    ///
+    real_t coeff(uint_t idx)const{return hypothesis_.coeff(idx);}
+
 private:
 
     ///
