@@ -108,7 +108,7 @@ RealVectorPolynomialFunction::set_coeffs(const DynVec<real_t>& coeffs){
 }
 
 RealVectorPolynomialFunction::output_t
-RealVectorPolynomialFunction::value(const RealVectorPolynomialFunction::input_t& input)const{
+RealVectorPolynomialFunction::value(const input_t& input)const{
 
     if(input.size() != monomials_.size()){
         throw std::invalid_argument("input size: " + std::to_string(input.size())+
