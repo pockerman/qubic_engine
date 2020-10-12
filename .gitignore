@@ -17,3 +17,5 @@ cubic_engine/examples/exe12/doc/.ipynb_checkpoints/
 cubic_engine/build/
 kernel/build/
 kernel/install/
+cubic_engine/install/
+kernel/CMakeLists.txt.user
