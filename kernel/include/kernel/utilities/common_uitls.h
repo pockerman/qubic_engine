@@ -25,6 +25,13 @@ T sqr(const T& expr){
     return expr*expr;
 }
 
+template<typename T>
+void shift(T& a, T& b, T& c, T& d){
+    a=b;
+    b=c;
+    c=d;
+}
+
 }
 
 }
