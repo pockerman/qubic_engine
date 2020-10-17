@@ -13,14 +13,13 @@ namespace maths {
 namespace opt {
 
 
-constexpr real_t GOLD = 1.618034;
-
 ///
 /// \brief Minimum bracketing algorithm
 /// Algorithm adapted from Numerical Recipes in C 1997
 ///
 template<typename FunctionTp>
-void min_bracket(real_t ax, real_t bx, real_t cx,
+void
+min_bracket(real_t ax, real_t bx, real_t cx,
                  const FunctionTp& function){
 
     // GLIMIT is the maximum magnification
@@ -28,6 +27,7 @@ void min_bracket(real_t ax, real_t bx, real_t cx,
 
     const real_t GLIMIT = 100.0;
     const real_t TINY = 1.0e-20;
+    const real_t GOLD = 1.618034;
 
     auto fa = function(ax);
     auto fb = function(bx);
@@ -140,7 +140,6 @@ golden_section_search(real_t ax, real_t bx, real_t cx,
 
     // Make x0 to x1 the smaller segment,
     //  and fill in the new point to be tried.
-
     if(std::fabs(cx - bx) > std::fabs(bx - ax)){
 
         x1 = bx;
@@ -185,10 +184,137 @@ golden_section_search(real_t ax, real_t bx, real_t cx,
     return {xmin, f2};
 }
 
+///
+/// \brief Given a function f, and given a bracketing triplet of abscissas ax, bx, cx
+/// (such that bx is between ax and cx, and f(bx) is less than both f(ax) and f(cx) ),
+/// this routine isolates the minimum to a fractional precision
+/// of about tol using Brent’s method. The abscissa of
+/// the minimum is returned as first , and the minimum function value
+/// is returned as second in the returned std::pair
+///
+/// Implementation adapted from Numerical Recipes in C 1997.
+///
+template<typename FunctionTp>
+std::pair<bool, std::pair<real_t, real_t>>
+brent(real_t ax, real_t bx, real_t cx, const FunctionTp& function, real_t tol, uint_t max_itrs){
+
+
+    const real_t CGOLD=0.3819660;
+    const real_t ZEPS=1.0e-10;
+
+    real_t d,etemp,fu,p,q,r,tol1,tol2,u,xm;
+
+    real_t xmin = std::numeric_limits<real_t>::max();
+
+    // This will be the distance moved on
+    // the step before last.
+    real_t e=0.0;
+
+    // a and b must be in ascending order,
+    // but input abscissas need not be.
+    auto a=(ax < cx ? ax : cx);
+    auto b=(ax > cx ? ax : cx);
+
+    auto x = bx;
+    auto w = bx;
+    auto v = bx;
+
+    auto fw = function(x);
+    auto fv = fw;
+    auto fx = fw;
+
+    // the main program loop
+    for (uint_t iter=1; iter<=max_itrs; ++iter) {
+
+        xm=0.5*(a+b);
+        tol1=tol*std::fabs(x)+ZEPS;
+        tol2=2.0*tol1;
+
+        // maybe we are done here.
+        if (std::fabs(x-xm) <= (tol2-0.5*(b-a))) {
+            return {true, {x, fx}};
+        }
+
+        // Construct a trial parabolic fit.
+        if (std::fabs(e) > tol1) {
+
+            r=(x-w)*(fx-fv);
+            q=(x-v)*(fx-fw);
+            p=(x-v)*q-(x-w)*r;
+            q=2.0*(q-r);
+            if (q > 0.0) {
+                p = -p;
+            }
+
+            q=std::fabs(q);
+            etemp=e;
+            e=d;
+
+            // The above conditions determine the acceptability of the parabolic fit.
+            // Here we take the golden section step into the larger of the two segments.
+            if (std::fabs(p) >= std::fabs(0.5*q*etemp) || p <= q*(a-x) || p >= q*(b-x)){
+                d=CGOLD*(e=(x >= xm ? a-x : b-x));
+            }
+            else{
+
+                d=p/q;
+                u=x+d;
+                if (u-a < tol2 || b-u < tol2){
+                    d=utils::sign(tol1,xm-x);
+                }
+             }
+        }
+        else{
+            d=CGOLD*(e=(x >= xm ? a-x : b-x));
+        }
+
+        u=(fabs(d) >= tol1 ? x+d : x+utils::sign(tol1,d));
+
+        //This is the one function evaluation per iteration.
+        fu=function(u);
+
+        //Now decide what to do with our function evaluation.
+        if (fu <= fx) {
+
+            if (u >= x){
+                a=x;
+            }
+            else{
+                b=x;
+            }
+
+            utils::shift(v,w,x,u);
+            utils::shift(fv,fw,fx,fu);
+        }
+        else {
+            if (u < x){
+                a=u;
+            }
+            else{
+                b=u;
+            }
+
+            if (fu <= fw || w == x) {
+                v=w;
+                w=u;
+                fv=fw;
+                fw=fu;
+            }
+            else if (fu <= fv || v == x || v == w) {
+                v=u;
+                fv=fu;
+            }
+        }
+     }// end for
+
+    // we should never get here
+    return {false, {x, fx}};
 }
 
-}
+}// opt
 
-}
+}// maths
+
+}// kernel
 
 #endif // 1D_FUNCTION_MINIMIZATION_H
