@@ -188,9 +188,14 @@ golden_section_search(real_t ax, real_t bx, real_t cx,
 /// \brief Given a function f, and given a bracketing triplet of abscissas ax, bx, cx
 /// (such that bx is between ax and cx, and f(bx) is less than both f(ax) and f(cx) ),
 /// this routine isolates the minimum to a fractional precision
-/// of about tol using Brent’s method. The abscissa of
-/// the minimum is returned as first , and the minimum function value
-/// is returned as second in the returned std::pair
+/// of about tol using Brent’s method.
+///
+/// See: https://mathworld.wolfram.com/BrentsMethod.html
+///
+/// The abscissa of the minimum is returned as second.first,
+/// and the minimum function value is returned as second.second
+/// in the returned std::pair. The first boolean item indicates
+/// whether the solution is valid or not.
 ///
 /// Implementation adapted from Numerical Recipes in C 1997.
 ///
