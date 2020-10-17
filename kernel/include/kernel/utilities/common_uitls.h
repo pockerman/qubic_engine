@@ -17,6 +17,11 @@ int sign(const T& expr){
     return 1;
 }
 
+template<typename T>
+int sign(const T& expr1, const T& expr2){
+    return sign(expr1*expr2);
+}
+
 ///
 /// \brief Square the given expression
 ///
@@ -30,6 +35,12 @@ void shift(T& a, T& b, T& c, T& d){
     a=b;
     b=c;
     c=d;
+}
+
+template<typename T>
+void shift(T& a, T& b, T& c){
+    a=b;
+    b=c;
 }
 
 }
