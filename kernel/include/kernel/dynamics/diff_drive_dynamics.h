@@ -81,7 +81,7 @@ public:
     ///
     /// \brief Set the x-coordinate
     ///
-    real_t set_x_position(real_t x){this->state_.set("X", x);}
+    void set_x_position(real_t x){this->state_.set("X", x);}
 
     ///
     /// \brief Read the y-coordinate
@@ -91,7 +91,7 @@ public:
     ///
     /// \brief Set the y-coordinate
     ///
-    real_t set_y_position(real_t y){this->state_.set("Y", y);}
+    void set_y_position(real_t y){this->state_.set("Y", y);}
 
     ///
     /// \brief Read the y-coordinate

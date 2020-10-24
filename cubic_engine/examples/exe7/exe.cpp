@@ -25,7 +25,7 @@ int main(){
     using cengine::DynMat;
     using cengine::DynVec;
     using kernel::maths::opt::ThreadedGd;
-    using kernel::maths::opt::GDControl;
+    using kernel::maths::opt::GDConfig;
     using kernel::RealVectorPolynomialFunction;
     using kernel::MSEFunction;
     using kernel::PartitionedType;
@@ -46,8 +46,8 @@ int main(){
         // where w_0 = w_1 = 0.0
         hypothesis_t hypothesis({0.0, 0.0});
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(),
-                                   GDControl::DEFAULT_LEARNING_RATE);
+        GDConfig control(10000, kernel::KernelConsts::tolerance(),
+                                   GDConfig::DEFAULT_LEARNING_RATE);
 
         ThreadedGd<error_t> gd(control);
 
@@ -64,8 +64,8 @@ int main(){
         // where w_0 = w_1 = 0.0
         hypothesis_t hypothesis({0.0, 0.0});
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(),
-                                   GDControl::DEFAULT_LEARNING_RATE);
+        GDConfig control(10000, kernel::KernelConsts::tolerance(),
+                                   GDConfig::DEFAULT_LEARNING_RATE);
 
         ThreadedGd<error_t> gd(control);
 

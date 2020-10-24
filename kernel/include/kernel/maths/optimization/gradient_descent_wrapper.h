@@ -32,7 +32,7 @@ public:
     typedef GDInfo output_t;
 
     /// \brief Constructor
-    GradientDescentWrapper(const GDControl& input,
+    GradientDescentWrapper(const GDConfig& input,
                                 executor_t& executor,
                                 const options_t& options);
 
@@ -47,12 +47,12 @@ public:
                  HypothesisFuncType& h, const RegularizerFuncType& regularizer);
 
     /// \brief Reset the control
-    void reset_control(const GDControl& control);
+    void reset_control(const GDConfig& control);
 
 private:
 
     /// \brief The control data the GD solver is using
-    GDControl input_;
+    GDConfig input_;
 
     /// \brief The executor used
     executor_t& executor_;
@@ -63,7 +63,7 @@ private:
 
 template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
 GradientDescentWrapper<ErrorFunction, ExecutorType,
-                            OptionsType>::GradientDescentWrapper(const GDControl& input,
+                            OptionsType>::GradientDescentWrapper(const GDConfig& input,
                                                                       typename GradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::executor_t& executor,
                                                                       const  typename GradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::options_t& options)
     :
@@ -95,7 +95,7 @@ GradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::solve(const Ma
 
 template<typename ErrorFunction, typename ExecutorType, typename OptionsType>
 void
-GradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::reset_control(const GDControl& control){
+GradientDescentWrapper<ErrorFunction, ExecutorType, OptionsType>::reset_control(const GDConfig& control){
     input_.reset(control);
 }
 
@@ -120,7 +120,7 @@ public:
     typedef GDInfo output_t;
 
     /// \brief Constructor
-    GradientDescentWrapper(const GDControl& input,
+    GradientDescentWrapper(const GDConfig& input,
                                 executor_t& executor,
                                 const options_t& options);
 
@@ -134,12 +134,12 @@ public:
                  HypothesisFuncType& h, const RegularizerFuncType& regularizer);
 
     /// \brief Reset the control
-    void reset_control(const GDControl& control);
+    void reset_control(const GDConfig& control);
 
 private:
 
     /// \brief The control data the GD solver is using
-    GDControl input_;
+    GDConfig input_;
 
     /// \brief The executor used
     executor_t& executor_;
@@ -149,7 +149,7 @@ private:
 };
 
 template<typename ErrorFunction>
-GradientDescentWrapper<ErrorFunction, Null, Null>::GradientDescentWrapper(const GDControl& input,
+GradientDescentWrapper<ErrorFunction, Null, Null>::GradientDescentWrapper(const GDConfig& input,
                                                                       typename GradientDescentWrapper<ErrorFunction, Null, Null>::executor_t& executor,
                                                                       const  typename GradientDescentWrapper<ErrorFunction, Null, Null>::options_t& options)
     :
@@ -164,7 +164,7 @@ template<typename MatType, typename VecType, typename HypothesisFuncType>
 GDInfo
 GradientDescentWrapper<ErrorFunction, Null, Null>::solve(const MatType& mat,const VecType& v, HypothesisFuncType& h){
 
-    Gd<ErrorFunction> gd(input_);
+    Gd gd(input_);
     return gd.solve(mat, v, h);
 }
 
@@ -175,13 +175,13 @@ GDInfo
 GradientDescentWrapper<ErrorFunction, Null, Null>::solve(const MatType& mat,const VecType& v,
                                                               HypothesisFuncType& h, const RegularizerFuncType& regularizer){
 
-    Gd<ErrorFunction> gd(input_);
+    Gd gd(input_);
     return gd.solve(mat, v, h, regularizer);
 }
 
 template<typename ErrorFunction>
 void
-GradientDescentWrapper<ErrorFunction, Null, Null>::reset_control(const GDControl& control){
+GradientDescentWrapper<ErrorFunction, Null, Null>::reset_control(const GDConfig& control){
     input_.reset(control);
 }
 

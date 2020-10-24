@@ -17,7 +17,9 @@ struct matrix_row_trait<DynMat<T>>
     typedef T value_t;
     typedef DynVec<T> row_t;
 
-
+    ///
+    /// \brief get_row Returns the row with index row_idx
+    ///
     static row_t get_row(const DynMat<T>& matrix, uint_t row_idx);
 };
 
@@ -47,7 +49,9 @@ struct matrix_row_trait<PartitionedType<DynMat<T>>>
     typedef T value_t;
     typedef DynVec<T> row_t;
 
-
+    ///
+    /// \brief get_row Returns the row with index row_idx
+    ///
     static row_t get_row(const PartitionedType<DynMat<T>>& matrix, uint_t row_idx);
 };
 

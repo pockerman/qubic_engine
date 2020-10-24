@@ -17,7 +17,7 @@ int main(){
     using cengine::real_t;
     using cengine::DynMat;
     using cengine::DynVec;
-    using kernel::maths::opt::GDControl;
+    using kernel::maths::opt::GDConfig;
     using kernel::maths::opt::GradientDescentWrapper;
     using cengine::LogisticRegression;
     using cengine::Null;
@@ -36,15 +36,15 @@ int main(){
         // f = w_0 + w_1*x_1 + w_2*x_2 + w_3*x_3 + w_4*x_4;
         // set initial weights to 0
         LogisticRegression<hypothesis_t, transformer_t> classifier({0.0, 0.0, 0.0, 0.0, 0.0});
-        transformer_t sigmoid_h(classifier.get_model());
+
 
         {
 
             std::cout<<"Serial GD..."<<std::endl;
 
             typedef MSEFunction<transformer_t, DynMat<real_t>, DynVec<uint_t>> error_t;
-            GDControl control(10000, kernel::KernelConsts::tolerance(),
-                              GDControl::DEFAULT_LEARNING_RATE);
+            GDConfig control(10000, kernel::KernelConsts::tolerance(),
+                              GDConfig::DEFAULT_LEARNING_RATE);
 
             /// load the dataset
             auto dataset = kernel::load_reduced_iris_data_set();
@@ -66,7 +66,7 @@ int main(){
             std::cout<<"Threaded GD..."<<std::endl;
 
             /// a thread pool with 4 threads
-            ThreadPool executor(4);
+            /*ThreadPool executor(4);
 
             /// reset the model parameters
             classifier.set_model_parameters({0.0, 0.0, 0.0, 0.0, 0.0});
@@ -78,7 +78,7 @@ int main(){
             /// we need a partitioned data set
             auto dataset = kernel::load_reduced_iris_data_set_with_partitions(executor.get_n_threads());
 
-            GDControl control(10000, kernel::KernelConsts::tolerance(), GDControl::DEFAULT_LEARNING_RATE);
+            GDConfig control(10000, kernel::KernelConsts::tolerance(), GDConfig::DEFAULT_LEARNING_RATE);
 
             // this is a serial implmentation
             GradientDescentWrapper<error_t, ThreadPool, Null> gd(control, executor, Null() );
@@ -89,7 +89,7 @@ int main(){
             DynVec<real_t> point{1.0, 5.7, 2.8, 4.1, 1.3};
             auto class_idx = classifier.predict(point);
 
-            std::cout<<"Class index: "<<class_idx<<std::endl;
+            std::cout<<"Class index: "<<class_idx<<std::endl;*/
 
         }
     }

@@ -3,6 +3,7 @@
 
 #include "cubic_engine/base/config.h"
 #include "cubic_engine/base/cubic_engine_types.h"
+#include "kernel/maths/errorfunctions/mse_function.h"
 #include "kernel/maths/functions/real_vector_polynomial.h"
 #include <boost/noncopyable.hpp>
 #include <vector>
@@ -10,8 +11,10 @@
 
 namespace cengine
 {
-    
+
+///
 /// \brief Regressor class.
+///
 template<typename HypothesisType>
 class Regressor: private boost::noncopyable
 {
@@ -20,42 +23,62 @@ public:
 
     typedef HypothesisType hypothesis_t;
 
+    ///
     /// \brief The output of predict
+    ///
     typedef real_t output_t;
 
-     /// \brief Constructor
-     Regressor();
+    ///
+    /// \brief Constructor
+    ///
+    Regressor();
 
-     /// \brief Constructor
-     Regressor(const std::vector<real_t>& params);
+    ///
+    /// \brief Constructor
+    ///
+    Regressor(const std::vector<real_t>& params);
 
-     /// \brief Set the number of parameters for the model
-     void set_model_parameters(const std::vector<real_t>& params);
+    ///
+    /// \brief Set the number of parameters for the model
+    ///
+    void set_model_parameters(const std::vector<real_t>& params);
 
-     /// \brief Train the  model
-     template<typename DataSetType, typename LabelsType, typename Trainer>
-     typename Trainer::output_t
-     train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer);
+    ///
+    /// \brief Train the  model
+    ///
+    template<typename DataSetType, typename LabelsType, typename Trainer>
+    typename Trainer::output_t
+    train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer);
 
-     /// \brief Train the  model using a regularizer
-     template<typename DataSetType, typename LabelsType,
-              typename Trainer, typename RegularizerType>
-     typename Trainer::output_t
-     train(const DataSetType& dataset, const LabelsType& labels,
-           Trainer& trainer, const  RegularizerType& regularizer);
+    ///
+    /// \brief Train the  model using a regularizer
+    ///
+    template<typename DataSetType, typename LabelsType,
+             typename Trainer, typename RegularizerType>
+    typename Trainer::output_t
+    train(const DataSetType& dataset, const LabelsType& labels,
+          Trainer& trainer, const  RegularizerType& regularizer);
 
-     /// \brief Predict the class for the given data point
-     template<typename DataPoint>
-     output_t predict(const DataPoint& point)const;
+    ///
+    /// \brief Predict the class for the given data point
+    ///
+    template<typename DataPoint>
+    output_t predict(const DataPoint& point)const;
 
-     /// \brief Returns the raw model
-     const hypothesis_t& get_model()const{return hypothesis_;}
+    ///
+    /// \brief Returns the raw model
+    ///
+    const hypothesis_t& get_model()const{return hypothesis_;}
 
-     /// \brief Return the i-th parameter
-     real_t coeff(uint_t i)const{return hypothesis_.coeff(i);}
+    ///
+    /// \brief Return the i-th parameter
+    ///
+    real_t coeff(uint_t i)const{return hypothesis_.coeff(i);}
 
-     /// \brief Print the model coeffs
-     std::ostream& print(std::ostream& out)const;
+    ///
+    /// \brief Print the model coeffs
+    ///
+    std::ostream& print(std::ostream& out)const;
 
 private:
 
@@ -79,7 +102,8 @@ template<typename DataSetType, typename LabelsType, typename Trainer>
 typename Trainer::output_t
 Regressor<HypothesisType>::train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer){
     
-    return trainer.solve(dataset, labels, hypothesis_);
+    kernel::MSEFunction<HypothesisType, DataSetType, LabelsType> error(hypothesis_);
+    return trainer.solve(dataset, labels, error);
 }
 
 template<typename HypothesisType>
@@ -89,7 +113,8 @@ typename Trainer::output_t
 Regressor<HypothesisType>::train(const DataSetType& dataset, const LabelsType& labels,
                                  Trainer& trainer, const  RegularizerType& regularizer){
 
-    return trainer.solve(dataset, labels, hypothesis_, regularizer);
+    kernel::MSEFunction<HypothesisType, DataSetType, LabelsType, RegularizerType> error(hypothesis_, regularizer);
+    return trainer.solve(dataset, labels, error);
 }
 
 template<typename HypothesisType>
