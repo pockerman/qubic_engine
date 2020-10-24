@@ -1,28 +1,24 @@
-#ifndef BICYCLE_VEHICLE_CHASSIS_H
-#define BICYCLE_VEHICLE_CHASSIS_H
+#ifndef QUADROTOR_CHASSIS_H
+#define QUADROTOR_CHASSIS_H
 
 #include "kernel/base/types.h"
 #include "kernel/models/chassis_helper.h"
-#include "boost/any.hpp"
 
-#include <string>
+#include <boost/any.hpp>
 #include <map>
-#include <memory>
+#include <string>
 
 namespace kernel {
 namespace models {
 
-
-class TireModelBase;
-
-class BicycleVehicleChassis
+class QuadrotorChassis
 {
 public:
 
     ///
     /// \brief moment_t The type describing the inertia moments
     ///
-    typedef real_t inertia_moment_t;
+    typedef DynMat<real_t> inertia_moment_t;
 
     ///
     /// \brief force_t The type of the force
@@ -37,12 +33,12 @@ public:
     ///
     /// \brief BicycleVehicleChassis. Constructor
     ///
-    BicycleVehicleChassis();
+    QuadrotorChassis();
 
     ///
     /// \brief ~BicycleVehicleChassis. Destructor
     ///
-    ~BicycleVehicleChassis();
+    ~QuadrotorChassis();
 
     ///
     /// \brief load_from_json Load the description of the chassis from
@@ -73,32 +69,21 @@ public:
     ///
     force_t compute_force(const force_input_t& input)const;
 
+    ///
+    /// \brief n_engines. Returns the number of engines
+    ///
+    uint_t n_engines()const{return 4;}
+
 private:
 
     ///
     /// \brief helper_.
     ///
     ChassisHelper helper_;
-
-    ///
-    /// \brief left_tire_ Pointer to the left tire model
-    ///
-    std::unique_ptr<TireModelBase> front_tire_;
-
-    ///
-    /// \brief left_tire_ Pointer to the right tire model
-    ///
-    std::unique_ptr<TireModelBase> rear_tire_;
-
-    ///
-    /// \brief get_property_from_input Returns the named property
-    /// from the given input
-    ///
-    const boost::any& get_property_from_input(const force_input_t& input, const std::string& name)const;
-
 };
-}
 
 }
 
-#endif // BICYCLE_VEHICLE_CHASSIS_H
+}
+
+#endif // QUADROTOR_CHASSIS_H

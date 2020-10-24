@@ -9,6 +9,7 @@
 #include <boost/any.hpp>
 #include <map>
 #include <string>
+#include <vector>
 
 
 namespace cengine {
@@ -16,10 +17,10 @@ namespace control{
 
 
 ///
-/// \brief The MPCInput struct. Wrap the input
+/// \brief The MPCConfig struct. Wrap the input
 /// required by the the MPCController class
 ///
-template<typename OptimizerTp, typename ObserverTp, typename EstimatorTp>
+template<typename OptimizerTp, typename EstimatorTp>
 struct MPCConfig
 {
     ///
@@ -31,16 +32,6 @@ struct MPCConfig
     /// \brief optimizer_config_t Configuration type of the optimizer
     ///
     typedef typename optimizer_t::config_t optimizer_config_t;
-
-    ///
-    /// \brief observer_t The type of the observer
-    ///
-    typedef ObserverTp observer_t;
-
-    ///
-    /// \brief observer_config_t Configuration type of the observer
-    ///
-    typedef typename  observer_t::config_t observer_config_t;
 
     ///
     /// \brief predictor_t The type of the predictor
@@ -66,11 +57,6 @@ struct MPCConfig
     /// \brief opt_config The configuration of the optimizer
     ///
     optimizer_config_t opt_config;
-
-    ///
-    /// \brief obs_config The configuration of the observer
-    ///
-    observer_config_t obs_config;
 
     ///
     /// \brief pred_config The configuration of the predictor
@@ -109,7 +95,7 @@ struct MPCConfig
 ///
 /// \brief The MPCController class. Linear constrained MPC controller
 ///
-template<typename OptimizerTp, typename ObserverTp, typename EstimatorTp>
+template<typename OptimizerTp, typename EstimatorTp>
 class MPCController: private boost::noncopyable
 {
 
@@ -121,11 +107,6 @@ public:
     typedef OptimizerTp optimizer_t;
 
     ///
-    /// \brief observer_t The type of the observer
-    ///
-    typedef ObserverTp observer_t;
-
-    ///
     /// \brief predictor_t The type of the predictor
     ///
     typedef EstimatorTp estimator_t;
@@ -133,7 +114,7 @@ public:
     ///
     /// \brief config_t The type of the configuration
     ///
-    typedef MPCConfig<optimizer_t, observer_t, estimator_t> config_t;
+    typedef MPCConfig<optimizer_t, estimator_t> config_t;
 
     ///
     /// \brief control_output_t The output the MPC provides
@@ -194,6 +175,7 @@ public:
     ///
     const control_output_t& control_output()const{return control_out_;}
 
+
 private:
 
     ///
@@ -205,11 +187,6 @@ private:
     /// \brief optimizer_ The optimizer to use
     ///
     optimizer_t optimizer_;
-
-    ///
-    /// \brief observer_ The type of the observer
-    ///
-    observer_t observer_;
 
     ///
     /// \brief predictor_ The type of the predictor
@@ -225,23 +202,22 @@ private:
     /// \brief control_out_ The output we update every
     /// time the solve method is called
     ///
-    control_output_t control_out_;
+    std::vector<control_output_t> control_out_;
 
 };
 
-template<typename OptimizerTp, typename ObserverTp, typename EstimatorTp>
-MPCController<OptimizerTp, ObserverTp, EstimatorTp>::MPCController(const config_t& config)
+template<typename OptimizerTp,typename EstimatorTp>
+MPCController<OptimizerTp, EstimatorTp>::MPCController(const config_t& config)
     :
       config_(config),
       optimizer_(config.opt_config),
-      observer_(config.obs_config),
       estimator_(config.estimator_config)
 {}
 
 
-template<typename OptimizerTp, typename ObserverTp, typename EstimatorTp>
+template<typename OptimizerTp, typename EstimatorTp>
 void
-MPCController<OptimizerTp, ObserverTp, EstimatorTp>::update(const vector_t& state, const vector_t* state_ref){
+MPCController<OptimizerTp, EstimatorTp>::update(const vector_t& state, const vector_t* state_ref){
 
     config_.x_previous = state;
 
@@ -249,37 +225,47 @@ MPCController<OptimizerTp, ObserverTp, EstimatorTp>::update(const vector_t& stat
     if(state_ref){
         config_.x_ref = *state_ref;
     }
+}
+
+template<typename OptimizerTp, typename EstimatorTp>
+bool
+MPCController<OptimizerTp, EstimatorTp>::check_configuration()const{
+
 
 }
 
-template<typename OptimizerTp, typename ObserverTp, typename EstimatorTp>
+template<typename OptimizerTp, typename EstimatorTp>
 void
-MPCController<OptimizerTp, ObserverTp, EstimatorTp>::solve(const input_t& input){
+MPCController<OptimizerTp, EstimatorTp>::solve(const input_t& input){
+
+    if(control_out_.size() != config_.Np){
+        control_out_.reserve(config_.Np);
+    }
 
     // input for the estimator
     auto estimator_in = kernel::utils::InputResolver<input_t,
             typename EstimatorTp::input_t>::resolve("estimator_input", input);
 
-    // solve over the prediction
 
-    for(uint_t itr=0; itr<config_.Np; ++itr){
+    // ...get an estimate about the
+    // system state from the estimator
+    estimator_.estimate(estimator_in);
 
-        // state estimation
-        estimator_.estimate(estimator_in);
+    // get the state from the estimator
+    auto& state = estimator_.get_state();
 
-        // get the state from the estimator
-        auto& state = estimator_.get_state();
+    // form the difference between
+    // state vector and state reference
+    qp_.x = state.as_vector() -  config_.x_ref;
 
-        // form the difference between
-        // state vector and state reference
-        qp_.x = state.as_vector() -  config_.x_ref;
+    // TODO: The solver may fail to solve the
+    // quadratic system.
+    // optimizer solve the quadratic problem
 
-        // optimizer solve the quadratic problem
+    for(uint_t itr=0; itr < config_.Np; ++itr ){
         optimizer_.solve(qp_);
-
-        // we can now return the control inputs
+        control_out_.push_back(qp_.x);
     }
-
 }
 
 }

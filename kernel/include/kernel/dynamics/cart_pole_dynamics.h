@@ -13,7 +13,7 @@ namespace kernel {
 namespace dynamics {
 
 ///
-/// \brief The CartPoleInput struct. Wraps the parameters
+/// \brief The CartPoleConfig struct. Wraps the parameters
 /// used as input for the CartPoleDynamics class
 ///
 struct CartPoleConfig
@@ -52,6 +52,7 @@ struct CartPoleConfig
     /// \brief g The gravitational constant
     ///
     real_t g;
+
 };
 
 ///

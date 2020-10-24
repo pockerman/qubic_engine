@@ -164,9 +164,9 @@ void
 StateEstimationThread::set_state(const State& state){
 
   state_ = state;
-  m_model_.set_state_name_value("X", state.get("X"));
-  m_model_.set_state_name_value("Y", state.get("Y"));
-  m_model_.set_state_name_value("Theta", state.get("Theta"));
+  m_model_.set_state_property("X", state.get("X"));
+  m_model_.set_state_property("Y", state.get("Y"));
+  m_model_.set_state_property("Theta", state.get("Theta"));
 }
 
 void
