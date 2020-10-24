@@ -21,12 +21,12 @@
 #include "kernel/maths/functions/numeric_vector_function.h"
 
 #include "kernel/numerics/scalar_dirichlet_bc_function.h"
-#include "kernel/numerics/fv_convection_assemble_policy.h"
-#include "kernel/numerics/fv_ud_interpolation.h"
-#include "kernel/numerics/fv_scalar_timed_system.h"
+#include "kernel/numerics/fvm/fv_convection_assemble_policy.h"
+#include "kernel/numerics/fvm/fv_ud_interpolation.h"
+#include "kernel/numerics/fvm/fv_scalar_timed_system.h"
 #include "kernel/numerics/backward_euler_fv_time_assembly_policy.h"
-#include "kernel/numerics/fv_interpolation_factory.h"
-#include "kernel/numerics/fv_interpolation_types.h"
+#include "kernel/numerics/fvm/fv_interpolation_factory.h"
+#include "kernel/numerics/fvm/fv_interpolation_types.h"
 
 #include "kernel/numerics/trilinos_solution_policy.h"
 #include "kernel/numerics/boundary_function_base.h"
@@ -151,7 +151,8 @@ int main(){
         VelocityVals velocity;
 
         // the timed scalar system
-        FVScalarTimedSystem<2, BackwardEulerFVTimeAssemblyPolicy<2, FVConvectionAssemblyPolicy<2>,
+        FVScalarTimedSystem<2, BackwardEulerFVTimeAssemblyPolicy<2, FVConvectionAssemblyPolicy<2>>,
+                            FVConvectionAssemblyPolicy<2>,
                             TrilinosSolutionPolicy> convection("Convection", "U", mesh);
 
         // system configuration

@@ -8,11 +8,12 @@
 #include "kernel/parallel/threading/thread_pool.h"
 #include "kernel/maths/functions/real_vector_polynomial.h"
 #include "kernel/maths/errorfunctions/mse_function.h"
+#include "kernel/maths/optimization/threaded_gradient_descent.h"
+#include "kernel/maths/optimization/utils/gd_control.h"
 #include "kernel/utilities/data_set_loaders.h"
 
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/optimization/threaded_gradient_descent.h"
-#include "cubic_engine/optimization/utils/gd_control.h"
+
 
 #include <iostream>
 
@@ -23,8 +24,8 @@ int main(){
     using cengine::real_t;
     using cengine::DynMat;
     using cengine::DynVec;
-    using cengine::ThreadedGd;
-    using cengine::GDControl;
+    using kernel::maths::opt::ThreadedGd;
+    using kernel::maths::opt::GDConfig;
     using kernel::RealVectorPolynomialFunction;
     using kernel::MSEFunction;
     using kernel::PartitionedType;
@@ -45,8 +46,8 @@ int main(){
         // where w_0 = w_1 = 0.0
         hypothesis_t hypothesis({0.0, 0.0});
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(),
-                                   GDControl::DEFAULT_LEARNING_RATE);
+        GDConfig control(10000, kernel::KernelConsts::tolerance(),
+                                   GDConfig::DEFAULT_LEARNING_RATE);
 
         ThreadedGd<error_t> gd(control);
 
@@ -63,8 +64,8 @@ int main(){
         // where w_0 = w_1 = 0.0
         hypothesis_t hypothesis({0.0, 0.0});
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(),
-                                   GDControl::DEFAULT_LEARNING_RATE);
+        GDConfig control(10000, kernel::KernelConsts::tolerance(),
+                                   GDConfig::DEFAULT_LEARNING_RATE);
 
         ThreadedGd<error_t> gd(control);
 

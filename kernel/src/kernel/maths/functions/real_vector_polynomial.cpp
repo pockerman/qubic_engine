@@ -62,14 +62,13 @@ RealVectorPolynomialFunction::create_from(const std::vector<real_t>& coeffs){
 }
 
 
-std::vector<real_t>
+DynVec<real_t>
 RealVectorPolynomialFunction::coeffs()const{
 
-    std::vector<real_t> coeffs;
-    coeffs.reserve(monomials_.size());
+    DynVec<real_t> coeffs(monomials_.size(), 0.0);
 
-    for(const auto& monomial : monomials_){
-        coeffs.push_back(monomial.coeff());
+    for(uint_t c=0; c<monomials_.size(); ++c ){
+       coeffs[c] = monomials_[c].coeff();
     }
 
     return coeffs;
@@ -91,8 +90,25 @@ RealVectorPolynomialFunction::set_coeffs(const std::vector<real_t>& coeffs){
     }
 }
 
+void
+RealVectorPolynomialFunction::set_coeffs(const DynVec<real_t>& coeffs){
+
+    if(monomials_.size() != coeffs.size()){
+        throw std::invalid_argument("Monomials size "+std::to_string(monomials_.size()) +
+                                    " does not match the coeffs: "+std::to_string(coeffs.size()));
+    }
+
+    auto itr = coeffs.cbegin();
+
+    for(auto& monomial : monomials_){
+        monomial.set_coeff(*itr);
+        itr++;
+    }
+
+}
+
 RealVectorPolynomialFunction::output_t
-RealVectorPolynomialFunction::value(const RealVectorPolynomialFunction::input_t& input)const{
+RealVectorPolynomialFunction::value(const input_t& input)const{
 
     if(input.size() != monomials_.size()){
         throw std::invalid_argument("input size: " + std::to_string(input.size())+
@@ -105,6 +121,7 @@ RealVectorPolynomialFunction::value(const RealVectorPolynomialFunction::input_t&
 
         result += monomials_[i++].value(item);
     }
+
     return result;
 }
 

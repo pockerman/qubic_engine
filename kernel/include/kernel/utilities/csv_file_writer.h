@@ -7,6 +7,7 @@
 #include "kernel/discretization/mesh_predicates.h"
 #include <vector>
 #include <tuple>
+#include <initializer_list>
 
 namespace kernel{
 
@@ -14,27 +15,52 @@ namespace numerics {
 template<int dim> class LineMesh;
 }
 
-/// \brief Handles writing into CSV file format
+///
+/// \brief The CSVWriter class. Handles writing into CSV file format
+///
 class CSVWriter: public FileWriterBase
 {
 
 public:
 
+    ///
     /// \brief  The default column delimiter
+    ///
     static char default_delimiter(){return ',';}
 
+    ///
     /// \brief Constructor
+    ///
     CSVWriter(const std::string& filename, char delim=CSVWriter::default_delimiter(),
               bool open_file=false, const std::ios_base::openmode mode=std::ios_base::out);
 
+    ///
     /// \brief Write the column names
-    void write_column_names(const std::vector<std::string>& col_names, bool wheader=true);
+    ///
+    void write_column_names(const std::vector<std::string>& col_names,
+                            bool write_header=true);
 
+    ///
+    /// \brief Write the column names
+    ///
+    void write_column_names(const std::vector<std::string_view>& col_names,
+                            bool write_header=true);
+
+    ///
+    /// \brief Write the column names
+    ///
+    void write_column_names(const std::initializer_list<std::string_view>& col_names,
+                            bool write_header=true);
+
+    ///
     /// \brief Write a row of the file
+    ///
     template<typename T>
     void write_row(const std::vector<T>& vals);
 
+    ///
     /// \brief Write the given Vec as a row
+    ///
     template<typename T>
     void write_row(const DynVec<T>& vals);
 
@@ -42,16 +68,24 @@ public:
     template<typename...T>
     void write_row(const std::tuple<T...>& row);
 
+    ///
     /// \brief Set the delimiter
+    ///
     void set_delimiter(char delim)noexcept{delim_=delim;}
 
+    ///
     /// \brief Returns the column delimiter
+    ///
     char get_delimiter()const noexcept{return delim_;}
 
+    ///
     /// \brief Write the given LineMesh into csv format
+    ///
     void write_mesh(const numerics::LineMesh<2>& mesh );
 
+    ///
     /// \brief Write the nodes of the given Mesh
+    ///
     template<typename MeshTp>
     void write_mesh_nodes(const MeshTp& mesh);
 

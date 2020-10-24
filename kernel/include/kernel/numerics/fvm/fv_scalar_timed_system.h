@@ -1,7 +1,7 @@
 #ifndef FV_SCALAR_TIMED_SYSTEM_H
 #define FV_SCALAR_TIMED_SYSTEM_H
 
-#include "kernel/numerics/fvm/scalar_fv_system.h"
+#include "kernel/numerics/fvm/fv_scalar_system.h"
 #include <vector>
 
 namespace kernel {

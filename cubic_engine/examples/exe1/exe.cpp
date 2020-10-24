@@ -17,8 +17,8 @@ using cengine::uint_t;
 using cengine::DynMat;
 using cengine::DynVec;
 using cengine::DiagMat;
-using cengine::KalmanFilter;
-using kernel::dynamics::MotionModelBase;
+using cengine::estimation::KalmanFilter;
+using kernel::dynamics::MotionModelDynamicsBase;
 using kernel::dynamics::DynamicsMatrixDescriptor;
 using kernel::dynamics::SysState;
 using kernel::maths::stats::MultiNormalDist;
@@ -28,16 +28,16 @@ const uint_t N_ITRS = 1000;
 const real_t DT = 0.5;
 const real_t U0 = -2.0;
 
-class MotionModel: public MotionModelBase<SysState<2>,
+class MotionModel: public MotionModelDynamicsBase<SysState<2>,
                                           DynamicsMatrixDescriptor, DynVec<real_t>>
 {
 
 public:
 
-    typedef MotionModelBase<SysState<2>,
+    typedef MotionModelDynamicsBase<SysState<2>,
                             DynamicsMatrixDescriptor, DynVec<real_t>>::input_t input_t;
 
-    typedef MotionModelBase<SysState<2>,
+    typedef MotionModelDynamicsBase<SysState<2>,
                             DynamicsMatrixDescriptor, DynVec<real_t>>::state_t state_t;
 
 
@@ -161,6 +161,8 @@ int main() {
     writer.write_column_names(names);
     real_t time = 0.0;
 
+    typedef KalmanFilter<MotionModel, ObservationModel>::input_t input_t;
+
     for(uint_t itr=0; itr<N_ITRS; ++itr){
 
         std::cout<<"At time: "<<time<<std::endl;
@@ -170,7 +172,12 @@ int main() {
 
         auto obs = obs_model.evaluate(state.as_vector());
         DynVec<real_t> error = dist_error.sample();
-        kf.estimate(std::make_tuple(DynVec<real_t>(1,U0), error, obs));
+
+        input_t in;
+        in["u"] = DynVec<real_t>(1,U0);
+        in["w"] = DynVec<real_t>(1,U0);
+
+        kf.estimate(in);
 
         writer.write_row(std::make_tuple(time, state.get("P"), state.get("V")));
 

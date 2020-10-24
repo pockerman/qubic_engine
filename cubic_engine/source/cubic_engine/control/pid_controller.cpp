@@ -1,7 +1,7 @@
 #include "cubic_engine/control/pid_controller.h"
 
-namespace cengine
-{
+namespace cengine{
+namespace control{
 
 PIDControl::PIDControl(real_t Kp, real_t Kd, real_t Ki)
     :
@@ -53,6 +53,7 @@ PIDControl::execute(real_t error){
     rslt += parameters_["Ki"] * error_;
 
     return rslt;
+}
 }
 
 }

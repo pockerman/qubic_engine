@@ -10,7 +10,6 @@
 #include <vector>
 #include <ostream>
 #include <stdexcept>
-//#include <iostream>
 
 namespace kernel{
 namespace dynamics{
@@ -134,7 +133,7 @@ public:
     ///
     /// \brief Returns a copy of the state names
     ///
-    const std::array<std::string_view, dim> get_names()const;
+    const std::vector<std::string_view> get_names()const;
 
     ///
     /// \brief Access operator
@@ -508,10 +507,10 @@ SysState<dim>::get_values()const{
 }
 
 template<int dim>
-const std::array<std::string_view, dim>
+const std::vector<std::string_view>
 SysState<dim>::get_names()const{
 
-    std::array<std::string_view, dim> copy;
+    std::vector<std::string_view> copy(dim);
 
     for(uint_t i=0; i<dim; ++i){
         copy[i] = values_[i].first;

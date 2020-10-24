@@ -111,7 +111,12 @@ StateEstimationThread::initialize(){
     motion_control_error[1] = 0.0;
 
     m_model_.set_time_step(DT);
-    m_model_.initialize_matrices(std::make_tuple(0.0, 0.0, motion_control_error));
+    std::map<std::string, boost::any> m_in;
+    m_in["v"] = 0.0;
+    m_in["w"] = 0.0;
+    m_in["errors"] = motion_control_error;
+
+    m_model_.initialize_matrices(m_in);
 
     {
       /// set the matrices
@@ -159,9 +164,9 @@ void
 StateEstimationThread::set_state(const State& state){
 
   state_ = state;
-  m_model_.set_state_name_value("X", state.get("X"));
-  m_model_.set_state_name_value("Y", state.get("Y"));
-  m_model_.set_state_name_value("Theta", state.get("Theta"));
+  m_model_.set_state_property("X", state.get("X"));
+  m_model_.set_state_property("Y", state.get("Y"));
+  m_model_.set_state_property("Theta", state.get("Theta"));
 }
 
 void
@@ -184,7 +189,11 @@ StateEstimationThread::run(){
       vobserver.read(v_ctrl_);
       wobserver.read(w_ctrl_);
 
-      auto motion_input = std::make_tuple(v_ctrl_, w_ctrl_, motion_control_error);
+      std::map<std::string, boost::any> motion_input;
+      motion_input["v"] = v_ctrl_;
+      motion_input["w"] = w_ctrl_;
+      motion_input["errors"] = motion_control_error;
+
       ekf_.predict(motion_input);
 
       auto measurement = o_model_.evaluate(ekf_.get_state().as_vector());
@@ -234,6 +243,19 @@ PathConstructorThread::save_path(real_t duration){
     writer.write_mesh_nodes(path_);
 }
 
+struct Metric
+{
+    typedef real_t cost_t;
+
+
+    template<typename Node>
+    real_t operator()(const Node& s1, const Node& s2 )const{
+        kernel::LpMetric<2> metric;
+        return metric(s1.data.position, s2.data.position);
+        //return l2Norm(s1.data.state.as_vector()-s2.data.state.as_vector());
+    }
+};
+
 void
 PathConstructorThread::run(){
 
@@ -249,10 +271,11 @@ PathConstructorThread::run(){
     }
 
     /// both are updated so try to establish the path
-    typedef Map::vertex_type vertex_t;
+    typedef Map::vertex_t vertex_t;
 
     /// metric for A*
-    kernel::LpMetric<2> h;
+    //kernel::LpMetric<2>
+    Metric heuristic;
 
     Goal goal;
     State state;
@@ -312,7 +335,7 @@ PathConstructorThread::run(){
         goal_pos.id = goal_vertex_id;
 
         /// find the path we need the goal
-        auto path_connections = cengine::astar_search(const_cast<Map&>(*map_), start_pos, goal_pos, h );
+        auto path_connections = cengine::astar_search(const_cast<Map&>(*map_), start_pos, goal_pos, heuristic );
 
         if(path_connections.empty()){
 

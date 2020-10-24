@@ -1,8 +1,7 @@
-
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/supervised_learning/regressor.h"
-#include "cubic_engine/optimization/serial_gradient_descent.h"
-#include "cubic_engine/optimization/utils/gd_control.h"
+#include "kernel/maths/optimization/serial_gradient_descent.h"
+#include "kernel/maths/optimization/utils/gd_control.h"
 #include "cubic_engine/maths/functions/lasso_function.h"
 #include "cubic_engine/maths/functions/ridge_function.h"
 #include "cubic_engine/maths/functions/elastic_net_function.h"
@@ -20,8 +19,8 @@ int main(){
     using cengine::real_t;
     using cengine::DynMat;
     using cengine::DynVec;
-    using cengine::GDControl;
-    using cengine::Gd;
+    using kernel::maths::opt::GDConfig;
+    using kernel::maths::opt::Gd;
     using cengine::LinearRegression;
     using cengine::LassoFunction;
     using cengine::RidgeFunction;
@@ -54,11 +53,11 @@ int main(){
             lasso_t lasso(regressor.get_model(), LASSO_COEF, 1,
                           regressor.get_model().n_coeffs());
 
-            GDControl control(10000, kernel::KernelConsts::tolerance(),
-                                       GDControl::DEFAULT_LEARNING_RATE);
+            GDConfig control(10000, kernel::KernelConsts::tolerance(),
+                                       GDConfig::DEFAULT_LEARNING_RATE);
 
-            typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, lasso_t> error_t;
-            Gd<error_t> gd(control);
+            //typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, lasso_t> error_t;
+            Gd gd(control);
 
             auto result = regressor.train(dataset.first, dataset.second, gd, lasso);
             std::cout<<result<<std::endl;
@@ -78,12 +77,12 @@ int main(){
             ridge_t ridge(regressor.get_model(), RIDGE_COEF, 1,
                           regressor.get_model().n_coeffs());
 
-            GDControl control(10000, kernel::KernelConsts::tolerance(),
-                              GDControl::DEFAULT_LEARNING_RATE);
+            GDConfig control(10000, kernel::KernelConsts::tolerance(),
+                              GDConfig::DEFAULT_LEARNING_RATE);
 
             // the error function to to use for measuring the error
             typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, ridge_t> error_t;
-            Gd<error_t> gd(control);
+            Gd gd(control);
 
             auto result = regressor.train(dataset.first, dataset.second, gd, ridge);
             std::cout<<result<<std::endl;
@@ -103,12 +102,12 @@ int main(){
              elastic_net_t elastic_net(regressor.get_model(), LASSO_COEF, RIDGE_COEF,
                                        1, regressor.get_model().n_coeffs());
 
-            GDControl control(10000, kernel::KernelConsts::tolerance(),
-                                       GDControl::DEFAULT_LEARNING_RATE);
+            GDConfig control(10000, kernel::KernelConsts::tolerance(),
+                                       GDConfig::DEFAULT_LEARNING_RATE);
 
             // the error function to to use for measuring the error
             typedef MSEFunction<hypothesis_t, DynMat<real_t>, DynVec<real_t>, elastic_net_t> error_t;
-            Gd<error_t> gd(control);
+            Gd gd(control);
 
             auto result = regressor.train(dataset.first, dataset.second, gd, elastic_net);
             std::cout<<result<<std::endl;

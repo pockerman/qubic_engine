@@ -3,6 +3,8 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/maths/matrix_utilities.h"
+#include "kernel/maths/errorfunctions/mse_function.h"
+#include "kernel/maths/functions/sigmoid_function.h"
 
 #include <boost/noncopyable.hpp>
 #include <vector>
@@ -23,60 +25,84 @@ class LogisticRegression: private boost::noncopyable
     typedef TransformerType transformer_t;
     typedef uint_t output_t;
 
+    ///
     /// \brief Constructor
+    ///
     LogisticRegression();
 
+    ///
     /// \brief Constructor. Set the initial coeffs of the
     /// underlying hypothesis model
+    ///
     LogisticRegression(const std::vector<real_t>& coeffs);
 
+    ///
     /// \brief Set the number of parameters for the model
+    ///
     void set_model_parameters(const std::vector<real_t>& coeffs);
 
+    ///
     /// \brief Train the model
+    ///
     template<typename DataSetType, typename LabelsType, typename Trainer>
     typename Trainer::output_t
     train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer);
 
+    ///
     /// \brief Train the model
+    ///
     template<typename DataSetType, typename LabelsType,
              typename Trainer, typename RegularizerType>
     typename Trainer::output_t
     train(const DataSetType& dataset, const LabelsType& labels,
           Trainer& trainer, const RegularizerType& regularizer);
 
+    ///
     /// \brief Predict the class for the given data point
+    ///
     template<typename DataPoint>
     output_t predict(const DataPoint& point)const;
 
+    ///
     /// \brief Predict on the data set
+    ///
     template<typename DataSet, typename OutputType>
     void predict(const DataSet& point, OutputType& out)const;
 
+    ///
     /// \brief Returns the raw model
+    ///
     const hypothesis_t& get_model()const{return hypothesis_;}
 
+    ///
     /// \brief Return the i-th parameter
+    ///
     real_t coeff(uint_t i)const{return hypothesis_.coeff(i);}
 
+    ///
     /// \brief Print the model coeffs
+    ///
     std::ostream& print(std::ostream& out)const;
 
 private:
 
     hypothesis_t hypothesis_;
+
+    TransformerType transformer_;
  };
  
 template<typename HypothesisType, typename TransformerType>
 LogisticRegression<HypothesisType, TransformerType>::LogisticRegression()
 :
-hypothesis_()
+hypothesis_(),
+transformer_(hypothesis_)
 {}
 
 template<typename HypothesisType, typename TransformerType>
 LogisticRegression<HypothesisType, TransformerType>::LogisticRegression(const std::vector<real_t>& coeffs)
     :
-      hypothesis_(coeffs)
+      hypothesis_(coeffs),
+      transformer_(hypothesis_)
 {}
 
 template<typename HypothesisType, typename TransformerType>
@@ -84,7 +110,8 @@ template<typename DataSetType, typename LabelsType, typename Trainer>
 typename Trainer::output_t
 LogisticRegression<HypothesisType, TransformerType>::train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer ){
     
-    return trainer.solve(dataset, labels, hypothesis_);
+    kernel::MSEFunction<TransformerType, DataSetType, LabelsType> error(transformer_);
+    return trainer.solve(dataset, labels, error);
 }
 
 template<typename HypothesisType, typename TransformerType>
@@ -94,7 +121,8 @@ typename Trainer::output_t
 LogisticRegression<HypothesisType, TransformerType>::train(const DataSetType& dataset, const LabelsType& labels,
                                                            Trainer& trainer, const RegularizerType& regularizer){
 
-    return trainer.solve(dataset, labels, hypothesis_, regularizer);
+    kernel::MSEFunction<TransformerType, DataSetType, LabelsType, RegularizerType> error(transformer_, regularizer);
+    return trainer.solve(dataset, labels, error);
 }
 
 template<typename HypothesisType, typename TransformerType>
@@ -109,8 +137,8 @@ template<typename DataPoint>
 typename LogisticRegression<HypothesisType, TransformerType>::output_t
 LogisticRegression<HypothesisType, TransformerType>::predict(const DataPoint& point)const{
     
-    TransformerType transformer(hypothesis_);
-    auto value = transformer.value(point);
+    //TransformerType transformer(hypothesis_);
+    auto value = transformer_.value(point);
 
     if(value >= 0.5){
         return 1;

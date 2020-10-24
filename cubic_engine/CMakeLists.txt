@@ -22,21 +22,22 @@ SET(CUBIC_ENGINE_VERSION_MINOR 1)
 SET(CUBIC_ENGINE_VERSION_PATCH 1)
 PROJECT(CubicEngine VERSION ${CUBIC_ENGINE_VERSION_MAJOR}.${CUBIC_ENGINE_VERSION_MINOR}.${CUBIC_ENGINE_VERSION_PATCH})
 SET(CUBIC_ENGINE_VERSION "${CUBIC_ENGINE_VERSION_MAJOR}.${CUBIC_ENGINE_VERSION_MINOR}.${CUBIC_ENGINE_VERSION_PATCH}")
-message(STATUS "CubicEngine Version ${CUBIC_ENGINE_VERSION}")
 
 SET(BUILD_SHARED_LIBS ON)
 SET(CMAKE_BUILD_TYPE "Debug")
-SET(ENABLE_TESTING "ON")
+SET(ENABLE_TESTING "OFF")
 SET(USE_OPENMP "ON")
 SET(USE_LOG "ON")
 SET(USE_PYTORCH "OFF")
-
+SET(USE_TRILINOS "ON")
+SET(USE_TRILINOS_LONG_LONG_TYPE "OFF")
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/cubic_engine)
 SET(PWD ${PROJECT_SOURCE_DIR})
 SET(CMAKE_INSTALL_PREFIX ${PWD}/install)
 SET(MAGIC_ENUM_INCL_DIR " ")
 SET(BLAZE_INCL_DIR "/home/alex/MySoftware/blaze/blaze-3.7/install/include")
+SET(NLOHMANN_JSON_INCL_DIR "/home/alex/MySoftware/nlohman_json/install/include")
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(CENGINE_DEBUG "ON")
@@ -87,6 +88,13 @@ if(${BLAZE_INCL_DIR} MATCHES " ")
 else()
     INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
 endif()
+
+IF(USE_TRILINOS MATCHES "ON")
+    SET(TRILINOS_INCL_DIR "/home/alex/MySoftware/trilinos/install/include")
+    SET(TRILINOS_LIB_DIR "/home/alex/MySoftware/trilinos/install/lib")
+    INCLUDE_DIRECTORIES(${TRILINOS_INCL_DIR})
+    LINK_DIRECTORIES(${TRILINOS_LIB_DIR})
+ENDIF()
 
 IF( ENABLE_TESTING MATCHES "ON")
     SET(GTEST_INC_DIR "/home/alex/MySoftware/gtest/install/include")
@@ -143,7 +151,6 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
                  ${PROJECT_SRC_DIR}/ml/unsupervised_learning/utils/*.cpp
                  ${PROJECT_SRC_DIR}/rl/*.cpp
                  ${PROJECT_SRC_DIR}/rl/*/*.cpp
-                 ${PROJECT_SRC_DIR}/optimization/utils/*.cpp
                  ${PROJECT_SRC_DIR}/maths/*.cpp)
 
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})

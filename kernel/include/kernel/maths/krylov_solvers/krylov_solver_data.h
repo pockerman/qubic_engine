@@ -8,6 +8,10 @@
 namespace kernel{
 namespace numerics {
 
+///
+/// \brief The KrylovSolverData struct. Wraps various parameters
+/// typically used by a KrylovSolver
+///
 struct KrylovSolverData{
 
     uint_t n_iterations;

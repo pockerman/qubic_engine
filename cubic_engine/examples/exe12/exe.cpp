@@ -1,12 +1,10 @@
-
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/supervised_learning/regressor.h"
-#include "cubic_engine/optimization/serial_gradient_descent.h"
-#include "cubic_engine/optimization/utils/gd_control.h"
-
-#include "kernel/maths/functions/real_vector_polynomial.h"
-#include "kernel/maths/errorfunctions/mse_function.h"
+#include "cubic_engine/ml/supervised_learning/ordinary_least_squares.h"
+#include "kernel/maths/optimization/serial_gradient_descent.h"
+#include "kernel/maths/optimization/utils/gd_control.h"
 #include "kernel/utilities/data_set_loaders.h"
+
 
 #include <iostream>
 
@@ -16,29 +14,33 @@ int main(){
     using cengine::real_t;
     using cengine::DynMat;
     using cengine::DynVec;
-    using cengine::GDControl;
-    using cengine::Gd;
+    using kernel::maths::opt::GDConfig;
+    using kernel::maths::opt::Gd;
     using cengine::LinearRegression;
-    using kernel::RealVectorPolynomialFunction;
-    using kernel::MSEFunction;
-
-    typedef MSEFunction<RealVectorPolynomialFunction,
-            DynMat<real_t>,
-            DynVec<uint_t>> error_t;
+    using cengine::ml::OrdinaryLeastSquares;
 
     try{
 
+        // load the data set
         auto dataset = kernel::load_car_plant_dataset();
+
+        // linear model trained with OLS
+        OrdinaryLeastSquares ols(1, true);
+
+        // train the model
+        ols.train(dataset.first, dataset.second);
+
+        std::cout<<"Intercept: "<<ols.get_interception()<<" slope: "<<ols.coeff(0)<<std::endl;
 
         // The regressor to use. use a hypothesis of the form
         // f = w_0 + w_1*x_1
         // set initial weights to 0
         LinearRegression regressor({0.0, 0.0});
 
-        GDControl control(10000, kernel::KernelConsts::tolerance(),
-                          GDControl::DEFAULT_LEARNING_RATE);
+        // configuration for GD
+        GDConfig control(10000, 1.0e-7, GDConfig::DEFAULT_LEARNING_RATE);
 
-        Gd<error_t> gd(control);
+        Gd gd(control);
 
         auto result = regressor.train(dataset.first, dataset.second, gd);
         std::cout<<result<<std::endl;

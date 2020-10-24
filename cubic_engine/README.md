@@ -20,6 +20,7 @@
 - <a href="https://pytorch.org/">PyTorch</a> if PyTorch is enabled
 - <a href="https://github.com/pockerman/compute_engine/tree/master/kernel">```kernel```</a>
 - <a href="https://github.com/Neargye/magic_enum">```magic_enum```</a> only used if ```__GNUC__ >7 ```
+- <a href="https://github.com/nlohmann/json">Nlohmann JSON</a> used for JSON support
 
 ## <a name="nstallation"></a> Installation
 
@@ -38,13 +39,14 @@ specify the following:
 - ```CMAKE_INSTALL_PREFIX``` by default is set to ```${PWD}/install```
 - ```KERNEL_INCL_DIR``` and ```KERNEL_LIB_DIR``` by default these point to ```${PWD}../kernel/include``` and  ```${PWD}../kernel/install/lib``` respectively
 - ```MAGIC_ENUM_INCL_DIR``` if ```magic_enum``` can be supported by the compiler (```__GNUC__ >7 ```)
+- The ```NLOHMANN_JSON_INCL_DIR``` variable for the ```json.hpp``` header
+
 ```
 mkdir build
 cd build
 cmake ..
 make
 make install
-make tests
 ```
 
 ## <a name="documentation"></a> Documentation
@@ -64,14 +66,14 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 
 - <a href="#">Example 4: </a> Using the ```PIDControl``` class
 - LQR Control
-- <a href="examples/exe28/doc/exe.ipynb">Example 28: </a> Develop a model predictive controller for differential drive system
+- <a href="examples/exe28/doc/exe.ipynb">Example 28: </a> Model-based control for cart-pole system
 
 ### <a name="machine_learning"></a> Machine Learning & Statistics
 
 - <a href="examples/exe5/doc/exe.md">Example 5: </a> Simulate standard error for the mean
 - <a href="examples/exe7/doc/exe.md">Example 7: </a> Multithreaded  gradient descent
 - <a href="examples/exe11/doc/exe.md">Example 11: </a> Neural Network with PyTorch
-- <a href="examples/exe12/doc/exe.md">Example 12: </a> Linear regression
+- <a href="examples/exe12/doc/exe.ipynb">Example 12: </a> Linear regression
 - <a href="examples/exe13/doc/exe.md">Example 13: </a> Logistic regression classification
 - <a href="examples/exe14/doc/exe.md">Example 14: </a> Logistic regression with ```GradientDescentWrapper```
 - <a href="examples/exe15/doc/exe.md">Example 15: </a> Linear Regression with ```PYLinearRegressor```
@@ -81,6 +83,7 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="examples/exe20/doc/exe.md">Example 20: </a> KNN classification with multiple threads
 - <a href="examples/exe24/doc/exe.ipynb">Example 24: </a> Sampling from multivariate normal distribution
 - <a href="examples/exe30/doc/exe.ipynb">Example 30: </a> PCA for dimensionality reduction
+- <a href="examples/exe32/doc/exe.ipynb">Example 32: </a> Multinomial naive Bayes classification
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
@@ -95,7 +98,7 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="examples/exe19/doc/exe.ipynb">Example 19:</a> Differential drive system simulation
 - <a href="#">Example 21:</a> Pure pursuit path tracking
 - <a href="examples/exe23/doc/exe.ipynb">Example 23:</a> Follow the carrot path tracking
-- <a href="examples/exe29/doc/exe.html">Example 29:</a> Path planning with rapidly-exploring random trees
+- <a href="examples/exe29/doc/exe.ipynb">Example 29:</a> Path planning with rapidly-exploring random trees
 
 ### <a name="miscellaneous"></a>Miscellaneous
 

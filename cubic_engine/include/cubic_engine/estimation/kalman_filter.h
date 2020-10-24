@@ -1,14 +1,33 @@
 #include "cubic_engine/base/cubic_engine_types.h"
+#include "kernel/utilities/input_resolver.h"
 #include <boost/noncopyable.hpp>
+#include <boost/any.hpp>
 
 #include <map>
 #include <string>
 #include <stdexcept> //for std::invalid_argument
 
 
-namespace cengine
-{
+namespace cengine{
+namespace estimation{
 
+template<typename MotionModelTp, typename ObservationModelTp>
+struct KalmanFilterConfig
+{
+    typedef MotionModelTp motion_model_t;
+    typedef ObservationModelTp observation_model_t;
+
+    motion_model_t* motion_model;
+    const observation_model_t* observation_model;
+
+    DynMat<real_t> B;
+    DynMat<real_t> P;
+    DynMat<real_t> Q;
+    DynMat<real_t> K;
+    DynMat<real_t> R;
+};
+
+///
 /// \brief Linear Kalman Filter implementation.
 /// See: An Introduction to the Kalman Filter, TR 95-041
 /// by Greg Welch1 and Gary Bishop
@@ -43,13 +62,14 @@ namespace cengine
 /// control vector: u l x 1
 /// meas. vector:   y m x 1
 ///
-/// F n x n
-/// P n x n
-/// B n x l
-/// H m x n
-/// K n x m
-/// Q n x n
-/// R m x m 
+/// \f[ \mathbf{F} n \times n \f]
+/// \f[ \mathfb{P} n \times n \f]
+/// \f[ \mathbf{B} n \times l \f]
+/// \f[ \mathbf{H} m \times n \f]
+/// \f[ \mathbf{K} n \times m \f]
+/// \f[ \mathbf{Q} n \times n \f]
+/// \f[ \mathbf{R} m \times m \f]
+///
 template<typename MotionModelTp, typename ObservationModelTp>
 class KalmanFilter: private boost::noncopyable
 {
@@ -58,24 +78,30 @@ public:
 
     typedef MotionModelTp motion_model_t;
     typedef ObservationModelTp observation_model_t;
-    typedef DynVec<real_t> motion_model_input_t;
+    typedef typename motion_model_t::input_t motion_model_input_t;
     typedef typename motion_model_t::matrix_t matrix_t;
     typedef typename motion_model_t::state_t state_t;
-    typedef DynVec<real_t> motion_model_error_t;
     typedef typename observation_model_t::input_t observation_model_input_t;
+    typedef KalmanFilterConfig<motion_model_t, observation_model_t>  config_t;
+    typedef std::map<std::string, boost::any> input_t;
 
     ///
-    ///  Constructor
+    ///  \brief Constructor
     ///
     KalmanFilter();
 
     ///
-    /// Constructor
+    /// \brief Constructor
     ///
     KalmanFilter(motion_model_t& motion_model, const observation_model_t& observation_model);
 
     ///
-    /// Destructor
+    /// \brief KalmanFilter Constructor
+    ///
+    KalmanFilter(const config_t& config);
+
+    ///
+    /// \brief Destructor
     ///
     ~KalmanFilter();
 
@@ -84,12 +110,10 @@ public:
     /// wraps the predict and update steps described by the
     /// functions below
     ///
-    void estimate(const std::tuple<motion_model_input_t,
-                                   motion_model_error_t,
-                                   observation_model_input_t>& input );
+    void estimate(const input_t& input );
 
     ///
-    /// Predicts the state vector x and the process covariance matrix P using
+    /// \brief Predicts the state vector x and the process covariance matrix P using
     /// the given input control u accroding to the following equations
     ///
     /// \f[\hat{x}_{k = F_k* x_{k-1} + B_k *  u_k + w_k\f]
@@ -106,19 +130,20 @@ public:
     /// \f$u_k\f$ and \f$w_k\f$ vectors
     ///
     ///
-    void predict(const DynVec<real_t>& u,
-                 const DynVec<real_t>& w);
+    void predict(const input_t& input);
 
     ///
-    /// Updates the gain matrix \f$K\f$, the  state vector \f$x\f$ and covariance matrix P
+    /// \brief Updates the gain matrix \f$K\f$, the  state vector \f$x\f$ and covariance matrix P
     /// using the given measurement z_k according to the following equations
     ///
     /// K_k = \hat{P}_{k} * H_{k}^T * (H_k * \hat{P}_{k} * H_{k}^T +  R_k )^{-1}
     /// x_k = \hat{x}_{k} + K_k * (z_k - H * \hat{x}_{k}
     /// P_k = (I - K_k * H_k) * \hat{P}_{k}
-    void update(const observation_model_input_t& z);
+    void update(const input_t& input);
 
+    ///
     /// \brief Set the motion model
+    ///
     void set_motion_model(motion_model_t& motion_model)
     {motion_model_ptr_ = &motion_model;}
 
@@ -126,16 +151,24 @@ public:
     void set_observation_model(const observation_model_t& observation_model)
     {observation_model_ptr_ = &observation_model;}
 
+    ///
     /// \brief Set the matrix used by the filter
+    ///
     void set_matrix(const std::string& name, const matrix_t& mat);
 
+    ///
     /// \brief Returns true if the matrix with the given name exists
+    ///
     bool has_matrix(const std::string& name)const;
 
+    ///
     /// \brief Returns the state
+    ///
     const state_t& get_state()const{return motion_model_ptr_->get_state();}
 
+    ///
     /// \brief Returns the state
+    ///
     state_t& get_state(){return motion_model_ptr_->get_state();}
 
     ///
@@ -155,13 +188,19 @@ public:
 
 protected:
 
+    ///
     /// \brief pointer to the function that computes f
+    ///
     motion_model_t* motion_model_ptr_;
 
+    ///
     /// \brief pointer to the function that computes h
+    ///
     const observation_model_t* observation_model_ptr_;
 
+    ///
     /// \brief Matrices used by the filter internally
+    ///
     std::map<std::string, matrix_t> matrices_;
 };
 
@@ -175,14 +214,30 @@ KalmanFilter<MotionModelTp,ObservationModelTp>::KalmanFilter()
 
 template<typename MotionModelTp, typename ObservationModelTp>
 KalmanFilter<MotionModelTp,
-             ObservationModelTp>::KalmanFilter(typename KalmanFilter<MotionModelTp,
-                                                                     ObservationModelTp>::motion_model_t& motion_model,
-                                                               const typename KalmanFilter<MotionModelTp,
-                                                                                           ObservationModelTp>::observation_model_t& observation_model)
+             ObservationModelTp>::KalmanFilter(motion_model_t& motion_model,
+                                                               const observation_model_t& observation_model)
     :
+
     motion_model_ptr_(&motion_model),
     observation_model_ptr_(&observation_model)
-{}
+{
+
+}
+
+template<typename MotionModelTp, typename ObservationModelTp>
+KalmanFilter<MotionModelTp,
+             ObservationModelTp>::KalmanFilter(const config_t& config)
+    :
+    motion_model_ptr_(config.motion_model),
+    observation_model_ptr_(config.observation_model)
+{
+    // set the matrices
+    set_matrix("B", config.B);
+    set_matrix("P", config.P);
+    set_matrix("Q", config.Q);
+    set_matrix("K", config.K);
+    set_matrix("R", config.R);
+}
 
 template<typename MotionModelTp, typename ObservationModelTp>
 KalmanFilter<MotionModelTp,ObservationModelTp>::~KalmanFilter()
@@ -244,38 +299,37 @@ KalmanFilter<MotionModelTp,ObservationModelTp>::has_matrix(const std::string& na
 template<typename MotionModelTp, typename ObservationModelTp>
 void
 KalmanFilter<MotionModelTp,
-                     ObservationModelTp>::estimate(const std::tuple<motion_model_input_t,
-                                                   motion_model_error_t,
-                                                   observation_model_input_t>& input ){
-
-    predict(std::get<0>(input), std::get<1>(input));
-    update(std::get<2>(input));
+                     ObservationModelTp>::estimate(const input_t& input ){
+    predict(input);
+    update(input);
 }
 
 template<typename MotionModelTp, typename ObservationModelTp>
 void
 KalmanFilter<MotionModelTp,
-             ObservationModelTp>::predict(const DynVec<real_t>& u,
-                                          const DynVec<real_t>& w){
+             ObservationModelTp>::predict(const input_t& input ){
 
     if(!motion_model_ptr_){
         throw std::runtime_error("Motion model has not been set");
     }
 
-    /// make a state predicion using the
-    /// motion model
+    auto u = kernel::utils::InputResolver<input_t, DynVec<real_t>>::resolve("u", input);
+    auto w = kernel::utils::InputResolver<input_t, DynVec<real_t>>::resolve("w", input);
+
+    // make a state predicion using the
+    // motion model
     auto& state = motion_model_ptr_->get_state();
     auto x = state.as_vector();
 
-    /// get the matrix that describes the dynamics
-    /// of the system
+    // get the matrix that describes the dynamics
+    // of the system
     auto& F = motion_model_ptr_->get_matrix("F");
     auto& B = (*this)["B"];
 
     x = F*x + B*u + w;
     state.set(x);
 
-    /// predict the covariance matrix
+    // predict the covariance matrix
     auto& P = (*this)["P"];
     auto& Q = (*this)["Q"];
     auto F_T = trans( F );
@@ -286,7 +340,7 @@ KalmanFilter<MotionModelTp,
 template<typename MotionModelTp, typename ObservationModelTp>
 void
 KalmanFilter<MotionModelTp,
-             ObservationModelTp>::update(const observation_model_input_t&  z){
+             ObservationModelTp>::update(const input_t& input){
 
     if(!motion_model_ptr_){
         throw std::runtime_error("Motion model has not been set");
@@ -319,6 +373,7 @@ KalmanFilter<MotionModelTp,
       }
 
       auto& K = (*this)["K"];
+      auto z = kernel::utils::InputResolver<input_t, DynVec<real_t>>::resolve("z", input);
       auto innovation = z - H*x;
 
       if(K.columns() != innovation.size()){
@@ -333,7 +388,7 @@ KalmanFilter<MotionModelTp,
 
       IdentityMatrix<real_t> I(state.size());
 
-      /// update covariance matrix
+      // update covariance matrix
       P = (I - K*H)*P;
     }
     catch(...){
@@ -345,5 +400,6 @@ KalmanFilter<MotionModelTp,
         throw;
     }
 }
-    
+
+}
 }

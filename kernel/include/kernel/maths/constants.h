@@ -11,13 +11,17 @@ class MathConsts: private boost::noncopyable
 {
 public:
 
+    ///
     /// \brief The mathematical constant PI
+    ///
     constexpr static real_t PI = 3.14159265359;
 
 
 private:
 
+    ///
     /// \brief Constructor
+    ///
     MathConsts()
     {}
 };

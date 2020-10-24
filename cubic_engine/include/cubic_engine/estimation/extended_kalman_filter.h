@@ -8,6 +8,7 @@
 #include <string>
 
 namespace cengine{
+namespace estimation{
 
 ///
 /// Implements the Extended Kalman filter algorithm.
@@ -105,7 +106,7 @@ public:
     state_t& get_state(){return motion_model_ptr_->get_state();}
 
     /// \brief Returns the state property with the given name
-    real_t get(const std::string& name)const{return motion_model_ptr_->get(name);}
+    real_t get(const std::string& name)const{return motion_model_ptr_->get_state_property(name);}
 
     /// \brief Returns the name-th matrix
     const DynMat<real_t>& operator[](const std::string& name)const;
@@ -241,14 +242,14 @@ ExtendedKalmanFilter<MotionModelTp,
     auto& H = observation_model_ptr_->get_matrix("H");
     auto H_T = trans(H);
 
-    /// compute \partial{h}/\partial{v} the jacobian of the observation model
-    /// w.r.t the error vector
+    // compute \partial{h}/\partial{v} the jacobian of the observation model
+    // w.r.t the error vector
     auto& M = observation_model_ptr_->get_matrix("M");
     auto M_T = trans(M);
 
      try{
 
-        /// S = H*P*H^T + M*R*M^T
+        // S = H*P*H^T + M*R*M^T
         auto S = H*P*H_T + M*R*M_T;
 
         auto S_inv = inv(S);
@@ -292,6 +293,6 @@ ExtendedKalmanFilter<MotionModelTp,
 
 
 }
-
+}
 #endif	/* EXTENDED_KALMAN_FILTER_H */
 
