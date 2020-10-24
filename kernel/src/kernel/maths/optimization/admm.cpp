@@ -167,8 +167,6 @@ ADMM<DynMat<real_t>, DynVec<real_t>>::solve_direct(QuadraticProblem<DynMat<real_
     // the Lagrangian multipliers
     DynVec<real_t> y(qp.z.size(), 0.0);
 
-    //std::cout<<y<<std::endl;
-
     DynVec<real_t> zold = qp.z;
     DynVec<real_t> rhs(qp.x.size() + qp.A.rows(), 0.0);
 
@@ -215,7 +213,7 @@ ADMM<DynMat<real_t>, DynVec<real_t>>::solve_direct(QuadraticProblem<DynMat<real_
 
 template<>
 void
-ADMM<DynMat<real_t>, DynVec<real_t>>::solve_iterative(QuadraticProblem<DynMat<real_t>, DynVec<real_t>>& qp)const{
+ADMM<DynMat<real_t>, DynVec<real_t>>::solve_iterative(QuadraticProblem<DynMat<real_t>, DynVec<real_t>>& /*qp*/)const{
     throw  std::logic_error("Not implemented");
 }
 
@@ -225,7 +223,7 @@ template<>
 void
 ADMM<kernel::numerics::TrilinosEpetraMatrix,
      kernel::maths::algebra::TrilinosEpetraMultiVector>::solve_direct(QuadraticProblem<kernel::numerics::TrilinosEpetraMatrix,
-                                                                      kernel::maths::algebra::TrilinosEpetraMultiVector>& qp)const{
+                                                                      kernel::maths::algebra::TrilinosEpetraMultiVector>& /*qp*/)const{
    throw  std::logic_error("Not implemented");
 }
 
@@ -233,7 +231,7 @@ template<>
 void
 ADMM<kernel::numerics::TrilinosEpetraMatrix,
      kernel::maths::algebra::TrilinosEpetraMultiVector>::solve_iterative(QuadraticProblem<kernel::numerics::TrilinosEpetraMatrix,
-                                                              kernel::maths::algebra::TrilinosEpetraMultiVector>& qp)const{
+                                                              kernel::maths::algebra::TrilinosEpetraMultiVector>& /*qp*/)const{
     throw  std::logic_error("Not implemented");
 }
 
@@ -255,7 +253,7 @@ ADMM<MatrixTp, VectorTp>::solve(QuadraticProblem<MatrixTp, VectorTp>& qp)const{
         solve_iterative(qp);
     }
     else{
-        throw std::logic_error("Uniknown SolverType. SolverType should be DIRECT or ITERATIVE");
+        throw std::logic_error("Unknown SolverType. SolverType should be DIRECT or ITERATIVE");
     }
 }
 
