@@ -31,8 +31,8 @@ namespace numerics
   * i), where dim is the topological dimension and i is the index of
   * the entity within that topological dimension.
   *
-  *As a minimum we assume that we know the nodes of the elements
-  *in the mesh
+  * As a minimum we assume that we know the nodes of the elements
+  * in the mesh
   */
   
 template<int spacedim>

@@ -11,6 +11,4 @@ namespace kernel
 		KernelConsts::tol_ = 1.0e-8;
 	}
 
-	KernelConsts::KernelConsts()
-	{}
 }

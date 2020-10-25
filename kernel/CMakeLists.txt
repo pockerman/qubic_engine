@@ -30,6 +30,8 @@ message(STATUS "KernelLib Version ${KERNELLIB_VERSION}")
 # find Boost
 FIND_PACKAGE(Boost 1.65.0 REQUIRED)
 IF(Boost_FOUND)
+
+		MESSAGE( STATUS  "Found needed Boost C++ library.")
         SET(BOOST_INCLUDEDIR ${Boost_INCLUDE_DIRS})
         SET(BOOST_LIBRARYDIR ${Boost_LIBRARY_DIRS})
         SET(Boost_USE_SHARED_LIBS ON)
@@ -42,6 +44,8 @@ FIND_PACKAGE(BLAS REQUIRED)
 
 IF(NOT BLAS_FOUND)
 MESSAGE( FATAL_ERROR  "Could not find OpenBLAS library.")
+ELSE()
+MESSAGE( STATUS  "Found needed BLAS library.")
 ENDIF()
 
 SET(BUILD_SHARED_LIBS ON)
@@ -50,7 +54,7 @@ SET(ENABLE_TESTING "OFF")
 SET(USE_OPENMP "ON")
 SET(USE_LOG "ON")
 SET(USE_FVM "ON")
-SET(USE_TRILINOS "ON")
+SET(USE_TRILINOS "OFF")
 SET(USE_TRILINOS_LONG_LONG_TYPE "OFF")
 
 SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install)
@@ -59,12 +63,14 @@ SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/src/kernel)
 SET(DATA_SET_FOLDER ${PROJECT_SOURCE_DIR}/data)
 SET(PROJECT_PATH ${PROJECT_SOURCE_DIR})
 SET(MAGIC_ENUM_INCL_DIR " ")
-SET(BLAZE_INCL_DIR "/home/alex/MySoftware/blaze/blaze-3.7/install/include")
+SET(BLAZE_INCL_DIR "/home/alex/MySoftware/blaze-3.8/install/include")
 SET(NLOHMANN_JSON_INCL_DIR "/home/alex/MySoftware/nlohman_json/install/include")
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(KERNEL_DEBUG "ON")
 ENDIF()
+
+MESSAGE(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/kernel/base/config.h @ONLY)
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/kernel/base/version.h @ONLY)
@@ -83,6 +89,8 @@ ENDIF()
 
 IF( ${BLAZE_INCL_DIR} MATCHES " " )
     MESSAGE( FATAL_ERROR  "Blaze include directory has not been specified")
+ELSE()
+	MESSAGE( STATUS  "Using BLAZE headers at: ${BLAZE_INCL_DIR}")
 ENDIF()
 
 IF(USE_TRILINOS MATCHES "ON")
@@ -166,6 +174,8 @@ ADD_LIBRARY(${LIB_NAME} SHARED ${SRCS})
 
 SET_TARGET_PROPERTIES(kernellib PROPERTIES LINKER_LANGUAGE CXX)
 INSTALL(TARGETS kernellib DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+MESSAGE( STATUS  "Installation destination at: ${CMAKE_INSTALL_PREFIX}")
 
 # Add the examples
 ADD_SUBDIRECTORY(examples)
