@@ -71,6 +71,8 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
 ENDIF()
 
 MESSAGE(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+MESSAGE(STATUS "C++ Compiler: ${CMAKE_CXX_COMPILER}")
+MESSAGE(STATUS "C Compiler: ${CMAKE_C_COMPILER}")
 
 configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/kernel/base/config.h @ONLY)
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/kernel/base/version.h @ONLY)

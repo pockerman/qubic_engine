@@ -57,16 +57,20 @@ public:
     /// \brief Read the x-coordinate
     real_t get_x_position()const{return dynamics_.get_x_position(); }
 
+	///
     /// \brief Set the x-coordinate
-    real_t set_x_position(real_t x){dynamics_.set_x_position(x);}
+	///
+    void set_x_position(real_t x){dynamics_.set_x_position(x);}
 
     ///
     /// \brief Read the y-coordinate
     ///
     real_t get_y_position()const{return dynamics_.get_y_position();}
 
+	///
     /// \brief Set the y-coordinate
-    real_t set_y_position(real_t y){dynamics_.set_y_position(y);}
+	///
+    void set_y_position(real_t y){dynamics_.set_y_position(y);}
 
     ///
     /// \brief Write the position to the given
@@ -95,8 +99,10 @@ public:
     /// of the vehicle
     void set_velocities(real_t v, real_t w);
 
+	///
     /// \brief Set time step
-    real_t set_time_step(real_t dt){dynamics_.set_time_step(dt);}
+	///
+    void set_time_step(real_t dt){dynamics_.set_time_step(dt);}
 
     /// \brief Read current velocity of the vehicle
     real_t get_velcoty()const{return 0.5*properties_.R*(vr_ + vl_);}

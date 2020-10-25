@@ -12,9 +12,11 @@
 namespace kernel{
 namespace dynamics{
 
+///
 /// \brief Base class for deriving motion models.
 /// Motion models describe the dynamics or kinematics
 /// of a rigid body.
+///
 template<typename StateTp, typename MatrixDescriptor, typename InputTp>
 class MotionModelDynamicsBase: private boost::noncopyable
 {
@@ -129,7 +131,7 @@ public:
     /// \brief set_tolerance Set the general tolerance used
     /// in the calculations. Default is KernelConsts::tolerance()
     ///
-    void set_tolerance(real_t tol)const{tol_ = tol;}
+    void set_tolerance(real_t tol){tol_ = tol;}
 
 protected:
 
