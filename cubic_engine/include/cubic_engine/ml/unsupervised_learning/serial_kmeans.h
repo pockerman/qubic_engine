@@ -20,73 +20,108 @@
 namespace cengine
 {
     
-
+///
 /// \brief Implementation of KMeans
+///
 template<typename ClusterType>
 class KMeans
 {
     
 public:
 
+	///
     /// \brief The output type returned upon completion
     /// of the algorithm
+	///
     typedef KMeansInfo output_t;
 
+	///
     /// \brief The input to the algorithm
-    typedef KMeansControl control_t;
+	///
+    typedef KMeansConfig config_t;
 
+	///
     /// \brief The cluster type used
+	///
     typedef ClusterType cluster_t;
 
+	///
     /// \brief The centroid type
+	///
     typedef typename ClusterType::point_t point_t;
-
+	
+	///
     /// \brief The result after computing
+	///
     typedef std::vector<cluster_t> result_t;
     
+	
+	///
     /// \brief Constructor
-    KMeans(const KMeansControl& cntrl);
-        
+	///
+    KMeans(const config_t& config);
+      
+	///
     /// \brief Cluster the given data set
+	///
     template<typename DataIn, typename Similarity,typename Initializer>
     output_t cluster(const DataIn& data, const Similarity& similarity, const Initializer& init);
 
+	///
     /// \brief Return the clusters container
+	///
     result_t& get_clusters(){return clusters_;}
 
+	///
     /// \brief Return the clusters container
+	///
     const result_t& get_clusters()const{return clusters_;}
 
+	///
     /// \brief Save the clustering into a csv file
+	///
     template<typename DataSetType>
     void save(const std::string& file_name, const DataSetType& data_in)const;
 
 private:
 
+	///
     /// \brief The algorithm control
-    control_t control_;
+	///
+    config_t control_;
 
+	///
     /// \brief The clusters
+	///
     std::vector<cluster_t> clusters_;
 
+	///
     /// \brief Detect convergence
+	///
     template<typename Similarity>
     std::tuple<bool, real_t> detect_convergence_(const Similarity& sim,
-                                                    const std::vector<point_t>& old_centers)const;
+												 const std::vector<point_t>& old_centers)const;
+												 
+	///
     /// \brief Actually cluster the given point
+	///
     template<typename Similarity>
     void cluster_point_(const point_t& point, uint_t pid, const Similarity& sim );
 
+	///
     /// \brief Check if an empty cluster exists
+	///
     std::pair<bool, uint_t> check_empty_clusters_()const;
 
+	///
     /// \brief Calculate the new centroids of the clusters
+	///
     template<typename DataSetType>
     void calculate_new_centroids_(const DataSetType& dataset);
 };
 
 template<typename ClusterType>
-KMeans<ClusterType>::KMeans(const KMeansControl& cntrl)
+KMeans<ClusterType>::KMeans(const KMeansConfig& cntrl)
     :
    control_(cntrl),
    clusters_()

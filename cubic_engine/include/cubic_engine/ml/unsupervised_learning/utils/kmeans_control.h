@@ -12,7 +12,7 @@ namespace cengine
 
 /// \brief Small struct that wraps
 /// configuration parameters for k-means algorithm
-struct KMeansControl: public kernel::IterativeAlgorithmController
+struct KMeansConfig: public kernel::IterativeAlgorithmController
 {
 
     /// \brief Number of clusters
@@ -27,12 +27,12 @@ struct KMeansControl: public kernel::IterativeAlgorithmController
     bool continue_on_empty_cluster;
     
     /// \brief Constructor
-    KMeansControl(uint_t k_, uint_t itrs=1000);
+    KMeansConfig(uint_t k_, uint_t itrs=1000);
               
 };
 
 inline
-KMeansControl::KMeansControl(uint_t k_, uint_t itrs)
+KMeansConfig::KMeansConfig(uint_t k_, uint_t itrs)
             :
             kernel::IterativeAlgorithmController(itrs, kernel::KernelConsts::tolerance()),
             k(k_),
