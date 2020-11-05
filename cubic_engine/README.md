@@ -78,12 +78,13 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="examples/exe14/doc/exe.md">Example 14: </a> Logistic regression with ```GradientDescentWrapper```
 - <a href="examples/exe15/doc/exe.md">Example 15: </a> Linear Regression with ```PYLinearRegressor```
 - <a href="examples/exe16/doc/exe.md">Example 16: </a> Compare Lasso, Ridge and ElasticNet Regularizers
-- <a href="examples/exe17/doc/exe.md">Example 17: </a> KMeans clustering
+- <a href="examples/exe17/doc/exe.md">Example 17: </a> k-Means clustering
 - <a href="examples/exe18/doc/exe.md">Example 18: </a> KNN classification
 - <a href="examples/exe20/doc/exe.md">Example 20: </a> KNN classification with multiple threads
 - <a href="examples/exe24/doc/exe.ipynb">Example 24: </a> Sampling from multivariate normal distribution
 - <a href="examples/exe30/doc/exe.ipynb">Example 30: </a> PCA for dimensionality reduction
 - <a href="examples/exe32/doc/exe.ipynb">Example 32: </a> Multinomial naive Bayes classification
+- <a href="examples/exe33/doc/exe.ipynb">Example 33: </a> Bisection k-Means clustering 
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 

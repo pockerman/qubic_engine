@@ -1,4 +1,3 @@
-
 #ifndef SERIAL_KMEANS_H
 #define	SERIAL_KMEANS_H
 

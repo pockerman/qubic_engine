@@ -15,18 +15,26 @@ namespace cengine
 struct KMeansConfig: public kernel::IterativeAlgorithmController
 {
 
+	///
     /// \brief Number of clusters
+	///
     uint_t k;
     
+	///
     /// \brief Flag indicating whether a random restart should
     /// be performed when an empty cluster is located
+	///
     bool random_restart_on_empty_cluster;
     
+	///
     /// \brief Flag indicating whether the algorithm should
     /// continue its execution when an empty cluster is detected
+	///
     bool continue_on_empty_cluster;
     
+	///
     /// \brief Constructor
+	///
     KMeansConfig(uint_t k_, uint_t itrs=1000);
               
 };

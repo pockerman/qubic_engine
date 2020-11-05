@@ -13,9 +13,10 @@
 namespace cengine
 {
     
-
+///
 /// \brief Serial implementation
 /// of K-nearest neighbors algorithm
+///
 template<typename DataSetType, typename LabelType, typename Similarity, typename Actor>
 class Knn
 {
@@ -31,14 +32,20 @@ public:
      /// \brief Constructor
      Knn(const KnnControl& control);
 
+	 ///
      /// \brief Train the model
+	 ///
      void train(const DataSetType& data_set, const LabelType& labels);
 
+	 ///
      /// \brief Predict outcome for the given vector
+	 ///
      template<typename DataPoint>
      std::pair<return_t, output_t> predict(const DataPoint& data);
 
+	 ///
      /// \brief Predict outcome for the given dataset
+	 ///
      std::pair<std::vector<return_t>, output_t> predict(const DataSetType& data);
 
 private:
@@ -87,7 +94,8 @@ Knn<DataSetType, LabelType, Similarity, Actor>::predict(const DataVec& point){
     uint_t labels_size = labels_ptr_->size();
 
     if(labels_size != nrows){
-        throw std::logic_error("Labels size: "+std::to_string(labels_size)+" does not match dataset rows: "+std::to_string(nrows));
+        throw std::logic_error("Labels size: "+std::to_string(labels_size)+
+		" does not match dataset rows: "+std::to_string(nrows));
     }
 
     if(k == 0 || k>= nrows){

@@ -21,24 +21,42 @@ public:
     ///
     SigmoidFunction(function_t& function);
 
+	///
     /// \brief Returns the value of the function
+	///
     virtual output_t value(const input_t&  input)const final override;
 
+	///
     /// \breif Returns the raw value of the function it wraps
+	///
     output_t raw_value(const input_t&  input)const{return function_ptr_->value(input);}
 
+	///
     /// \brief Returns the gradients of the function
+	///
     virtual DynVec<real_t> gradients(const input_t&  input)const final override;
 
+	///
     /// \brief Returns the coefficient gradients of the function it wraps
-    DynVec<real_t> coeff_grads(const input_t&  input)const{return function_ptr_->coeff_grads(input);}
+	//
+    DynVec<real_t> coeff_grads(const input_t&  input)const
+	{return function_ptr_->coeff_grads(input);}
 
-    /// \brief Returns the number of coefficients
+	///
+    /// \brief Returns the number of coefficients of the
+	/// underlying function
+	///
     virtual uint_t n_coeffs()const final override{return function_ptr_->n_coeffs();}
 
+	///
+	/// \brief Set the coefficients of the underlying model
+	///
     template<typename VectorContainerTp>
     void set_coeffs(const VectorContainerTp& coeffs){function_ptr_->set_coeffs(coeffs);}
 
+	///
+	/// \brief Returns the coefficients of the underlying model
+	///
     DynVec<real_t> coeffs()const{return function_ptr_->coeffs();}
 
 

@@ -169,7 +169,8 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/discretization/utils/*.cpp
                  ${PROJECT_SRC_DIR}/geometry/*.cpp
                  ${PROJECT_SRC_DIR}/patterns/*.cpp
-                 ${PROJECT_SRC_DIR}/models/*.cpp)
+                 ${PROJECT_SRC_DIR}/models/*.cpp
+				 ${PROJECT_SRC_DIR}/data_structs/*.cpp)
 
 
 ADD_LIBRARY(${LIB_NAME} SHARED ${SRCS})
