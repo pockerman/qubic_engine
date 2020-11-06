@@ -58,6 +58,13 @@ namespace kernel
 			///
 			row_t get_row(uint_t row_idx)const;
 			
+			///
+			/// \brief Load the data set from the given filename
+			/// using the specified loader
+			///
+			template<typename Loader>
+			void load_from(const Loader& loader);
+			
 			
 		private:
 		
@@ -67,6 +74,14 @@ namespace kernel
 			storage_t data_;
 			
 		};
+		
+		template<typename T>
+		template<typename Loader>
+		void 
+		DataSetWrapper<DynMat<T>>::load_from(const Loader& loader){
+			
+			loader(data_);
+		}
 		
 	}// data_structs
 

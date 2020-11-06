@@ -20,8 +20,10 @@ std::pair<DynMat<real_t>, DynVec<real_t>> load_car_plant_dataset(uint_t label_id
 ///
 std::pair<DynMat<real_t>, DynVec<real_t>> load_car_plant_multi_dataset(uint_t label_idx=2, bool add_ones_column=true);
 
+///
 /// \brief The car plant data set is a simple dataset with two columns
 /// of real type and 12 observations
+///
 std::pair<PartitionedType<DynMat<real_t>>,
           PartitionedType<DynVec<real_t>>> load_car_plant_multi_dataset_with_partitions(uint nparts,
                                                                                         uint_t label_idx=2,
@@ -91,6 +93,12 @@ DynMat<real_t> load_kmeans_test_data();
 ///
 std::pair<DynMat<real_t>,
           DynVec<uint_t>> load_wine_data_set(bool add_ones_column=true);
+		  
+
+///
+/// \brief Load a random set
+///
+void load_random_set_one(DynMat<real_t>& matrix);
 
 }
 

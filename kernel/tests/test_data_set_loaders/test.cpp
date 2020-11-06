@@ -6,15 +6,14 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-/***
- * Test Scenario:   The application attempts to load the reduced iris data set
- * Expected Output:	Data set should be loaded
- **/
-
+/// 
+/// Test Scenario:   The application attempts to load the reduced iris data set
+/// Expected Output:	Data set should be loaded
+///
 TEST(TestDataSetLoaders, LoadReducedIrisSet) {
 
 
-    /// TODO: Is there a better way to do this?
+    // TODO: Is there a better way to do this?
     try{
 
         auto data = kernel::load_reduced_iris_data_set();
@@ -37,7 +36,7 @@ TEST(TestDataSetLoaders, LoadReducedIrisSet) {
 TEST(TestDataSetLoaders, LoadIrisSetNoOnes) {
 
 
-    /// TODO: Is there a better way to do this?
+    // TODO: Is there a better way to do this?
     try{
 
         auto data = kernel::load_iris_data_set(false);
@@ -61,7 +60,7 @@ TEST(TestDataSetLoaders, LoadIrisSetNoOnes) {
 
 TEST(TestDataSetLoaders, LoadIrisSetWithOnes) {
 
-    /// TODO: Is there a better way to do this?
+    // TODO: Is there a better way to do this?
     try{
 
         auto data = kernel::load_iris_data_set(true);
@@ -99,10 +98,10 @@ TEST(TestDataSetLoaders, LoadXYSinuisoidDataSet) {
     }
 }
 
-/***
- * Test Scenario:   The application attempts to load the x_y sinuisoid iris data set
- * Expected Output:	Data set should be loaded
- **/
+///
+/// Test Scenario:   The application attempts to load the x_y sinuisoid iris data set
+/// Expected Output:	Data set should be loaded
+///
 TEST(TestDataSetLoaders, LoadXYSinuisoidDataSetNoOnes) {
 
 
@@ -129,7 +128,7 @@ TEST(TestDataSetLoaders, LoadXYSinuisoidDataSetNoOnes) {
 TEST(TestDataSetLoaders, TestLoadWineDataSetSetNoOnes) {
 
 
-    /// TODO: Is there a better way to do this?
+    // TODO: Is there a better way to do this?
     try{
 
         auto data = kernel::load_wine_data_set(false);
@@ -189,7 +188,7 @@ TEST(TestDataSetLoaders, TestLoadWineDataSetSetNoOnes) {
 TEST(TestDataSetLoaders, TestLoadWineDataSetSetWithOnes) {
 
 
-    /// TODO: Is there a better way to do this?
+    // TODO: Is there a better way to do this?
     try{
 
         auto data = kernel::load_wine_data_set(true);
@@ -220,6 +219,25 @@ TEST(TestDataSetLoaders, TestLoadWineDataSetSetWithOnes) {
 
         ASSERT_FALSE("A non expected exception was thrown");
     }
+}
+
+TEST(TestDataSetLoaders, TestRandomSetOne){
+	
+	
+	try{
+		
+		kernel::DynMat<kernel::real_t> data;
+
+        kernel::load_random_set_one(data);
+        ASSERT_EQ(data.rows(), 100);
+        ASSERT_EQ(data.columns(), 2);
+    }
+    catch(...){
+
+        ASSERT_FALSE("A non expected exception was thrown");
+    }
+	
+	
 }
 
 

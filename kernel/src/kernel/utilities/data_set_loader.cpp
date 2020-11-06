@@ -668,4 +668,41 @@ std::pair<DynMat<real_t>,
     return {matrix, labels};
 }
 
+
+void load_random_set_one(DynMat<real_t>& matrix){
+	
+	std::string file(DATA_SET_FOLDER);
+	file += "/random_data_1.txt";
+	
+	// resize the matrix 
+	matrix.resize(100, 2);
+	
+	CSVFileReader reader(file, true, " ");
+	
+	auto row_counter = 0;
+	while(!reader.eof()){
+		
+		auto line = reader.read_line();
+		
+		if(line[0] == "#"){
+			continue;
+		}
+		
+		std::vector<real_t> vals(line.size(), 0.0);
+
+        for(uint_t c=0; c<vals.size(); ++c){
+           vals[c] = std::atof(line[c].c_str());
+        }
+		
+		
+		uint_t clocal = 0;
+        for(uint c=0; c<matrix.columns(); ++c){
+           matrix(row_counter, c) =  vals[c];
+        }
+		
+		row_counter++;
+		
+	}
+}
+
 }
