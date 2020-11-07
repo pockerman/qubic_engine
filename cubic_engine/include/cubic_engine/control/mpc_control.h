@@ -173,7 +173,13 @@ public:
     /// \brief control_value Returns the control value computed
     /// by the controller to be passed to the application
     ///
-    const control_output_t& control_output()const{return control_out_;}
+    const std::vector<control_output_t>& control_output()const{return control_out_;}
+	
+	
+	///
+	/// \brief Check the configuration of the controller
+	///
+	bool check_configuration()const;
 
 
 private:
@@ -231,7 +237,7 @@ template<typename OptimizerTp, typename EstimatorTp>
 bool
 MPCController<OptimizerTp, EstimatorTp>::check_configuration()const{
 
-
+return true;
 }
 
 template<typename OptimizerTp, typename EstimatorTp>

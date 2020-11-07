@@ -282,7 +282,7 @@ CarrotChasingPathTrackController<PointData,
 template<typename PointData, typename SegmentData>
 const typename CarrotChasingPathTrackController<PointData, SegmentData>::path_t&
 CarrotChasingPathTrackController<PointData, SegmentData>::read()const{
-  this->kernel::ObserverBase<grids::WaypointPath<2, PointData, SegmentData>*>::read();
+  return this->kernel::ObserverBase<grids::WaypointPath<2, PointData, SegmentData>*>::read();
 }
 
 }

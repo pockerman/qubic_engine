@@ -87,7 +87,7 @@ public:
     ///
     /// \brief The output type the train method returns
     ///
-    typedef SyncValueFuncItrOutput output_t;
+    typedef void output_t;
 
     ///
     /// \brief Default constructor

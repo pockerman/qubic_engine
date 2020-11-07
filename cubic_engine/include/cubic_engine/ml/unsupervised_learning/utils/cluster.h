@@ -11,42 +11,90 @@
 namespace cengine
 {
 
+///
 /// \brief Simple implementation of a cluster
-
+///
 template<typename PointType>
 struct Cluster
 {
+	///
     /// \brief The type of the object representing
     /// the centroid
+	///
     typedef PointType point_t;
 
+	///
     /// \brief The id of the cluster
+	///
     uint_t id;
 
+	///
     /// \brief The centroid of the cluster
+	///
     point_t centroid;
 
+	///
     /// \brief Ids of the of the points that have been
     /// clustered in this cluster
+	///
     std::vector<uint_t> points;
 
+	///
     /// \brief Flag indicating whether the cluster changed
+	///
     bool changed;
+	
+	///
+	/// \brief Flag indicating if the assigned centroid is valid
+	/// True by default
+	///
+	bool valid_centroid{true};
+	
+	///
+	/// \brief Default constructor
+	///
+	Cluster()=default;
+	
+	///
+	/// \brief Constructor
+	///
+	Cluster(uint_t idx, const point_t& p, const std::vector<uint_t>& pts);
 
+	///
     /// \brief Adds to this cluster the point with id pid. Returns
     /// true if and only if the given point already exists in this
     /// cluster which in this case does nothing.
+	///
     bool add_to_cluster(uint_t pid);
 
+	///
     /// \brief Remove from this cluster the point with the given id.
     /// Returns true if and only if the point is found. Otherwise, it returns
     /// false and does not remove anything.
+	///
     bool remove_from_cluster(uint_t pid);
 
+	///
     /// \brief recalculate the cluster centroid
+	///
     template<typename DataSetType>
     void recalculate_centroid(const DataSetType& set);
+	
+	///
+	/// \brief Compute the intra cluster variance
+	///
+	template<typename DataSetType, typename Similarity>
+	real_t compute_intra_variance(const DataSetType& data, const Similarity& similarity)const;
 };
+
+template<typename DataPoint>
+Cluster<DataPoint>::Cluster(uint_t idx, const point_t& p, const std::vector<uint_t>& pts)
+:
+id(idx),
+centroid(p),
+points(pts),
+changed(false)
+{}
 
 
 template<typename DataPoint>
@@ -109,6 +157,14 @@ Cluster<DataPoint>::recalculate_centroid(const DataSetType& set){
     centroid = tmp;
 }
 
+template<typename DataPoint>
+template<typename DataSetType, typename Similarity>
+real_t 
+Cluster<DataPoint>::compute_intra_variance(const DataSetType& data, const Similarity& similarity)const{
+	
+	return 0.0;
 }
+
+}//cengine
 
 #endif // CLUSTER_H

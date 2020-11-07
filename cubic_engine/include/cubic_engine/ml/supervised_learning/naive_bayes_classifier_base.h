@@ -112,7 +112,7 @@ NaiveBayesBase<DataSetTp, LabelsTp>::train(const DataSetTp& examples,
                                            const LabelsTp& labels){
 
     // clear any occurences
-    classes_counters_.empty();
+    classes_counters_.clear();
     NaiveBayesBase::count_classes(classes_counters_, labels);
     labels_ptr_ = &labels;
     examples_ptr_ = &examples;

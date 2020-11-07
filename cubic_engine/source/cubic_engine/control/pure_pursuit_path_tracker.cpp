@@ -27,7 +27,7 @@ PurePursuit2DPathTracker::update(const path_t& resource){
 
 const PurePursuit2DPathTracker::path_t&
 PurePursuit2DPathTracker::read()const{
-  this->kernel::ObserverBase<kernel::numerics::LineMesh<2>*>::read();
+  return this->kernel::ObserverBase<kernel::numerics::LineMesh<2>*>::read();
 }
 
 

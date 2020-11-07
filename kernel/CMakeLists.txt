@@ -49,7 +49,7 @@ MESSAGE( STATUS  "Found needed BLAS library.")
 ENDIF()
 
 SET(BUILD_SHARED_LIBS ON)
-SET(CMAKE_BUILD_TYPE "Release")
+SET(CMAKE_BUILD_TYPE "Debug")
 SET(ENABLE_TESTING "OFF")
 SET(USE_OPENMP "ON")
 SET(USE_LOG "ON")
@@ -169,7 +169,8 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/base/*.cpp
                  ${PROJECT_SRC_DIR}/discretization/utils/*.cpp
                  ${PROJECT_SRC_DIR}/geometry/*.cpp
                  ${PROJECT_SRC_DIR}/patterns/*.cpp
-                 ${PROJECT_SRC_DIR}/models/*.cpp)
+                 ${PROJECT_SRC_DIR}/models/*.cpp
+				 ${PROJECT_SRC_DIR}/data_structs/*.cpp)
 
 
 ADD_LIBRARY(${LIB_NAME} SHARED ${SRCS})

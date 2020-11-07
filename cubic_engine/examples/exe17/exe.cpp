@@ -25,7 +25,7 @@ void simple_example(){
     typedef DynVec<real_t> point_t;
     DynMat<real_t> data = kernel::load_kmeans_test_data();
 
-    cengine::KMeansControl control(2);
+    cengine::KMeansConfig control(2);
     control.set_show_iterations_flag(true);
 
     cengine::KMeans<Cluster<point_t>> kmeans(control);
@@ -77,7 +77,7 @@ void normal_example(){
     }
 
 
-    cengine::KMeansControl control(3);
+    cengine::KMeansConfig control(3);
     control.set_show_iterations_flag(true);
 
     cengine::KMeans<Cluster<point_t>> kmeans(control);

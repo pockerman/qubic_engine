@@ -19,3 +19,4 @@ kernel/build/
 kernel/install/
 cubic_engine/install/
 kernel/CMakeLists.txt.user
+cubic_engine/examples/exe33/doc/.ipynb_checkpoints/

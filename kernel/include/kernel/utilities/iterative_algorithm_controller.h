@@ -11,18 +11,27 @@ namespace kernel{
 /// \brief Controller for iterative algorithms
 class IterativeAlgorithmController
 {
-public:
+	public:
 
-   /// \brief Constructor
+
+	///
+    /// \brief Constructor
+    ///
    IterativeAlgorithmController(uint_t maxIterations, real_t exitTolerance);
 
+	///
    /// \brief Copy constructor
+   ///
    IterativeAlgorithmController(const IterativeAlgorithmController&)=default;
 
+	///
    /// \brief Move copy constructor
+   ///
    IterativeAlgorithmController(IterativeAlgorithmController&&)=default;
 
+	///
    /// \brief copy assignement
+   ///
    IterativeAlgorithmController& operator=(const IterativeAlgorithmController&)=default;
 
    /// \brief move copy assignement
@@ -49,6 +58,11 @@ public:
    real_t get_exit_tolerance()const{
        return exit_tolerance_;
    }
+   
+   ///
+   /// \brief Return the maximum number of iterations
+   ///
+   uint_t get_max_iterations()const{return max_iterations_;}
 
    /// \brief Returns the state of the controller
    IterativeAlgorithmResult get_state()const;
@@ -58,8 +72,10 @@ public:
      current_res_ = res;
    }
 
+	///
     /// \brief reset
-    virtual void reset(const IterativeAlgorithmController& control);
+	///
+	virtual void reset(const IterativeAlgorithmController& control);
 
 private:
 
