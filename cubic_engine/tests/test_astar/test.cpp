@@ -55,7 +55,7 @@ namespace test_data
         template<typename Node>
         real_t operator()(const Node& s1, const Node& s2 )const{
             kernel::EuclideanMetric metric;
-            metric(s1.data.position, s2.data.position);
+            return metric(s1.data.position, s2.data.position);
         }
     };
 }
