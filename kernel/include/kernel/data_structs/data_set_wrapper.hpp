@@ -4,6 +4,8 @@
 #include "kernel/base/types.h"
 #include <boost/noncopyable.hpp>
 
+#include <vector>
+
 namespace kernel
 {
 	namespace data_structs
@@ -64,7 +66,6 @@ namespace kernel
 			///
 			template<typename Loader>
 			void load_from(const Loader& loader);
-			
 			
 		private:
 		

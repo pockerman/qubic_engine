@@ -138,11 +138,17 @@ namespace cengine
 			//start timing 
 			std::chrono::time_point<std::chrono::system_clock> start, end;
 			start = std::chrono::system_clock::now();
+			{
+				std::vector<uint_t> indices(data.n_rows());
+				for(uint_t r=0; r<indices.size(); ++r){
+					indices[r] = r;
+				}
+				
+				ClusterType init_cluster(0, typename ClusterType::point_t(), indices);
+				init_cluster.valid_centroid = false;
+				clusters_.push_back(init_cluster);
+			}
 			
-			
-			ClusterType init_cluster(0, typename ClusterType::point_t(), data.get_indices());
-			init_cluster.valid_centroid = false;
-			clusters_.push_back(init_cluster);
 			
 			
 			while(clusters_.size() != k && control_.continue_iterations()){
@@ -182,7 +188,7 @@ namespace cengine
 				throw std::logic_error("Cannot select cluster because list is empty");
 			}
 																   
-			if(clusters_.size() == ){
+			if(clusters_.size() == 1){
 				return clusters_[0];
 			}
 
@@ -241,7 +247,7 @@ namespace cengine
 				
 				for(; cidxs_begin != cidxs_end; ++cidxs_begin){
 					
-					auto& point = data.get_row(*cidxs_begin);
+					auto point = data.get_row(*cidxs_begin);
 					
 					auto dist1 = similarity(point, data.get_row(centroid_id_1));
 					auto dist2 = similarity(point, data.get_row(centroid_id_2));
@@ -254,38 +260,48 @@ namespace cengine
 					}
 				}
 				
-				if(cluster.valid_centroid && similarity(old_centroid, data.get_row(centroid_id_1) < control_.get_exit_tolerance()){
+				if(cluster.valid_centroid && similarity(old_centroid, data.get_row(centroid_id_1)) < control_.get_exit_tolerance()){
 					centroid_changed = false;
 				}
 				else{
 
 					// update the current cluster
 					// indexes and centroid
-					cluster.indexes = indexes1;
+					cluster.points = indexes1;
 					cluster.centroid = data.get_row(centroid_id_1);
 					cluster.valid_centroid = true;
 					
 					
 
 					// what happens if the centroids already exist?
-					ClusterType new_cluster(clusters_.size()),
+					ClusterType new_cluster(clusters_.size(),
 										    data.get_row(centroid_id_2), indexes2);
 											
 					clusters_.push_back(new_cluster);
 					old_centroid = cluster.centroid;
-					current_indexes = indexes1;
+					current_indices = indexes1;
 					
 					indexes1 = std::vector<uint_t>();
-					indexes1.reserve(current_indexes.size());
+					indexes1.reserve(current_indices.size());
 					indexes2 = std::vector<uint_t>();
-					indexes2.reserve(current_indexes.size());
+					indexes2.reserve(current_indices.size());
 				
 				}
 			}
 														
 		}
-	}
-}
+		
+		template<typename ClusterType>
+		template<typename DataIn, typename Similarity>
+		std::tuple<uint_t, uint_t, real_t> 
+		BisectionKMeans<ClusterType>::select_new_centroids_(const std::vector<uint_t>& indices, 
+															const DataIn& data, const Similarity& similarity){
+		
+			return std::make_tuple(0, 0, 0.0);
+		}
+		
+	}// ml
+}// cengine
 
 
 #endif

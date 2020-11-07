@@ -79,6 +79,12 @@ struct Cluster
 	///
     template<typename DataSetType>
     void recalculate_centroid(const DataSetType& set);
+	
+	///
+	/// \brief Compute the intra cluster variance
+	///
+	template<typename DataSetType, typename Similarity>
+	real_t compute_intra_variance(const DataSetType& data, const Similarity& similarity)const;
 };
 
 template<typename DataPoint>
@@ -86,7 +92,7 @@ Cluster<DataPoint>::Cluster(uint_t idx, const point_t& p, const std::vector<uint
 :
 id(idx),
 centroid(p),
-points(pts)
+points(pts),
 changed(false)
 {}
 
@@ -151,6 +157,14 @@ Cluster<DataPoint>::recalculate_centroid(const DataSetType& set){
     centroid = tmp;
 }
 
+template<typename DataPoint>
+template<typename DataSetType, typename Similarity>
+real_t 
+Cluster<DataPoint>::compute_intra_variance(const DataSetType& data, const Similarity& similarity)const{
+	
+	return 0.0;
 }
+
+}//cengine
 
 #endif // CLUSTER_H

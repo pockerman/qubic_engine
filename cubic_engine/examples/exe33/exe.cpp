@@ -1,10 +1,10 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/unsupervised_learning/bisection_k_means.h"
-#include "cubic_engine/include/cubic_engine/ml/unsupervised_learning/utils/cluster.h"
+#include "cubic_engine/ml/unsupervised_learning/utils/cluster.h"
 #include "cubic_engine/ml/unsupervised_learning/utils/kmeans_control.h"
 #include "kernel/utilities/data_set_loaders.h"
 #include "kernel/maths/matrix_traits.h"
-#include "kernel/include/kernel/data_structs/data_set_wrapper.hpp"
+#include "kernel/data_structs/data_set_wrapper.hpp"
 #include "kernel/maths/lp_metric.h"
 
 #include <iostream>
