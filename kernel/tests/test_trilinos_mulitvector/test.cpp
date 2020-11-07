@@ -1,6 +1,6 @@
 #include "kernel/base/config.h"
 
-#ifdef USE_TRILINOS
+
 
 #include "kernel/maths/trilinos_epetra_multivector.h"
 
@@ -14,6 +14,8 @@ namespace{
 
 TEST(TrilinosEpetraMultiVector, InitNxN) {
 
+#ifdef USE_TRILINOS
+
      /// Test Scenario:   Initialize an n x n multi-vector
      /// Expected Output: An n x n multi-vector should be created
 
@@ -22,10 +24,12 @@ TEST(TrilinosEpetraMultiVector, InitNxN) {
 
     ASSERT_EQ(vector.size(), 10);
     ASSERT_EQ(vector.n_vectors(), 10);
+#endif
 }
 
 TEST(TrilinosEpetraMultiVector, InitNxM) {
 
+#ifdef USE_TRILINOS
      /// Test Scenario:   Initialize an n x m multi-vector
      /// Expected Output: An n x m multi-vector should be created
 
@@ -34,9 +38,12 @@ TEST(TrilinosEpetraMultiVector, InitNxM) {
 
     ASSERT_EQ(vector.size(), 5);
     ASSERT_EQ(vector.n_vectors(), 10);
+#endif
 }
 
 TEST(TrilinosEpetraMultiVector, Set) {
+
+#ifdef USE_TRILINOS
 
      /// Test Scenario:   Initialize an 1 x 5 multi-vector and
      ///                  set all entries to 10
@@ -51,10 +58,12 @@ TEST(TrilinosEpetraMultiVector, Set) {
 
     vector.set_entry(0, 2, 5.);
     ASSERT_DOUBLE_EQ(vector.get(0, 2), 5.);
-
+#endif
 }
 
 TEST(TrilinosEpetraMultiVector, Add) {
+
+#ifdef USE_TRILINOS
 
      /// Test Scenario:   Initialize an 1 x 5 multi-vector and
      ///                  add 1 to the third entry
@@ -69,10 +78,11 @@ TEST(TrilinosEpetraMultiVector, Add) {
 
     vector.add_entry(0, 3, 1.);
     ASSERT_DOUBLE_EQ(vector.get(0, 3), 2.);
+#endif
 
 }
 
-#endif
+
 
 
 
