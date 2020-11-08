@@ -39,6 +39,11 @@ namespace kernel
 			DataSetWrapper();
 			
 			///
+			/// \brief Constructor
+			///
+			DataSetWrapper(uint_t nrows, uint_t ncols);
+			
+			///
 			/// \brief Destructor
 			///
 			~DataSetWrapper();
@@ -61,11 +66,29 @@ namespace kernel
 			row_t get_row(uint_t row_idx)const;
 			
 			///
+			/// \brief Set the i-th row of the set
+			///
+			void set_row(uint_t r, const row_t& row);
+			
+			///
 			/// \brief Load the data set from the given filename
 			/// using the specified loader
 			///
 			template<typename Loader>
 			void load_from(const Loader& loader);
+			
+			
+			///
+			/// \brief Returns read/write reference to the
+			/// storage type
+			///
+			storage_t& get_storage(){return data_;}
+			
+			///
+			/// \brief Returns read reference to the
+			/// storage type
+			///
+			const storage_t& get_storage()const{return data_;}
 			
 		private:
 		

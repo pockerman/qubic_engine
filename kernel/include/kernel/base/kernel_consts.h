@@ -33,6 +33,11 @@ public:
 	/// \brief Dummy unit constant indicating the absence of a metric unit
 	/// 
 	static std::string dummy_unit(){return "DUMMY_UNIT";}
+	
+	///
+	/// \brief Returns "EOF"
+	///
+	static std::string eof_string(){return "EOF";}
 
 	///
 	/// \brief Dummy string

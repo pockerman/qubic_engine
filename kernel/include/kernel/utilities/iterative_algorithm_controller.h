@@ -40,21 +40,31 @@ class IterativeAlgorithmController
    /// \brief Destructor
    virtual ~IterativeAlgorithmController()=default;
 
+	///
    /// \brief Returns true if the iterations of the algorithm should be continued
+   ///
    bool continue_iterations();
 
+	///
    /// \brief show iterations
+   ///
    bool show_iterations()const{return show_iterations_;}
 
+	///
    /// \brief show iterations
+   ///
    void set_show_iterations_flag(bool flag){show_iterations_ = flag;}
 
+	///
    /// \brief Returns the current iteration index
+   ///
    uint_t get_current_iteration()const{
           return current_iteration_idx_;
    }
 
+   ///
    /// \brief Returns the exit tolerance for the algorithm
+   ///
    real_t get_exit_tolerance()const{
        return exit_tolerance_;
    }
@@ -64,10 +74,14 @@ class IterativeAlgorithmController
    ///
    uint_t get_max_iterations()const{return max_iterations_;}
 
+   ///
    /// \brief Returns the state of the controller
+   ///
    IterativeAlgorithmResult get_state()const;
 
+   ///
    /// \brief Update the residual
+   ///
    void update_residual(real_t res){
      current_res_ = res;
    }

@@ -1,4 +1,5 @@
 #include "kernel/utilities/csv_file_reader.h"
+#include "kernel/base/kernel_consts.h"
 #include <boost/algorithm/string.hpp>
 namespace kernel
 {
@@ -42,10 +43,17 @@ std::vector<std::string>
 CSVFileReader::read_line(){
 
     open();
+	
+	std::vector<std::string> result;
+	if(file_reader_.eof()){
+		
+		result.push_back(KernelConsts::eof_string());
+		return result;
+	}
 
     std::string line = "";
     std::getline(file_reader_, line);
-    std::vector<std::string> result;
+    
     boost::algorithm::split(result, line, boost::is_any_of(delimeter_));
     current_row_idx_++;
     return result;

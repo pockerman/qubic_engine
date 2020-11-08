@@ -6,6 +6,7 @@
 #include "kernel/maths/matrix_traits.h"
 #include "kernel/data_structs/data_set_wrapper.hpp"
 #include "kernel/maths/lp_metric.h"
+#include "kernel/maths/matrix_utilities.h"
 
 #include <iostream>
 
@@ -29,15 +30,24 @@ int main() {
 		auto dataloader = [](DynMat<real_t>& set){
 			kernel::load_random_set_one(set);
 		};
-		kernel::data_structs::DataSetWrapper<DynMat<real_t>> dataset;
 		
+		
+		
+		kernel::data_structs::DataSetWrapper<DynMat<real_t>> dataset;
 		dataset.load_from(dataloader);
 		
         cengine::KMeansConfig config(5, 100);
+		config.set_show_iterations_flag(true);
 		BisectionKMeans<cengine::Cluster<DynVec<real_t>>> clusterer(config);
         
 		kernel::LpMetric<2> metric;
-		clusterer.cluster(dataset, metric);
+		
+		typedef DynVec<real_t> point_t;
+		auto init = [&](const DynMat<real_t>& data, uint_t k, std::vector<point_t>& centroids ){
+             kernel::extract_randomly(data, centroids, k, false);
+        };
+
+		clusterer.cluster(dataset, metric, init);
         
     }
     catch(std::runtime_error& e){

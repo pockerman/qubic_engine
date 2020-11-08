@@ -4,6 +4,7 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/unsupervised_learning/utils/kmeans_info.h"
 #include "cubic_engine/ml/unsupervised_learning/utils/kmeans_control.h"
+#include "cubic_engine/ml/unsupervised_learning/serial_kmeans.h"
 #include "kernel/base/kernel_consts.h"
 
 #include <exception>
@@ -60,8 +61,9 @@ namespace cengine
 			///
 			/// \brief Cluster the given data set
 			///
-			template<typename DataIn, typename Similarity>
-			output_t cluster(const DataIn& data, const Similarity& similarity);
+			template<typename DataIn, typename Similarity, typename Initializer>
+			output_t cluster(const DataIn& data, const Similarity& similarity, 
+			                 const Initializer& init);
 			
 		private:
 		
@@ -89,10 +91,10 @@ namespace cengine
 			///
 			/// \brief Split the given cluster
 			///
-			template<typename DataIn, typename Similarity>
+			template<typename DataIn, typename Similarity, typename Initializer>
 			void 
 			sub_cluster_(cluster_t& cluster, const DataIn& data, 
-						 const Similarity& similarity);
+						 const Similarity& similarity, const Initializer& init);
 			
 			///
 			/// \brief Select new centroids by considering only the 
@@ -102,6 +104,12 @@ namespace cengine
 			std::tuple<uint_t, uint_t, real_t> 
 			select_new_centroids_(const std::vector<uint_t>& indices, 
 								  const DataIn& data, const Similarity& similarity);
+								  
+			///
+			/// \brief Create the first cluster
+			///
+			template<typename DataIn>
+			void create_first_cluster_(const DataIn& data);
 			
 			
 		};
@@ -116,9 +124,25 @@ namespace cengine
 
 
 		template<typename ClusterType>
-		template<typename DataIn, typename Similarity>
+		template<typename DataIn>
+		void 
+		BisectionKMeans<ClusterType>::create_first_cluster_(const DataIn& data){
+		
+			std::vector<uint_t> indices(data.n_rows());
+			for(uint_t r=0; r<indices.size(); ++r){
+				indices[r] = r;
+			}
+				
+			ClusterType init_cluster(0, typename ClusterType::point_t(), indices);
+			init_cluster.valid_centroid = false;
+			clusters_.push_back(init_cluster);
+		}
+		
+		
+		template<typename ClusterType>
+		template<typename DataIn, typename Similarity, typename Initializer>
 		typename BisectionKMeans<ClusterType>::output_t
-		BisectionKMeans<ClusterType>::cluster(const DataIn& data, const Similarity& similarity){
+		BisectionKMeans<ClusterType>::cluster(const DataIn& data, const Similarity& similarity, const Initializer& init){
 
 
 			typedef typename BisectionKMeans<ClusterType>::cluster_t cluster_t;
@@ -138,17 +162,7 @@ namespace cengine
 			//start timing 
 			std::chrono::time_point<std::chrono::system_clock> start, end;
 			start = std::chrono::system_clock::now();
-			{
-				std::vector<uint_t> indices(data.n_rows());
-				for(uint_t r=0; r<indices.size(); ++r){
-					indices[r] = r;
-				}
-				
-				ClusterType init_cluster(0, typename ClusterType::point_t(), indices);
-				init_cluster.valid_centroid = false;
-				clusters_.push_back(init_cluster);
-			}
-			
+			create_first_cluster_(data);
 			
 			
 			while(clusters_.size() != k && control_.continue_iterations()){
@@ -162,7 +176,7 @@ namespace cengine
 				auto& cluster = select_cluster_to_split_(data, similarity);
 				
 				// split the cluster
-				sub_cluster_(cluster, data,similarity);
+				sub_cluster_(cluster, data, similarity, init);
 			}
 		 
 			auto state = control_.get_state();
@@ -221,16 +235,43 @@ namespace cengine
 
 		
 		template<typename ClusterType>
-		template<typename DataIn, typename Similarity>
+		template<typename DataIn, typename Similarity, typename Initializer>
 		void 
 		BisectionKMeans<ClusterType>::sub_cluster_(cluster_t& cluster, const DataIn& data, 
-												    const Similarity& similarity){
+												    const Similarity& similarity, const Initializer& init){
 														
 			// current data points assigned to the cluster
 			auto current_indices = cluster.points;
 			
+			KMeansConfig new_config(2, control_.get_max_iterations());
+			KMeans<ClusterType> kmeans(new_config);
+			
+			// create the reduced dataset
+			DataIn new_data(current_indices.size(), data.n_columns());
+			
+			for(uint_t i=0; i<current_indices.size(); ++i){
+				
+				auto row = data.get_row(current_indices[i]);
+				new_data.set_row(i, row);
+			}
+			
+			kmeans.cluster(new_data.get_storage(), similarity, init);
+			
+			if(clusters_.size() < control_.k){
+				
+				auto& clusters = kmeans.get_clusters();
+				
+				ClusterType  new_cluster(clusters_.size(), clusters[1].centroid, clusters[1].points);
+				clusters_.push_back(new_cluster);
+				cluster.centroid = clusters[0].centroid;
+				cluster.points = clusters[0].points;
+				
+				
+				
+			}
+			
 			// select a new centroid 
-			auto [centroid_id_1, centroid_id_2, max_distance] = select_new_centroids_(current_indices, data, similarity);
+			/*auto [centroid_id_1, centroid_id_2, max_distance] = select_new_centroids_(current_indices, data, similarity);
 			
 			std::vector<uint_t> indexes1;
 			indexes1.reserve(current_indices.size());
@@ -287,7 +328,7 @@ namespace cengine
 					indexes2.reserve(current_indices.size());
 				
 				}
-			}
+			}*/
 														
 		}
 		
