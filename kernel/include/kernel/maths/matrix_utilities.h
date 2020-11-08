@@ -135,8 +135,9 @@ get_row(const DynMat<T>& matrix, uint_t row_idx){
 
 
 template<typename T>
-void extract_randomly(const DynMat<T>& matrix, std::vector<DynVec<T>>& rsult,
-                      uint_t how_many, bool allow_duplicates=false){
+void 
+extract_randomly(const DynMat<T>& matrix, std::vector<DynVec<T>>& rsult,
+				 uint_t how_many, bool allow_duplicates=false){
 
     rsult.clear();
     rsult.reserve(how_many);

@@ -1,6 +1,7 @@
 #include "kernel/utilities/data_set_loaders.h"
 #include "kernel/parallel/utilities/array_partitioner.h"
 #include "kernel/utilities/csv_file_reader.h"
+#include "kernel/base/kernel_consts.h"
 #include "kernel/base/config.h"
 
 #include <exception>
@@ -52,7 +53,8 @@ load_car_plant_dataset(uint_t label_idx, bool add_ones_column){
 }
 
 std::pair<PartitionedType<DynMat<real_t>>,
-PartitionedType<DynVec<real_t>>> load_car_plant_dataset_with_partitions(uint nparts, uint_t label_idx, bool add_ones_column){
+PartitionedType<DynVec<real_t>>> 
+load_car_plant_dataset_with_partitions(uint nparts, uint_t label_idx, bool add_ones_column){
 
 
     uint_t ncols = add_ones_column?2:1;
@@ -76,7 +78,8 @@ PartitionedType<DynVec<real_t>>> load_car_plant_dataset_with_partitions(uint npa
         labels = col1;
     }
 
-    PartitionedType<DynMat<real_t>> mat(sizeof (col1)/sizeof (real_t), ncols, add_ones_column?1.0:0.0);
+    PartitionedType<DynMat<real_t>> mat(sizeof (col1)/sizeof (real_t), 
+	                                     ncols, add_ones_column?1.0:0.0);
 
     if(add_ones_column){
 
@@ -100,7 +103,8 @@ PartitionedType<DynVec<real_t>>> load_car_plant_dataset_with_partitions(uint npa
 }
 
 
-std::pair<DynMat<real_t>, DynVec<real_t>> load_car_plant_multi_dataset(uint_t labels_idx, bool add_ones_column){
+std::pair<DynMat<real_t>, DynVec<real_t>> 
+load_car_plant_multi_dataset(uint_t labels_idx, bool add_ones_column){
 
     if(labels_idx != 0 || labels_idx != 1 || labels_idx != 2){
 
@@ -191,9 +195,10 @@ std::pair<DynMat<real_t>, DynVec<real_t>> load_car_plant_multi_dataset(uint_t la
 }
 
 std::pair<PartitionedType<DynMat<real_t>>,
-          PartitionedType<DynVec<real_t>>> load_car_plant_multi_dataset_with_partitions(uint nparts,
-                                                                                        uint_t labels_idx,
-                                                                                        bool add_ones_column){
+          PartitionedType<DynVec<real_t>>> 
+		  load_car_plant_multi_dataset_with_partitions(uint nparts,
+													   uint_t labels_idx,
+                                                       bool add_ones_column){
 
     if(labels_idx != 0 || labels_idx != 1 || labels_idx != 2){
 
@@ -288,7 +293,8 @@ std::pair<PartitionedType<DynMat<real_t>>,
 }
 
 
-std::pair<DynMat<real_t>, DynVec<uint_t>> load_reduced_iris_data_set(bool add_ones_column){
+std::pair<DynMat<real_t>, DynVec<uint_t>> 
+load_reduced_iris_data_set(bool add_ones_column){
 
     std::string file(DATA_SET_FOLDER);
     file += "/iris_dataset_reduced.csv";
@@ -338,8 +344,9 @@ std::pair<DynMat<real_t>, DynVec<uint_t>> load_reduced_iris_data_set(bool add_on
 }
 
 std::pair<PartitionedType<DynMat<real_t>>,
-          PartitionedType<DynVec<uint_t>>> load_reduced_iris_data_set_with_partitions(uint nparts,
-                                                                                      bool add_ones_column){
+          PartitionedType<DynVec<uint_t>>> 
+		  load_reduced_iris_data_set_with_partitions(uint nparts,
+													 bool add_ones_column){
 
     std::string file(DATA_SET_FOLDER);
     file += "/iris_dataset_reduced.csv";
@@ -394,7 +401,8 @@ std::pair<PartitionedType<DynMat<real_t>>,
 }
 
 /// \brief Load the iris data set and assigned
-std::pair<DynMat<real_t>, DynVec<uint_t>> load_iris_data_set(bool add_ones_column){
+std::pair<DynMat<real_t>, DynVec<uint_t>> 
+load_iris_data_set(bool add_ones_column){
 
     std::string file(DATA_SET_FOLDER);
     file += "/iris_data.csv";
@@ -447,8 +455,9 @@ std::pair<DynMat<real_t>, DynVec<uint_t>> load_iris_data_set(bool add_ones_colum
 }
 
 std::pair<PartitionedType<DynMat<real_t>>,
-          PartitionedType<DynVec<uint_t>>> load_iris_data_set_with_partitions(uint nparts,
-                                                                              bool add_ones_column){
+          PartitionedType<DynVec<uint_t>>> 
+		  load_iris_data_set_with_partitions(uint nparts,
+											 bool add_ones_column){
 
     std::string file(DATA_SET_FOLDER);
     file += "/iris_data.csv";
@@ -553,8 +562,9 @@ load_x_y_sinuisoid_data_set(bool add_ones_column){
 
 /// \brief Load the reduced iris data set and assigned partitions
 std::pair<PartitionedType<DynMat<real_t>>,
-          PartitionedType<DynVec<real_t>>> load_x_y_sinuisoid_data_set_with_partitions(uint nparts,
-                                                                                       bool add_ones_column){
+          PartitionedType<DynVec<real_t>>> 
+		  load_x_y_sinuisoid_data_set_with_partitions(uint nparts,
+													  bool add_ones_column){
     std::string file(DATA_SET_FOLDER);
     file += "/X_Y_Sinusoid_Data.csv";
 
@@ -669,7 +679,8 @@ std::pair<DynMat<real_t>,
 }
 
 
-void load_random_set_one(DynMat<real_t>& matrix){
+void 
+load_random_set_one(DynMat<real_t>& matrix){
 	
 	std::string file(DATA_SET_FOLDER);
 	file += "/random_data_1.txt";
@@ -684,8 +695,17 @@ void load_random_set_one(DynMat<real_t>& matrix){
 		
 		auto line = reader.read_line();
 		
+		if(line[0] == KernelConsts::eof_string()){
+			break;
+		}
+		
+		
 		if(line[0] == "#"){
 			continue;
+		}
+		
+		if(line.size() != 2){
+			break; //EOF
 		}
 		
 		std::vector<real_t> vals(line.size(), 0.0);
@@ -695,13 +715,11 @@ void load_random_set_one(DynMat<real_t>& matrix){
         }
 		
 		
-		uint_t clocal = 0;
         for(uint c=0; c<matrix.columns(); ++c){
            matrix(row_counter, c) =  vals[c];
         }
 		
 		row_counter++;
-		
 	}
 }
 

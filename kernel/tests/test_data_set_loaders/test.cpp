@@ -4,6 +4,7 @@
 #include "kernel/maths/matrix_utilities.h"
 
 #include <vector>
+#include <stdexcept>
 #include <gtest/gtest.h>
 
 /// 
@@ -76,10 +77,10 @@ TEST(TestDataSetLoaders, LoadIrisSetWithOnes) {
     }
 }
 
-/***
- * Test Scenario:   The application attempts to load the x_y sinuisoid iris data set
- * Expected Output:	Data set should be loaded
- **/
+///
+/// Test Scenario:   The application attempts to load the x_y sinuisoid iris data set
+/// Expected Output:	Data set should be loaded
+///
 TEST(TestDataSetLoaders, LoadXYSinuisoidDataSet) {
 
 
@@ -121,10 +122,10 @@ TEST(TestDataSetLoaders, LoadXYSinuisoidDataSetNoOnes) {
 }
 
 
-/***
- * Test Scenario:   Test loading the wine data set without ones
- * Expected Output:	matrix of 178x12, labels of 178
- **/
+/// 
+/// Test Scenario:   Test loading the wine data set without ones
+/// Expected Output:	matrix of 178x12, labels of 178
+///
 TEST(TestDataSetLoaders, TestLoadWineDataSetSetNoOnes) {
 
 
@@ -232,6 +233,9 @@ TEST(TestDataSetLoaders, TestRandomSetOne){
         ASSERT_EQ(data.rows(), 100);
         ASSERT_EQ(data.columns(), 2);
     }
+	catch(std::logic_error& e){
+		ASSERT_TRUE("Invalid line size");
+	}
     catch(...){
 
         ASSERT_FALSE("A non expected exception was thrown");
