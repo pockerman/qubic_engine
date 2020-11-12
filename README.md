@@ -9,7 +9,7 @@ and <a href="https://github.com/pockerman/compute_engine/tree/master/cubic_engin
 
 You can find the HTML documentation <a href="https://pockerman.github.io/cubic_engine_doc/">here</a>
 
-## Images (some simply are wrong :) )
+## Images (some are simply wrong :) )
 
 <img src="images/squeare_transport.gif"
      alt="Square transport view 3D"
