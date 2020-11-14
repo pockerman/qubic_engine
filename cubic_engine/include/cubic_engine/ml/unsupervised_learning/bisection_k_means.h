@@ -72,12 +72,10 @@ namespace cengine
 			///
 			config_t control_;
 			
-			
 			///
 			/// \brief The clusters
 			///
 			std::vector<cluster_t> clusters_;
-			
 			
 			///
 			/// \brief Select the cluster to split
@@ -86,7 +84,6 @@ namespace cengine
 			cluster_t& 
 			select_cluster_to_split_(const DataIn& data, 
 									 const Similarity& similarity);
-			
 			
 			///
 			/// \brief Split the given cluster
@@ -111,17 +108,14 @@ namespace cengine
 			template<typename DataIn>
 			void create_first_cluster_(const DataIn& data);
 			
-			
 		};
-		
-		
+				
 		template<typename ClusterType>
 		BisectionKMeans<ClusterType>::BisectionKMeans(const KMeansConfig& cntrl)
 			:
 		   control_(cntrl),
 		   clusters_()
 		{}
-
 
 		template<typename ClusterType>
 		template<typename DataIn>
@@ -138,11 +132,11 @@ namespace cengine
 			clusters_.push_back(init_cluster);
 		}
 		
-		
 		template<typename ClusterType>
 		template<typename DataIn, typename Similarity, typename Initializer>
 		typename BisectionKMeans<ClusterType>::output_t
-		BisectionKMeans<ClusterType>::cluster(const DataIn& data, const Similarity& similarity, const Initializer& init){
+		BisectionKMeans<ClusterType>::cluster(const DataIn& data, const Similarity& similarity, 
+		const Initializer& init){
 
 
 			typedef typename BisectionKMeans<ClusterType>::cluster_t cluster_t;
@@ -151,7 +145,10 @@ namespace cengine
 			output_t info;
 			auto k = control_.k;
 			auto rows = data.n_rows();
-
+			
+			if(k == 0){
+				throw std::logic_error("Number of clusters cannot be zero");
+			}
 
 			// more clusters than data does not make
 			// sense
@@ -244,16 +241,13 @@ namespace cengine
 			auto current_indices = cluster.points;
 			
 			KMeansConfig new_config(2, control_.get_max_iterations());
+			new_config.set_show_iterations_flag(control_.show_iterations());
 			KMeans<ClusterType> kmeans(new_config);
 			
 			// create the reduced dataset
 			DataIn new_data(current_indices.size(), data.n_columns());
 			
-			for(uint_t i=0; i<current_indices.size(); ++i){
-				
-				auto row = data.get_row(current_indices[i]);
-				new_data.set_row(i, row);
-			}
+			cluster.copy_subset(data, new_data);
 			
 			kmeans.cluster(new_data.get_storage(), similarity, init);
 			
@@ -262,11 +256,12 @@ namespace cengine
 				auto& clusters = kmeans.get_clusters();
 				
 				ClusterType  new_cluster(clusters_.size(), clusters[1].centroid, clusters[1].points);
+				new_cluster.valid_centroid = true;
 				clusters_.push_back(new_cluster);
+				
 				cluster.centroid = clusters[0].centroid;
 				cluster.points = clusters[0].points;
-				
-				
+				cluster.valid_centroid = true;
 				
 			}
 			
