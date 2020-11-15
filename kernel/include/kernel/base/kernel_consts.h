@@ -38,6 +38,11 @@ public:
 	/// \brief Returns "EOF"
 	///
 	static std::string eof_string(){return "EOF";}
+	
+	///
+	/// \brief Returns the INFO string
+	///
+	static std::string info_str(){return "INFO:";}
 
 	///
 	/// \brief Dummy string

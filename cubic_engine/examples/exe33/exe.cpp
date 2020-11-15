@@ -47,8 +47,12 @@ int main() {
              kernel::extract_randomly(data, centroids, k, false);
         };
 
-		clusterer.cluster(dataset, metric, init);
-        
+		auto out = clusterer.cluster(dataset, metric, init);
+		std::cout<<out<<std::endl;
+		
+		// get the clusters 
+		auto& clusters = clusterer.get_clusters();
+		
     }
     catch(std::runtime_error& e){
         std::cerr<<"Runtime error: "

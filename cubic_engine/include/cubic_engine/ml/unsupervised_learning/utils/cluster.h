@@ -3,6 +3,7 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/maths/matrix_utilities.h"
+#include "kernel/utilities/common_uitls.h"
 
 #include <vector>
 #include <algorithm>
@@ -84,7 +85,16 @@ struct Cluster
 	/// \brief Compute the intra cluster variance
 	///
 	template<typename DataSetType, typename Similarity>
-	real_t compute_intra_variance(const DataSetType& data, const Similarity& similarity)const;
+	real_t compute_intra_variance(const DataSetType& data, 
+	const Similarity& similarity)const;
+	
+	///
+	/// \brief Copy the subset of the data contained in the cluster
+	///
+	template<typename DataSetType>
+	void copy_subset(const DataSetType& datain, DataSetType& out)const;
+	
+	
 };
 
 template<typename DataPoint>
@@ -93,7 +103,8 @@ Cluster<DataPoint>::Cluster(uint_t idx, const point_t& p, const std::vector<uint
 id(idx),
 centroid(p),
 points(pts),
-changed(false)
+changed(false),
+valid_centroid(true)
 {}
 
 
@@ -160,9 +171,42 @@ Cluster<DataPoint>::recalculate_centroid(const DataSetType& set){
 template<typename DataPoint>
 template<typename DataSetType, typename Similarity>
 real_t 
-Cluster<DataPoint>::compute_intra_variance(const DataSetType& data, const Similarity& similarity)const{
+Cluster<DataPoint>::compute_intra_variance(const DataSetType& data, 
+                                           const Similarity& similarity)const{
+											   
+											   
+	if(points.empty()){
+		throw std::logic_error("Cannot calculate cluster variance from empty points list");
+	}
 	
-	return 0.0;
+	if(!valid_centroid){
+		throw std::logic_error("Centroid is not valid");
+	}
+
+	auto sum = 0.0;
+	for(uint_t i=0; i<points.size(); ++i){
+            auto seq = data.get_row(points[i]);
+            auto dist = similarity(seq, centroid);
+            sum += kernel::utils::sqr(dist);
+	}
+		
+	return sum/points.size();
+}
+
+template<typename DataPoint>
+template<typename DataSetType>
+void 
+Cluster<DataPoint>::copy_subset(const DataSetType& datain, DataSetType& out)const{
+	
+	if(points.empty()){
+		throw std::logic_error("Cannot calculate cluster variance from empty points list");
+	}
+	
+	for(uint_t i=0; i<points.size(); ++i){
+				
+		auto row = datain.get_row(points[i]);
+		out.set_row(i, row);
+	}
 }
 
 }//cengine
