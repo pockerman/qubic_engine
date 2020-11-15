@@ -64,6 +64,11 @@ namespace cengine
 			template<typename DataIn, typename Similarity, typename Initializer>
 			output_t cluster(const DataIn& data, const Similarity& similarity, 
 			                 const Initializer& init);
+							 
+			///
+			/// \brief Read access to the clusters created
+			/// 
+			const std::vector<cluster_t>& get_clusters()const{return clusters_;}
 			
 		private:
 		
@@ -159,6 +164,10 @@ namespace cengine
 			//start timing 
 			std::chrono::time_point<std::chrono::system_clock> start, end;
 			start = std::chrono::system_clock::now();
+			
+			// reserve memory for as many clusters 
+			// as possible
+			clusters_.reserve(k);
 			create_first_cluster_(data);
 			
 			
@@ -166,15 +175,19 @@ namespace cengine
 				
 				if(control_.show_iterations()){
 
-					std::cout<<"\tBisection KMeans iteration: "<<control_.get_current_iteration()<<std::endl;
+					std::cout<<"\t"<<kernel::KernelConsts::info_str()<<" BKMeans iteration: "<<control_.get_current_iteration()<<std::endl;
+					std::cout<<"\t\t"<<kernel::KernelConsts::info_str()<<" Number of clusters created: "<<clusters_.size()<<" of "<<k<<std::endl;
 				}
 				
 				// select the cluster to split
-				auto& cluster = select_cluster_to_split_(data, similarity);
+				ClusterType& clst = select_cluster_to_split_(data, similarity);
 				
 				// split the cluster
-				sub_cluster_(cluster, data, similarity, init);
+				sub_cluster_(clst, data, similarity, init);
 			}
+			
+			std::cout<<"\t"<<kernel::KernelConsts::info_str()<<" Finished clustering"<<std::endl;
+			std::cout<<"\t"<<kernel::KernelConsts::info_str()<<" Number of clusters created: "<<clusters_.size()<<" of "<<k<<std::endl;
 		 
 			auto state = control_.get_state();
 			end = std::chrono::system_clock::now();
@@ -182,7 +195,7 @@ namespace cengine
 			info.runtime = end-start;
 			info.nprocs = 1;
 			info.nthreads = 1;
-			info.converged = state.converged;
+			info.converged = true;
 			info.residual = state.residual;
 			info.tolerance = state.tolerance;
 			info.niterations = state.num_iterations;
@@ -255,13 +268,25 @@ namespace cengine
 				
 				auto& clusters = kmeans.get_clusters();
 				
+				if(clusters.size() != 2){
+					
+					throw std::logic_error("Invalid cluster index");
+					
+				}
+				
 				ClusterType  new_cluster(clusters_.size(), clusters[1].centroid, clusters[1].points);
 				new_cluster.valid_centroid = true;
 				clusters_.push_back(new_cluster);
 				
-				cluster.centroid = clusters[0].centroid;
-				cluster.points = clusters[0].points;
-				cluster.valid_centroid = true;
+				if(clusters_[cluster.id].centroid.size() != clusters[0].centroid.size()){
+					clusters_[cluster.id].centroid.resize(clusters[0].centroid.size());
+				}
+				
+				
+				clusters_[cluster.id].centroid = clusters[0].centroid;
+				clusters_[cluster.id].points = clusters[0].points;
+				clusters_[cluster.id].valid_centroid = true;
+				
 				
 			}
 			
