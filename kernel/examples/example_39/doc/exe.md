@@ -1,7 +1,23 @@
+# Example 4: Multithreaded Jacobi Iteration
+
+## Contents
+
+* [Overview](#overview) 
+* [Include files](#include_files)
+* [The main function](#m_func)
+* [Results](#results)
+* [Source Code](#source_code)
+
+
+## <a name="overview"></a> Overview
+
+## <a name="include_files"></a> Include files
+
+```
 #include "kernel/parallel/threading/thread_pool.h"
 #include "kernel/parallel/threading/simple_task.h"
 #include "kernel/utilities/algorithm_info.h"
-#include "kernel/utilities/iterative_algorithm_controller.h"
+#include "kernel/base/iteration_control.h"
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/utilities/range_1d.h"
@@ -13,13 +29,17 @@
 #include <iostream>
 #include <stdexcept>
 
+```
 
+## <a name="m_func"></a> The main function
+
+```
 namespace  {
 
     using kernel::uint_t;
     using kernel::real_t;
     using kernel::ThreadPool;
-    using kernel::IterativeAlgorithmController;
+    using kernel::ItrCtrl;
     using kernel::range1d;
     using kernel::SimpleTaskBase;
     using kernel::AlgInfo;
@@ -32,7 +52,7 @@ class JacobiIterator
 
 public:
 
-    JacobiIterator(const IterativeAlgorithmController& control )
+    JacobiIterator(const ItrCtrl& control )
         :
       ctrl_(control)
     {}
@@ -73,7 +93,7 @@ private:
             const range1d<uint_t> range_;
     };
 
-    IterativeAlgorithmController ctrl_;
+    ItrCtrl ctrl_;
 
     /// A vector of Jacobi tasks to be executed and synchronized
     std::vector<std::unique_ptr<JacobiTask>> tasks_;
@@ -141,8 +161,7 @@ JacobiIterator::iterate(const Matrix& mat, const Vector& b, Vector& x, ThreadPoo
     {
         /// partition the space of indices
         std::vector<range1d<uint_t>> ranges = kernel::partitioners::partition_range_1d(static_cast<uint_t>(0),
-																					   static_cast<uint_t>(mat.rows()), 
-																					   executor.get_n_threads());
+                                                                                         static_cast<uint_t>(mat.rows()), executor.get_n_threads());
 
         //create the tasks
         tasks_.reserve(executor.get_n_threads());
@@ -152,37 +171,36 @@ JacobiIterator::iterate(const Matrix& mat, const Vector& b, Vector& x, ThreadPoo
         }
     }
 
-	while(ctrl_.continue_iterations()){
-		
-		/// for each iteration assign the tasks for iteration
+    for(uint_t current_itr=0; current_itr < ctrl_.max_num_itrs; current_itr++){
+
+        /// for each iteration assign the tasks for iteration
         for(uint_t t=0; t<tasks_.size(); ++t){
             executor.add_task(*(tasks_[t].get()));
         }
-		
-		 /// wait here until the tasks finish
+
+        /// wait here until the tasks finish
         while(!jacobi_tasks_finished()){
             std::this_thread::yield();
         }
-		
-		//reset all the tasks to pending
+
+        //reset all the tasks to pending
         reset_jacobi_tasks_pending();
 
         /// compute the difference between the old and the computed solution
         real_t res = l2Norm(x - old_solution);
-		ctrl_.update_residual(res);
-		
-		info.residual = res;
-        info.niterations = ctrl_.get_current_iteration(); 
 
-        if( res < ctrl_.get_exit_tolerance()){
+        info.residual = res;
+        info.niterations = current_itr;
+
+        if( res < ctrl_.tolerance){
             info.converged = true;
             break;
         }
 
         // set the old solution to the current one
         old_solution = x;
-	}
-    
+    }
+
     return info;
 }
 
@@ -191,7 +209,7 @@ JacobiIterator::iterate(const Matrix& mat, const Vector& b, Vector& x, ThreadPoo
 int main(){
 
     using kernel::ThreadPool;
-    using kernel::IterativeAlgorithmController;
+    using kernel::ItrCtrl;
     using kernel::AlgInfo;
 
     Vector b(100, 2.0);
@@ -212,8 +230,7 @@ int main(){
     ThreadPool pool(4);
 
     // create the control
-    IterativeAlgorithmController control(100, kernel::KernelConsts::tolerance());
-	control.set_num_threads(pool.get_n_threads());
+    ItrCtrl control(100, pool.get_n_threads(), kernel::KernelConsts::tolerance());
 
     // the object responsible for Jacobi iteration
     JacobiIterator iterator(control);
@@ -229,3 +246,14 @@ int main(){
 
     return 0;
 }
+```
+
+## <a name="results"></a> Results
+
+## <a name="source_code"></a> Source Code
+
+<a href="../exe.cpp">exc.cpp</a>
+
+
+
+
