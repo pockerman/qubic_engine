@@ -25,7 +25,9 @@ namespace numerics{
 class TrilinosEpetraMatrix;
 class TrilinosEpetraVector;
 
+///
 /// \brief Class that models a Krylov type solver
+///
 class TrilinosKrylovSolver
 {
 
