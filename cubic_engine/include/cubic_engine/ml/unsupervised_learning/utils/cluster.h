@@ -158,10 +158,10 @@ Cluster<DataPoint>::recalculate_centroid(const DataSetType& set){
     }
 
     typedef typename Cluster<DataPoint>::point_t point_t;
-    point_t tmp = kernel::get_row(set, points[0]);
+    point_t tmp = set.get_row(points[0]);
 
     for(uint_t t = 1; t<points.size(); ++t){
-        tmp += kernel::get_row(set, points[t]);
+        tmp += set.get_row(points[t]);
     }
 
     tmp /= points.size();

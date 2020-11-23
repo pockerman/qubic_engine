@@ -43,8 +43,9 @@ int main() {
 		kernel::LpMetric<2> metric;
 		
 		typedef DynVec<real_t> point_t;
-		auto init = [&](const DynMat<real_t>& data, uint_t k, std::vector<point_t>& centroids ){
-             kernel::extract_randomly(data, centroids, k, false);
+		auto init = [&](const kernel::data_structs::DataSetWrapper<DynMat<real_t>>& data, 
+		                uint_t k, std::vector<point_t>& centroids ){
+             kernel::extract_randomly(data.get_storage(), centroids, k, false);
         };
 
 		auto out = clusterer.cluster(dataset, metric, init);

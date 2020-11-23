@@ -7,6 +7,7 @@
 #include "kernel/utilities/data_set_loaders.h"
 #include "kernel/maths/lp_metric.h"
 #include "kernel/maths/matrix_utilities.h"
+#include "kernel/data_structs/data_set_wrapper.hpp"
 
 #include <random>
 #include <iostream>
@@ -19,25 +20,29 @@ using cengine::real_t;
 using cengine::DynMat;
 using cengine::DynVec;
 using cengine::Cluster;
+using cengine::ml::KMeans;
 
 void simple_example(){
 
     typedef DynVec<real_t> point_t;
     DynMat<real_t> data = kernel::load_kmeans_test_data();
+	
+	kernel::data_structs::DataSetWrapper<DynMat<real_t>> dataset;
+	dataset.load_from(data);
 
     cengine::KMeansConfig control(2);
     control.set_show_iterations_flag(true);
 
-    cengine::KMeans<Cluster<point_t>> kmeans(control);
+    KMeans<Cluster<point_t>> kmeans(control);
 
     // the metric we use
     kernel::LpMetric<2> l2_norm;
 
-    auto init = [&](const DynMat<real_t>& data, uint_t k, std::vector<point_t>& centroids ){
-        kernel::extract_randomly(data, centroids, k, false);
+    auto init = [&](const kernel::data_structs::DataSetWrapper<DynMat<real_t>>& data, uint_t k, std::vector<point_t>& centroids ){
+        kernel::extract_randomly(data.get_storage(), centroids, k, false);
     };
 
-    auto result = kmeans.cluster(data, l2_norm, init);
+    auto result = kmeans.cluster(dataset, l2_norm, init);
     std::cout<<result<<std::endl;
 
     const auto& clusters = kmeans.get_clusters();
@@ -75,21 +80,25 @@ void normal_example(){
             data(r,c) = x;
         }
     }
+	
+	kernel::data_structs::DataSetWrapper<DynMat<real_t>> dataset;
+	dataset.load_from(data);
 
 
     cengine::KMeansConfig control(3);
     control.set_show_iterations_flag(true);
 
-    cengine::KMeans<Cluster<point_t>> kmeans(control);
+    KMeans<Cluster<point_t>> kmeans(control);
 
     // the metric we use
     kernel::LpMetric<2> l2_norm;
 
-    auto init = [&](const DynMat<real_t>& data, uint_t k, std::vector<point_t>& centroids ){
-        kernel::extract_randomly(data, centroids, k, false);
+    auto init = [&](const kernel::data_structs::DataSetWrapper<DynMat<real_t>>& data, 
+	                uint_t k, std::vector<point_t>& centroids ){
+        kernel::extract_randomly(data.get_storage(), centroids, k, false);
     };
 
-    auto result = kmeans.cluster(data, l2_norm, init);
+    auto result = kmeans.cluster(dataset, l2_norm, init);
     std::cout<<result<<std::endl;
 
     const auto& clusters = kmeans.get_clusters();
