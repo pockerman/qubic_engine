@@ -7,8 +7,11 @@
 #include "kernel/data_structs/data_set_wrapper.hpp"
 #include "kernel/maths/lp_metric.h"
 #include "kernel/maths/matrix_utilities.h"
+#include "kernel/base/kernel_consts.h"
 
 #include <iostream>
+#include <map>
+#include <vector>
 
 namespace example
 {
@@ -19,6 +22,33 @@ using cengine::DynMat;
 using cengine::DynVec;
 using cengine::ml::KMeans;
 
+void compute_purity(){
+	
+}
+
+std::map<uint_t, std::vector<uint_t>> 
+get_classes(const DynVec<uint_t>& labels){
+	
+	std::map<uint_t, std::vector<uint_t>> clusters;
+	
+	for(uint_t i = 0; i<labels.size(); ++i){
+		
+		auto itr = clusters.find(labels[i]);
+		
+		if(itr != clusters.end()){
+			itr->second.push_back(i);
+		}
+		else{
+			std::vector<uint_t> indexes = {i};
+			clusters.insert({labels[i], indexes});
+		}
+	}
+	
+	
+	return clusters;
+} 
+
+
 }
 
 int main() {
@@ -27,17 +57,17 @@ int main() {
     
     try{
 		
-		auto dataloader = [](DynMat<real_t>& set){
-			auto dataset = kernel::load_iris_data_set(false);
-			set = dataset.first;
-		};
 		
+		auto data = kernel::load_iris_data_set(false);
 		
+		auto classes = get_classes(data.second);
+		
+		std::cout<<kernel::KernelConsts::info_str()<<"Number of classes="<<classes.size()<<std::endl;
 		
 		kernel::data_structs::DataSetWrapper<DynMat<real_t>> dataset;
-		dataset.load_from(dataloader);
+		dataset.load_from(data.first);
 		
-        cengine::KMeansConfig config(5, 100);
+        cengine::KMeansConfig config(classes.size(), 100);
 		config.set_show_iterations_flag(true);
 		KMeans<cengine::Cluster<DynVec<real_t>>> clusterer(config);
         
@@ -55,6 +85,8 @@ int main() {
 		
 		// get the clusters 
 		auto& clusters = clusterer.get_clusters();
+		
+		// compute the purity for each cluster.
 		
     }
     catch(std::runtime_error& e){
