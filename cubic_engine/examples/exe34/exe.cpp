@@ -44,7 +44,6 @@ get_classes(const DynVec<uint_t>& labels){
 		}
 	}
 	
-	
 	return clusters;
 } 
 
@@ -64,29 +63,50 @@ int main() {
 		
 		std::cout<<kernel::KernelConsts::info_str()<<"Number of classes="<<classes.size()<<std::endl;
 		
+        // create the dataset
 		kernel::data_structs::DataSetWrapper<DynMat<real_t>> dataset;
 		dataset.load_from(data.first);
 		
+        // configuration for KMeans
         cengine::KMeansConfig config(classes.size(), 100);
 		config.set_show_iterations_flag(true);
+
+        // the KMeans instance
 		KMeans<cengine::Cluster<DynVec<real_t>>> clusterer(config);
         
 		kernel::LpMetric<2> metric;
 		
 		typedef DynVec<real_t> point_t;
 		auto init = [&](const kernel::data_structs::DataSetWrapper<DynMat<real_t>>& data, 
-		                uint_t k, std::vector<point_t>& centroids ){
-							
+		                uint_t k, std::vector<point_t>& centroids ){			
              kernel::extract_randomly(data.get_storage(), centroids, k, false);
         };
 
+        // cluster the points
 		auto out = clusterer.cluster(dataset, metric, init);
 		std::cout<<out<<std::endl;
 		
 		// get the clusters 
 		auto& clusters = clusterer.get_clusters();
 		
+        auto purity = 0.0;
+
 		// compute the purity for each cluster.
+        for(uint_t c=0; c<clusters.size(); ++c){
+
+            auto& cluster = clusters[c];
+            auto cluster_pts = cluster.get_points().size();
+            auto actual_pts = classes[cluster.get_id()].size();
+
+            auto cluster_purity = static_cast<real_t>(actual_pts)/static_cast<real_t>(cluster_pts);
+            std::cout<<kernel::KernelConsts::info_str()<<"Cluster="<<cluster.get_id()
+                    <<" purity="<<cluster_purity<<std::endl;
+
+            purity += (static_cast<real_t>(cluster_pts)/static_cast<real_t>(dataset.n_rows()))*cluster_purity;
+        }
+
+        std::cout<<kernel::KernelConsts::info_str()<<"Overall purity="<<purity<<std::endl;
+
 		
     }
     catch(std::runtime_error& e){
