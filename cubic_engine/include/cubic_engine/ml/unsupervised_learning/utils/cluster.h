@@ -61,6 +61,23 @@ struct Cluster
 	///
 	Cluster(uint_t idx, const point_t& p, const std::vector<uint_t>& pts);
 
+    ///
+    /// \brief get_id Returns the id of the cluster
+    ///
+    uint_t get_id()const{return id;}
+
+    ///
+    /// \brief get_points. Returns read/write reference to the
+    /// points belonging to the cluster
+    ///
+    std::vector<uint_t>& get_points(){return points;}
+
+    ///
+    /// \brief get_points. Returns read/write reference to the
+    /// points belonging to the cluster
+    ///
+    const std::vector<uint_t>& get_points()const{return points;}
+
 	///
     /// \brief Adds to this cluster the point with id pid. Returns
     /// true if and only if the given point already exists in this
@@ -93,6 +110,11 @@ struct Cluster
 	///
 	template<typename DataSetType>
 	void copy_subset(const DataSetType& datain, DataSetType& out)const;
+
+    ///
+    /// \brief n_points Returns the number of points in the cluster
+    ///
+    uint_t n_points()const{return points.size();}
 	
 	
 };
@@ -158,10 +180,10 @@ Cluster<DataPoint>::recalculate_centroid(const DataSetType& set){
     }
 
     typedef typename Cluster<DataPoint>::point_t point_t;
-    point_t tmp = kernel::get_row(set, points[0]);
+    point_t tmp = set.get_row(points[0]);
 
     for(uint_t t = 1; t<points.size(); ++t){
-        tmp += kernel::get_row(set, points[t]);
+        tmp += set.get_row(points[t]);
     }
 
     tmp /= points.size();
