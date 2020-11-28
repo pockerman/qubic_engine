@@ -22,9 +22,6 @@ using cengine::DynMat;
 using cengine::DynVec;
 using cengine::ml::KMeans;
 
-void compute_purity(){
-	
-}
 
 std::map<uint_t, std::vector<uint_t>> 
 get_classes(const DynVec<uint_t>& labels){
@@ -47,7 +44,6 @@ get_classes(const DynVec<uint_t>& labels){
 	return clusters;
 } 
 
-
 }
 
 int main() {
@@ -62,7 +58,12 @@ int main() {
 		auto classes = get_classes(data.second);
 		
 		std::cout<<kernel::KernelConsts::info_str()<<"Number of classes="<<classes.size()<<std::endl;
-		
+
+        std::vector<uint_t> class_keys;
+        for(auto const& it: classes){
+            class_keys.push_back(it.first);
+        }
+
         // create the dataset
 		kernel::data_structs::DataSetWrapper<DynMat<real_t>> dataset;
 		dataset.load_from(data.first);
@@ -95,10 +96,14 @@ int main() {
         for(uint_t c=0; c<clusters.size(); ++c){
 
             auto& cluster = clusters[c];
-            auto cluster_pts = cluster.get_points().size();
-            auto actual_pts = classes[cluster.get_id()].size();
 
-            auto cluster_purity = static_cast<real_t>(actual_pts)/static_cast<real_t>(cluster_pts);
+            // total number of points in cluster
+            auto cluster_pts = cluster.get_points().size();
+
+            auto points_per_class_map = cluster.n_class_points(class_keys, data.second);
+
+            auto cluster_purity = cengine::calculate_cluster_purity(points_per_class_map, cluster_pts);
+
             std::cout<<kernel::KernelConsts::info_str()<<"Cluster="<<cluster.get_id()
                     <<" purity="<<cluster_purity<<std::endl;
 
