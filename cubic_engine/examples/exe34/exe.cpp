@@ -2,6 +2,7 @@
 #include "cubic_engine/ml/unsupervised_learning/serial_kmeans.h"
 #include "cubic_engine/ml/unsupervised_learning/utils/cluster.h"
 #include "cubic_engine/ml/unsupervised_learning/utils/kmeans_control.h"
+
 #include "kernel/utilities/data_set_loaders.h"
 #include "kernel/maths/matrix_traits.h"
 #include "kernel/data_structs/data_set_wrapper.hpp"
@@ -21,7 +22,6 @@ using cengine::real_t;
 using cengine::DynMat;
 using cengine::DynVec;
 using cengine::ml::KMeans;
-
 
 std::map<uint_t, std::vector<uint_t>> 
 get_classes(const DynVec<uint_t>& labels){
@@ -111,6 +111,8 @@ int main() {
         }
 
         std::cout<<kernel::KernelConsts::info_str()<<"Overall purity="<<purity<<std::endl;
+
+
 
 		
     }
