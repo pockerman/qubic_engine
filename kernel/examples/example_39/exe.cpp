@@ -61,7 +61,7 @@ JacobiIterator::iterate(const Matrix& mat, const Vector& b, Vector& x){
 	
 	while(ctrl_.continue_iterations()){
 		
-		#pragma omp parallel shared(x, b, mat)
+		#pragma omp parallel shared(x, b, old_solution, mat)
 		{
 			#pragma omp for
 			for(uint_t i=0; i<x.size(); ++i){
