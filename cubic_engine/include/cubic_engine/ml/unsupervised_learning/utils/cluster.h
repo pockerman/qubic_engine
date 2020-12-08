@@ -7,10 +7,22 @@
 
 #include <vector>
 #include <algorithm>
+#include <map>
 #include <exception>
 
 namespace cengine
 {
+
+
+///
+/// \brief calculate_cluster_purity
+/// \param classes
+/// \param sum
+/// \return
+///
+real_t calculate_cluster_purity(const std::map<uint_t, uint_t>& classes,
+                                uint_t sum);
+
 
 ///
 /// \brief Simple implementation of a cluster
@@ -61,6 +73,23 @@ struct Cluster
 	///
 	Cluster(uint_t idx, const point_t& p, const std::vector<uint_t>& pts);
 
+    ///
+    /// \brief get_id Returns the id of the cluster
+    ///
+    uint_t get_id()const{return id;}
+
+    ///
+    /// \brief get_points. Returns read/write reference to the
+    /// points belonging to the cluster
+    ///
+    std::vector<uint_t>& get_points(){return points;}
+
+    ///
+    /// \brief get_points. Returns read/write reference to the
+    /// points belonging to the cluster
+    ///
+    const std::vector<uint_t>& get_points()const{return points;}
+
 	///
     /// \brief Adds to this cluster the point with id pid. Returns
     /// true if and only if the given point already exists in this
@@ -93,8 +122,24 @@ struct Cluster
 	///
 	template<typename DataSetType>
 	void copy_subset(const DataSetType& datain, DataSetType& out)const;
-	
-	
+
+    ///
+    /// \brief n_points Returns the number of points in the cluster
+    ///
+    uint_t n_points()const{return points.size();}
+
+    ///
+    /// \brief Returns the number of points in the cluster
+    /// that have class_idx in the labels vector
+    ///
+    template<typename VecTp>
+    uint_t n_class_points(uint_t class_idx, const VecTp& labels)const;
+
+
+    template<typename VecTp1, typename VecTp2>
+    std::map<uint_t, uint_t>
+    n_class_points(const VecTp1& class_idxs, const VecTp2& labels)const;
+		
 };
 
 template<typename DataPoint>
@@ -158,10 +203,10 @@ Cluster<DataPoint>::recalculate_centroid(const DataSetType& set){
     }
 
     typedef typename Cluster<DataPoint>::point_t point_t;
-    point_t tmp = kernel::get_row(set, points[0]);
+    point_t tmp = set.get_row(points[0]);
 
     for(uint_t t = 1; t<points.size(); ++t){
-        tmp += kernel::get_row(set, points[t]);
+        tmp += set.get_row(points[t]);
     }
 
     tmp /= points.size();
@@ -207,6 +252,48 @@ Cluster<DataPoint>::copy_subset(const DataSetType& datain, DataSetType& out)cons
 		auto row = datain.get_row(points[i]);
 		out.set_row(i, row);
 	}
+}
+
+template<typename DataPoint>
+template<typename VecTp>
+uint_t
+Cluster<DataPoint>::n_class_points(uint_t class_idx, const VecTp& labels)const{
+
+    if(points.empty()){
+        throw std::logic_error("Cluster is empty");
+    }
+
+    auto sum=0;
+    for(uint_t i=0; i<points.size(); ++i){
+
+        if(points[i] >= labels.size()){
+            throw std::logic_error("Invalid point index. Index="+
+                                   std::to_string(points[i]) +
+                                   " not in [0, "+
+                                   std::to_string(labels.size()));
+        }
+
+        if(labels[points[i]] == class_idx){
+            sum++;
+        }
+    }
+
+    return sum;
+
+}
+
+template<typename DataPoint>
+template<typename VecTp1, typename VecTp2>
+std::map<uint_t, uint_t>
+Cluster<DataPoint>::n_class_points(const VecTp1& class_idxs, const VecTp2& labels)const{
+
+    std::map<uint_t, uint_t> classes;
+
+    for(uint_t i=0; i<class_idxs.size(); ++i){
+        classes.insert({class_idxs[i], n_class_points(class_idxs[i], labels)});
+    }
+
+    return classes;
 }
 
 }//cengine

@@ -262,7 +262,7 @@ namespace cengine
 			
 			cluster.copy_subset(data, new_data);
 			
-			kmeans.cluster(new_data.get_storage(), similarity, init);
+			kmeans.cluster(new_data, similarity, init);
 			
 			if(clusters_.size() < control_.k){
 				

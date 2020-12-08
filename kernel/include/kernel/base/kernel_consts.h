@@ -42,7 +42,7 @@ public:
 	///
 	/// \brief Returns the INFO string
 	///
-	static std::string info_str(){return "INFO:";}
+	static std::string info_str(){return "INFO: ";}
 
 	///
 	/// \brief Dummy string

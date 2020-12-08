@@ -63,7 +63,7 @@ std::pair<PartitionedType<DynMat<real_t>>,
                                                                               bool add_ones_column=true);
 
 ///
-/// \brief Load the reduced iris data set
+/// \brief Load the sinuisoidal data set
 ///
 std::pair<DynMat<real_t>, DynVec<real_t>> load_x_y_sinuisoid_data_set(bool add_ones_column=true);
 

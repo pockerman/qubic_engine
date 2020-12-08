@@ -85,6 +85,7 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="examples/exe30/doc/exe.ipynb">Example 30: </a> PCA for dimensionality reduction
 - <a href="examples/exe32/doc/exe.ipynb">Example 32: </a> Multinomial naive Bayes classification
 - <a href="examples/exe33/doc/exe.ipynb">Example 33: </a> Bisection k-Means clustering 
+- <a href="examples/exe34/doc/exe.ipynb">Example 34: </a> Clustering purity 
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 

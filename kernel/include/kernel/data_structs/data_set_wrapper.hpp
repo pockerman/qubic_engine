@@ -77,6 +77,10 @@ namespace kernel
 			template<typename Loader>
 			void load_from(const Loader& loader);
 			
+			///
+			/// \brief Load the data by copying the given matrix
+			///
+			void load_from(const DynMat<T>& data){data_ = data;}
 			
 			///
 			/// \brief Returns read/write reference to the
