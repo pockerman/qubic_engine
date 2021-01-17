@@ -101,9 +101,11 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="#">Example 21:</a> Pure pursuit path tracking
 - <a href="examples/exe23/doc/exe.ipynb">Example 23:</a> Follow the carrot path tracking
 - <a href="examples/exe29/doc/exe.ipynb">Example 29:</a> Path planning with rapidly-exploring random trees
+- <a href="examples/exe35/doc/exe.ipynb">Example 35:</a> Dynamic window approach  
 
 ### <a name="miscellaneous"></a>Miscellaneous
 
 - <a href="examples/exe9/doc/exe.md">Example 9: </a> A* search
+- <a href="#">TODO: </a> D* search
 
 
