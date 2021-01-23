@@ -105,44 +105,34 @@ JacobiIterator::iterate(const Matrix& mat, const Vector& b, Vector& x){
 
 int main(){
 
-    using kernel::IterativeAlgorithmController;
-    using kernel::AlgInfo;
 
-    Vector b(100, 2.0);
-    Vector x(100, 0.0);
-    Matrix A(100, 100, 0.0);
-
-    /// diagonalize the matrix
-    for(uint_t r=0; r < A.rows(); ++r){
-        for(uint_t c=0; c < A.columns(); ++c){
-
-            if(r == c){
-                A(r,c) = 1.0;
-            }
-        }
-    }
 
 	// Explicitly disable dynamic teams
 	omp_set_dynamic(0); 
 
 	// Use 4 threads for all consecutive parallel regions
-	omp_set_num_threads(4); 
+    omp_set_num_threads(2);
+
+#pragma omp parallel
+{
+    #pragma omp single
+    {
+            // Task #1
+            #pragma  omp task
+            {
+                std::cout<<"Race "<<std::endl;
+            }
+
+            // Task #2
+            #pragma  omp task
+            {
+                std::cout<<"car "<<std::endl;
+            }
+
+    }
+}
     
-    // create the control
-    IterativeAlgorithmController control(100, kernel::KernelConsts::tolerance());
-	control.set_num_threads(4);
 
-    // the object responsible for Jacobi iteration
-    JacobiIterator iterator(control);
-
-    // this will block until all iterations finish
-    auto info = iterator.iterate(A, b, x);
-
-    // print useful information
-    std::cout<<info<<std::endl;
-
-    // uncomment this to view the solution
-    std::cout<<x<<std::endl;
 
     return 0;
 }
