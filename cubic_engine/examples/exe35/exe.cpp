@@ -1,19 +1,21 @@
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_OPEN_CV
+
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/ml/unsupervised_learning/serial_kmeans.h"
-#include "cubic_engine/ml/unsupervised_learning/utils/cluster.h"
-#include "cubic_engine/ml/unsupervised_learning/utils/kmeans_control.h"
+#include "kernel/geometry/geom_point.h"
 
-
+#include "opencv2/opencv.hpp"
+#include "opencv2/core/core.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <opencv2/imgproc.hpp>
+//#include <opencv2/core/utility.hpp>
 
 #include<iostream>
 #include<vector>
 #include<array>
 #include<cmath>
-#include "opencv2/opencv.hpp"
-#include "opencv2/core/core.hpp"
-#include "opencv2/highgui/highgui.hpp"
-#include <opencv2/imgproc.hpp>
-#include <opencv2/core/utility.hpp>
+
 
 namespace example
 {
@@ -22,6 +24,15 @@ using cengine::uint_t;
 using cengine::real_t;
 using cengine::DynMat;
 using cengine::DynVec;
+using kernel::GeomPoint;
+
+cv::Point2i
+cv_offset(float x, float y, int image_width=2000, int image_height=2000){
+  cv::Point2i output;
+  output.x = static_cast<int>(x * 100) + image_width/2;
+  output.y = image_height - static_cast<int>(y * 100) - image_height/3;
+  return output;
+}
 
 }
 
@@ -43,13 +54,15 @@ int main() {
         {{7.0, 9.0}},
         {{12.0, 12.0}}
       });
+
+    GeomPoint<2> goal={10.0,10.0};
     
     try{
           #define PI 3.141592653
           bool terminal = false;
           std::vector<real_t> x={0.0, 0.0, PI/8.0, 0.0, 0.0};
-          std::vector<real_t> goal = {10.0,10.0};
 
+          // OpenCV window
           cv::namedWindow("dwa", cv::WINDOW_NORMAL);
           int count = 0;
 
@@ -59,7 +72,7 @@ int main() {
             // visualization
             cv::Mat bg(3500,3500, CV_8UC3, cv::Scalar(255,255,255));
 
-            /*cv::circle(bg, cv_offset(goal[0], goal[1], bg.cols, bg.rows), 30, cv::Scalar(255,0,0), 5);
+            cv::circle(bg, cv_offset(goal[0], goal[1], bg.cols, bg.rows), 30, cv::Scalar(255,0,0), 5);
 
             for(unsigned int j=0; j<ob.size(); j++){
               cv::circle(bg, cv_offset(ob[j][0], ob[j][1], bg.cols, bg.rows), 20, cv::Scalar(0,0,0), -1);
@@ -81,7 +94,7 @@ int main() {
                   for(unsigned int j=0; j<1; j++){
                     cv::circle(bg, cv_offset(x[0], x[1], bg.cols, bg.rows), 7, cv::Scalar(0,0,255), -1);
                   }
-            }*/
+            }
 
 
             cv::imshow("dwa", bg);
@@ -112,4 +125,14 @@ int main() {
    
     return 0;
 }
+#else
+#include <iostream>
+#include <stdexcept>
+int main() {
+
+   std::cerr<<"This example requires OpenCV. Reconfigure with OpenCV support"<<std::endl;
+   throw std::runtime_error("No OpenCV support");
+   return 0;
+}
+#endif
 
