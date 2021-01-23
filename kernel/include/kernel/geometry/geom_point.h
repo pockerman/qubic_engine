@@ -19,91 +19,115 @@ class GeomPoint
 
 public:
 
-   typedef T value_type;
-   static const int dimension = spacedim;
+    ///
+    /// \brief value_type. The type of the coordinates
+    ///
+    typedef T value_type;
 
-   /// \brief ctor all dim data are assigned the given value
-   explicit GeomPoint(T val =  T());
+    ///
+    /// \brief dimension. Spatial dimension of the point
+    ///
+    static const int dimension = spacedim;
 
-   /// \brief Create by passing a vector of data
-   template<typename Container>
-   explicit GeomPoint(const Container& data);
+    ///
+    /// \brief ctor all dim data are assigned the given value
+    ///
+    explicit GeomPoint(T val =  T());
 
-   /// \brief Construct given an initializer_list
-   explicit GeomPoint(const std::initializer_list<T>& list);
+    ///
+    /// \brief Create by passing a vector of data
+    ///
+    template<typename Container>
+    explicit GeomPoint(const Container& data);
 
-   /// \brief copy ctor
-   GeomPoint(const GeomPoint& t);
+    ///
+    /// \brief Construct given an initializer_list
+    ///
+    GeomPoint(const std::initializer_list<T>& list);
 
-   /// \brief copy assignement operator
-   GeomPoint& operator=(const GeomPoint& t);
+    /// \brief copy ctor
+    GeomPoint(const GeomPoint& t);
 
-   /// \brief dtor
-   virtual ~GeomPoint(){}
+    /// \brief copy assignement operator
+    GeomPoint& operator=(const GeomPoint& t);
 
-   /// \brief Add another vector, i.e. move
-   /// this point by the given
-   /// offset.
-   GeomPoint & operator += (const GeomPoint &);
+    /// \brief dtor
+    virtual ~GeomPoint(){}
 
-   /// \detailed Subtract another tensor.
-   GeomPoint & operator -= (const GeomPoint &);
+    /// \brief Add another vector, i.e. move
+    /// this point by the given
+    /// offset.
+    GeomPoint & operator += (const GeomPoint &);
 
-   /// \brief Scale the point by factor
-   GeomPoint & operator *= (T factor);
+    /// \detailed Subtract another tensor.
+    GeomPoint & operator -= (const GeomPoint &);
 
-   /// \brief Scale the vector by factor.
-   GeomPoint & operator /= (T factor);
+    /// \brief Scale the point by factor
+    GeomPoint & operator *= (T factor);
 
-   /// \brief scale with a given factor
-   void scale(T factor);
+    /// \brief Scale the vector by factor.
+    GeomPoint & operator /= (T factor);
 
-   /// \brief  scale this object by the given factors
-   /// p factors should have size at least \p spacedim
-   void scale(const std::vector<T>& factors);
+    ///
+    /// \brief operator = Assign from the initializer list
+    ///
+    GeomPoint& operator=(const std::initializer_list<T>& list);
 
-   /// \brief Zero the entries of the tensor
-   void zero();
+    /// \brief scale with a given factor
+    void scale(T factor);
 
-   /// \brief Add the coordinates of the given point to this scaled by factor
-   void add_scaled(const GeomPoint& p, T factor);
+    /// \brief  scale this object by the given factors
+    /// p factors should have size at least \p spacedim
+    void scale(const std::vector<T>& factors);
 
-   /// \brief Access the i-th coordinate of the point
-   T& operator[](uint_t i);
+    /// \brief Zero the entries of the tensor
+    void zero();
 
-   /// \brief  Access the i-th coordinate of the point read-only
-   T operator[](uint_t i)const;
+    /// \brief Add the coordinates of the given point to this scaled by factor
+    void add_scaled(const GeomPoint& p, T factor);
 
-   /// \brief access the i-th coordinate of the point read-only
-   T entry(uint_t i)const{return (*this)[i];}
+    /// \brief Access the i-th coordinate of the point
+    T& operator[](uint_t i);
 
-   /// \brief Get a copy of the data of this object
-   auto coordinates()const{return data_;}
+    /// \brief  Access the i-th coordinate of the point read-only
+    T operator[](uint_t i)const;
 
-   /// \brief Get the max element in the point
-   T max()const;
+    /// \brief access the i-th coordinate of the point read-only
+    T entry(uint_t i)const{return (*this)[i];}
 
-   /// \brief Get the min element in the point
-   T min()const;
+    /// \brief Get a copy of the data of this object
+    auto coordinates()const{return data_;}
 
-   /// \brief Get the distance from the given point
-   T distance(const GeomPoint&)const;
+    /// \brief Get the max element in the point
+    T max()const;
 
-   /// \brief Return the distance from the origin
-   T L2_norm()const{return distance(GeomPoint(static_cast<T>(0)));}
+    /// \brief Get the min element in the point
+    T min()const;
 
-   /// \brief Returns the dot product of this point
-   /// and the given point
-   T dot(const GeomPoint& other)const;
+    /// \brief Get the distance from the given point
+    T distance(const GeomPoint&)const;
 
-   /// \brief Returns the square sum of the compontents
-   T square_sum()const;
+    /// \brief Return the distance from the origin
+    T L2_norm()const{return distance(GeomPoint(static_cast<T>(0)));}
 
-   /// \brief print the point
-   std::ostream& print_point_info(std::ostream &out)const;
+    /// \brief Returns the dot product of this point
+    /// and the given point
+    T dot(const GeomPoint& other)const;
 
-   /// \brief Returns s string representation of the point
-   const std::string to_string()const;
+    ///
+    /// \brief Returns the square sum of the compontents
+    ///
+    T square_sum()const;
+
+    ///
+    /// \brief print the point
+    ///
+    std::ostream& print_point_info(std::ostream &out)const;
+
+    ///
+    /// \brief Returns  string representation of the point
+    ///
+    const std::string to_string()const;
   
 private:
 
@@ -230,6 +254,30 @@ GeomPoint<spacedim,T>::operator /= (T factor){
 
   (*this) *= (static_cast<T>(1)/factor);
   return *this;
+}
+
+template<int spacedim,typename T>
+inline
+GeomPoint<spacedim, T>&
+GeomPoint<spacedim,T>::operator=(const std::initializer_list<T>& list){
+
+    if(list.size() != spacedim){
+        std::string msg;
+        msg += "Invalid initialization ";
+        msg += " list size for point construction. "+ std::to_string(list.size());
+        msg += " not equal to "+std::to_string(spacedim);
+        throw std::logic_error(msg);
+    }
+
+    auto start = list.begin();
+    auto end = list.end();
+
+    uint_t i = 0;
+    for(; start != end; ++start){
+        data_[i++] = *start;
+    }
+
+    return *this;
 }
 
 template<int spacedim,typename T>
