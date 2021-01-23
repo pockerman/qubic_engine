@@ -172,7 +172,8 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
                  ${PROJECT_SRC_DIR}/ml/unsupervised_learning/utils/*.cpp
                  ${PROJECT_SRC_DIR}/rl/*.cpp
                  ${PROJECT_SRC_DIR}/rl/*/*.cpp
-                 ${PROJECT_SRC_DIR}/maths/*.cpp)
+                 ${PROJECT_SRC_DIR}/maths/*.cpp
+                 ${PROJECT_SRC_DIR}/planning/*.cpp)
 
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
 ADD_LIBRARY(cubicengine SHARED ${SRCS})
