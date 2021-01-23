@@ -59,7 +59,7 @@ int main() {
             // visualization
             cv::Mat bg(3500,3500, CV_8UC3, cv::Scalar(255,255,255));
 
-            cv::circle(bg, cv_offset(goal[0], goal[1], bg.cols, bg.rows), 30, cv::Scalar(255,0,0), 5);
+            /*cv::circle(bg, cv_offset(goal[0], goal[1], bg.cols, bg.rows), 30, cv::Scalar(255,0,0), 5);
 
             for(unsigned int j=0; j<ob.size(); j++){
               cv::circle(bg, cv_offset(ob[j][0], ob[j][1], bg.cols, bg.rows), 20, cv::Scalar(0,0,0), -1);
@@ -81,7 +81,7 @@ int main() {
                   for(unsigned int j=0; j<1; j++){
                     cv::circle(bg, cv_offset(x[0], x[1], bg.cols, bg.rows), 7, cv::Scalar(0,0,255), -1);
                   }
-            }
+            }*/
 
 
             cv::imshow("dwa", bg);
@@ -94,6 +94,10 @@ int main() {
           }
 
     }
+    catch(cv::Exception& e){
+        std::cerr<<"OpenCV error: "
+                 <<e.what()<<std::endl;
+    }
     catch(std::runtime_error& e){
         std::cerr<<"Runtime error: "
                  <<e.what()<<std::endl;
@@ -103,7 +107,7 @@ int main() {
                  <<e.what()<<std::endl;
     }
     catch(...){
-        std::cerr<<"Unknown exception was raised whilst running simulation."<<std::endl;
+        std::cerr<<"Unknown exception was raised whilst running example."<<std::endl;
     }
    
     return 0;
