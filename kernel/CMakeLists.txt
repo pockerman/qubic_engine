@@ -56,6 +56,7 @@ SET(USE_LOG "ON")
 SET(USE_FVM "ON")
 SET(USE_TRILINOS "OFF")
 SET(USE_TRILINOS_LONG_LONG_TYPE "OFF")
+SET(USE_OPEN_CV "ON")
 
 SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install)
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
@@ -82,17 +83,27 @@ configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/kernel/base/version.h 
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
 
+IF(USE_OPEN_CV MATCHES "ON")
+
+    SET(OPENCV_INCL_DIR "/home/alex/MySoftware/opencv/install/include/opencv4")
+    INCLUDE_DIRECTORIES(${OPENCV_INCL_DIR})
+    MESSAGE(STATUS  "Using OpenCV at ${OPENCV_INCL_DIR} ")
+ELSE()
+    MESSAGE(STATUS  "OpenCV is not used")
+ENDIF()
+
 IF(${MAGIC_ENUM_INCL_DIR} MATCHES " ")
     MESSAGE( STATUS  "MagicEnum include directory has not been specified")
 ELSE()
     INCLUDE_DIRECTORIES(${MAGIC_ENUM_INCL_DIR})
+    MESSAGE(STATUS  "Using Magic enum at ${MAGIC_ENUM_INCL_DIR} ")
 ENDIF()
 
 
 IF( ${BLAZE_INCL_DIR} MATCHES " " )
     MESSAGE( FATAL_ERROR  "Blaze include directory has not been specified")
 ELSE()
-	MESSAGE( STATUS  "Using BLAZE headers at: ${BLAZE_INCL_DIR}")
+    MESSAGE( STATUS  "Using BLAZE headers at: ${BLAZE_INCL_DIR}")
 ENDIF()
 
 IF(USE_TRILINOS MATCHES "ON")

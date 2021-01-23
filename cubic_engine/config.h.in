@@ -13,5 +13,8 @@
 /*Use PyTorch */
 #cmakedefine USE_PYTORCH
 
+/*Use OpenCV */
+#cmakedefine USE_OPEN_CV
+
 #endif
 
