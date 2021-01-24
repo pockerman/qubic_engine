@@ -8,6 +8,11 @@
 
 namespace kernel{
 
+///
+/// \brief The DiffDriveConfig struct. Sturct
+/// to assemble the configuration properties
+/// for thedifferential drive vehicle
+///
 struct DiffDriveConfig
 {
     /// \brief The radius of the wheels
@@ -117,7 +122,7 @@ public:
     ///
     /// \brief Read current velocity of the vehicle
     ///
-    real_t get_velcoty()const{return 0.5*properties_.R*(vr_ + vl_);}
+    real_t get_velocity()const{return 0.5*properties_.R*(vr_ + vl_);}
 
     ///
     /// \brief Read the current angular velocity
