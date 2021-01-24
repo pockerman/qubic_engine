@@ -3,7 +3,11 @@
 #ifdef USE_OPEN_CV
 
 #include "cubic_engine/base/cubic_engine_types.h"
+#include "cubic_engine/planning/diff_drive_dynamic_window.h"
 #include "kernel/geometry/geom_point.h"
+#include "kernel/vehicles/difd_drive_vehicle.h"
+#include "kernel/dynamics/system_state.h"
+#include "kernel/maths/constants.h"
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
@@ -25,6 +29,14 @@ using cengine::real_t;
 using cengine::DynMat;
 using cengine::DynVec;
 using kernel::GeomPoint;
+using kernel::DiffDriveVehicle;
+using kernel::DiffDriveConfig;
+using kernel::dynamics::SysState;
+
+
+const real_t DT = 0.1;
+const uint_t N_MAX_ITRS = 1000;
+const real_t ROBOT_RADIUS = 1.0;
 
 cv::Point2i
 cv_offset(float x, float y, int image_width=2000, int image_height=2000){
@@ -42,6 +54,7 @@ int main() {
     using namespace example;
     using Obstacle = std::vector<std::array<float, 2>>;
 
+    // a list of obstacles
     Obstacle ob({
         {{-1, -1}},
         {{0, 2}},
@@ -55,18 +68,35 @@ int main() {
         {{12.0, 12.0}}
       });
 
+    // the goal
     GeomPoint<2> goal={10.0,10.0};
+
+    DiffDriveConfig config;
+    config.Vmax = 1.0;
+
+    DiffDriveVehicle vehicle(config);
+
+    vehicle.set_time_step(DT);
+    vehicle.set_x_position(0.0);
+    vehicle.set_y_position(0.0);
+    vehicle.set_orientation(kernel::MathConsts::PI/8.0);
+
+    SysState<5> x;
+    x[0] = vehicle.get_x_position();
+    x[1] = vehicle.get_y_position();
+    x[2] = vehicle.get_orientation();
+    x[3] = vehicle.get_velocity();
+    x[4] = vehicle.get_w_velocity();
     
     try{
-          #define PI 3.141592653
+
           bool terminal = false;
-          std::vector<real_t> x={0.0, 0.0, PI/8.0, 0.0, 0.0};
 
           // OpenCV window
           cv::namedWindow("dwa", cv::WINDOW_NORMAL);
           int count = 0;
 
-          for(int i=0; i<1000 && !terminal; i++){
+          for(int i=0; i<N_MAX_ITRS && !terminal; i++){
 
 
             // visualization
@@ -89,6 +119,7 @@ int main() {
                             cv_offset(x[0] + std::cos(x[2]), x[1] + std::sin(x[2]), bg.cols, bg.rows),
                             cv::Scalar(255,0,255), 7);
 
+            // check if goal is reached
             if (std::sqrt(std::pow((x[0] - goal[0]), 2) + std::pow((x[1] - goal[1]), 2)) <= 1.0e-4){
                   terminal = true;
                   for(unsigned int j=0; j<1; j++){
