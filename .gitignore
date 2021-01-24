@@ -21,3 +21,5 @@ cubic_engine/install/
 kernel/CMakeLists.txt.user
 cubic_engine/examples/exe33/doc/.ipynb_checkpoints/
 cubic_engine/examples/exe34/doc/.ipynb_checkpoints/exe-checkpoint.ipynb
+kernel/examples/example_31/doc/.ipynb_checkpoints
+cubic_engine/examples/exe35/doc/.ipynb_checkpoints
