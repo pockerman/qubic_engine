@@ -14,7 +14,9 @@
 namespace kernel{
 namespace dynamics{
 
+///
 /// \brief SysState utility class describing the state of a system
+///
 template<int dim>
 class SysState
 {
