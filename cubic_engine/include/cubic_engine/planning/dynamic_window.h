@@ -7,7 +7,7 @@ namespace cengine{
 namespace planning {
 
 
-template<typename StateTp, typename ConfigTp>
+template<typename StateTp, typename ConfigTp, typename WindowPropertiesTp>
 class DynamicWindowBase{
 
 public:
@@ -23,6 +23,11 @@ public:
     typedef ConfigTp config_t;
 
     ///
+    /// \brief window_properties_t
+    ///
+    typedef WindowPropertiesTp window_properties_t;
+
+    ///
     /// \brief ~DynamicWindowBase. Destructor
     ///
     virtual ~DynamicWindowBase(){}
@@ -30,7 +35,7 @@ public:
     ///
     /// \brief calculate_window. Calculate the window
     ///
-    virtual void calculate_window()=0;
+    virtual window_properties_t& calculate_window()=0;
 
 protected:
 
@@ -50,6 +55,12 @@ protected:
     /// for Window calculation
     ///
     config_t config_;
+
+    ///
+    /// \brief w_properties_ The window properties. Updated
+    /// every time calculate_window is called
+    ///
+    window_properties_t& w_properties_;
 
 };
 
