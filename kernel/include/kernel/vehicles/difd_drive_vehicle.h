@@ -8,6 +8,11 @@
 
 namespace kernel{
 
+///
+/// \brief The DiffDriveConfig struct. Sturct
+/// to assemble the configuration properties
+/// for thedifferential drive vehicle
+///
 struct DiffDriveConfig
 {
     /// \brief The radius of the wheels
@@ -43,23 +48,31 @@ public:
     typedef dynamics::DiffDriveDynamics dynamics_t;
     typedef dynamics::DiffDriveDynamics::state_t state_t;
 
+    ///
     /// \brief constructor
+    ///
     DiffDriveVehicle(const DiffDriveConfig& properties);
 
+    ///
     /// \brief integrate the diff drive system
     /// by passing the linear and angular velocities and an velocities
+    ///
     void integrate(real_t v, real_t w){integrate(v, w, {{0.0, 0.0}});}
 
+    ///
     /// \brief integrate the diff drive system
     /// account for errors also
+    ///
     void integrate(real_t v, real_t w, const std::array<real_t, 2>& errors);
 
+    ///
     /// \brief Read the x-coordinate
+    ///
     real_t get_x_position()const{return dynamics_.get_x_position(); }
 
-	///
+    ///
     /// \brief Set the x-coordinate
-	///
+    ///
     void set_x_position(real_t x){dynamics_.set_x_position(x);}
 
     ///
@@ -67,9 +80,9 @@ public:
     ///
     real_t get_y_position()const{return dynamics_.get_y_position();}
 
-	///
+    ///
     /// \brief Set the y-coordinate
-	///
+    ///
     void set_y_position(real_t y){dynamics_.set_y_position(y);}
 
     ///
@@ -79,7 +92,9 @@ public:
     template<typename Type>
     void get_position(Type& pos)const;
 
+    ///
     /// \brief Read the orientation
+    ///
     real_t get_orientation()const{return dynamics_.get_orientation();}
 
     ///
@@ -99,32 +114,46 @@ public:
     /// of the vehicle
     void set_velocities(real_t v, real_t w);
 
-	///
+    ///
     /// \brief Set time step
-	///
+    ///
     void set_time_step(real_t dt){dynamics_.set_time_step(dt);}
 
+    ///
     /// \brief Read current velocity of the vehicle
-    real_t get_velcoty()const{return 0.5*properties_.R*(vr_ + vl_);}
+    ///
+    real_t get_velocity()const{return 0.5*properties_.R*(vr_ + vl_);}
 
+    ///
     /// \brief Read the current angular velocity
+    ///
     real_t get_w_velocity()const{return (properties_.R*(vl_ - vr_))/(2.0*properties_.L);}
 
+    ///
     /// \brief Returns the state of the vehicle
+    ///
     const state_t& get_state()const;
 
 private:
 
+    ///
     /// \brief The properties of the robot
+    ///
     DiffDriveConfig properties_;
 
+    ///
     /// \brief The object that handles the dynamics
+    ///
     dynamics::DiffDriveDynamics dynamics_;
 
+    ///
     /// \brief The right wheel velocity
+    ///
     real_t vr_;
 
+    ///
     /// \brief The left wheel velocity
+    ///
     real_t vl_;
 };
 

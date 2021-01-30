@@ -116,7 +116,7 @@ DiffDriveVehicleWrapper::get_state_as_string()const{
     auto x = vehicle_ptr_->get_x_position();
     auto y = vehicle_ptr_->get_y_position();
     auto theta = vehicle_ptr_->get_orientation();
-    auto velocity = vehicle_ptr_->get_velcoty();
+    auto velocity = vehicle_ptr_->get_velocity();
     return std::to_string(x)+","+std::to_string(y)+","+std::to_string(theta)+","+std::to_string(velocity)+"\n";
 
 }
@@ -137,7 +137,7 @@ DiffDriveVehicleWrapper::get_state()const{
     auto x = vehicle_ptr_->get_x_position();
     auto y = vehicle_ptr_->get_y_position();
     auto theta = vehicle_ptr_->get_orientation();
-    auto velocity = vehicle_ptr_->get_velcoty();
+    auto velocity = vehicle_ptr_->get_velocity();
 
     return {x, y, theta, velocity};
 

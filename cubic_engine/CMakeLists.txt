@@ -56,8 +56,11 @@ configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cubic_engine/base/vers
 IF(USE_OPEN_CV MATCHES "ON")
 
     SET(OPENCV_INCL_DIR "/home/alex/MySoftware/opencv/install/include/opencv4")
+    SET(OPENCV_LIB_DIR "/home/alex/MySoftware/opencv/install/lib")
     INCLUDE_DIRECTORIES(${OPENCV_INCL_DIR})
-    MESSAGE(STATUS  "Using OpenCV at ${OPENCV_INCL_DIR} ")
+    LINK_DIRECTORIES(${OPENCV_LIB_DIR})
+    MESSAGE(STATUS  "Using OpenCV include files at ${OPENCV_INCL_DIR} ")
+    MESSAGE(STATUS  "Using OpenCV libraries at ${OPENCV_LIB_DIR} ")
 ELSE()
     MESSAGE(STATUS  "OpenCV is not used")
 ENDIF()
@@ -169,7 +172,8 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
                  ${PROJECT_SRC_DIR}/ml/unsupervised_learning/utils/*.cpp
                  ${PROJECT_SRC_DIR}/rl/*.cpp
                  ${PROJECT_SRC_DIR}/rl/*/*.cpp
-                 ${PROJECT_SRC_DIR}/maths/*.cpp)
+                 ${PROJECT_SRC_DIR}/maths/*.cpp
+                 ${PROJECT_SRC_DIR}/planning/*.cpp)
 
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
 ADD_LIBRARY(cubicengine SHARED ${SRCS})

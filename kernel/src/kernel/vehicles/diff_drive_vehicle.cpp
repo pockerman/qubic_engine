@@ -47,7 +47,7 @@ DiffDriveVehicle::integrate(real_t v, real_t w, const std::array<real_t, 2>& err
     /// set the right and left wheel velocities
     set_velocities(v, w);
 
-    auto velocity = get_velcoty();
+    auto velocity = get_velocity();
     auto wvelocity = get_w_velocity();
 
     dynamics::DiffDriveDynamics::input_t input;
