@@ -42,7 +42,7 @@ protected:
     ///
     /// \brief DynamicWindow. Constructor
     ///
-    DynamicWindowBase(state_t& state, const config_t& config);
+    DynamicWindowBase(state_t& state, const config_t& config, const window_properties_t& wproperties);
 
     ///
     /// \brief state_. Pointer to the state that the
@@ -60,16 +60,17 @@ protected:
     /// \brief w_properties_ The window properties. Updated
     /// every time calculate_window is called
     ///
-    window_properties_t& w_properties_;
+    window_properties_t w_properties_;
 
 };
 
 
-template<typename StateTp, typename ConfigTp>
-DynamicWindowBase<StateTp, ConfigTp>::DynamicWindowBase(state_t& state, const config_t& config)
+template<typename StateTp, typename ConfigTp, typename WindowPropertiesTp>
+DynamicWindowBase<StateTp, ConfigTp, WindowPropertiesTp>::DynamicWindowBase(state_t& state, const config_t& config, const window_properties_t& wproperties)
     :
       state_(&state),
-      config_(config)
+      config_(config),
+      w_properties_(wproperties)
 {}
 
 }
