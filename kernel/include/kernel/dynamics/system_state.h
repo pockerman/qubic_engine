@@ -150,12 +150,22 @@ public:
     ///
     /// \brief Access operator
     ///
-    real_t& operator[](const std::string& name);
+    real_t& operator[](const std::string& name){return this->operator()(name);}
 
     ///
     /// \brief Access operator
     ///
-    const real_t& operator[](const std::string& name)const;
+    const real_t& operator[](const std::string& name)const{return this->operator()(name);}
+
+    ///
+    /// \brief Access operator
+    ///
+    real_t& operator()(const std::string& name);
+
+    ///
+    /// \brief Access operator
+    ///
+    const real_t& operator()(const std::string& name)const;
 
     ///
     /// \brief clear the state
@@ -431,7 +441,7 @@ SysState<dim>::operator[](uint_t i)const{
 
 template<int dim>
 real_t&
-SysState<dim>::operator[](const std::string& name){
+SysState<dim>::operator()(const std::string& name){
 
     auto itr = std::find_if(values_.begin(), values_.end(),
                          [&](const std::pair<std::string, real_t>& item){
@@ -459,7 +469,7 @@ SysState<dim>::operator[](const std::string& name){
 
 template<int dim>
 const real_t&
-SysState<dim>::operator[](const std::string& name)const{
+SysState<dim>::operator()(const std::string& name)const{
 
     auto itr = std::find_if(values_.begin(), values_.end(),
                          [&](const std::pair<std::string, real_t>& item){
