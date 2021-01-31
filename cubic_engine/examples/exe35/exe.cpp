@@ -98,7 +98,7 @@ int main() {
     vehicle.set_y_position(0.0);
     vehicle.set_orientation(kernel::MathConsts::PI/8.0);
 
-    SysState<5> x;
+    SysState<5> x({"x", "y", "theta", "v", "w"}, 0.0);
     update_state_from_vehicle(x, vehicle);
 
     // the goal
@@ -197,6 +197,10 @@ int main() {
     }
     catch(std::runtime_error& e){
         std::cerr<<"Runtime error: "
+                 <<e.what()<<std::endl;
+    }
+    catch(std::invalid_argument& e){
+        std::cerr<<"Invalid argument error: "
                  <<e.what()<<std::endl;
     }
     catch(std::logic_error& e){
