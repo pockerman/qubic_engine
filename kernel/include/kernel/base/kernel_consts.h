@@ -44,6 +44,11 @@ public:
 	///
 	static std::string info_str(){return "INFO: ";}
 
+    ///
+    /// \brief warning_str Returns the WARNING string
+    ///
+    static std::string warning_str(){return "WARNING: ";}
+
 	///
 	/// \brief Dummy string
 	///
