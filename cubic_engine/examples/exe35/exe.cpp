@@ -8,12 +8,11 @@
 #include "kernel/vehicles/difd_drive_vehicle.h"
 #include "kernel/dynamics/system_state.h"
 #include "kernel/maths/constants.h"
+#include "kernel/base/kernel_consts.h"
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
-//#include <opencv2/imgproc.hpp>
-
 
 #include<iostream>
 #include<vector>
@@ -37,7 +36,7 @@ using cengine::planning::DiffDriveDW;
 using cengine::planning::DiffDriveDWConfig;
 
 const real_t DT = 0.1;
-const uint_t N_MAX_ITRS = 1000;
+const uint_t N_MAX_ITRS = 100;
 const real_t ROBOT_RADIUS = 1.0;
 
 typedef DiffDriveDW<SysState<5>, GeomPoint<2>>::trajectory_t trajectory_t;
@@ -120,11 +119,12 @@ int main() {
     dw_config.max_dyawrate = 40.0 * kernel::MathConsts::PI / 180.0;
     dw_config.v_reso = 0.01;
     dw_config.yawrate_reso = 0.1 * kernel::MathConsts::PI / 180.0;
-
-    DiffDriveWindowProperties wproperties;
+    dw_config.min_cost = 10000.0;
+    dw_config.speed_cost_gain = 1.0;
+    dw_config.to_goal_cost_gain = 1.0;
 
     // the dynamic window
-    DiffDriveDW<SysState<5>, GeomPoint<2>> dw(x, dw_config, goal, control, wproperties);
+    DiffDriveDW<SysState<5>, GeomPoint<2>> dw(x, dw_config, goal, control);
 
     trajectory_t traj;
     update_trajectory(traj, x);
@@ -142,11 +142,19 @@ int main() {
             // calculate best trajectory
             auto trajectory = dw.dwa_control(ob);
 
+            std::cout<<kernel::KernelConsts::info_str()<<"v="<<dw.get_control()[0]
+                     <<" w="<<dw.get_control()[1]<<std::endl;
+
             // integrate the vehicle based on the
             // updated controls
             vehicle.integrate(dw.get_control()[0], dw.get_control()[1]);
 
             update_state_from_vehicle(x, vehicle);
+
+            auto pos_x = x[0];
+            auto pos_y = x[1];
+            auto theta = x[2];
+            std::cout<<kernel::KernelConsts::info_str()<<"x="<<pos_x<<" y="<<pos_y<<" theta="<<theta<<std::endl;
 
             update_trajectory(traj, x);
 
