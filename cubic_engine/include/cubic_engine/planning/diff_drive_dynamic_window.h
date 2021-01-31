@@ -1,12 +1,18 @@
 #ifndef DIFF_DRIVE_DYNAMIC_WINDOW_H
 #define DIFF_DRIVE_DYNAMIC_WINDOW_H
 
+#include "cubic_engine/base/config.h"
 #include "cubic_engine/planning/dynamic_window.h"
 #include "kernel/dynamics/diff_drive_dynamics.h"
 #include <vector>
 #include <array>
 #include <limits>
 #include <cmath>
+
+#ifdef USE_WARNINGS_FOR_MISSING_IMPLEMENTATION
+#include <iostream>
+#include "kernel/base/kernel_consts.h"
+#endif
 
 namespace cengine
 {
@@ -166,8 +172,12 @@ DiffDriveDW<StateTp, GoalTp>::DiffDriveDW(state_t& state, const config_t& config
     :
     DynamicWindowBase<StateTp, DiffDriveDWConfig, DiffDriveWindowProperties>(state, config, wproperties),
     goal_(goal),
-    control_(control)
-{}
+    control_(control),
+    dynamics_()
+{
+    // we don't need matrix updates
+    dynamics_.set_matrix_update_flag(false);
+}
 
 template<typename StateTp, typename GoalTp>
 typename DiffDriveDW<StateTp, GoalTp>::window_properties_t&
@@ -204,6 +214,14 @@ DiffDriveDW<StateTp, GoalTp>::calc_trajectory_(){
     input_t model_input;
     model_input.insert({"v", control_[0]});
     model_input.insert({"w", control_[1]});
+
+#ifdef USE_WARNINGS_FOR_MISSING_IMPLEMENTATION
+    std::cout<<kernel::KernelConsts::warning_str()<<"Errors have not been accounted for in the implementation"<<std::endl;
+#endif
+
+    std::array<real_t, 2> errors;
+    errors[0] = errors[1] = 0.0;
+    model_input.insert({"errors", errors});
 
     auto time = 0.0;
     while (time <= this->config_.predict_time){
