@@ -42,7 +42,7 @@ protected:
     ///
     /// \brief DynamicWindow. Constructor
     ///
-    DynamicWindowBase(state_t& state, const config_t& config, const window_properties_t& wproperties);
+    DynamicWindowBase(state_t& state, const config_t& config);
 
     ///
     /// \brief state_. Pointer to the state that the
@@ -66,11 +66,11 @@ protected:
 
 
 template<typename StateTp, typename ConfigTp, typename WindowPropertiesTp>
-DynamicWindowBase<StateTp, ConfigTp, WindowPropertiesTp>::DynamicWindowBase(state_t& state, const config_t& config, const window_properties_t& wproperties)
+DynamicWindowBase<StateTp, ConfigTp, WindowPropertiesTp>::DynamicWindowBase(state_t& state, const config_t& config)
     :
       state_(&state),
       config_(config),
-      w_properties_(wproperties)
+      w_properties_()
 {}
 
 }
