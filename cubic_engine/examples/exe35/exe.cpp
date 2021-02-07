@@ -36,7 +36,7 @@ using cengine::planning::DiffDriveDW;
 using cengine::planning::DiffDriveDWConfig;
 
 const real_t DT = 0.1;
-const uint_t N_MAX_ITRS = 100;
+const uint_t N_MAX_ITRS = 1000;
 const real_t ROBOT_RADIUS = 1.0;
 
 typedef DiffDriveDW<SysState<5>, GeomPoint<2>>::trajectory_t trajectory_t;
@@ -88,7 +88,12 @@ int main() {
       });
 
     DiffDriveConfig config;
-    config.Vmax = 1.0;
+    config.vmax = 1.0;
+    config.vmin = -0.5;
+    config.wmax = 40.0 * kernel::MathConsts::PI / 180.0;
+    config.wmin = -10.0 * kernel::MathConsts::PI / 180.0;
+    config.R = 1.0;
+    config.L = 1.0;
 
     DiffDriveVehicle vehicle(config);
 
@@ -105,7 +110,7 @@ int main() {
 
     typedef DiffDriveDW<SysState<5>, GeomPoint<2>>::control_t control_t;
 
-    control_t control{0.0, 0.0};
+    control_t control{0.01, 0.0};
 
     DiffDriveDWConfig dw_config;
     dw_config.robot_radius = ROBOT_RADIUS;
@@ -125,6 +130,7 @@ int main() {
 
     // the dynamic window
     DiffDriveDW<SysState<5>, GeomPoint<2>> dw(x, dw_config, goal, control);
+    dw.update_dynamics_state(vehicle.get_state());
 
     trajectory_t traj;
     update_trajectory(traj, x);
@@ -149,6 +155,11 @@ int main() {
             // updated controls
             vehicle.integrate(dw.get_control()[0], dw.get_control()[1]);
 
+            std::cout<<kernel::KernelConsts::info_str()<<"Vv="
+                     <<vehicle.get_velocity()<<" Vw="
+                     <<vehicle.get_w_velocity()<<std::endl;
+
+            // update state from the vehicle state
             update_state_from_vehicle(x, vehicle);
 
             auto pos_x = x[0];
@@ -163,10 +174,12 @@ int main() {
 
             cv::circle(bg, cv_offset(goal[0], goal[1], bg.cols, bg.rows), 30, cv::Scalar(255,0,0), 5);
 
+            // draw the obstacles
             for(auto j=0; j<ob.size(); j++){
                  cv::circle(bg, cv_offset(ob[j][0], ob[j][1], bg.cols, bg.rows), 20, cv::Scalar(0,0,0), -1);
             }
 
+            // draw the trajectory calculated
             for(auto j=0; j<trajectory.size(); j++){
                   cv::circle(bg, cv_offset(trajectory[j][0], trajectory[j][1],
                                             bg.cols, bg.rows), 7, cv::Scalar(0,255,0), -1);
