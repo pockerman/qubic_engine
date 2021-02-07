@@ -13,9 +13,7 @@ DiffDriveDynamics::DiffDriveDynamics()
     :
   MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor, std::map<std::string, boost::any>>(),
   v_(0.0),
-  w_(0.0),
-  vmax_(0.0),
-  wmax_(0.0)
+  w_(0.0)
 {
     this->state_.set(0, {"X", 0.0});
     this->state_.set(1, {"Y", 0.0});
@@ -27,9 +25,7 @@ DiffDriveDynamics::DiffDriveDynamics(DiffDriveDynamics::state_t&& state)
       MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor,
                               std::map<std::string, boost::any>>(),
       v_(0.0),
-      w_(0.0),
-      vmax_(0.0),
-      wmax_(0.0)
+      w_(0.0)
 {
     this->state_ = state;
 }
@@ -43,9 +39,12 @@ DiffDriveDynamics::integrate(const DiffDriveDynamics::input_t& input){
     auto v = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("v", input);
     auto errors = utils::InputResolver<std::map<std::string, boost::any>, std::array<real_t, 2>>::resolve("errors", input);
 
-    if(std::fabs(w)>wmax_){
+    // clip angular velocity
+    // this should handled by the calling
+    // application
+    /*if(std::fabs(w)>wmax_){
         w = utils::sign(w)*wmax_;
-    }
+    }*/
 
     // before we do the integration
     // update the matrices
@@ -54,6 +53,7 @@ DiffDriveDynamics::integrate(const DiffDriveDynamics::input_t& input){
     }
 
     if(std::fabs(w) < tol_){
+
         /// assume zero angular velocity
        auto distance = 0.5*v*get_time_step();
        auto xincrement = (distance + errors[0])*std::cos(values[2]  + errors[1]);
