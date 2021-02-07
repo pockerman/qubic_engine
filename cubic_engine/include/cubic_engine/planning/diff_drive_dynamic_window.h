@@ -47,10 +47,10 @@ struct DiffDriveDWConfig
 ///
 struct DiffDriveWindowProperties
 {
-    real_t v_max;
-    real_t v_min;
-    real_t w_max;
-    real_t w_min;
+    real_t v_max{0.0};
+    real_t v_min{0.0};
+    real_t w_max{0.0};
+    real_t w_min{0.0};
 };
 
 ///
@@ -91,15 +91,20 @@ public:
     typedef std::vector<real_t> control_t;
 
     ///
-    /// \brief Trajectory Helper type used to form trajectories
+    /// \brief trajectory_t Helper type used to form trajectories
     ///
     typedef std::vector<std::array<real_t, 5>> trajectory_t;
 
     ///
+    /// \brief dynamics_state_t. The type of the dynamics states
+    ///
+    typedef kernel::dynamics::DiffDriveDynamics::state_t dynamics_state_t;
+
+    ///
     /// \brief DiffDriveDW. Constructor
     ///
-    DiffDriveDW(state_t& state, const config_t& config, const goal_t& goal,
-                const control_t& control, const window_properties_t& wproperties);
+    DiffDriveDW(state_t& state, const config_t& config,
+                const goal_t& goal, const control_t& control);
 
     ///
     /// \brief get_control. Access the control value
@@ -116,6 +121,12 @@ public:
     ///
     template<typename ObstacleTp>
     trajectory_t dwa_control(const ObstacleTp& obstacle);
+
+    ///
+    /// \brief update_dynamics_state. Update the state of
+    /// the object describing the dynamics
+    ///
+    void update_dynamics_state(const dynamics_state_t& state);
 
 
 protected:
@@ -168,15 +179,21 @@ protected:
 
 template<typename StateTp, typename GoalTp>
 DiffDriveDW<StateTp, GoalTp>::DiffDriveDW(state_t& state, const config_t& config, const goal_t& goal,
-                                          const control_t& control, const window_properties_t& wproperties)
+                                          const control_t& control)
     :
-    DynamicWindowBase<StateTp, DiffDriveDWConfig, DiffDriveWindowProperties>(state, config, wproperties),
+    DynamicWindowBase<StateTp, DiffDriveDWConfig, DiffDriveWindowProperties>(state, config),
     goal_(goal),
     control_(control),
     dynamics_()
 {
     // we don't need matrix updates
     dynamics_.set_matrix_update_flag(false);
+}
+
+template<typename StateTp, typename GoalTp>
+void
+DiffDriveDW<StateTp, GoalTp>::update_dynamics_state(const dynamics_state_t& state){
+    dynamics_.get_state() = state;
 }
 
 template<typename StateTp, typename GoalTp>
@@ -216,7 +233,7 @@ DiffDriveDW<StateTp, GoalTp>::calc_trajectory_(){
     model_input.insert({"w", control_[1]});
 
 #ifdef USE_WARNINGS_FOR_MISSING_IMPLEMENTATION
-    std::cout<<kernel::KernelConsts::warning_str()<<"Errors have not been accounted for in the implementation"<<std::endl;
+    //std::cout<<kernel::KernelConsts::warning_str()<<"Errors have not been accounted for in the implementation"<<std::endl;
 #endif
 
     std::array<real_t, 2> errors;
@@ -231,6 +248,7 @@ DiffDriveDW<StateTp, GoalTp>::calc_trajectory_(){
         traj.push_back(this->state_->get_values());
         time += this->config_.dt;
     }
+
     return traj;
 }
 
@@ -241,7 +259,7 @@ DiffDriveDW<StateTp, GoalTp>::calc_to_goal_cost_(const trajectory_t& trajectory)
     auto goal_magnitude = std::sqrt(goal_[0]*goal_[0] + goal_[1]*goal_[1]);
     auto traj_magnitude = std::sqrt(std::pow(trajectory.back()[0], 2) + std::pow(trajectory.back()[1], 2));
     auto dot_product = (goal_[0] * trajectory.back()[0]) + (goal_[1] * trajectory.back()[1]);
-    auto error = dot_product / (goal_magnitude * traj_magnitude);
+    auto error = dot_product / (goal_magnitude * traj_magnitude + 1.0e-4);
     auto error_angle = std::acos(error);
     auto cost = this->config_.to_goal_cost_gain * error_angle;
     return cost;
@@ -255,7 +273,7 @@ DiffDriveDW<StateTp, GoalTp>::calc_obstacle_cost_(const trajectory_t& trajectory
     // calc obstacle cost inf: collistion, 0:free
     auto minr = std::numeric_limits<real_t>::max();
 
-    for (auto ii=0; ii<trajectory.size(); ii+=this->config_.skip_n){
+    for (auto ii=0; ii<trajectory.size(); ii += this->config_.skip_n){
       for (auto i=0; i< obstacle.size(); i++){
 
         auto ox = obstacle[i][0];
@@ -282,7 +300,7 @@ template<typename ObstacleTp>
 typename DiffDriveDW<StateTp, GoalTp>::trajectory_t
 DiffDriveDW<StateTp, GoalTp>::calculate_control_input_(const ObstacleTp& obstacle){
 
-    float min_cost = 10000.0;
+    float min_cost = this->config_.min_cost;
     auto min_u = control_;
     min_u[0] = 0.0;
 
