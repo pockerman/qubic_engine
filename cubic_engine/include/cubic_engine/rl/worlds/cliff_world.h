@@ -23,7 +23,7 @@ namespace worlds {
 /// Stepping into this region incurs a reward of
 /// optimal path -100 and sends the agent instantly back to the start i.e. state zero
 ///
-class CliffWorld: public World<GridWorldAction, GridWorldState, real_t>
+class CliffWorld final: public World<GridWorldAction, GridWorldState, real_t>
 {
 
 public:
