@@ -6,7 +6,9 @@
 
 namespace kernel{
 
+///
 /// \brief MathConsts
+///
 class MathConsts: private boost::noncopyable
 {
 public:

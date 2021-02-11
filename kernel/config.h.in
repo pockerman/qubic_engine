@@ -25,7 +25,8 @@
 /* Path to the project*/
 #cmakedefine PROJECT_PATH "@PROJECT_PATH@"
 
-
+/*Use OpenCV */
+#cmakedefine USE_OPEN_CV
 
 
 #endif

@@ -11,7 +11,11 @@ namespace dynamics{
 
 DiffDriveDynamics::DiffDriveDynamics()
     :
-  MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor, std::map<std::string, boost::any>>()
+  MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor, std::map<std::string, boost::any>>(),
+  v_(0.0),
+  w_(0.0),
+  vmax_(0.0),
+  wmax_(0.0)
 {
     this->state_.set(0, {"X", 0.0});
     this->state_.set(1, {"Y", 0.0});
@@ -21,7 +25,11 @@ DiffDriveDynamics::DiffDriveDynamics()
 DiffDriveDynamics::DiffDriveDynamics(DiffDriveDynamics::state_t&& state)
     :
       MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor,
-                              std::map<std::string, boost::any>>()
+                              std::map<std::string, boost::any>>(),
+      v_(0.0),
+      w_(0.0),
+      vmax_(0.0),
+      wmax_(0.0)
 {
     this->state_ = state;
 }
@@ -70,6 +78,11 @@ DiffDriveDynamics::integrate(const DiffDriveDynamics::input_t& input){
         this->state_[1] -= ((v/(2.0*w)) + errors[0])*(std::cos(this->state_[2]) -
                 std::cos(values[2]));
     }
+
+    // update the velocities and angular
+    // velocities
+    v_ = v;
+    w_ = w;
 }
 
 DiffDriveDynamics::state_t&

@@ -31,8 +31,15 @@ SET(USE_LOG "ON")
 SET(USE_PYTORCH "OFF")
 SET(USE_TRILINOS "OFF")
 SET(USE_TRILINOS_LONG_LONG_TYPE "OFF")
+SET(USE_OPEN_CV "ON")
+
+# project include directory
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
+
+# project source directory
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/cubic_engine)
+
+# project working directory
 SET(PWD ${PROJECT_SOURCE_DIR})
 SET(CMAKE_INSTALL_PREFIX ${PWD}/install)
 SET(MAGIC_ENUM_INCL_DIR " ")
@@ -45,6 +52,19 @@ ENDIF()
 
 configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/cubic_engine/base/config.h @ONLY)
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cubic_engine/base/version.h @ONLY)
+
+IF(USE_OPEN_CV MATCHES "ON")
+
+    SET(OPENCV_INCL_DIR "/home/alex/MySoftware/opencv/install/include/opencv4")
+    SET(OPENCV_LIB_DIR "/home/alex/MySoftware/opencv/install/lib")
+    INCLUDE_DIRECTORIES(${OPENCV_INCL_DIR})
+    LINK_DIRECTORIES(${OPENCV_LIB_DIR})
+    MESSAGE(STATUS  "Using OpenCV include files at ${OPENCV_INCL_DIR} ")
+    MESSAGE(STATUS  "Using OpenCV libraries at ${OPENCV_LIB_DIR} ")
+ELSE()
+    MESSAGE(STATUS  "OpenCV is not used")
+ENDIF()
+
 
 # TODO: Fix this
 # add this because config.h ends up in the build directory
@@ -152,7 +172,8 @@ FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
                  ${PROJECT_SRC_DIR}/ml/unsupervised_learning/utils/*.cpp
                  ${PROJECT_SRC_DIR}/rl/*.cpp
                  ${PROJECT_SRC_DIR}/rl/*/*.cpp
-                 ${PROJECT_SRC_DIR}/maths/*.cpp)
+                 ${PROJECT_SRC_DIR}/maths/*.cpp
+                 ${PROJECT_SRC_DIR}/planning/*.cpp)
 
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
 ADD_LIBRARY(cubicengine SHARED ${SRCS})

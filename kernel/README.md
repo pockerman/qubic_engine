@@ -63,6 +63,7 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="examples/example_9">Example 9: </a> ```parallel_for``` pattern with ```ThreadPool``` class
 - <a href="examples/example_12">Example 12: </a> Producer-Consumer pattern
 - <a href="examples/example_13">Example 13: </a> ```parallel_for``` pattern with ```OMPExecutor``` class
+- <a href="examples/example_40">Example 40: </a> Using OpenMP tasks
 
 ### <a name="linear_algebra"></a> Computational Linear Algebra
 

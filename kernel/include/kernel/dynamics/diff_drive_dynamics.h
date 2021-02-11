@@ -109,6 +109,21 @@ public:
     void set_max_w(real_t val){wmax_ = val;}
 
     ///
+    /// \brief Set the maximum velocity
+    ///
+    void set_max_v(real_t val){vmax_ = val;}
+
+    ///
+    /// \brief get_velocity Returns the velocity used for integration
+    ///
+    real_t get_velocity()const{return v_;}
+
+    ///
+    /// \brief get_velocity Returns the angular velocity used for integration
+    ///
+    real_t get_angular_velocity()const{return w_;}
+
+    ///
     /// \brief updates the matrices used to describe this
     /// motion model
     ///
@@ -122,6 +137,20 @@ public:
 
 private:
 
+    ///
+    /// \brief v_ The velocity used for integration
+    ///
+    real_t v_;
+
+    ///
+    /// \brief w_ The angular velocity used for integration
+    ///
+    real_t w_;
+
+    ///
+    /// \brief The maximum velocity
+    ///
+    real_t vmax_;
 
     ///
     /// \brief The maximum angular velocity

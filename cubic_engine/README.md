@@ -60,23 +60,23 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="examples/exe1/doc/exe.ipynb">Example 1: </a> Using the ```KalmanFilter``` class
 - <a href="examples/exe2/doc/exe.ipynb">Example 2: </a> Using the ```ExtendedKalmanFilter``` class
 - <a href="examples/exe27/doc/exe.ipynb">Example 27: </a> Unscented Kalman Filter
-- Particle Filters
+- <a href="#">TODO: </a> Particle Filters
 
 ### <a name="control"></a> Control
 
 - <a href="#">Example 4: </a> Using the ```PIDControl``` class
-- LQR Control
-- <a href="examples/exe28/doc/exe.ipynb">Example 28: </a> Model-based control for cart-pole system
+- <a href="#">TODO: </a> LQR Control
+- <a href="examples/exe28/doc/exe.ipynb">Example 28: </a> Model-based control for cart-pole system (TODO)
 
 ### <a name="machine_learning"></a> Machine Learning & Statistics
 
 - <a href="examples/exe5/doc/exe.md">Example 5: </a> Simulate standard error for the mean
 - <a href="examples/exe7/doc/exe.md">Example 7: </a> Multithreaded  gradient descent
-- <a href="examples/exe11/doc/exe.md">Example 11: </a> Neural Network with PyTorch
+- <a href="examples/exe11/doc/exe.md">Example 11: </a> Neural Network with PyTorch (TODO)
 - <a href="examples/exe12/doc/exe.ipynb">Example 12: </a> Linear regression
 - <a href="examples/exe13/doc/exe.md">Example 13: </a> Logistic regression classification
 - <a href="examples/exe14/doc/exe.md">Example 14: </a> Logistic regression with ```GradientDescentWrapper```
-- <a href="examples/exe15/doc/exe.md">Example 15: </a> Linear Regression with ```PYLinearRegressor```
+- <a href="examples/exe15/doc/exe.md">Example 15: </a> Linear Regression with ```PYLinearRegressor``` (TODO)
 - <a href="examples/exe16/doc/exe.md">Example 16: </a> Compare Lasso, Ridge and ElasticNet Regularizers
 - <a href="examples/exe17/doc/exe.md">Example 17: </a> k-Means clustering
 - <a href="examples/exe18/doc/exe.md">Example 18: </a> KNN classification
@@ -101,9 +101,11 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 - <a href="#">Example 21:</a> Pure pursuit path tracking
 - <a href="examples/exe23/doc/exe.ipynb">Example 23:</a> Follow the carrot path tracking
 - <a href="examples/exe29/doc/exe.ipynb">Example 29:</a> Path planning with rapidly-exploring random trees
+- <a href="examples/exe35/doc/exe.ipynb">Example 35:</a> The dynamic window approach  
 
 ### <a name="miscellaneous"></a>Miscellaneous
 
 - <a href="examples/exe9/doc/exe.md">Example 9: </a> A* search
+- <a href="#">TODO: </a> D* search
 
 
