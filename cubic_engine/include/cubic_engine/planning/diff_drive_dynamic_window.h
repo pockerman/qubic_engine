@@ -30,7 +30,7 @@ struct DiffDriveDWConfig
       real_t min_speed;
       real_t max_yaw_rate;
       real_t max_accel;
-      real_t max_dyawrate;
+      real_t max_delta_yaw_rate;
       real_t dt;
       real_t min_cost;
       real_t v_reso;
@@ -200,10 +200,12 @@ template<typename StateTp, typename GoalTp>
 typename DiffDriveDW<StateTp, GoalTp>::window_properties_t&
 DiffDriveDW<StateTp, GoalTp>::calculate_window(){
 
+    // update the dynamic window
+    // properties.
     this->w_properties_.v_min = std::max(this->state_->operator()("v") - this->config_.max_accel * this->config_.dt, this->config_.min_speed);
     this->w_properties_.v_max = std::min(this->state_->operator()("v") + this->config_.max_accel * this->config_.dt, this->config_.max_speed);
-    this->w_properties_.w_min = std::max(this->state_->operator()("w") - this->config_.max_dyawrate * this->config_.dt, -this->config_.max_yaw_rate);
-    this->w_properties_.w_max = std::min(this->state_->operator()("w") + this->config_.max_dyawrate * this->config_.dt, this->config_.max_yaw_rate);
+    this->w_properties_.w_min = std::max(this->state_->operator()("w") - this->config_.max_delta_yaw_rate * this->config_.dt, -this->config_.max_yaw_rate);
+    this->w_properties_.w_max = std::min(this->state_->operator()("w") + this->config_.max_delta_yaw_rate * this->config_.dt, this->config_.max_yaw_rate);
 
     return this->w_properties_;
 }
@@ -256,13 +258,21 @@ template<typename StateTp, typename GoalTp>
 real_t
 DiffDriveDW<StateTp, GoalTp>::calc_to_goal_cost_(const trajectory_t& trajectory){
 
-    auto goal_magnitude = std::sqrt(goal_[0]*goal_[0] + goal_[1]*goal_[1]);
-    auto traj_magnitude = std::sqrt(std::pow(trajectory.back()[0], 2) + std::pow(trajectory.back()[1], 2));
-    auto dot_product = (goal_[0] * trajectory.back()[0]) + (goal_[1] * trajectory.back()[1]);
-    auto error = dot_product / (goal_magnitude * traj_magnitude + 1.0e-4);
-    auto error_angle = std::acos(error);
-    auto cost = this->config_.to_goal_cost_gain * error_angle;
-    return cost;
+    //auto goal_magnitude = std::sqrt(goal_[0]*goal_[0] + goal_[1]*goal_[1]);
+    //auto traj_magnitude = std::sqrt(std::pow(trajectory.back()[0], 2) + std::pow(trajectory.back()[1], 2));
+    //auto dot_product = (goal_[0] * trajectory.back()[0]) + (goal_[1] * trajectory.back()[1]);
+    //auto error = dot_product / (goal_magnitude * traj_magnitude + 1.0e-4);
+
+    auto dx = goal_[0] - trajectory.back()[0];
+    auto dy = goal_[1] - trajectory.back()[1];
+
+    auto error_angle = std::atan2(dy, dx);
+    auto cost_angle = error_angle - trajectory.back()[2];
+
+    return std::abs(std::atan2(std::sin(cost_angle), std::cos(cost_angle)));
+
+    //auto cost = this->config_.to_goal_cost_gain * error_angle;
+    //return cost;
 }
 
 template<typename StateTp, typename GoalTp>
@@ -300,9 +310,10 @@ template<typename ObstacleTp>
 typename DiffDriveDW<StateTp, GoalTp>::trajectory_t
 DiffDriveDW<StateTp, GoalTp>::calculate_control_input_(const ObstacleTp& obstacle){
 
-    float min_cost = this->config_.min_cost;
+    auto min_cost = std::numeric_limits<real_t>::max(); //this->config_.min_cost;
     auto min_u = control_;
     min_u[0] = 0.0;
+    min_u[1] = 0.0;
 
     auto v_min = this->w_properties_.v_min;
     auto v_max = this->w_properties_.v_max;
@@ -314,7 +325,7 @@ DiffDriveDW<StateTp, GoalTp>::calculate_control_input_(const ObstacleTp& obstacl
 
     // evalucate all trajectory with sampled input in dynamic window
     for (auto v=v_min; v <= v_max; v += this->config_.v_reso){
-       for (auto y=w_min; y <= w_max; y += this->config_.yawrate_reso){
+       for (auto w=w_min; w <= w_max; w += this->config_.yawrate_reso){
 
             trajectory_t traj = calc_trajectory_();
 
@@ -323,16 +334,22 @@ DiffDriveDW<StateTp, GoalTp>::calculate_control_input_(const ObstacleTp& obstacl
             auto to_goal_cost = calc_to_goal_cost_(traj);
             auto speed_cost = this->config_.speed_cost_gain * (this->config_.max_speed - traj.back()[3]);
             auto ob_cost = calc_obstacle_cost_(traj, obstacle);
+
+            // final cost
             auto final_cost = to_goal_cost + speed_cost + ob_cost;
 
+            // we want minimum cost trajectory
             if (min_cost >= final_cost){
               min_cost = final_cost;
-              min_u = control_t{{v, y}};
+              min_u[0] = v;
+              min_u[1] = w; //control_t{{v, w}};
               best_traj = traj;
             }
         }
     }
 
+    // update the control and return the best
+    // trajectory
     control_ = min_u;
     return best_traj;
 }
