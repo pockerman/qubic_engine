@@ -32,6 +32,7 @@ SET(USE_PYTORCH "OFF")
 SET(USE_TRILINOS "OFF")
 SET(USE_TRILINOS_LONG_LONG_TYPE "OFF")
 SET(USE_OPEN_CV "ON")
+SET(USE_RL "ON")
 
 # project include directory
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
@@ -161,22 +162,24 @@ SET(CMAKE_LINKER_FLAGS "-pthread")
 INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR})
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 
-FILE(GLOB  SRCS  ${PROJECT_SRC_DIR}/estimation/*.cpp
-                 ${PROJECT_SRC_DIR}/systems/*.cpp
-                 ${PROJECT_SRC_DIR}/control/*.cpp
-                 ${PROJECT_SRC_DIR}/ml/instance_learning/*.cpp
-                 ${PROJECT_SRC_DIR}/ml/instance_learning/utils/*.cpp
-                 ${PROJECT_SRC_DIR}/ml/supervised_learning/*.cpp
-                 ${PROJECT_SRC_DIR}/ml/supervised_learning/utils/*.cpp
-                 ${PROJECT_SRC_DIR}/ml/unsupervised_learning/*.cpp
-                 ${PROJECT_SRC_DIR}/ml/unsupervised_learning/utils/*.cpp
-                 ${PROJECT_SRC_DIR}/rl/*.cpp
-                 ${PROJECT_SRC_DIR}/rl/*/*.cpp
-                 ${PROJECT_SRC_DIR}/maths/*.cpp
-                 ${PROJECT_SRC_DIR}/planning/*.cpp)
+# define the library name
+ADD_LIBRARY(cubicengine SHARED "")
+
+ADD_SUBDIRECTORY(${PROJECT_SRC_DIR}/estimation)
+ADD_SUBDIRECTORY(${PROJECT_SRC_DIR}/control)
+ADD_SUBDIRECTORY(${PROJECT_SRC_DIR}/ml)
+ADD_SUBDIRECTORY(${PROJECT_SRC_DIR}/maths)
+
+
+IF(USE_RL MATCHES "ON")
+    ADD_SUBDIRECTORY(${PROJECT_SRC_DIR}/rl)
+ELSE()
+    MESSAGE(STATUS  "RL framework will not be built")
+ENDIF()
+
 
 SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
-ADD_LIBRARY(cubicengine SHARED ${SRCS})
+
 SET_TARGET_PROPERTIES(cubicengine PROPERTIES LINKER_LANGUAGE CXX)
 INSTALL(TARGETS cubicengine DESTINATION ${CMAKE_INSTALL_PREFIX})
 
