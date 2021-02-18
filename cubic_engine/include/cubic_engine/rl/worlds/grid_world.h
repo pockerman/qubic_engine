@@ -5,7 +5,7 @@
 #include "cubic_engine/rl/world.h"
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #include "cubic_engine/rl/worlds/grid_world_state.h"
-#include "cubic_engine/rl/worlds/discrete_world.h"
+#include "cubic_engine/rl/discrete_world.h"
 #include "kernel/base/kernel_consts.h"
 
 #include <map>
