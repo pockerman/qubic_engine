@@ -112,9 +112,6 @@ int main() {
 
         std::cout<<kernel::KernelConsts::info_str()<<"Overall purity="<<purity<<std::endl;
 
-
-
-		
     }
     catch(std::runtime_error& e){
         std::cerr<<"Runtime error: "

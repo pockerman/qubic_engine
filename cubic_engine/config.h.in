@@ -16,5 +16,8 @@
 /*Use OpenCV */
 #cmakedefine USE_OPEN_CV
 
+/*Use reinforcement learning*/
+#cmakedefine USE_RL
+
 #endif
 
