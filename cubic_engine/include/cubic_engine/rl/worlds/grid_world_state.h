@@ -24,70 +24,106 @@ class GridWorldState
 {
 public:
 
+    ///
     /// \brief A map from indexes to action type
+    ///
     static GridWorldAction get_action_from_idx(uint_t i);
 
+    ///
     /// \brief Constructor
+    ///
     GridWorldState();
 
+    ///
     /// \brief Costructor
+    ///
     explicit GridWorldState(uint_t id);
 
+    ///
     /// \brief Copy assignement
+    ///
     GridWorldState& operator=(const GridWorldState& other);
 
+    ///
     /// \brief The number of actions
     /// that the state allws
+    ///
     uint_t n_actions()const{return 4;}
 
+    ///
     /// \brief is this action idx valid
+    ///
     bool is_active_action(uint_t i)const;
 
+    ///
     /// \brief Returns the id of the state
+    ///
     uint_t get_id()const{return id_;}
 
+    ///
     /// \brief Set the transitions for this state
     /// after executing the Action
+    ///
     void set_transition(GridWorldAction action, GridWorldState* state);
 
+    ///
     /// \brief Execute the action
+    ///
     GridWorldState* execute_action(GridWorldAction action);
 
+    ///
     /// \brief Returns the neighbor state for the given action
+    ///
     const GridWorldState* execute_action(GridWorldAction action)const;
 
+    ///
     /// \brief Select uniformly an active
     /// action
+    ///
     GridWorldAction get_random_active_action()const;
 
+    ///
     /// \brief Returns a vector with the available
     /// active actions
+    ///
     const std::vector<GridWorldAction> get_active_actions()const;
 
+    ///
     /// \brief Returns the a-th action
+    ///
     GridWorldAction get_action(uint_t a)const;
 
+    ///
     /// \brief Return the GridWorldAction required to
     /// get to the neighbor element. If the neighbor
     /// does not exist return GridWorldAction::INVALID_ACTION
+    ///
     GridWorldAction get_action_for_neighbor(const GridWorldState& neighbor)const;
 
+    ///
     /// \brief Returns a list with the transition
     /// states the agent can transition to from this
     /// state
+    ///
     std::vector<const GridWorldState*> get_states()const;
 
 
 private:
 
+    ///
     /// \brief The id of the state
+    ///
     uint_t id_;
 
+    ///
     /// \brief The neighboring states that
     /// this state may transition to
+    ///
     std::map<GridWorldAction, GridWorldState*> state_transitions_;
 
+    ///
     /// \brief
+    ///
     mutable uint_t previous_active_action_choice_{0};
 
 };
