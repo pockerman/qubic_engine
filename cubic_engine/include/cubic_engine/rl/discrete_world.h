@@ -1,6 +1,10 @@
 #ifndef DISCRETE_WORLD_H
 #define DISCRETE_WORLD_H
 
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/world.h"
 
@@ -19,7 +23,7 @@ class DiscreteWorld: public World<ActionTp, StateTp, RewardTp>
 {
 public:
 
-    typedef RewardTp reward_t;
+    typedef typename World<ActionTp, StateTp, RewardTp>::reward_t reward_t;
     typedef typename World<ActionTp, StateTp, typename RewardTp::value_t>::action_t action_t;
     typedef typename World<ActionTp, StateTp, typename RewardTp::value_t>::state_t state_t;
     typedef typename World<ActionTp, StateTp, typename RewardTp::value_t>::reward_value_t reward_value_t;
@@ -85,6 +89,14 @@ public:
     /// \brief Append another goal
     ///
     void append_goal(const state_t& goal){goals_.push_back(&goal);}
+
+    ///
+    /// \brief Returns the reward for the given state
+    /// and the given actions
+    ///
+    reward_value_t get_reward(const state_t& state, const action_t& action)const{
+        return this->reward_.get_reward(action, state);
+    }
 
 protected:
 
@@ -200,4 +212,5 @@ DiscreteWorld<ActionTp, StateTp, RewardTp>::restart(const state_t& start){
 
 }
 
+#endif
 #endif // DISCRETE_WORLD_H

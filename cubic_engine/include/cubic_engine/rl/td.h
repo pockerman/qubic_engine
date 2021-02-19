@@ -1,10 +1,15 @@
 #ifndef TD_H
 #define TD_H
 
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/base/cubic_engine_types.h"
 #include <functional>
 
 namespace cengine {
+namespace rl{
 
 /// \brief Forward declarations
 template<typename...> class TD;
@@ -56,5 +61,7 @@ private:
 };
 
 }
+}
 
+#endif
 #endif // TD_H

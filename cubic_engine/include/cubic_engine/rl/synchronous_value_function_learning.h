@@ -1,6 +1,10 @@
 #ifndef SYNCHRONOUS_VALUE_FUNCTION_LEARNER_H
 #define SYNCHRONOUS_VALUE_FUNCTION_LEARNER_H
 
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/utilities/iterative_algorithm_controller.h"
@@ -271,4 +275,5 @@ SyncValueFuncItr<WorldTp>::train(PolicyTp& policy, const DynamicsP& dynamics){
 }
 }
 
+#endif
 #endif // SYNCHRONOUS_VALUE_FUNCTION_LEARNER_H

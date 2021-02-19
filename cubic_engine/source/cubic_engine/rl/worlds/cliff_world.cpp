@@ -1,3 +1,7 @@
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/rl/worlds/cliff_world.h"
 #include <algorithm>
 #include <iostream>
@@ -7,11 +11,10 @@ namespace worlds{
 
 CliffWorld::CliffWorld()
     :
-      World<GridWorldAction, GridWorldState,  real_t>(),
+      DiscreteWorld<GridWorldAction, GridWorldState,  cliff_world_detail::CliffWorldRewardProducer>(),
       start_(nullptr),
       goal_(nullptr),
       current_state_(nullptr),
-      reward_(),
       r_(0.0),
       states_(),
       finished_(false)
@@ -148,104 +151,109 @@ CliffWorld::create_world(){
     reward_.setup_rewards();
 }
 
- CliffWorld::RewardProducer::RewardProducer()
-     :
-       rewards_()
- {}
+namespace cliff_world_detail
+{
+     CliffWorldRewardProducer::CliffWorldRewardProducer()
+         :
+           rewards_()
+     {}
 
- real_t
- CliffWorld::RewardProducer::get_reward(const action_t& action,
-                                        const state_t& s,
-                                        const state_t& sprime)const{
-     return rewards_.get_reward(s.get_id(), action);
- }
+    real_t
+    CliffWorldRewardProducer::get_reward(const CliffWorldRewardProducer::action_t& action,
+                                         const CliffWorldRewardProducer::state_t& s,
+                                         const CliffWorldRewardProducer::state_t& sprime)const{
+         return rewards_.get_reward(s.get_id(), action);
+     }
 
-void
-CliffWorld::RewardProducer::setup_rewards(){
+    void
+    CliffWorldRewardProducer::setup_rewards(){
 
-    const uint_t N_CELLS_X = 12;
-    const uint_t N_CELLS_Y = 4;
-    const real_t PENALTY = -100.0;
-    const real_t NORMAL = -1.0;
+        const uint_t N_CELLS_X = 12;
+        const uint_t N_CELLS_Y = 4;
+        const real_t PENALTY = -100.0;
+        const real_t NORMAL = -1.0;
 
-    for(uint_t i=0; i<N_CELLS_X*N_CELLS_Y; ++i){
+        for(uint_t i=0; i<N_CELLS_X*N_CELLS_Y; ++i){
 
-        if(i<11){
+            if(i<11){
 
-            if(i==0){
-               rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
-               rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
-               rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
-               rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
-            }
-            else if( i == 11){
-                rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
-                rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
-                rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
-                rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
-             }
-        }
-        else {
-
-            if(i >= 36 ){
-
-                rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
-                rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
-
-                if(i != 47){
-                  rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
-                }
-                else{
-                    rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
-                }
-
-                if(i != 36){
+                if(i==0){
+                   rewards_.add_reward(i, GridWorldAction::EAST,  PENALTY);
+                   rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
+                   rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
                    rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
                 }
-                else{
-                    rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
-                }
-            }
-            else{
-
-                rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
-
-                if(i != 24 || i != 12){
-                   rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
-                }
-                else{
-                    rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
-                }
-
-                if(i != 23 || i != 35){
-                  rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
-                }
-                else{
-                   rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
-                }
-
-                if( i >= 24){
+                else if( i == 11){
+                    rewards_.add_reward(i, GridWorldAction::WEST,  PENALTY);
+                    rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
                     rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
-                }
-
-               if( i>=13 && i<=22){
-                   rewards_.add_reward(i, GridWorldAction::SOUTH,  PENALTY);
-               }
-
-               if(i == 12){
-                 rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
-               }
-
-               if(i == 23){
-                  rewards_.add_reward(i, GridWorldAction::SOUTH,  0.0);
-               }
+                    rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
+                 }
             }
-        }
+            else {
 
-    }/// for
+                if(i >= 36 ){
+
+                    rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
+                    rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
+
+                    if(i != 47){
+                      rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
+                    }
+                    else{
+                        rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
+                    }
+
+                    if(i != 36){
+                       rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
+                    }
+                    else{
+                        rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
+                    }
+                }
+                else{
+
+                    rewards_.add_reward(i, GridWorldAction::NORTH,  NORMAL);
+
+                    if(i != 24 || i != 12){
+                       rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
+                    }
+                    else{
+                        rewards_.add_reward(i, GridWorldAction::WEST,  NORMAL);
+                    }
+
+                    if(i != 23 || i != 35){
+                      rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
+                    }
+                    else{
+                       rewards_.add_reward(i, GridWorldAction::EAST,  NORMAL);
+                    }
+
+                    if( i >= 24){
+                        rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
+                    }
+
+                   if( i>=13 && i<=22){
+                       rewards_.add_reward(i, GridWorldAction::SOUTH,  PENALTY);
+                   }
+
+                   if(i == 12){
+                     rewards_.add_reward(i, GridWorldAction::SOUTH,  NORMAL);
+                   }
+
+                   if(i == 23){
+                      rewards_.add_reward(i, GridWorldAction::SOUTH,  0.0);
+                   }
+                }
+            }
+
+        }/// for
+
+    }
+}// cliff_world_detail
 
 }
+}
+}
 
-}
-}
-}
+#endif
