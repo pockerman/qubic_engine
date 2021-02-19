@@ -24,9 +24,9 @@ class DiscreteWorld: public World<ActionTp, StateTp, RewardTp>
 public:
 
     typedef typename World<ActionTp, StateTp, RewardTp>::reward_t reward_t;
-    typedef typename World<ActionTp, StateTp, typename RewardTp::value_t>::action_t action_t;
-    typedef typename World<ActionTp, StateTp, typename RewardTp::value_t>::state_t state_t;
-    typedef typename World<ActionTp, StateTp, typename RewardTp::value_t>::reward_value_t reward_value_t;
+    typedef typename World<ActionTp, StateTp, RewardTp>::action_t action_t;
+    typedef typename World<ActionTp, StateTp, RewardTp>::state_t state_t;
+    typedef typename World<ActionTp, StateTp, RewardTp>::reward_value_t reward_value_t;
 
     ///
     /// \brief n_states. Returns the number of states
@@ -81,6 +81,11 @@ public:
     void set_states(std::vector<state_t>&& states){states_ = states;}
 
     ///
+    /// \brief Set the state of the world
+    ///
+    void set_state(const state_t& state){current_state_ = &state;}
+
+    ///
     /// \brief Returns true if the world is finished
     ///
     bool is_finished()const{return finished_;}
@@ -98,6 +103,7 @@ public:
         return this->reward_.get_reward(action, state);
     }
 
+
 protected:
 
     ///
@@ -108,7 +114,7 @@ protected:
     ///
     /// \brief The current state
     ///
-    state_t* current_state_;
+    const state_t* current_state_;
 
     ///
     /// \brief The goal states. More than one goal
@@ -181,7 +187,7 @@ DiscreteWorld<ActionTp, StateTp, RewardTp>::get_state(uint_t id){
 template<typename ActionTp, typename StateTp, typename RewardTp>
 void
 DiscreteWorld<ActionTp, StateTp, RewardTp>::restart(const state_t& start,
-                             const state_t& goal){
+                                                    const state_t& goal){
 
     current_state_ = &start;
     goals_ = std::vector<const state_t*>();

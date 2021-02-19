@@ -26,14 +26,14 @@ namespace worlds {
 template<typename RewardTp>
 class GridWorld final: public DiscreteWorld<GridWorldAction,
                                             GridWorldState,
-                                            typename RewardTp::value_t>
+                                            RewardTp>
 {
 public:
 
-    typedef RewardTp reward_t;
-    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, typename RewardTp::value_t>::action_t action_t;
-    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, typename RewardTp::value_t>::state_t state_t;
-    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, typename RewardTp::value_t>::reward_value_t reward_value_t;
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>::reward_t reward_t;
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>::action_t action_t;
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>::state_t state_t;
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>::reward_value_t reward_value_t;
 
     ///
     /// \brief Global invalid action assumed by the
@@ -63,15 +63,10 @@ public:
     virtual void step(const action_t&)override final;
 
     ///
-    /// \brief Set the state of the world
-    ///
-    void set_state(const state_t& state){this->current_state_ = &state;}
-
-    ///
     /// \brief Returns the reward associated
     /// with the last state transition
     ///
-    virtual reward_value_t reward()const override final{return r_;}
+    reward_value_t reward()const{return r_;}
 
     ///
     /// \brief Execute the aid-th action in the current state
@@ -86,14 +81,12 @@ private:
     /// after executing an action
     ///
     reward_value_t r_;
-
-
 };
 
 template<typename RewardTp>
 GridWorld<RewardTp>::GridWorld()
     :
-    DiscreteWorld<GridWorldAction, GridWorldState, typename RewardTp::value_t>(),
+    DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>(),
     r_(0.0)
 {}
 

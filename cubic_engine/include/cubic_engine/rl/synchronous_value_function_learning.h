@@ -52,7 +52,7 @@ struct SyncValueFuncItrOutput
 };
 
 ///
-/// The SyncValueFuncItr class. Models
+/// \brief The SyncValueFuncItr class. Models
 /// the iterative policy evaluation algorithm for learning
 /// a value function \f$V\f$ under a policy \f$\pi\f$. The  implementation
 /// uses a two array approach. Thus it is assumed the world,

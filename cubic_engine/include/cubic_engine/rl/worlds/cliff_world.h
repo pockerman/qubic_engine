@@ -71,8 +71,8 @@ namespace cliff_world_detail{
 /// Stepping into this region incurs a reward of
 /// optimal path -100 and sends the agent instantly back to the start i.e. state zero
 ///
-class CliffWorld final: DiscreteWorld<GridWorldAction,
-                                      GridWorldState, cliff_world_detail::CliffWorldRewardProducer>
+class CliffWorld final: public DiscreteWorld<GridWorldAction,
+                                             GridWorldState, cliff_world_detail::CliffWorldRewardProducer>
 {
 
 public:
@@ -113,7 +113,7 @@ public:
     ///
     /// \brief Returns the current state
     ///
-    virtual const state_t& sense()override final{return  *current_state_;}
+    virtual const state_t& sense()override final{return  *this->current_state_;}
 
     ///
     /// \brief Transition to a new state by
@@ -122,23 +122,10 @@ public:
     virtual void step(const action_t&)override final;
 
     ///
-    /// \brief Restart the world.
-    ///
-    void restart(const state_t& start, const state_t& goal);
-
-    ///
-    /// \brief Set the state of the world
-    ///
-    void set_state(const state_t& state){current_state_ = &state;}
-
-    ///
     /// \brief Returns the reward associated
     /// with the last state transition
     ///
-    virtual reward_value_t reward()const override final{return r_;}
-
-   }
-
+    reward_value_t reward()const{return r_;}
 
     ///
     /// \brief Returns the current state of the world
@@ -149,26 +136,6 @@ public:
     /// \brief Execute the aid-th action in the current state
     ///
     void execute_action(action_t aid);
-
-    ///
-    /// \brief The number of states of the world
-    ///
-    uint_t n_states()const{return states_.size();}
-
-    ///
-    /// \brief Returns the s-th state
-    ///
-    state_t& get_state(uint_t s);
-
-    ///
-    /// \brief Returns the i-th state
-    ///
-    const state_t& get_state(uint_t s)const;
-
-    ///
-    /// \brief Returns true if the world is finished
-    ///
-    bool is_finished()const{return finished_;}
 
     ///
     /// \brief Create the world
@@ -197,48 +164,6 @@ CliffWorld::execute_action(CliffWorld::action_t aid){
     current_state_ = const_cast<state_t*>(current_state_)->execute_action(aid);
 }
 
-
-inline
-void
-CliffWorld::restart(const typename CliffWorld::state_t& start,
-                    const typename CliffWorld::state_t& goal){
-
-    start_ = &start;
-    goal_ = &goal;
-    current_state_ = &get_state(start_->get_id());
-    r_ = 0.0;
-    finished_ = false;
-
-}
-
-
-inline
-const CliffWorld::state_t&
-CliffWorld::get_state(uint_t id)const{
-
-    if(id >= states_.size()){
-        throw std::logic_error("Invalid state id: "+
-                               std::to_string(id) +
-                               " not in [0, "+
-                               std::to_string(states_.size()));
-    }
-
-    return states_[id];
-}
-
-inline
-CliffWorld::state_t&
-CliffWorld::get_state(uint_t id){
-
-    if(id >= states_.size()){
-        throw std::logic_error("Invalid state id: "+
-                               std::to_string(id) +
-                               " not in [0, "+
-                               std::to_string(states_.size()));
-    }
-
-    return states_[id];
-}
 
 }
 }
