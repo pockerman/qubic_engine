@@ -1,3 +1,7 @@
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/rl/worlds/grid_world_state.h"
 
 #include <random>
@@ -157,6 +161,7 @@ GridWorldState::get_states()const{
 
 
 }
+}
+}
 
-}
-}
+#endif

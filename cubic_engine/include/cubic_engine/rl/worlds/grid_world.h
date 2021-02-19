@@ -1,6 +1,10 @@
 #ifndef GRID_WORLD_H
 #define GRID_WORLD_H
 
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/world.h"
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
@@ -31,8 +35,10 @@ public:
     typedef typename DiscreteWorld<GridWorldAction, GridWorldState, typename RewardTp::value_t>::state_t state_t;
     typedef typename DiscreteWorld<GridWorldAction, GridWorldState, typename RewardTp::value_t>::reward_value_t reward_value_t;
 
+    ///
     /// \brief Global invalid action assumed by the
     /// world. Useful for initialization.
+    ///
     static const GridWorldAction invalid_action = GridWorldAction::INVALID_ACTION;
 
     ///
@@ -56,33 +62,24 @@ public:
     ///
     virtual void step(const action_t&)override final;
 
-
+    ///
     /// \brief Set the state of the world
+    ///
     void set_state(const state_t& state){this->current_state_ = &state;}
 
-
+    ///
     /// \brief Returns the reward associated
     /// with the last state transition
+    ///
     virtual reward_value_t reward()const override final{return r_;}
 
-    /// \brief Returns the reward for the given state
-    /// and the given actions
-    reward_value_t get_reward(const state_t& state, const action_t& action)const{
-        return reward_.get_reward(action, state);
-    }
-
-
+    ///
     /// \brief Execute the aid-th action in the current state
+    ///
     void execute_action(action_t aid);
 
 private:
 
-    ///
-    /// \brief The object responsible for
-    /// producing the reward that the agent
-    /// should receive
-    ///
-    reward_t reward_;
 
     ///
     /// \brief The reward that the agent should recieve
@@ -97,7 +94,6 @@ template<typename RewardTp>
 GridWorld<RewardTp>::GridWorld()
     :
     DiscreteWorld<GridWorldAction, GridWorldState, typename RewardTp::value_t>(),
-    reward_(),
     r_(0.0)
 {}
 
@@ -122,7 +118,7 @@ GridWorld<RewardTp>::step(const typename GridWorld<RewardTp>::action_t& action){
     }
 
     if(this->is_goal_state(*this->current_state_)){
-        r_ = reward_.goal_reward();
+        r_ = this->reward_.goal_reward();
         this->finished_ = true;
     }
     else{
@@ -139,30 +135,26 @@ GridWorld<RewardTp>::step(const typename GridWorld<RewardTp>::action_t& action){
             this->finished_ = true;
 
             // what is the return for this?
-            r_ = reward_.get_reward(action, *this->current_state_);
+            r_ = this->reward_.get_reward(action, *this->current_state_);
         }
         else{
-            r_ = reward_.get_reward(action, *this->current_state_, *next_state);
+            r_ = this->reward_.get_reward(action, *this->current_state_, *next_state);
             this->current_state_ = next_state;
         }
     }
 }
 
 
-
-
 template<typename RewardTp>
 void
 GridWorld<RewardTp>::execute_action(typename GridWorld<RewardTp>::action_t aid){
 
-    this->current_state_ = const_cast<state_t*>(current_state_)->execute_action(aid);
+    this->current_state_ = const_cast<state_t*>(this->current_state_)->execute_action(aid);
 }
 
 
-
 }
-
 }
-
 }
+#endif
 #endif // GRID_WORLD_H

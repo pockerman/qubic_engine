@@ -1,6 +1,10 @@
 #ifndef GRID_WORLD_STATE_H
 #define GRID_WORLD_STATE_H
 
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #include "kernel/base/kernel_consts.h"
@@ -12,8 +16,10 @@ namespace cengine{
 namespace rl {
 namespace worlds {
 
+///
 /// \brief Small struct that describes
 /// the state of a GridWorld instance
+///
 class GridWorldState
 {
 public:
@@ -97,8 +103,8 @@ bool operator!=(const GridWorldState& s1, const GridWorldState& s2){
 }
 
 }
-
 }
 }
 
+#endif
 #endif // GRID_WORLD_STATE_H

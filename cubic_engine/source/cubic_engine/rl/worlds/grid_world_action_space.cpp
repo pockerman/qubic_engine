@@ -1,3 +1,7 @@
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 
 namespace cengine {
@@ -22,3 +26,5 @@ std::string to_string(GridWorldAction action){
 }
 }
 }
+
+#endif
