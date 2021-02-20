@@ -9,6 +9,11 @@
 namespace kernel{
 namespace dynamics {
 
+
+///
+/// \brief The DynamicsMatrixDescriptor class. Helper class
+/// to model the matrix representon of dynamical systems
+///
 class DynamicsMatrixDescriptor{
 
 public:
