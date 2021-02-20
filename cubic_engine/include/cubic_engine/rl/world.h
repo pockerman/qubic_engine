@@ -1,12 +1,21 @@
 #ifndef WORLD_H
 #define WORLD_H
 
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
+#include "cubic_engine/base/config.h"
 #include "boost/noncopyable.hpp"
 
 namespace cengine {
 namespace rl {
 
-/// \brief
+///
+/// \brief The World class. Base class for
+/// modeling environments in reinforcement learning
+/// algorithms
+///
 template<typename ActionTp, typename StateTp, typename RewardTp>
 class World: private boost::noncopyable
 {
@@ -14,31 +23,37 @@ public:
 
     typedef ActionTp action_t;
     typedef StateTp state_t;
-    typedef RewardTp reward_value_t;
+    typedef RewardTp reward_t;
+    typedef typename RewardTp::value_t reward_value_t;
 
+    ///
     /// \brief Destructor
+    ///
     ~World(){}
 
+    ///
     /// \brief Returns the state
+    ///
     virtual const state_t& sense()=0;
 
-    /// \brief Transition to a new state by
-    /// performing the given action
-    virtual void step(const action_t&)=0;
-
-    /// \brief Returns the reward associated
-    /// with the last state transition
-    virtual reward_value_t reward()const=0;
 
 protected:
 
+    ///
     /// \brief Constructor protected
+    ///
     World()=default;
+
+    ///
+    /// \brief reward_. The object that handles
+    /// reward generaion
+    ///
+    reward_t reward_;
 
 };
 
 }
-
 }
 
+#endif
 #endif // WORLD_H

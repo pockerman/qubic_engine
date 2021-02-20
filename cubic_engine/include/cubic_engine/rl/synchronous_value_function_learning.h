@@ -1,6 +1,10 @@
 #ifndef SYNCHRONOUS_VALUE_FUNCTION_LEARNER_H
 #define SYNCHRONOUS_VALUE_FUNCTION_LEARNER_H
 
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/utilities/iterative_algorithm_controller.h"
@@ -48,7 +52,7 @@ struct SyncValueFuncItrOutput
 };
 
 ///
-/// The SyncValueFuncItr class. Models
+/// \brief The SyncValueFuncItr class. Models
 /// the iterative policy evaluation algorithm for learning
 /// a value function \f$V\f$ under a policy \f$\pi\f$. The  implementation
 /// uses a two array approach. Thus it is assumed the world,
@@ -271,4 +275,5 @@ SyncValueFuncItr<WorldTp>::train(PolicyTp& policy, const DynamicsP& dynamics){
 }
 }
 
+#endif
 #endif // SYNCHRONOUS_VALUE_FUNCTION_LEARNER_H
