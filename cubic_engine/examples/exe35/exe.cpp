@@ -84,7 +84,12 @@ int main() {
         {{5.0, 9.0}},
         {{8.0, 9.0}},
         {{7.0, 9.0}},
-        {{12.0, 12.0}}
+        {{8.0, 10.0}},
+        {{9.0, 11.0}},
+        {{12.0, 13.0}},
+        {{12.0, 12.0}},
+        {{15.0, 15.0}},
+        {{13.0, 13.0}}
       });
 
     DiffDriveConfig config;
@@ -110,7 +115,7 @@ int main() {
 
     typedef DiffDriveDW<SysState<5>, GeomPoint<2>>::control_t control_t;
 
-    control_t control{0.01, 0.0};
+    control_t control{0.0, 0.0};
 
     DiffDriveDWConfig dw_config;
     dw_config.robot_radius = ROBOT_RADIUS;
@@ -121,18 +126,23 @@ int main() {
     dw_config.min_speed = -0.5;
     dw_config.max_yaw_rate = 40.0 * kernel::MathConsts::PI / 180.0;
     dw_config.max_accel = 0.2;
-    dw_config.max_dyawrate = 40.0 * kernel::MathConsts::PI / 180.0;
+    dw_config.max_delta_yaw_rate = 40.0 * kernel::MathConsts::PI / 180.0;
     dw_config.v_reso = 0.01;
     dw_config.yawrate_reso = 0.1 * kernel::MathConsts::PI / 180.0;
     dw_config.min_cost = 10000.0;
     dw_config.speed_cost_gain = 1.0;
     dw_config.to_goal_cost_gain = 1.0;
 
-    // the dynamic window
+    // the dynamic window. Initialize by passing
+    // the current state, the configuration of
+    // the window, the goal and the initial control
     DiffDriveDW<SysState<5>, GeomPoint<2>> dw(x, dw_config, goal, control);
     dw.update_dynamics_state(vehicle.get_state());
 
     trajectory_t traj;
+
+    // add to the trajectory the current
+    // state
     update_trajectory(traj, x);
 
     try{
@@ -145,11 +155,19 @@ int main() {
 
           for(auto i=0; i<N_MAX_ITRS && !terminal; i++){
 
-            // calculate best trajectory
+              if(i == 45){
+                  std::cout<<"Stop here"<<std::endl;
+              }
+
+            std::cout<<kernel::KernelConsts::info_str()<<"========================================="<<std::endl;
+            std::cout<<kernel::KernelConsts::info_str()<<"Step="<<i<<std::endl;
+            std::cout<<kernel::KernelConsts::info_str()<<"Goal="<<goal<<std::endl;
+
+            // calculate best trajectory and control
             auto trajectory = dw.dwa_control(ob);
 
-            std::cout<<kernel::KernelConsts::info_str()<<"v="<<dw.get_control()[0]
-                     <<" w="<<dw.get_control()[1]<<std::endl;
+            std::cout<<kernel::KernelConsts::info_str()<<"Cv="<<dw.get_control()[0]
+                     <<" Cw="<<dw.get_control()[1]<<std::endl;
 
             // integrate the vehicle based on the
             // updated controls
@@ -167,6 +185,7 @@ int main() {
             auto theta = x[2];
             std::cout<<kernel::KernelConsts::info_str()<<"x="<<pos_x<<" y="<<pos_y<<" theta="<<theta<<std::endl;
 
+            // update the trajectory from state
             update_trajectory(traj, x);
 
             // visualization
@@ -201,6 +220,7 @@ int main() {
                          cv::circle(bg, cv_offset(traj[j][0], traj[j][1], bg.cols, bg.rows),
                                      7, cv::Scalar(0,0,255), -1);
                        }
+                  std::cout<<kernel::KernelConsts::info_str()<<"Goal Reached!!!"<<std::endl;
             }
 
             cv::imshow("DWA", bg);
