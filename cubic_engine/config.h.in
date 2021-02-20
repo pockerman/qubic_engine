@@ -16,8 +16,13 @@
 /*Use OpenCV */
 #cmakedefine USE_OPEN_CV
 
+
+/*Allow Warnings for missing implementation*/
+#cmakedefine USE_WARNINGS_FOR_MISSING_IMPLEMENTATION
+
 /*Use reinforcement learning*/
 #cmakedefine USE_RL
+
 
 #endif
 

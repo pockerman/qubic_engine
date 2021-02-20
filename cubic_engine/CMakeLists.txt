@@ -32,7 +32,9 @@ SET(USE_PYTORCH "OFF")
 SET(USE_TRILINOS "OFF")
 SET(USE_TRILINOS_LONG_LONG_TYPE "OFF")
 SET(USE_OPEN_CV "ON")
+SET(USE_WARNINGS_FOR_MISSING_IMPLEMENTATION "ON")
 SET(USE_RL "ON")
+
 
 # project include directory
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
@@ -63,7 +65,7 @@ IF(USE_OPEN_CV MATCHES "ON")
     MESSAGE(STATUS  "Using OpenCV include files at ${OPENCV_INCL_DIR} ")
     MESSAGE(STATUS  "Using OpenCV libraries at ${OPENCV_LIB_DIR} ")
 ELSE()
-    MESSAGE(STATUS  "OpenCV is not used")
+    MESSAGE(STATUS  "OpenCV will not be used")
 ENDIF()
 
 
