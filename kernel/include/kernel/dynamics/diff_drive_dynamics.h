@@ -25,6 +25,12 @@ class DiffDriveDynamics: public MotionModelDynamicsBase<SysState<3>,
 public:
 
     ///
+    /// \brief The DynamicVersion enum. Helper enum to
+    /// disambiguate the two supplied configurations
+    ///
+    enum class DynamicVersion{V1, V2, V3};
+
+    ///
     /// \brief The type of the state handled by this dynamics object
     ///
     typedef MotionModelDynamicsBase<SysState<3>,
@@ -55,12 +61,12 @@ public:
     ///
     /// \brief Constructor
     ///
-    DiffDriveDynamics();
+    explicit DiffDriveDynamics(DynamicVersion type = DynamicVersion::V1);
 
     ///
     /// \brief Constructor
     ///
-    DiffDriveDynamics(state_t&& state);
+    explicit DiffDriveDynamics(state_t&& state);
 
     ///
     /// \brief Evaluate the new state using the given input
@@ -137,6 +143,11 @@ private:
     /// \brief w_ The angular velocity used for integration
     ///
     real_t w_;
+
+    ///
+    /// \brief
+    ///
+    DynamicVersion type_;
 
 };
 
