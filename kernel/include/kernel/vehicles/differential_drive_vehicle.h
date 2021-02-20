@@ -1,12 +1,14 @@
-#ifndef DIFD_DRIVE_VEHICLE_H
-#define DIFD_DRIVE_VEHICLE_H
+#ifndef DIFFERENTIAL_DRIVE_VEHICLE_H
+#define DIFFERENTIAL_DRIVE_VEHICLE_H
 
 #include "kernel/base/types.h"
 #include "kernel/dynamics/diff_drive_dynamics.h"
+#include "kernel/vehicles/vehicle_base.h"
 #include "kernel/geometry/geom_point.h"
 #include "kernel/base/kernel_consts.h"
 
 namespace kernel{
+namespace vehicles{
 
 ///
 /// \brief The DiffDriveConfig struct. Sturct
@@ -61,12 +63,17 @@ struct DiffDriveConfig
     /// of the vehicle dynamics will be used
     ///
     bool update_description_matrices_on_evaluate{false};
+
+    ///
+    /// \brief The version of the dynamics the vehicle is using
+    ///
+    dynamics::DiffDriveDynamics::DynamicVersion dynamics_version{dynamics::DiffDriveDynamics::DynamicVersion::V1};
 };
 
 ///
-/// \brief Base class that models a differential drive
+/// \brief Base class that models a differential drive vehicle
 ///
-class DiffDriveVehicle
+class DiffDriveVehicle: public VehicleBase<dynamics::DiffDriveDynamics>
 {
 
 public:
@@ -75,13 +82,13 @@ public:
     /// \brief dynamics_t. The type of the object describing
     /// the dynamics
     ///
-    typedef dynamics::DiffDriveDynamics dynamics_t;
+    typedef VehicleBase<dynamics::DiffDriveDynamics>::dynamics_t dynamics_t;
 
     ///
     /// \brief state_t. The type of the object describing the
     /// state
     ///
-    typedef dynamics::DiffDriveDynamics::state_t state_t;
+    typedef VehicleBase<dynamics::DiffDriveDynamics>::state_t state_t;
 
     ///
     /// \brief constructor
@@ -90,7 +97,7 @@ public:
 
     ///
     /// \brief integrate the diff drive system
-    /// by passing the linear and angular velocities and an velocities
+    /// by passing the linear and angular velocities
     ///
     void integrate(real_t v, real_t w){integrate(v, w, {{0.0, 0.0}});}
 
@@ -101,43 +108,6 @@ public:
     void integrate(real_t v, real_t w, const std::array<real_t, 2>& errors);
 
     ///
-    /// \brief Read the x-coordinate
-    ///
-    real_t get_x_position()const{return dynamics_.get_x_position(); }
-
-    ///
-    /// \brief Set the x-coordinate
-    ///
-    void set_x_position(real_t x){dynamics_.set_x_position(x);}
-
-    ///
-    /// \brief Read the y-coordinate
-    ///
-    real_t get_y_position()const{return dynamics_.get_y_position();}
-
-    ///
-    /// \brief Set the y-coordinate
-    ///
-    void set_y_position(real_t y){dynamics_.set_y_position(y);}
-
-    ///
-    /// \brief Write the position to the given
-    /// type. Type must support operator[]
-    ///
-    template<typename Type>
-    void get_position(Type& pos)const;
-
-    ///
-    /// \brief Read the orientation
-    ///
-    real_t get_orientation()const{return dynamics_.get_orientation();}
-
-    ///
-    /// \brief Set the orientation
-    ///
-    void set_orientation(real_t theta){dynamics_.set_orientation(theta);}
-
-    ///
     /// \brief Set the linear velocity of the vehicle.
     /// This sets the vr, vl assuming that the angular
     /// velocity of the vehicle is zero. If not use
@@ -145,14 +115,11 @@ public:
     ///
     void set_velocity(real_t v);
 
+    ///
     /// \brief Set the linear and angular velocities
     /// of the vehicle
+    ///
     void set_velocities(real_t v, real_t w);
-
-    ///
-    /// \brief Set time step
-    ///
-    void set_time_step(real_t dt){dynamics_.set_time_step(dt);}
 
     ///
     /// \brief Read current velocity of the vehicle
@@ -184,12 +151,6 @@ public:
     ///
     real_t get_clipped_angular_velocity(real_t w)const;
 
-    ///
-    /// \brief Returns the state of the vehicle
-    ///
-    const state_t& get_state()const;
-
-
 
 private:
 
@@ -197,11 +158,6 @@ private:
     /// \brief The properties of the robot
     ///
     DiffDriveConfig properties_;
-
-    ///
-    /// \brief The object that handles the dynamics
-    ///
-    dynamics::DiffDriveDynamics dynamics_;
 
     ///
     /// \brief The right wheel velocity
@@ -221,14 +177,7 @@ private:
 };
 
 
-template<typename Type>
-void
-DiffDriveVehicle::get_position(Type& pos)const{
-
-    pos[0] = get_x_position();
-    pos[1] = get_y_position();
-}
-
+}// vehicles
 }
 
 #endif // DIFD_DRIVE_VEHICLE_H

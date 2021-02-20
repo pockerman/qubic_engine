@@ -1,17 +1,19 @@
-#include "kernel/vehicles/difd_drive_vehicle.h"
+#include "kernel/vehicles/differential_drive_vehicle.h"
 #include <cmath>
-namespace kernel
-{
+
+namespace kernel{
+namespace vehicles{
+
 
 DiffDriveVehicle::DiffDriveVehicle(const DiffDriveConfig& properties)
     :
+      VehicleBase<dynamics::DiffDriveDynamics>(properties.dynamics_version),
       properties_(properties),
-      dynamics_(),
       vr_(0.0),
       vl_(0.0),
       w_(0.0)
 {
-		dynamics_.set_matrix_update_flag(properties_.update_description_matrices_on_evaluate);
+    this->dynamics_.set_matrix_update_flag(properties_.update_description_matrices_on_evaluate);
 }
 
 real_t
@@ -96,13 +98,9 @@ DiffDriveVehicle::integrate(real_t v, real_t w, const std::array<real_t, 2>& err
     input.insert_or_assign("w", w_);
     input.insert_or_assign("errors", errors);
 
-    dynamics_.integrate(input);
+    this->dynamics_.integrate(input);
 }
 
 
-const DiffDriveVehicle::state_t&
-DiffDriveVehicle::get_state()const{
-    return dynamics_.get_state();
 }
-
 }
