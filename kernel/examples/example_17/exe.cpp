@@ -508,7 +508,7 @@ int main(){
     StopSimulation stop_sim;
 
     DiffDriveConfig properties;
-    properties.R = RADIUS;
+    properties.wheel_radius = RADIUS;
 
     /// the vehicle the simulator is simulating
     DiffDriveVehicle vehicle(properties);
