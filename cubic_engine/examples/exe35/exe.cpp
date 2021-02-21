@@ -5,10 +5,12 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/planning/diff_drive_dynamic_window.h"
 #include "kernel/geometry/geom_point.h"
-#include "kernel/vehicles/difd_drive_vehicle.h"
+#include "kernel/vehicles/differential_drive_vehicle.h"
 #include "kernel/dynamics/system_state.h"
 #include "kernel/maths/constants.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/dynamics/diff_drive_dynamics.h"
+#include "kernel/geometry/bounding_box_type.h"
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
@@ -27,13 +29,16 @@ using cengine::uint_t;
 using cengine::real_t;
 using cengine::DynMat;
 using cengine::DynVec;
-using kernel::GeomPoint;
-using kernel::DiffDriveVehicle;
-using kernel::DiffDriveConfig;
-using kernel::dynamics::SysState;
 using cengine::planning::DiffDriveWindowProperties;
 using cengine::planning::DiffDriveDW;
 using cengine::planning::DiffDriveDWConfig;
+
+using kernel::GeomPoint;
+using kernel::vehicles::DiffDriveVehicle;
+using kernel::vehicles::DiffDriveConfig;
+using kernel::dynamics::SysState;
+using kernel::dynamics::DiffDriveDynamics;
+
 
 const real_t DT = 0.1;
 const uint_t N_MAX_ITRS = 1000;
@@ -97,8 +102,10 @@ int main() {
     config.vmin = -0.5;
     config.wmax = 40.0 * kernel::MathConsts::PI / 180.0;
     config.wmin = -10.0 * kernel::MathConsts::PI / 180.0;
-    config.R = 1.0;
-    config.L = 1.0;
+    config.wheel_radius = 1.0;
+    config.width = 0.5;
+    config.dynamics_version = DiffDriveDynamics::DynamicVersion::V2;
+    config.bbtype = kernel::geom::BBType::RECTANGLE;
 
     DiffDriveVehicle vehicle(config);
 
@@ -131,7 +138,10 @@ int main() {
     dw_config.yawrate_reso = 0.1 * kernel::MathConsts::PI / 180.0;
     dw_config.min_cost = 10000.0;
     dw_config.speed_cost_gain = 1.0;
-    dw_config.to_goal_cost_gain = 1.0;
+    dw_config.obstacle_cost_gain = 1.0;
+    dw_config.to_goal_cost_gain = 0.15;
+    dw_config.dynamics_version = DiffDriveDynamics::DynamicVersion::V2;
+    dw_config.bbtype = kernel::geom::BBType::RECTANGLE;
 
     // the dynamic window. Initialize by passing
     // the current state, the configuration of
