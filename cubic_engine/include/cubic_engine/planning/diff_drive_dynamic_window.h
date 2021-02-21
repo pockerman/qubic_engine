@@ -4,6 +4,8 @@
 #include "cubic_engine/base/config.h"
 #include "cubic_engine/planning/dynamic_window.h"
 #include "kernel/dynamics/diff_drive_dynamics.h"
+#include "kernel/geometry/bounding_box_type.h"
+
 #include <vector>
 #include <array>
 #include <limits>
@@ -14,8 +16,7 @@
 #include "kernel/base/kernel_consts.h"
 #endif
 
-namespace cengine
-{
+namespace cengine{
 namespace planning {
 
 ///
@@ -40,6 +41,9 @@ struct DiffDriveDWConfig
       real_t predict_time;
       real_t speed_cost_gain;
       real_t to_goal_cost_gain;
+      real_t obstacle_cost_gain;
+      kernel::dynamics::DiffDriveDynamics::DynamicVersion dynamics_version;
+      kernel::geom::BBType bbtype;
 };
 
 ///
@@ -67,7 +71,6 @@ public:
     /// \brief state_t. The type of the state used by the window
     ///
     typedef typename DynamicWindowBase<StateTp, DiffDriveDWConfig, DiffDriveWindowProperties>::state_t state_t;
-
 
     ///
     /// \brief config_t. Congiguration type used by the window
@@ -155,7 +158,7 @@ protected:
     ///
     /// \brief calc_trajectory_
     ///
-    trajectory_t calc_trajectory_();
+    trajectory_t predict_trajectory_();
 
     ///
     /// \brief calc_to_goal_cost_ Claculate the cost to the goal with the
@@ -184,7 +187,7 @@ DiffDriveDW<StateTp, GoalTp>::DiffDriveDW(state_t& state, const config_t& config
     DynamicWindowBase<StateTp, DiffDriveDWConfig, DiffDriveWindowProperties>(state, config),
     goal_(goal),
     control_(control),
-    dynamics_()
+    dynamics_(config.dynamics_version)
 {
     // we don't need matrix updates
     dynamics_.set_matrix_update_flag(false);
@@ -224,7 +227,7 @@ DiffDriveDW<StateTp, GoalTp>::update_state_from_dynamics_(){
 
 template<typename StateTp, typename GoalTp>
 typename DiffDriveDW<StateTp, GoalTp>::trajectory_t
-DiffDriveDW<StateTp, GoalTp>::calc_trajectory_(){
+DiffDriveDW<StateTp, GoalTp>::predict_trajectory_(){
 
     trajectory_t traj;
     traj.push_back(this->state_->get_values());
@@ -327,13 +330,13 @@ DiffDriveDW<StateTp, GoalTp>::calculate_control_input_(const ObstacleTp& obstacl
     for (auto v=v_min; v <= v_max; v += this->config_.v_reso){
        for (auto w=w_min; w <= w_max; w += this->config_.yawrate_reso){
 
-            trajectory_t traj = calc_trajectory_();
+            trajectory_t traj = predict_trajectory_();
 
             // what's the cost reaching goal on this
             // trajectory
-            auto to_goal_cost = calc_to_goal_cost_(traj);
+            auto to_goal_cost = this->config_.to_goal_cost_gain*calc_to_goal_cost_(traj);
             auto speed_cost = this->config_.speed_cost_gain * (this->config_.max_speed - traj.back()[3]);
-            auto ob_cost = calc_obstacle_cost_(traj, obstacle);
+            auto ob_cost = this->config_.obstacle_cost_gain*calc_obstacle_cost_(traj, obstacle);
 
             // final cost
             auto final_cost = to_goal_cost + speed_cost + ob_cost;
