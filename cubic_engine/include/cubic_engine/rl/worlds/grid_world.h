@@ -73,6 +73,12 @@ public:
     ///
     void execute_action(action_t aid);
 
+    ///
+    /// \brief build The world with nx elements in the x-direction
+    /// and ny-elements in the y-direction
+    ///
+    void build(const uint_t nx, const uint_t ny);
+
 private:
 
 
@@ -145,6 +151,149 @@ GridWorld<RewardTp>::execute_action(typename GridWorld<RewardTp>::action_t aid){
     this->current_state_ = const_cast<state_t*>(this->current_state_)->execute_action(aid);
 }
 
+
+template<typename RewardTp>
+void
+GridWorld<RewardTp>::build(const uint_t nx, const uint_t ny){
+
+    // clear what ever state we may have
+    this->states_.clear();
+    this->states_.reserve(nx*ny);
+    std::vector<std::string> cell_type(nx*ny);
+
+    uint_t counter=0;
+
+    for(uint_t j=0; j<ny; ++j){
+        for(uint_t i=0; i<nx; ++i){
+            this->states_.push_back(state_t(counter));
+
+            // bottom row
+            if( j == 0){
+
+                if(i == 0){
+                    cell_type[counter] = "BOTTOM_LEFT_CORNER";
+                }
+                else if( i != nx -1 ){
+                    cell_type[counter] = "BOTTOM";
+                }
+                else{
+                   cell_type[counter] = "BOTTOM_RIGHT_CORNER";
+                }
+            }
+            else if( j != ny - 1){
+
+                // middle cells
+                if( i % nx == 0){
+                    cell_type[counter] = "MOST_LEFT_COLUMN";
+                }
+                else if( i != nx -1 ){
+
+                    cell_type[counter] = "MIDDLE";
+                }
+                else{
+                   cell_type[counter] = "MOST_RIGHT_COLUMN";
+                }
+            }
+            else{
+
+                // top row cells
+                if( i % nx == 0){
+                    cell_type[counter] = "TOP_LEFT_CORNER";
+                }
+                else if( i != nx -1 ){
+
+                    cell_type[counter] = "TOP";
+                }
+                else{
+                   cell_type[counter] = "TOP_RIGHT_CORNER";
+                }
+            }
+
+            counter++;
+        }
+    }
+
+    // we now buid the state-action association
+    counter = 0;
+    for(uint_t i=0; i<nx*ny; ++i){
+
+            auto& state = this->get_state(i);
+            auto c_type = cell_type[i];
+
+            if(c_type == "BOTTOM_LEFT_CORNER"){
+
+
+                // fall back to itself for SOUTH and WEST
+                state.set_transition(GridWorldAction::SOUTH, &state);
+                state.set_transition(GridWorldAction::EAST, &this->get_state(i + 1));
+                state.set_transition(GridWorldAction::NORTH, &this->get_state(nx + i));
+                state.set_transition(GridWorldAction::WEST, &state);
+            }
+            else if(c_type == "BOTTOM"){
+
+                // fall back to itself for SOUTH
+                state.set_transition(GridWorldAction::SOUTH, &state);
+                state.set_transition(GridWorldAction::EAST, &this->get_state(i + 1));
+                state.set_transition(GridWorldAction::NORTH, &this->get_state(nx + i));
+                state.set_transition(GridWorldAction::WEST, &this->get_state(i - 1));
+            }
+            else if(c_type == "BOTTOM_RIGHT_CORNER"){
+
+                // fall back to itself for SOUTH and EAST
+                state.set_transition(GridWorldAction::SOUTH, &state);
+                state.set_transition(GridWorldAction::EAST, &state);
+                state.set_transition(GridWorldAction::NORTH, &this->get_state(nx + i));
+                state.set_transition(GridWorldAction::WEST, &this->get_state(i - 1));
+            }
+            else if(c_type == "MOST_LEFT_COLUMN"){
+
+                // fall back to itself for SOUTH and EAST
+                state.set_transition(GridWorldAction::SOUTH, &this->get_state(nx - i));
+                state.set_transition(GridWorldAction::EAST, &this->get_state(i + 1));
+                state.set_transition(GridWorldAction::NORTH, &this->get_state(nx + i));
+                state.set_transition(GridWorldAction::WEST, &state);
+            }
+            else if(c_type == "MIDDLE"){
+
+                state.set_transition(GridWorldAction::SOUTH, &this->get_state(nx - i));
+                state.set_transition(GridWorldAction::EAST, &this->get_state(i + 1));
+                state.set_transition(GridWorldAction::NORTH, &this->get_state(nx + i));
+                state.set_transition(GridWorldAction::WEST, &this->get_state(i - 1));
+            }
+            else if(c_type == "MOST_RIGHT_COLUMN"){
+
+                state.set_transition(GridWorldAction::SOUTH, &this->get_state(nx - i));
+                state.set_transition(GridWorldAction::EAST, &state);
+                state.set_transition(GridWorldAction::NORTH, &this->get_state(nx + i));
+                state.set_transition(GridWorldAction::WEST, &this->get_state(i - 1));
+
+            }
+            else if(c_type == "TOP_LEFT_CORNER"){
+
+                state.set_transition(GridWorldAction::SOUTH, &this->get_state(nx - i));
+                state.set_transition(GridWorldAction::EAST, &this->get_state(i + 1));
+                state.set_transition(GridWorldAction::NORTH, &state);
+                state.set_transition(GridWorldAction::WEST, &state);
+            }
+            else if(c_type == "TOP"){
+
+                state.set_transition(GridWorldAction::SOUTH, &this->get_state(nx - i));
+                state.set_transition(GridWorldAction::EAST, &this->get_state(i + 1));
+                state.set_transition(GridWorldAction::NORTH, &state);
+                state.set_transition(GridWorldAction::WEST, &this->get_state(i - 1));
+            }
+            else if(c_type == "TOP_RIGHT_CORNER"){
+
+                state.set_transition(GridWorldAction::SOUTH, &this->get_state(nx - i));
+                state.set_transition(GridWorldAction::EAST, &state);
+                state.set_transition(GridWorldAction::NORTH, &state);
+                state.set_transition(GridWorldAction::WEST, &this->get_state(i - 1));
+            }
+            else{
+                throw std::logic_error("Cell type " + c_type +" is unknown");
+            }
+        }
+}
 
 }
 }
