@@ -27,9 +27,9 @@ SET(CUBIC_ENGINE_VERSION "${CUBIC_ENGINE_VERSION_MAJOR}.${CUBIC_ENGINE_VERSION_M
 # required configuration
 SET(BUILD_SHARED_LIBS ON)
 SET(CMAKE_BUILD_TYPE "Debug")
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-
 
 # optional configuration
 OPTION(ENABLE_TESTING "Build tests" ON)
@@ -41,15 +41,6 @@ OPTION(USE_TRILINOS_LONG_LONG_TYPE "Specify the integer type that Trilinos has b
 OPTION(USE_OPEN_CV "Build with OpenCV support" ON)
 OPTION(USE_RL "Build with RL framework support" ON)
 OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
-
-#SET(ENABLE_TESTING "ON")
-#SET(USE_OPENMP "ON")
-#SET(USE_LOG "ON")
-#SET(USE_PYTORCH "OFF")
-#SET(USE_TRILINOS "OFF")
-#SET(USE_TRILINOS_LONG_LONG_TYPE "OFF")
-#SET(USE_OPEN_CV "ON")
-#SET(USE_RL "ON")
 
 # project include directory
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
@@ -84,7 +75,7 @@ IF(USE_OPEN_CV)
     MESSAGE(STATUS  "Using OpenCV include files at ${OPENCV_INCL_DIR} ")
     MESSAGE(STATUS  "Using OpenCV libraries at ${OPENCV_LIB_DIR} ")
 ELSE()
-    MESSAGE(STATUS  "OpenCV is not used")
+    MESSAGE(STATUS  "OpenCV will not be used")
 ENDIF()
 
 

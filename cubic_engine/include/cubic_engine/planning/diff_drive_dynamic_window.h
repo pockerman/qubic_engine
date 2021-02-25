@@ -1,12 +1,18 @@
 #ifndef DIFF_DRIVE_DYNAMIC_WINDOW_H
 #define DIFF_DRIVE_DYNAMIC_WINDOW_H
 
+#include "cubic_engine/base/config.h"
 #include "cubic_engine/planning/dynamic_window.h"
 #include "kernel/dynamics/diff_drive_dynamics.h"
 #include <vector>
 #include <array>
 #include <limits>
 #include <cmath>
+
+#ifdef USE_WARNINGS_FOR_MISSING_IMPLEMENTATION
+#include <iostream>
+#include "kernel/base/kernel_consts.h"
+#endif
 
 namespace cengine
 {
@@ -24,7 +30,7 @@ struct DiffDriveDWConfig
       real_t min_speed;
       real_t max_yaw_rate;
       real_t max_accel;
-      real_t max_dyawrate;
+      real_t max_delta_yaw_rate;
       real_t dt;
       real_t min_cost;
       real_t v_reso;
@@ -41,10 +47,10 @@ struct DiffDriveDWConfig
 ///
 struct DiffDriveWindowProperties
 {
-    real_t v_max;
-    real_t v_min;
-    real_t w_max;
-    real_t w_min;
+    real_t v_max{0.0};
+    real_t v_min{0.0};
+    real_t w_max{0.0};
+    real_t w_min{0.0};
 };
 
 ///
@@ -85,15 +91,20 @@ public:
     typedef std::vector<real_t> control_t;
 
     ///
-    /// \brief Trajectory Helper type used to form trajectories
+    /// \brief trajectory_t Helper type used to form trajectories
     ///
     typedef std::vector<std::array<real_t, 5>> trajectory_t;
 
     ///
+    /// \brief dynamics_state_t. The type of the dynamics states
+    ///
+    typedef kernel::dynamics::DiffDriveDynamics::state_t dynamics_state_t;
+
+    ///
     /// \brief DiffDriveDW. Constructor
     ///
-    DiffDriveDW(state_t& state, const config_t& config, const goal_t& goal,
-                const control_t& control, const window_properties_t& wproperties);
+    DiffDriveDW(state_t& state, const config_t& config,
+                const goal_t& goal, const control_t& control);
 
     ///
     /// \brief get_control. Access the control value
@@ -110,6 +121,12 @@ public:
     ///
     template<typename ObstacleTp>
     trajectory_t dwa_control(const ObstacleTp& obstacle);
+
+    ///
+    /// \brief update_dynamics_state. Update the state of
+    /// the object describing the dynamics
+    ///
+    void update_dynamics_state(const dynamics_state_t& state);
 
 
 protected:
@@ -162,21 +179,33 @@ protected:
 
 template<typename StateTp, typename GoalTp>
 DiffDriveDW<StateTp, GoalTp>::DiffDriveDW(state_t& state, const config_t& config, const goal_t& goal,
-                                          const control_t& control, const window_properties_t& wproperties)
+                                          const control_t& control)
     :
-    DynamicWindowBase<StateTp, DiffDriveDWConfig, DiffDriveWindowProperties>(state, config, wproperties),
+    DynamicWindowBase<StateTp, DiffDriveDWConfig, DiffDriveWindowProperties>(state, config),
     goal_(goal),
-    control_(control)
-{}
+    control_(control),
+    dynamics_()
+{
+    // we don't need matrix updates
+    dynamics_.set_matrix_update_flag(false);
+}
+
+template<typename StateTp, typename GoalTp>
+void
+DiffDriveDW<StateTp, GoalTp>::update_dynamics_state(const dynamics_state_t& state){
+    dynamics_.get_state() = state;
+}
 
 template<typename StateTp, typename GoalTp>
 typename DiffDriveDW<StateTp, GoalTp>::window_properties_t&
 DiffDriveDW<StateTp, GoalTp>::calculate_window(){
 
+    // update the dynamic window
+    // properties.
     this->w_properties_.v_min = std::max(this->state_->operator()("v") - this->config_.max_accel * this->config_.dt, this->config_.min_speed);
     this->w_properties_.v_max = std::min(this->state_->operator()("v") + this->config_.max_accel * this->config_.dt, this->config_.max_speed);
-    this->w_properties_.w_min = std::max(this->state_->operator()("w") - this->config_.max_dyawrate * this->config_.dt, -this->config_.max_yaw_rate);
-    this->w_properties_.w_max = std::min(this->state_->operator()("w") + this->config_.max_dyawrate * this->config_.dt, this->config_.max_yaw_rate);
+    this->w_properties_.w_min = std::max(this->state_->operator()("w") - this->config_.max_delta_yaw_rate * this->config_.dt, -this->config_.max_yaw_rate);
+    this->w_properties_.w_max = std::min(this->state_->operator()("w") + this->config_.max_delta_yaw_rate * this->config_.dt, this->config_.max_yaw_rate);
 
     return this->w_properties_;
 }
@@ -205,6 +234,14 @@ DiffDriveDW<StateTp, GoalTp>::calc_trajectory_(){
     model_input.insert({"v", control_[0]});
     model_input.insert({"w", control_[1]});
 
+#ifdef USE_WARNINGS_FOR_MISSING_IMPLEMENTATION
+    //std::cout<<kernel::KernelConsts::warning_str()<<"Errors have not been accounted for in the implementation"<<std::endl;
+#endif
+
+    std::array<real_t, 2> errors;
+    errors[0] = errors[1] = 0.0;
+    model_input.insert({"errors", errors});
+
     auto time = 0.0;
     while (time <= this->config_.predict_time){
 
@@ -213,6 +250,7 @@ DiffDriveDW<StateTp, GoalTp>::calc_trajectory_(){
         traj.push_back(this->state_->get_values());
         time += this->config_.dt;
     }
+
     return traj;
 }
 
@@ -220,13 +258,21 @@ template<typename StateTp, typename GoalTp>
 real_t
 DiffDriveDW<StateTp, GoalTp>::calc_to_goal_cost_(const trajectory_t& trajectory){
 
-    auto goal_magnitude = std::sqrt(goal_[0]*goal_[0] + goal_[1]*goal_[1]);
-    auto traj_magnitude = std::sqrt(std::pow(trajectory.back()[0], 2) + std::pow(trajectory.back()[1], 2));
-    auto dot_product = (goal_[0] * trajectory.back()[0]) + (goal_[1] * trajectory.back()[1]);
-    auto error = dot_product / (goal_magnitude * traj_magnitude);
-    auto error_angle = std::acos(error);
-    auto cost = this->config_.to_goal_cost_gain * error_angle;
-    return cost;
+    //auto goal_magnitude = std::sqrt(goal_[0]*goal_[0] + goal_[1]*goal_[1]);
+    //auto traj_magnitude = std::sqrt(std::pow(trajectory.back()[0], 2) + std::pow(trajectory.back()[1], 2));
+    //auto dot_product = (goal_[0] * trajectory.back()[0]) + (goal_[1] * trajectory.back()[1]);
+    //auto error = dot_product / (goal_magnitude * traj_magnitude + 1.0e-4);
+
+    auto dx = goal_[0] - trajectory.back()[0];
+    auto dy = goal_[1] - trajectory.back()[1];
+
+    auto error_angle = std::atan2(dy, dx);
+    auto cost_angle = error_angle - trajectory.back()[2];
+
+    return std::abs(std::atan2(std::sin(cost_angle), std::cos(cost_angle)));
+
+    //auto cost = this->config_.to_goal_cost_gain * error_angle;
+    //return cost;
 }
 
 template<typename StateTp, typename GoalTp>
@@ -237,7 +283,7 @@ DiffDriveDW<StateTp, GoalTp>::calc_obstacle_cost_(const trajectory_t& trajectory
     // calc obstacle cost inf: collistion, 0:free
     auto minr = std::numeric_limits<real_t>::max();
 
-    for (auto ii=0; ii<trajectory.size(); ii+=this->config_.skip_n){
+    for (auto ii=0; ii<trajectory.size(); ii += this->config_.skip_n){
       for (auto i=0; i< obstacle.size(); i++){
 
         auto ox = obstacle[i][0];
@@ -264,9 +310,10 @@ template<typename ObstacleTp>
 typename DiffDriveDW<StateTp, GoalTp>::trajectory_t
 DiffDriveDW<StateTp, GoalTp>::calculate_control_input_(const ObstacleTp& obstacle){
 
-    float min_cost = 10000.0;
+    auto min_cost = std::numeric_limits<real_t>::max(); //this->config_.min_cost;
     auto min_u = control_;
     min_u[0] = 0.0;
+    min_u[1] = 0.0;
 
     auto v_min = this->w_properties_.v_min;
     auto v_max = this->w_properties_.v_max;
@@ -278,7 +325,7 @@ DiffDriveDW<StateTp, GoalTp>::calculate_control_input_(const ObstacleTp& obstacl
 
     // evalucate all trajectory with sampled input in dynamic window
     for (auto v=v_min; v <= v_max; v += this->config_.v_reso){
-       for (auto y=w_min; y <= w_max; y += this->config_.yawrate_reso){
+       for (auto w=w_min; w <= w_max; w += this->config_.yawrate_reso){
 
             trajectory_t traj = calc_trajectory_();
 
@@ -287,16 +334,22 @@ DiffDriveDW<StateTp, GoalTp>::calculate_control_input_(const ObstacleTp& obstacl
             auto to_goal_cost = calc_to_goal_cost_(traj);
             auto speed_cost = this->config_.speed_cost_gain * (this->config_.max_speed - traj.back()[3]);
             auto ob_cost = calc_obstacle_cost_(traj, obstacle);
+
+            // final cost
             auto final_cost = to_goal_cost + speed_cost + ob_cost;
 
+            // we want minimum cost trajectory
             if (min_cost >= final_cost){
               min_cost = final_cost;
-              min_u = control_t{{v, y}};
+              min_u[0] = v;
+              min_u[1] = w; //control_t{{v, w}};
               best_traj = traj;
             }
         }
     }
 
+    // update the control and return the best
+    // trajectory
     control_ = min_u;
     return best_traj;
 }

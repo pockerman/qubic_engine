@@ -109,7 +109,6 @@ public:
     void set_state_name_value(uint_t i, const std::pair<std::string, real_t>&  val)
     {state_.set(i, val);}
 
-
     ///
     /// \brief Set the time step
     ///

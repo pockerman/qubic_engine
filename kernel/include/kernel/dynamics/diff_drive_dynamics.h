@@ -25,6 +25,12 @@ class DiffDriveDynamics: public MotionModelDynamicsBase<SysState<3>,
 public:
 
     ///
+    /// \brief The DynamicVersion enum. Helper enum to
+    /// disambiguate the two supplied configurations
+    ///
+    enum class DynamicVersion{V1, V2, V3};
+
+    ///
     /// \brief The type of the state handled by this dynamics object
     ///
     typedef MotionModelDynamicsBase<SysState<3>,
@@ -55,12 +61,12 @@ public:
     ///
     /// \brief Constructor
     ///
-    DiffDriveDynamics();
+    explicit DiffDriveDynamics(DynamicVersion type = DynamicVersion::V1);
 
     ///
     /// \brief Constructor
     ///
-    DiffDriveDynamics(state_t&& state);
+    explicit DiffDriveDynamics(state_t&& state);
 
     ///
     /// \brief Evaluate the new state using the given input
@@ -104,16 +110,6 @@ public:
     void set_orientation(real_t theta){this->state_.set("Theta", theta);}
 
     ///
-    /// \brief Set the maximum angular velocity
-    ///
-    void set_max_w(real_t val){wmax_ = val;}
-
-    ///
-    /// \brief Set the maximum velocity
-    ///
-    void set_max_v(real_t val){vmax_ = val;}
-
-    ///
     /// \brief get_velocity Returns the velocity used for integration
     ///
     real_t get_velocity()const{return v_;}
@@ -138,7 +134,8 @@ public:
 private:
 
     ///
-    /// \brief v_ The velocity used for integration
+    /// \brief v_ The velocity used for integration. Updated
+    /// every time the application calls integrate
     ///
     real_t v_;
 
@@ -148,14 +145,10 @@ private:
     real_t w_;
 
     ///
-    /// \brief The maximum velocity
+    /// \brief
     ///
-    real_t vmax_;
+    DynamicVersion type_;
 
-    ///
-    /// \brief The maximum angular velocity
-    ///
-    real_t wmax_;
 };
 
 }
