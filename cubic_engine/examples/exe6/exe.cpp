@@ -1,4 +1,8 @@
-#include "cubic_engine/base/cubic_engine_types.h"
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
+/*#include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/utilities/csv_file_writer.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/utilities/csv_file_writer.h"
@@ -409,11 +413,11 @@ create_wolrd(world_t& w){
    }
 }
 
-}
+}*/
 
 int main() {
 
-    using namespace exe;
+    /*using namespace exe;
 
     /// the world of the agent
     world_t world;
@@ -477,7 +481,15 @@ int main() {
         world.execute_action(action);
         counter++;
     }
-    
+    */
    return 0;
 }
+#else
+#include <iostream>
+int main(){
+
+    std::cerr<<"You need to configure CubicEngine with RL support in order to run this example"<<std::endl;
+    return 0;
+}
+#endif
 
