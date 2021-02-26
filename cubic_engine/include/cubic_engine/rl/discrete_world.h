@@ -110,13 +110,17 @@ public:
     ///
     real_t get_dynamics(const state_t& state, const action_t& action)const;
 
-
     ///
     /// \brief get_dynamics_object. Returns read/write access to the
     /// object handling the dynamics of the environment
     ///
     dynamics_t& get_dynamics_object(){return dynamics_;}
 
+    ///
+    /// \brief save_world_as_csv. Save the world in csv format in the
+    /// file specified by the given filename
+    ///
+    virtual void save_world_as_csv(const std::string& filename)const=0;
 
 protected:
 

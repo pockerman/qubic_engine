@@ -180,6 +180,13 @@ public:
     ///
     void create_world();
 
+    ///
+    /// \brief save_world_as_csv. Save the world in csv format in the
+    /// file specified by the given filename
+    ///
+    virtual void save_world_as_csv(const std::string& filename)const override final{}
+
+
 private:
 
     ///

@@ -80,6 +80,18 @@ public:
     ///
     void build(const uint_t nx, const uint_t ny);
 
+    ///
+    /// \brief save_world_as_csv. Save the world in csv format in the
+    /// file specified by the given filename
+    ///
+    virtual void save_world_as_csv(const std::string& filename)const override final{}
+
+    ///
+    /// \brief load_world_from_csv. Load the world from csv format in the
+    /// file specified by the given filename
+    ///
+    void load_world_from_csv(const std::string& filename){}
+
 private:
 
     ///
