@@ -23,17 +23,18 @@ namespace worlds {
 ///
 /// \brief GridWorld class. Models the grid world environment
 ///
-template<typename RewardTp>
+template<typename RewardTp, typename DynamicsTp>
 class GridWorld final: public DiscreteWorld<GridWorldAction,
                                             GridWorldState,
-                                            RewardTp>
+                                            RewardTp, DynamicsTp>
 {
 public:
 
-    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>::reward_t reward_t;
-    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>::action_t action_t;
-    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>::state_t state_t;
-    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>::reward_value_t reward_value_t;
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::reward_t reward_t;
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::action_t action_t;
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::state_t state_t;
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::reward_value_t reward_value_t;
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::dynamics_t dynamics_t;
 
     ///
     /// \brief Global invalid action assumed by the
@@ -81,7 +82,6 @@ public:
 
 private:
 
-
     ///
     /// \brief The reward that the agent should recieve
     /// after executing an action
@@ -89,20 +89,20 @@ private:
     reward_value_t r_;
 };
 
-template<typename RewardTp>
-GridWorld<RewardTp>::GridWorld()
+template<typename RewardTp, typename DynamicsTp>
+GridWorld<RewardTp, DynamicsTp>::GridWorld()
     :
-    DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>(),
+    DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>(),
     r_(0.0)
 {}
 
-template<typename RewardTp>
-GridWorld<RewardTp>::~GridWorld()
+template<typename RewardTp, typename DynamicsTp>
+GridWorld<RewardTp, DynamicsTp>::~GridWorld()
 {}
 
-template<typename RewardTp>
+template<typename RewardTp, typename DynamicsTp>
 void
-GridWorld<RewardTp>::step(const typename GridWorld<RewardTp>::action_t& action){
+GridWorld<RewardTp, DynamicsTp>::step(const typename GridWorld<RewardTp, DynamicsTp>::action_t& action){
 
     if(this->states_.empty()){
         throw std::logic_error("Cell connectivity is not established");
@@ -144,17 +144,17 @@ GridWorld<RewardTp>::step(const typename GridWorld<RewardTp>::action_t& action){
 }
 
 
-template<typename RewardTp>
+template<typename RewardTp, typename DynamicsTp>
 void
-GridWorld<RewardTp>::execute_action(typename GridWorld<RewardTp>::action_t aid){
+GridWorld<RewardTp, DynamicsTp>::execute_action(action_t aid){
 
     this->current_state_ = const_cast<state_t*>(this->current_state_)->execute_action(aid);
 }
 
 
-template<typename RewardTp>
+template<typename RewardTp, typename DynamicsTp>
 void
-GridWorld<RewardTp>::build(const uint_t nx, const uint_t ny){
+GridWorld<RewardTp, DynamicsTp>::build(const uint_t nx, const uint_t ny){
 
     // clear what ever state we may have
     this->states_.clear();
