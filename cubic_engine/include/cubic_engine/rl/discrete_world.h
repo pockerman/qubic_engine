@@ -18,7 +18,7 @@ namespace rl {
 /// \brief The DiscreteWorld class. Class for modeling discrete
 /// worlds in reinforcement learning
 ///
-template<typename ActionTp, typename StateTp, typename RewardTp>
+template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
 class DiscreteWorld: public World<ActionTp, StateTp, RewardTp>
 {
 public:
@@ -27,6 +27,7 @@ public:
     typedef typename World<ActionTp, StateTp, RewardTp>::action_t action_t;
     typedef typename World<ActionTp, StateTp, RewardTp>::state_t state_t;
     typedef typename World<ActionTp, StateTp, RewardTp>::reward_value_t reward_value_t;
+    typedef DynamicsTp dynamics_t;
 
     ///
     /// \brief n_states. Returns the number of states
@@ -103,6 +104,19 @@ public:
         return this->reward_.get_reward(action, state);
     }
 
+    ///
+    /// \brief get_dynamics. Returns the probability at the given state
+    /// to take action
+    ///
+    real_t get_dynamics(const state_t& state, const action_t& action)const;
+
+
+    ///
+    /// \brief get_dynamics_object. Returns read/write access to the
+    /// object handling the dynamics of the environment
+    ///
+    dynamics_t& get_dynamics_object(){return dynamics_;}
+
 
 protected:
 
@@ -134,10 +148,15 @@ protected:
     /// has the current_state_ and goal_ state equal
     ///
     bool finished_;
+
+    ///
+    /// \brief dynamics_. Object describing the dynamics of the environment
+    ///
+    dynamics_t dynamics_;
 };
 
-template<typename ActionTp, typename StateTp, typename RewardTp>
-DiscreteWorld<ActionTp, StateTp, RewardTp>::DiscreteWorld()
+template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
+DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::DiscreteWorld()
     :
     World<ActionTp, StateTp, RewardTp>(),
     current_state_(nullptr),
@@ -146,18 +165,18 @@ DiscreteWorld<ActionTp, StateTp, RewardTp>::DiscreteWorld()
     finished_(false)
 {}
 
-template<typename ActionTp, typename StateTp, typename RewardTp>
+template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
 bool
-DiscreteWorld<ActionTp, StateTp, RewardTp>::is_goal_state(const state_t& state)const{
+DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::is_goal_state(const state_t& state)const{
 
     return std::find_if(goals_.begin(),
                         goals_.end(),
                         [&](const auto* ptr){return ptr->get_id() == state.get_id();}) != goals_.end();
 }
 
-template<typename ActionTp, typename StateTp, typename RewardTp>
-const typename DiscreteWorld<ActionTp, StateTp, RewardTp>::state_t&
-DiscreteWorld<ActionTp, StateTp, RewardTp>::get_state(uint_t id)const{
+template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
+const typename DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::state_t&
+DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::get_state(uint_t id)const{
 
     if(id >= states_.size()){
         throw std::logic_error("Invalid state id: "+
@@ -169,9 +188,9 @@ DiscreteWorld<ActionTp, StateTp, RewardTp>::get_state(uint_t id)const{
     return states_[id];
 }
 
-template<typename ActionTp, typename StateTp, typename RewardTp>
-typename DiscreteWorld<ActionTp, StateTp, RewardTp>::state_t&
-DiscreteWorld<ActionTp, StateTp, RewardTp>::get_state(uint_t id){
+template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
+typename DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::state_t&
+DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::get_state(uint_t id){
 
     if(id >= states_.size()){
         throw std::logic_error("Invalid state id: "+
@@ -184,10 +203,10 @@ DiscreteWorld<ActionTp, StateTp, RewardTp>::get_state(uint_t id){
 }
 
 
-template<typename ActionTp, typename StateTp, typename RewardTp>
+template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
 void
-DiscreteWorld<ActionTp, StateTp, RewardTp>::restart(const state_t& start,
-                                                    const state_t& goal){
+DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::restart(const state_t& start,
+                                                                const state_t& goal){
 
     current_state_ = &start;
     goals_ = std::vector<const state_t*>();
@@ -196,9 +215,9 @@ DiscreteWorld<ActionTp, StateTp, RewardTp>::restart(const state_t& start,
 
 }
 
-template<typename ActionTp, typename StateTp, typename RewardTp>
+template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
 void
-DiscreteWorld<ActionTp, StateTp, RewardTp>::restart(const state_t& start,
+DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::restart(const state_t& start,
                              std::vector<state_t*>&& goals){
 
     current_state_ = &start;
@@ -207,11 +226,18 @@ DiscreteWorld<ActionTp, StateTp, RewardTp>::restart(const state_t& start,
     finished_ = false;
 }
 
-template<typename ActionTp, typename StateTp, typename RewardTp>
+template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
 void
-DiscreteWorld<ActionTp, StateTp, RewardTp>::restart(const state_t& start){
+DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::restart(const state_t& start){
     current_state_ = &start;
     finished_ = false;
+}
+
+template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
+real_t
+DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::get_dynamics(const state_t& state,
+                                                                     const action_t& action)const{
+    return dynamics_(state, action);
 }
 
 }

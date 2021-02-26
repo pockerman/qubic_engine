@@ -11,7 +11,9 @@ namespace worlds{
 
 CliffWorld::CliffWorld()
     :
-      DiscreteWorld<GridWorldAction, GridWorldState,  cliff_world_detail::CliffWorldRewardProducer>(),
+      DiscreteWorld<GridWorldAction, GridWorldState,
+                    cliff_world_detail::CliffWorldRewardProducer,
+                    cliff_world_detail::CliffWorldDynamics>(),
       goal_(nullptr),
       r_(0.0)
 {}

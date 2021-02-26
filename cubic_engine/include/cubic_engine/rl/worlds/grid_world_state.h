@@ -51,6 +51,11 @@ public:
     uint_t n_actions()const{return 4;}
 
     ///
+    /// \brief n_states. Returns the number of states
+    ///
+    uint_t n_states()const{return 4;}
+
+    ///
     /// \brief is this action idx valid
     ///
     bool is_active_action(uint_t i)const;

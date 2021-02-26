@@ -8,6 +8,7 @@
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #include "cubic_engine/rl/synchronous_value_function_learning.h"
 #include "cubic_engine/rl/reward_table.h"
+#include "cubic_engine/rl/constant_environment_dynamics.h"
 
 #include <iostream>
 
@@ -21,6 +22,7 @@ using cengine::rl::worlds::GridWorldAction;
 using cengine::rl::SyncValueFuncItr;
 using cengine::rl::SyncValueFuncItrInput;
 using cengine::rl::RewardTable;
+using cengine::rl::ConstantEnvironmentDynamics;
 using kernel::CSVWriter;
 
 class RewardProducer
@@ -142,8 +144,11 @@ RewardProducer::setup_rewards(){
     rewards_.set_reward(15, GridWorldAction::WEST, -1.0);
 }
 
-typedef GridWorld<RewardProducer> world_t;
+
+
+typedef GridWorld<RewardProducer, ConstantEnvironmentDynamics> world_t;
 typedef world_t::state_t state_t;
+ typedef world_t::action_t action_t;
 
 const uint_t N_CELLS = 4;
 
@@ -155,25 +160,22 @@ int main(){
 
     try{
 
-        typedef GridWorld<RewardProducer> world_t;
-        typedef world_t::state_t state_t;
-        typedef world_t::action_t action_t;
-
         auto policy = [](const action_t&, const state_t&){
           return 0.25;
         };
 
         RewardProducer rproducer;
-        auto dynamics = [&rproducer](const state_t& s1, real_t,
+        /*auto dynamics = [&rproducer](const state_t& s1, real_t,
                 const state_t& s2, const action_t& action){
           return 0.25;
-        };
+        };*/
 
         std::vector<real_t> rewards(1, -1.0);
 
         /// the world of the agent
         world_t world;
         world.build(N_CELLS, N_CELLS);
+        world.get_dynamics_object().set_value(0.25);
 
         std::cout<<"Number of states: "<<world.n_states()<<std::endl;
 
@@ -202,7 +204,7 @@ int main(){
 
             std::cout<<"At iteration: "<<learner.get_current_iteration()<<std::endl;
 
-            learner.step(policy, dynamics);
+            learner.step(policy);
             auto values = learner.get_values();
 
             for(auto c=0; c<values.size(); ++c){
