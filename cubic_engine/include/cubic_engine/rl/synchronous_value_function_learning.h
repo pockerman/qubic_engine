@@ -14,6 +14,7 @@
 #else
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #endif
+
 #include <boost/noncopyable.hpp>
 #include <string>
 #include <map>
@@ -56,7 +57,8 @@ struct SyncValueFuncItrOutput
 /// the iterative policy evaluation algorithm for learning
 /// a value function \f$V\f$ under a policy \f$\pi\f$. The  implementation
 /// uses a two array approach. Thus it is assumed the world,
-/// action and reward spaces are finite.
+/// action and reward spaces are finite. The WorldTp template parameter
+/// should follow the interface of the DiscreteWorld class
 ///
 template<typename WorldTp>
 class SyncValueFuncItr: private boost::noncopyable
@@ -105,16 +107,14 @@ public:
     /// \brief Train on the given world using the given policy
     /// and the given dynamics function
     ///
-    template<typename PolicyTp, typename DynamicsP>
-    output_t train(PolicyTp& policy,
-                   const DynamicsP& dynamics);
+    template<typename PolicyTp>
+    output_t train(PolicyTp& policy);
 
     ///
-    /// \brief Performs one step of the train on the given world
+    /// \brief Performs one step of the training on the given world
     ///
-    template<typename PolicyTp, typename DynamicsP>
-    void step(PolicyTp& policy,
-              const DynamicsP& dynamics);
+    template<typename PolicyTp>
+    void step(PolicyTp& policy);
 
     ///
     /// \brief Initialize the underlying data structures
@@ -141,7 +141,7 @@ private:
     ///
     /// \brief The input provided to the algorithm
     ///
-    input_t imput_;
+    input_t input_;
 
     ///
     /// \brief The object that controls the iterations
@@ -162,12 +162,18 @@ private:
     /// \brief Pointer to the world
     ///
     world_t* world_;
+
+    ///
+    /// \brief one_step_lookahed_. Helper function to calculate the value
+    /// for all action in a given state.
+    ///
+    DynVec<real_t> one_step_lookahed_(const state_t& state)const;
 };
 
 template<typename WorldTp>
 SyncValueFuncItr<WorldTp>::SyncValueFuncItr()
     :
-    imput_(),
+    input_(),
     itr_controller_(0, 1.0e-8),
     vold_(),
     v_(),
@@ -177,7 +183,7 @@ SyncValueFuncItr<WorldTp>::SyncValueFuncItr()
 template<typename WorldTp>
 SyncValueFuncItr<WorldTp>::SyncValueFuncItr(SyncValueFuncItrInput&& input)
     :
-    imput_(input),
+    input_(input),
     itr_controller_(input.n_iterations, input.tol),
     vold_(),
     v_(),
@@ -194,29 +200,39 @@ SyncValueFuncItr<WorldTp>::initialize(world_t& world, real_t init_val){
 }
 
 template<typename WorldTp>
-template<typename PolicyTp, typename DynamicsP>
+template<typename PolicyTp>
 void
-SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
-                                const DynamicsP& dynamics){
+SyncValueFuncItr<WorldTp>::step(PolicyTp& policy){
+
+    if(world_ == nullptr){
+        std::runtime_error("World pointer is null.");
+    }
+
     real_t delta = 0.0;
 
     // loop over the states of the world
     for(uint_t s=0; s<world_->n_states(); ++s){
 
         // get the s-th state
-        auto state = world_->get_state(s);
+        auto& state = world_->get_state(s);
 
         // the world should know which state is terminal
         if(!world_->is_goal_state(state)){
 
-            // this is not the goal state
+            // this is not the goal state. Get the
+            // the previous value
             real_t old_v = vold_[state.get_id()];
 
             real_t weighted_sum = 0.0;
 
+            // look ahead values for the state
+            auto look_ahead_vals = one_step_lookahed_(state);
+
+            auto best_action_val = blaze::max(look_ahead_vals);
+
             // loop over all the actions allowed on this
             // state
-            for(uint_t a=0; a<state.n_actions(); ++a){
+            /*for(uint_t a=0; a<state.n_actions(); ++a){
 
                 auto action = state.get_action(a);
 
@@ -240,18 +256,19 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
                             real_t r = world_->get_reward(state, action);
                             real_t vs_prime = vold_[transition_states[os]->get_id()];
                             auto p= dynamics(*transition_states[os], r, state, action);
-                            value += p*(r + imput_.gamma*vs_prime );
+                            value += p*(r + input_.gamma*vs_prime );
                     }
                 }
 
                 weighted_sum += action_prob*value;
-            }
+            }*/
 
-            v_[state.get_id()] = weighted_sum;
-            delta = std::max(delta, std::fabs(old_v-weighted_sum));
+            v_[state.get_id()] = best_action_val; //weighted_sum;
+            delta = std::max(delta, std::fabs(old_v - best_action_val));//std::max(delta, std::fabs(old_v-weighted_sum));
         }       
-}
+    }
 
+    // update the residual of the controller
     itr_controller_.update_residual(delta);
 
     // finally update the vectors
@@ -259,17 +276,38 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy,
 }
 
 template<typename WorldTp>
-template<typename PolicyTp, typename DynamicsP>
+template<typename PolicyTp>
 typename SyncValueFuncItr<WorldTp>::output_t
-SyncValueFuncItr<WorldTp>::train(PolicyTp& policy, const DynamicsP& dynamics){
+SyncValueFuncItr<WorldTp>::train(PolicyTp& policy){
 
     while(itr_controller_.continue_iterations()){
 
-        if(imput_.show_iterations){
+        if(input_.show_iterations){
             std::cout<<itr_controller_.get_state()<<std::endl;
         }
-        step(policy, dynamics);
+        step(policy);
     }
+}
+
+template<typename WorldTp>
+DynVec<real_t>
+SyncValueFuncItr<WorldTp>::one_step_lookahed_(const state_t& state)const{
+
+    DynVec<real_t> values(state.n_actions(), 0.0);
+
+    for(uint_t a=0; a<state.n_actions(); ++a){
+        for(uint_t s=0; s<state.n_states(); ++s){
+
+            auto& trans_state = *state.get_states()[s];
+            auto action = state.get_action(a);
+            auto prob = world_->get_dynamics(trans_state, action);
+            auto r = world_->get_reward(state, action);
+            auto vs_prime = vold_[trans_state.get_id()];
+            values[a] += prob*(r + input_.gamma*vs_prime );
+        }
+    }
+
+    return values;
 }
 
 }
