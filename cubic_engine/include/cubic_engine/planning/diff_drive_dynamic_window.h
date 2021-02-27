@@ -44,6 +44,7 @@ struct DiffDriveDWConfig
       real_t obstacle_cost_gain;
       kernel::dynamics::DiffDriveDynamics::DynamicVersion dynamics_version;
       kernel::geom::BBType bbtype;
+      bool show_warnigs{true};
 };
 
 ///
@@ -70,17 +71,20 @@ public:
     ///
     /// \brief state_t. The type of the state used by the window
     ///
-    typedef typename DynamicWindowBase<StateTp, DiffDriveDWConfig, DiffDriveWindowProperties>::state_t state_t;
+    typedef typename DynamicWindowBase<StateTp, DiffDriveDWConfig,
+                                       DiffDriveWindowProperties>::state_t state_t;
 
     ///
     /// \brief config_t. Congiguration type used by the window
     ///
-    typedef typename DynamicWindowBase<StateTp, DiffDriveDWConfig, DiffDriveWindowProperties>::config_t config_t;
+    typedef typename DynamicWindowBase<StateTp, DiffDriveDWConfig,
+                                       DiffDriveWindowProperties>::config_t config_t;
 
     ///
     /// \brief window_properties_t
     ///
-    typedef typename DynamicWindowBase<StateTp, DiffDriveDWConfig, DiffDriveWindowProperties>::window_properties_t window_properties_t;
+    typedef typename DynamicWindowBase<StateTp, DiffDriveDWConfig,
+                                       DiffDriveWindowProperties>::window_properties_t window_properties_t;
 
     ///
     /// \brief goal_t. The type of the goal
@@ -158,7 +162,7 @@ protected:
     ///
     /// \brief calc_trajectory_
     ///
-    trajectory_t predict_trajectory_();
+    trajectory_t predict_trajectory_(real_t v, real_t w);
 
     ///
     /// \brief calc_to_goal_cost_ Claculate the cost to the goal with the
@@ -227,15 +231,15 @@ DiffDriveDW<StateTp, GoalTp>::update_state_from_dynamics_(){
 
 template<typename StateTp, typename GoalTp>
 typename DiffDriveDW<StateTp, GoalTp>::trajectory_t
-DiffDriveDW<StateTp, GoalTp>::predict_trajectory_(){
+DiffDriveDW<StateTp, GoalTp>::predict_trajectory_(real_t v, real_t w){
 
     trajectory_t traj;
     traj.push_back(this->state_->get_values());
 
     typedef kernel::dynamics::DiffDriveDynamics::input_t input_t;
     input_t model_input;
-    model_input.insert({"v", control_[0]});
-    model_input.insert({"w", control_[1]});
+    model_input.insert({"v", v});
+    model_input.insert({"w", w});
 
 #ifdef USE_WARNINGS_FOR_MISSING_IMPLEMENTATION
     //std::cout<<kernel::KernelConsts::warning_str()<<"Errors have not been accounted for in the implementation"<<std::endl;
@@ -283,7 +287,7 @@ template<typename ObstacleTp>
 real_t
 DiffDriveDW<StateTp, GoalTp>::calc_obstacle_cost_(const trajectory_t& trajectory, const ObstacleTp& obstacle){
 
-    // calc obstacle cost inf: collistion, 0:free
+    // calc obstacle cost max (inf): collistion, 0:free
     auto minr = std::numeric_limits<real_t>::max();
 
     for (auto ii=0; ii<trajectory.size(); ii += this->config_.skip_n){
@@ -295,6 +299,7 @@ DiffDriveDW<StateTp, GoalTp>::calc_obstacle_cost_(const trajectory_t& trajectory
         auto dy = trajectory[ii][1] - oy;
 
         float r = std::sqrt(dx*dx + dy*dy);
+
         if (r <= this->config_.robot_radius){
             return std::numeric_limits<real_t>::max();
         }
@@ -330,23 +335,30 @@ DiffDriveDW<StateTp, GoalTp>::calculate_control_input_(const ObstacleTp& obstacl
     for (auto v=v_min; v <= v_max; v += this->config_.v_reso){
        for (auto w=w_min; w <= w_max; w += this->config_.yawrate_reso){
 
-            trajectory_t traj = predict_trajectory_();
+            trajectory_t traj = predict_trajectory_(v, w);
 
             // what's the cost reaching goal on this
             // trajectory
             auto to_goal_cost = this->config_.to_goal_cost_gain*calc_to_goal_cost_(traj);
             auto speed_cost = this->config_.speed_cost_gain * (this->config_.max_speed - traj.back()[3]);
-            auto ob_cost = this->config_.obstacle_cost_gain*calc_obstacle_cost_(traj, obstacle);
+
+            auto obstacle_cost = calc_obstacle_cost_(traj, obstacle);
+
+            /*if(this->config_.show_warnigs && obstacle_cost == std::numeric_limits<real_t>::max()){
+                std::cout
+            }*/
+
+            auto ob_cost = this->config_.obstacle_cost_gain*obstacle_cost;
 
             // final cost
             auto final_cost = to_goal_cost + speed_cost + ob_cost;
 
             // we want minimum cost trajectory
             if (min_cost >= final_cost){
-              min_cost = final_cost;
-              min_u[0] = v;
-              min_u[1] = w; //control_t{{v, w}};
-              best_traj = traj;
+                  min_cost = final_cost;
+                  min_u[0] = v;
+                  min_u[1] = w; //control_t{{v, w}};
+                  best_traj = traj;
             }
         }
     }
