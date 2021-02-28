@@ -4,7 +4,7 @@
 #include "kernel/discretization/line_mesh.h"
 #include "kernel/geometry/geom_point.h"
 #include "kernel/dynamics/system_state.h"
-#include "kernel/vehicles/difd_drive_vehicle.h"
+#include "kernel/vehicles/differential_drive_vehicle.h"
 #include "kernel/utilities/csv_file_writer.h"
 #include "kernel/base/unit_converter.h"
 
@@ -20,7 +20,7 @@ using cengine::grids::LineSegment;
 using cengine::grids::LineSegmentData;
 using kernel::GeomPoint;
 using kernel::dynamics::SysState;
-using kernel::DiffDriveConfig;
+using kernel::vehicles::DiffDriveConfig;
 using kernel::Null;
 
 const real_t DT = 0.1;
@@ -57,7 +57,7 @@ private:
     CarrotChasingPathTrackController<Null, LineSegmentData>* controller_ptr_;
 
     /// mobile platform of the agent
-    kernel::DiffDriveVehicle platform_;
+    kernel::vehicles::DiffDriveVehicle platform_;
 
     /// the goal of the robot
     kernel::GeomPoint<2> goal_;
