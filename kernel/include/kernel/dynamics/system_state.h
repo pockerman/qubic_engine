@@ -113,6 +113,11 @@ public:
     void set(const std::string& name, real_t val);
 
     ///
+    /// \brief Set the value for the variable name
+    ///
+    //void set(const std::string_view name, real_t val){set(std::string(name), val);}
+
+    ///
     /// \brief Set the name and value of the i-th variable
     ///
     void set(uint_t i, const std::pair<std::string, real_t>& value);
@@ -168,6 +173,16 @@ public:
     const real_t& operator()(const std::string& name)const;
 
     ///
+    /// \brief Access operator
+    ///
+    real_t& operator()(const std::string_view name){return (*this)(std::string(name));}
+
+    ///
+    /// \brief Access operator
+    ///
+    const real_t& operator()(const std::string_view name)const{return (*this)(std::string(name));}
+
+    ///
     /// \brief clear the state
     ///
     void clear();
@@ -209,12 +224,12 @@ template<int dim1, int dim2>
 void
 SysState<dim>::extract(const SysState<dim1>& state, SysState<dim2>& other){
 
-    static_assert (dim2 <= dim1, "Invalid dimension dim2>dim1");
+    static_assert (dim2 <= dim1, "Invalid dimension dim2 > dim1");
 
     for(auto& name:other.get_names()){
 
-        auto value = state[name];
-        other.set(name, value);
+        auto value = state(name);
+        other.set(std::string(name), value);
     }
 }
 
