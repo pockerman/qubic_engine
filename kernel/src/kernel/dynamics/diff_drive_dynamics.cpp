@@ -80,6 +80,46 @@ DiffDriveDynamics::integrate_state_v3(const SysState<3>& state, real_t r, real_t
 
 }
 
+SysState<3>
+DiffDriveDynamics::integrate(const SysState<3>& state, const DiffDriveDynamics::input_t& input,
+                             const DynamicVersion version){
+
+    auto result = state;
+    if(version == DiffDriveDynamics::DynamicVersion::V1){
+
+        auto w = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("w", input);
+        auto v = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("v", input);
+        auto errors = utils::InputResolver<std::map<std::string, boost::any>, std::array<real_t, 2>>::resolve("errors", input);
+        auto dt = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("dt", input);
+        auto tol = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("tol", input);
+        result = DiffDriveDynamics::integrate_state_v1(state, tol, dt, v, w, errors);
+
+    }
+    else if(version == DiffDriveDynamics::DynamicVersion::V2){
+
+        auto w = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("w", input);
+        auto v = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("v", input);
+        auto errors = utils::InputResolver<std::map<std::string, boost::any>, std::array<real_t, 2>>::resolve("errors", input);
+        auto dt = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("dt", input);
+        result = DiffDriveDynamics::integrate_state_v2(state, dt, v, w, errors);
+    }
+    else if(version == DiffDriveDynamics::DynamicVersion::V3){
+
+        // in this scenario we have the wheels speed as input
+
+        auto w1 = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("w1", input);
+        auto w2 = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("w2", input);
+        auto errors = utils::InputResolver<std::map<std::string, boost::any>, std::array<real_t, 2>>::resolve("errors", input);
+        auto r = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("r", input);
+        auto l = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("l", input);
+        auto dt = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("dt", input);
+        result = DiffDriveDynamics::integrate_state_v3(state, r, l, dt, w1, w2, errors);
+    }
+
+    return result;
+
+}
+
 DiffDriveDynamics::DiffDriveDynamics(DiffDriveDynamics::DynamicVersion type)
     :
   MotionModelDynamicsBase<SysState<3>, DynamicsMatrixDescriptor, std::map<std::string, boost::any>>(),
@@ -104,9 +144,6 @@ DiffDriveDynamics::DiffDriveDynamics(DiffDriveDynamics::state_t&& state)
 
 void
 DiffDriveDynamics::integrate(const DiffDriveDynamics::input_t& input){
-
-    auto values = state_.get_values();
-
 
 
     // before we do the integration

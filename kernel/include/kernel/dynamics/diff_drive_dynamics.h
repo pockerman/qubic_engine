@@ -78,6 +78,12 @@ public:
                                                 real_t w2, const std::array<real_t, 2>& errors);
 
     ///
+    /// \brief integrate Factory method to apply
+    /// the different integration methods
+    ///
+    static SysState<3> integrate(const SysState<3>& state, const input_t& input, const DynamicVersion version);
+
+    ///
     /// \brief Constructor
     ///
     explicit DiffDriveDynamics(DynamicVersion type = DynamicVersion::V1);
