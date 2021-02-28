@@ -23,6 +23,9 @@
 /*Use reinforcement learning*/
 #cmakedefine USE_RL
 
+/*Use planning module*/
+#cmakedefine USE_PLANNING
+
 
 #endif
 

@@ -10,11 +10,13 @@ namespace kernel{
 namespace dynamics{
 
 
-namespace {
 
-void integrate_state_v1(SysState<3>& state, real_t tol, real_t dt, real_t v, real_t w, const std::array<real_t, 2>& errors){
 
-    auto values = state.get_values();
+SysState<3>
+DiffDriveDynamics::integrate_state_v1(const SysState<3>& state, real_t tol, real_t dt, real_t v, real_t w, const std::array<real_t, 2>& errors){
+
+    SysState<3> other(state);
+    auto values = other.get_values();
 
     if(std::fabs(w) < tol){
 
@@ -23,50 +25,99 @@ void integrate_state_v1(SysState<3>& state, real_t tol, real_t dt, real_t v, rea
        auto xincrement = (distance + errors[0])*std::cos(values[2]  + errors[1]);
        auto yincrement = (distance + errors[0])*std::sin(values[2]  + errors[1]);
 
-       state[0] += xincrement;
-       state[1] += yincrement;
+       other[0] += xincrement;
+       other[1] += yincrement;
     }
     else{
 
-        state[2] += w*dt + errors[1];
+        other[2] += w*dt + errors[1];
 
         /// clip the value
         if(std::fabs(state[2]) > MathConsts::PI){
-            state[2] = utils::sign(state[2])*MathConsts::PI;
+            other[2] = utils::sign(state[2])*MathConsts::PI;
         }
 
-        state[0] += ((v/(2.0*w)) + errors[0])*(std::sin(state[2]) - std::sin(values[2]));
-        state[1] -= ((v/(2.0*w)) + errors[0])*(std::cos(state[2]) - std::cos(values[2]));
+        other[0] += ((v/(2.0*w)) + errors[0])*(std::sin(state[2]) - std::sin(values[2]));
+        other[1] -= ((v/(2.0*w)) + errors[0])*(std::cos(state[2]) - std::cos(values[2]));
     }
+
+    return other;
 
 }
 
 
-void integrate_state_v2(SysState<3>& state, real_t dt, real_t v, real_t w, const std::array<real_t, 2>& errors){
+SysState<3>
+DiffDriveDynamics::integrate_state_v2(const SysState<3>& state, real_t dt, real_t v, real_t w, const std::array<real_t, 2>& errors){
 
     auto values = state.get_values();
-    auto distance = 0.5*v*dt;
+    auto distance = v*dt; //0.5*v*dt;
     auto xincrement = (distance + errors[0])*std::cos(values[2]  + errors[1]);
     auto yincrement = (distance + errors[0])*std::sin(values[2]  + errors[1]);
 
-    state[0] += xincrement;
-    state[1] += yincrement;
-    state[2] += dt*w;
+    SysState<3> other(state);
 
+    other[0] += xincrement;
+    other[1] += yincrement;
+    other[2] += dt*w;
+
+    return other;
 }
 
 
-void integrate_state_v3(SysState<3>& state, real_t r, real_t l, real_t dt, real_t w1,
+SysState<3>
+DiffDriveDynamics::integrate_state_v3(const SysState<3>& state, real_t r, real_t l, real_t dt, real_t w1,
                         real_t w2, const std::array<real_t, 2>& errors){
 
     auto values = state.get_values();
     auto xincrement = dt*0.5*r*(w1 + w2 + errors[0])*std::cos(values[2]  + errors[1]);
     auto yincrement = dt*0.5*r*(w1 + w2 + errors[0])*std::sin(values[2]  + errors[1]);
 
-    state[0] += xincrement;
-    state[1] += yincrement;
-    state[2] += dt*r*(w1 - w2)/(2.0*l);
+    SysState<3> other(state);
+    other[0] += xincrement;
+    other[1] += yincrement;
+    other[2] += dt*r*(w1 - w2)/(2.0*l);
+    return other;
+
 }
+
+SysState<3>
+DiffDriveDynamics::integrate(const SysState<3>& state, const DiffDriveDynamics::input_t& input,
+                             const DynamicVersion version){
+
+    auto result = state;
+    if(version == DiffDriveDynamics::DynamicVersion::V1){
+
+        auto w = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("w", input);
+        auto v = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("v", input);
+        auto errors = utils::InputResolver<std::map<std::string, boost::any>, std::array<real_t, 2>>::resolve("errors", input);
+        auto dt = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("dt", input);
+        auto tol = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("tol", input);
+        result = DiffDriveDynamics::integrate_state_v1(state, tol, dt, v, w, errors);
+
+    }
+    else if(version == DiffDriveDynamics::DynamicVersion::V2){
+
+        auto w = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("w", input);
+        auto v = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("v", input);
+        auto errors = utils::InputResolver<std::map<std::string, boost::any>, std::array<real_t, 2>>::resolve("errors", input);
+        auto dt = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("dt", input);
+        result = DiffDriveDynamics::integrate_state_v2(state, dt, v, w, errors);
+    }
+    else if(version == DiffDriveDynamics::DynamicVersion::V3){
+
+        // in this scenario we have the wheels speed as input
+
+        auto w1 = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("w1", input);
+        auto w2 = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("w2", input);
+        auto errors = utils::InputResolver<std::map<std::string, boost::any>, std::array<real_t, 2>>::resolve("errors", input);
+        auto r = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("r", input);
+        auto l = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("l", input);
+        auto dt = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("dt", input);
+        result = DiffDriveDynamics::integrate_state_v3(state, r, l, dt, w1, w2, errors);
+    }
+
+    return result;
+
 }
 
 DiffDriveDynamics::DiffDriveDynamics(DiffDriveDynamics::DynamicVersion type)
@@ -94,9 +145,6 @@ DiffDriveDynamics::DiffDriveDynamics(DiffDriveDynamics::state_t&& state)
 void
 DiffDriveDynamics::integrate(const DiffDriveDynamics::input_t& input){
 
-    auto values = state_.get_values();
-
-
 
     // before we do the integration
     // update the matrices
@@ -110,8 +158,8 @@ DiffDriveDynamics::integrate(const DiffDriveDynamics::input_t& input){
         auto w = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("w", input);
         auto v = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("v", input);
         auto errors = utils::InputResolver<std::map<std::string, boost::any>, std::array<real_t, 2>>::resolve("errors", input);
-        integrate_state_v1(this->state_, tol_, get_time_step(), v, w, errors);
-
+        auto result = DiffDriveDynamics::integrate_state_v1(this->state_, tol_, get_time_step(), v, w, errors);
+        this->state_ = result;
         // update the velocities and angular
         // velocities
         v_ = v;
@@ -123,7 +171,8 @@ DiffDriveDynamics::integrate(const DiffDriveDynamics::input_t& input){
         auto w = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("w", input);
         auto v = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("v", input);
         auto errors = utils::InputResolver<std::map<std::string, boost::any>, std::array<real_t, 2>>::resolve("errors", input);
-        integrate_state_v2(this->state_, get_time_step(), v, w, errors);
+        auto result = DiffDriveDynamics::integrate_state_v2(this->state_, get_time_step(), v, w, errors);
+        this->state_ = result;
 
         // update the velocities and angular
         // velocities
@@ -139,7 +188,8 @@ DiffDriveDynamics::integrate(const DiffDriveDynamics::input_t& input){
         auto errors = utils::InputResolver<std::map<std::string, boost::any>, std::array<real_t, 2>>::resolve("errors", input);
         auto r = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("r", input);
         auto l = utils::InputResolver<std::map<std::string, boost::any>, real_t>::resolve("l", input);
-        integrate_state_v3(this->state_, r, l, get_time_step(), w1, w2, errors);
+        auto result = DiffDriveDynamics::integrate_state_v3(this->state_, r, l, get_time_step(), w1, w2, errors);
+        this->state_ = result;
 
         v_ = 0.5*r*(w1 + w2);
         w_ = r*(w1 - w2)/(2.0*l);

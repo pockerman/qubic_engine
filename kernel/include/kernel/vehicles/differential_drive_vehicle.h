@@ -6,6 +6,7 @@
 #include "kernel/vehicles/vehicle_base.h"
 #include "kernel/geometry/geom_point.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/geometry/bounding_box_type.h"
 
 namespace kernel{
 namespace vehicles{
@@ -20,13 +21,18 @@ struct DiffDriveConfig
     ///
     /// \brief The radius of the wheels
     ///
-    real_t R{1.0};
+    real_t wheel_radius{1.0};
 
     ///
     /// \brief Half the length of the axle connecting the
     /// two motorized wheels
     ///
-    real_t L{1.0};
+    real_t width{1.0};
+
+    ///
+    /// \brief The length of the robot
+    ///
+    real_t length{1.0};
 
     ///
     /// \brief vmax_. The maximum vehicle velocity
@@ -68,6 +74,11 @@ struct DiffDriveConfig
     /// \brief The version of the dynamics the vehicle is using
     ///
     dynamics::DiffDriveDynamics::DynamicVersion dynamics_version{dynamics::DiffDriveDynamics::DynamicVersion::V1};
+
+    ///
+    /// \brief bbtype. The type of the bounding box
+    ///
+    kernel::geom::BBType bbtype;
 };
 
 ///
@@ -124,7 +135,7 @@ public:
     ///
     /// \brief Read current velocity of the vehicle
     ///
-    real_t get_velocity()const{return 0.5*properties_.R*(vr_ + vl_);}
+    real_t get_velocity()const{return 0.5*properties_.wheel_radius*(vr_ + vl_);}
 
     ///
     /// \brief get_right_wheel_velocity. Returns the right wheel velocity
@@ -150,6 +161,11 @@ public:
     /// \brief get_clipped_angular_velocity. Retruns a velocity w in [wmin, wmax]
     ///
     real_t get_clipped_angular_velocity(real_t w)const;
+
+    ///
+    /// \brief get_bounding_box_type Returns the type of the bounding box
+    ///
+    kernel::geom::BBType get_bounding_box_type()const{return properties_.bbtype;}
 
 
 private:

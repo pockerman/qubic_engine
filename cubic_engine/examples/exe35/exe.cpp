@@ -1,18 +1,23 @@
 #include "cubic_engine/base/config.h"
 
-#ifdef USE_OPEN_CV
+#ifdef USE_PLANNING
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/planning/diff_drive_dynamic_window.h"
 #include "kernel/geometry/geom_point.h"
-#include "kernel/vehicles/difd_drive_vehicle.h"
+#include "kernel/vehicles/differential_drive_vehicle.h"
 #include "kernel/dynamics/system_state.h"
 #include "kernel/maths/constants.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/dynamics/diff_drive_dynamics.h"
+#include "kernel/geometry/bounding_box_type.h"
+#include "kernel/base/unit_converter.h"
 
+#ifdef USE_OPEN_CV
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#endif
 
 #include<iostream>
 #include<vector>
@@ -27,19 +32,23 @@ using cengine::uint_t;
 using cengine::real_t;
 using cengine::DynMat;
 using cengine::DynVec;
-using kernel::GeomPoint;
-using kernel::DiffDriveVehicle;
-using kernel::DiffDriveConfig;
-using kernel::dynamics::SysState;
 using cengine::planning::DiffDriveWindowProperties;
 using cengine::planning::DiffDriveDW;
 using cengine::planning::DiffDriveDWConfig;
+
+using kernel::GeomPoint;
+using kernel::vehicles::DiffDriveVehicle;
+using kernel::vehicles::DiffDriveConfig;
+using kernel::dynamics::SysState;
+using kernel::dynamics::DiffDriveDynamics;
+
 
 const real_t DT = 0.1;
 const uint_t N_MAX_ITRS = 1000;
 const real_t ROBOT_RADIUS = 1.0;
 
-typedef DiffDriveDW<SysState<5>, GeomPoint<2>>::trajectory_t trajectory_t;
+typedef DiffDriveDW::trajectory_t trajectory_t;
+typedef DiffDriveDW::control_t control_t;
 
 cv::Point2i
 cv_offset(float x, float y, int image_width=2000, int image_height=2000){
@@ -95,10 +104,12 @@ int main() {
     DiffDriveConfig config;
     config.vmax = 1.0;
     config.vmin = -0.5;
-    config.wmax = 40.0 * kernel::MathConsts::PI / 180.0;
-    config.wmin = -10.0 * kernel::MathConsts::PI / 180.0;
-    config.R = 1.0;
-    config.L = 1.0;
+    config.wmax = kernel::UnitConverter::degrees_to_rad(40.0);
+    config.wmin = kernel::UnitConverter::degrees_to_rad(-10.0);
+    config.wheel_radius = 1.0;
+    config.width = 1.0;
+    config.dynamics_version = DiffDriveDynamics::DynamicVersion::V2;
+    config.bbtype = kernel::geom::BBType::RECTANGLE;
 
     DiffDriveVehicle vehicle(config);
 
@@ -110,35 +121,37 @@ int main() {
     SysState<5> x({"x", "y", "theta", "v", "w"}, 0.0);
     update_state_from_vehicle(x, vehicle);
 
+    std::cout<<x<<std::endl;
+
     // the goal
     GeomPoint<2> goal={10.0,10.0};
-
-    typedef DiffDriveDW<SysState<5>, GeomPoint<2>>::control_t control_t;
 
     control_t control{0.0, 0.0};
 
     DiffDriveDWConfig dw_config;
     dw_config.robot_radius = ROBOT_RADIUS;
-    dw_config.skip_n = 2;
+    dw_config.skip_n = 1;
     dw_config.dt = DT;
     dw_config.predict_time = 3.0;
     dw_config.max_speed = 1.0;
     dw_config.min_speed = -0.5;
-    dw_config.max_yaw_rate = 40.0 * kernel::MathConsts::PI / 180.0;
+    dw_config.max_yaw_rate = kernel::UnitConverter::degrees_to_rad(40.0);
     dw_config.max_accel = 0.2;
-    dw_config.max_delta_yaw_rate = 40.0 * kernel::MathConsts::PI / 180.0;
+    dw_config.max_delta_yaw_rate = kernel::UnitConverter::degrees_to_rad(40.0);
     dw_config.v_reso = 0.01;
     dw_config.yawrate_reso = 0.1 * kernel::MathConsts::PI / 180.0;
     dw_config.min_cost = 10000.0;
     dw_config.speed_cost_gain = 1.0;
-    dw_config.to_goal_cost_gain = 1.0;
+    dw_config.obstacle_cost_gain = 1.0;
+    dw_config.to_goal_cost_gain = 0.15;
+    dw_config.dynamics_version = DiffDriveDynamics::DynamicVersion::V2;
+    dw_config.bbtype = kernel::geom::BBType::CIRCLE;
+    dw_config.robot_stuck_flag_cons = 0.001;
 
     // the dynamic window. Initialize by passing
     // the current state, the configuration of
     // the window, the goal and the initial control
-    DiffDriveDW<SysState<5>, GeomPoint<2>> dw(x, dw_config, goal, control);
-    dw.update_dynamics_state(vehicle.get_state());
-
+    DiffDriveDW dw(x, dw_config, goal, control);
     trajectory_t traj;
 
     // add to the trajectory the current
@@ -148,6 +161,7 @@ int main() {
     try{
 
           bool terminal = false;
+          bool show_plot = true;
 
           // OpenCV window
           cv::namedWindow("DWA", cv::WINDOW_NORMAL);
@@ -161,7 +175,7 @@ int main() {
 
             std::cout<<kernel::KernelConsts::info_str()<<"========================================="<<std::endl;
             std::cout<<kernel::KernelConsts::info_str()<<"Step="<<i<<std::endl;
-            std::cout<<kernel::KernelConsts::info_str()<<"Goal="<<goal<<std::endl;
+            //std::cout<<kernel::KernelConsts::info_str()<<"Goal="<<goal<<std::endl;
 
             // calculate best trajectory and control
             auto trajectory = dw.dwa_control(ob);
@@ -173,58 +187,82 @@ int main() {
             // updated controls
             vehicle.integrate(dw.get_control()[0], dw.get_control()[1]);
 
-            std::cout<<kernel::KernelConsts::info_str()<<"Vv="
-                     <<vehicle.get_velocity()<<" Vw="
-                     <<vehicle.get_w_velocity()<<std::endl;
-
             // update state from the vehicle state
             update_state_from_vehicle(x, vehicle);
+            dw.update_state(x);
 
             auto pos_x = x[0];
             auto pos_y = x[1];
             auto theta = x[2];
-            std::cout<<kernel::KernelConsts::info_str()<<"x="<<pos_x<<" y="<<pos_y<<" theta="<<theta<<std::endl;
+            std::cout<<kernel::KernelConsts::info_str()<<"x="<<pos_x
+                                                       <<" y="<<pos_y
+                                                       <<" theta="<<theta
+                                                       <<" Vv="<<vehicle.get_velocity()
+                                                       <<" Vw="<<vehicle.get_w_velocity()<<std::endl;
 
             // update the trajectory from state
             update_trajectory(traj, x);
 
             // visualization
-            cv::Mat bg(3500,3500, CV_8UC3, cv::Scalar(255,255,255));
+            if(show_plot){
 
-            cv::circle(bg, cv_offset(goal[0], goal[1], bg.cols, bg.rows), 30, cv::Scalar(255,0,0), 5);
+#ifdef USE_OPEN_CV
 
-            // draw the obstacles
-            for(auto j=0; j<ob.size(); j++){
-                 cv::circle(bg, cv_offset(ob[j][0], ob[j][1], bg.cols, bg.rows), 20, cv::Scalar(0,0,0), -1);
+                cv::Mat bg(3500,3500, CV_8UC3, cv::Scalar(255,255,255));
+
+                cv::circle(bg, cv_offset(goal[0], goal[1], bg.cols, bg.rows), 30, cv::Scalar(255,0,0), 5);
+
+                // draw the obstacles
+                for(auto j=0; j<ob.size(); j++){
+                     cv::circle(bg, cv_offset(ob[j][0], ob[j][1], bg.cols, bg.rows), 20, cv::Scalar(0,0,0), -1);
+                }
+
+                // draw the trajectory calculated
+                for(auto j=0; j<trajectory.size(); j++){
+                      cv::circle(bg, cv_offset(trajectory[j][0], trajectory[j][1],
+                                                bg.cols, bg.rows), 7, cv::Scalar(0,255,0), -1);
+                }
+
+                cv::circle(bg, cv_offset(x[0], x[1], bg.cols, bg.rows), 30, cv::Scalar(0,0,255), 5);
+
+                cv::arrowedLine(
+                      bg,
+                      cv_offset(x[0], x[1], bg.cols, bg.rows),
+                      cv_offset(x[0] + std::cos(x[2]), x[1] + std::sin(x[2]), bg.cols, bg.rows),
+                      cv::Scalar(255,0,255),
+                      7);
+
+                // check if goal is reached
+                if (std::sqrt(std::pow((x[0] - goal[0]), 2) + std::pow((x[1] - goal[1]), 2)) <= ROBOT_RADIUS){
+                      terminal = true;
+                      for(auto j=0; j<traj.size(); j++){
+                             cv::circle(bg, cv_offset(traj[j][0], traj[j][1], bg.cols, bg.rows),
+                                         7, cv::Scalar(0,0,255), -1);
+                           }
+                      std::cout<<kernel::KernelConsts::info_str()<<"Goal Reached!!!"<<std::endl;
+                }
+
+                cv::imshow("DWA", bg);
+                cv::waitKey(35);
+#else
+                // check if goal is reached
+                if (std::sqrt(std::pow((x[0] - goal[0]), 2) + std::pow((x[1] - goal[1]), 2)) <= ROBOT_RADIUS){
+                      terminal = true;
+                      std::cout<<kernel::KernelConsts::info_str()<<"Goal Reached!!!"<<std::endl;
+                }
+#endif
+            }
+            else{
+
+                // check if goal is reached
+                if (std::sqrt(std::pow((x[0] - goal[0]), 2) + std::pow((x[1] - goal[1]), 2)) <= ROBOT_RADIUS){
+                      terminal = true;
+                      std::cout<<kernel::KernelConsts::info_str()<<"Goal Reached!!!"<<std::endl;
+                }
+
             }
 
-            // draw the trajectory calculated
-            for(auto j=0; j<trajectory.size(); j++){
-                  cv::circle(bg, cv_offset(trajectory[j][0], trajectory[j][1],
-                                            bg.cols, bg.rows), 7, cv::Scalar(0,255,0), -1);
-            }
 
-            cv::circle(bg, cv_offset(x[0], x[1], bg.cols, bg.rows), 30, cv::Scalar(0,0,255), 5);
-
-            cv::arrowedLine(
-                  bg,
-                  cv_offset(x[0], x[1], bg.cols, bg.rows),
-                  cv_offset(x[0] + std::cos(x[2]), x[1] + std::sin(x[2]), bg.cols, bg.rows),
-                  cv::Scalar(255,0,255),
-                  7);
-
-            // check if goal is reached
-            if (std::sqrt(std::pow((x[0] - goal[0]), 2) + std::pow((x[1] - goal[1]), 2)) <= ROBOT_RADIUS){
-                  terminal = true;
-                  for(auto j=0; j<traj.size(); j++){
-                         cv::circle(bg, cv_offset(traj[j][0], traj[j][1], bg.cols, bg.rows),
-                                     7, cv::Scalar(0,0,255), -1);
-                       }
-                  std::cout<<kernel::KernelConsts::info_str()<<"Goal Reached!!!"<<std::endl;
-            }
-
-            cv::imshow("DWA", bg);
-            cv::waitKey(5);
 
             // std::string int_count = std::to_string(count);
             // cv::imwrite("./pngs/"+std::string(5-int_count.length(), '0').append(int_count)+".png", bg);
@@ -259,8 +297,8 @@ int main() {
 #include <stdexcept>
 int main() {
 
-   std::cerr<<"This example requires OpenCV. Reconfigure with OpenCV support"<<std::endl;
-   throw std::runtime_error("No OpenCV support");
+   std::cerr<<"This example requires Planning module. Reconfigure with Planning support"<<std::endl;
+   throw std::runtime_error("Planning support");
    return 0;
 }
 #endif
