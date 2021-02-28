@@ -197,10 +197,10 @@ int main(){
             controller.update(path);
 
             DiffDriveConfig properties;
-            properties.R = 1.; //m
-            properties.L = 0.5; //m
-            properties.Vmax = 2.0; //m/sec
-            properties.Amax = 1.2; // m/sec^2
+            properties.wheel_radius = 1.; //m
+            properties.width = 0.5; //m
+            properties.vmax = 2.0; //m/sec
+            //properties.a = 1.2; // m/sec^2
 
             Agent agent(controller, *goal, GOAL_RADIUS, properties);
 
