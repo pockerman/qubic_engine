@@ -17,7 +17,7 @@
 #include "kernel/parallel/threading/thread_pool.h"
 #include "kernel/parallel/threading/stoppable_task.h"
 #include "kernel/parallel/data_structs/lockable_queue.h"
-#include "kernel/vehicles/difd_drive_vehicle.h"
+#include "kernel/vehicles/differential_drive_vehicle.h"
 #include "kernel/geometry/geom_point.h"
 #include "kernel/utilities/csv_file_writer.h"
 #include "kernel/patterns/threaded_observer_base.h"
@@ -61,8 +61,7 @@ using kernel::Null;
 using kernel::ThreadedObserverBase;
 using kernel::dynamics::SysState;
 using kernel::dynamics::DiffDriveDynamics;
-//using kernel::DiffDriveProperties;
-using kernel::DiffDriveVehicle;
+using kernel::vehicles::DiffDriveVehicle;
 
 std::mutex msg_mutex;
 
