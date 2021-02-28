@@ -1,6 +1,6 @@
 #include "cubic_engine/base/config.h"
 
-#ifdef USE_OPEN_CV
+#ifdef USE_PLANNING
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/planning/diff_drive_dynamic_window.h"
@@ -13,9 +13,11 @@
 #include "kernel/geometry/bounding_box_type.h"
 #include "kernel/base/unit_converter.h"
 
+#ifdef USE_OPEN_CV
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#endif
 
 #include<iostream>
 #include<vector>
@@ -45,7 +47,8 @@ const real_t DT = 0.1;
 const uint_t N_MAX_ITRS = 1000;
 const real_t ROBOT_RADIUS = 1.0;
 
-typedef DiffDriveDW<SysState<5>, GeomPoint<2>>::trajectory_t trajectory_t;
+typedef DiffDriveDW::trajectory_t trajectory_t;
+typedef DiffDriveDW::control_t control_t;
 
 cv::Point2i
 cv_offset(float x, float y, int image_width=2000, int image_height=2000){
@@ -104,7 +107,7 @@ int main() {
     config.wmax = kernel::UnitConverter::degrees_to_rad(40.0);
     config.wmin = kernel::UnitConverter::degrees_to_rad(-10.0);
     config.wheel_radius = 1.0;
-    config.width = 0.5;
+    config.width = 1.0;
     config.dynamics_version = DiffDriveDynamics::DynamicVersion::V2;
     config.bbtype = kernel::geom::BBType::RECTANGLE;
 
@@ -122,8 +125,6 @@ int main() {
 
     // the goal
     GeomPoint<2> goal={10.0,10.0};
-
-    typedef DiffDriveDW<SysState<5>, GeomPoint<2>>::control_t control_t;
 
     control_t control{0.0, 0.0};
 
@@ -144,14 +145,13 @@ int main() {
     dw_config.obstacle_cost_gain = 1.0;
     dw_config.to_goal_cost_gain = 0.15;
     dw_config.dynamics_version = DiffDriveDynamics::DynamicVersion::V2;
-    dw_config.bbtype = kernel::geom::BBType::RECTANGLE;
+    dw_config.bbtype = kernel::geom::BBType::CIRCLE;
+    dw_config.robot_stuck_flag_cons = 0.001;
 
     // the dynamic window. Initialize by passing
     // the current state, the configuration of
     // the window, the goal and the initial control
-    DiffDriveDW<SysState<5>, GeomPoint<2>> dw(x, dw_config, goal, control);
-    dw.update_dynamics_state(vehicle.get_state());
-
+    DiffDriveDW dw(x, dw_config, goal, control);
     trajectory_t traj;
 
     // add to the trajectory the current
@@ -175,7 +175,7 @@ int main() {
 
             std::cout<<kernel::KernelConsts::info_str()<<"========================================="<<std::endl;
             std::cout<<kernel::KernelConsts::info_str()<<"Step="<<i<<std::endl;
-            std::cout<<kernel::KernelConsts::info_str()<<"Goal="<<goal<<std::endl;
+            //std::cout<<kernel::KernelConsts::info_str()<<"Goal="<<goal<<std::endl;
 
             // calculate best trajectory and control
             auto trajectory = dw.dwa_control(ob);
@@ -187,12 +187,9 @@ int main() {
             // updated controls
             vehicle.integrate(dw.get_control()[0], dw.get_control()[1]);
 
-            /*std::cout<<kernel::KernelConsts::info_str()<<"Vv="
-                     <<vehicle.get_velocity()<<" Vw="
-                     <<vehicle.get_w_velocity()<<std::endl;*/
-
             // update state from the vehicle state
             update_state_from_vehicle(x, vehicle);
+            dw.update_state(x);
 
             auto pos_x = x[0];
             auto pos_y = x[1];
@@ -207,8 +204,9 @@ int main() {
             update_trajectory(traj, x);
 
             // visualization
-
             if(show_plot){
+
+#ifdef USE_OPEN_CV
 
                 cv::Mat bg(3500,3500, CV_8UC3, cv::Scalar(255,255,255));
 
@@ -245,7 +243,14 @@ int main() {
                 }
 
                 cv::imshow("DWA", bg);
-                cv::waitKey(5);
+                cv::waitKey(35);
+#else
+                // check if goal is reached
+                if (std::sqrt(std::pow((x[0] - goal[0]), 2) + std::pow((x[1] - goal[1]), 2)) <= ROBOT_RADIUS){
+                      terminal = true;
+                      std::cout<<kernel::KernelConsts::info_str()<<"Goal Reached!!!"<<std::endl;
+                }
+#endif
             }
             else{
 
@@ -292,8 +297,8 @@ int main() {
 #include <stdexcept>
 int main() {
 
-   std::cerr<<"This example requires OpenCV. Reconfigure with OpenCV support"<<std::endl;
-   throw std::runtime_error("No OpenCV support");
+   std::cerr<<"This example requires Planning module. Reconfigure with Planning support"<<std::endl;
+   throw std::runtime_error("Planning support");
    return 0;
 }
 #endif
