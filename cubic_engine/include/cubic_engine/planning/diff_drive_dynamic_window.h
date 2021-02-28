@@ -1,13 +1,10 @@
 #ifndef DIFF_DRIVE_DYNAMIC_WINDOW_H
 #define DIFF_DRIVE_DYNAMIC_WINDOW_H
-
-
-
 #include "cubic_engine/base/config.h"
 
 #ifdef USE_PLANNING
 
-#include "cubic_engine/planning/dynamic_window.h"
+#include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/dynamics/diff_drive_dynamics.h"
 #include "kernel/geometry/bounding_box_type.h"
 #include "kernel/dynamics/system_state.h"
@@ -134,7 +131,6 @@ public:
     ///
     void update_state(const state_t& state){state_ = state;}
 
-
 protected:
 
     ///
@@ -148,9 +144,9 @@ protected:
     control_t control_;
 
     ///
-    /// \brief dynamics_. The dynamics model
+    /// \brief state_. The state descrbing the
+    /// robot that the algorithm uses internally
     ///
-    //kernel::dynamics::DiffDriveDynamics dynamics_;
     kernel::dynamics::SysState<5> state_;
 
     ///
@@ -189,9 +185,7 @@ protected:
     ///
     template<typename ObstacleTp>
     real_t calc_obstacle_cost_(const trajectory_t& trajectory, const ObstacleTp& obstacle);
-
 };
-
 
 template<typename ObstacleTp>
 typename DiffDriveDW::trajectory_t

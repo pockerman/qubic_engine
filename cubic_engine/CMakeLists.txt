@@ -15,6 +15,7 @@ endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 if(COMMAND cmake_policy)
     CMAKE_POLICY(SET CMP0003 NEW)
     CMAKE_POLICY(SET CMP0048 NEW)
+    CMAKE_POLICY(SET CMP0065 NEW)
 endif(COMMAND cmake_policy)
 
 SET(CUBIC_ENGINE_VERSION_MAJOR 1)
@@ -23,18 +24,16 @@ SET(CUBIC_ENGINE_VERSION_PATCH 0)
 PROJECT(CubicEngine VERSION ${CUBIC_ENGINE_VERSION_MAJOR}.${CUBIC_ENGINE_VERSION_MINOR}.${CUBIC_ENGINE_VERSION_PATCH})
 SET(CUBIC_ENGINE_VERSION "${CUBIC_ENGINE_VERSION_MAJOR}.${CUBIC_ENGINE_VERSION_MINOR}.${CUBIC_ENGINE_VERSION_PATCH}")
 
+# required configuration
 SET(BUILD_SHARED_LIBS ON)
 SET(CMAKE_BUILD_TYPE "Debug")
-SET(ENABLE_TESTING "OFF")
-SET(USE_OPENMP "ON")
-SET(USE_LOG "ON")
-SET(USE_PYTORCH "OFF")
-SET(USE_TRILINOS "OFF")
-SET(USE_TRILINOS_LONG_LONG_TYPE "OFF")
-SET(USE_OPEN_CV "ON")
-SET(USE_WARNINGS_FOR_MISSING_IMPLEMENTATION "ON")
-OPTION(USE_RL "Build RL module" OFF)
-OPTION(USE_PLANNING "Build plannig modue" ON)
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED True)
+SET(PWD ${PROJECT_SOURCE_DIR})
+SET(CMAKE_INSTALL_PREFIX ${PWD}/install)
+SET(MAGIC_ENUM_INCL_DIR " ")
+SET(BLAZE_INCL_DIR "/home/alex/MySoftware/blaze-3.8/install/include")
+SET(NLOHMANN_JSON_INCL_DIR "/home/alex/MySoftware/nlohman_json/install/include")
 
 # project include directory
 SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
@@ -42,12 +41,17 @@ SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 # project source directory
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/cubic_engine)
 
-# project working directory
-SET(PWD ${PROJECT_SOURCE_DIR})
-SET(CMAKE_INSTALL_PREFIX ${PWD}/install)
-SET(MAGIC_ENUM_INCL_DIR " ")
-SET(BLAZE_INCL_DIR "/home/alex/MySoftware/blaze-3.8/install/include")
-SET(NLOHMANN_JSON_INCL_DIR "/home/alex/MySoftware/nlohman_json/install/include")
+# optional configuration
+OPTION(ENABLE_TESTING "Build tests" ON)
+OPTION(USE_OPENMP "Build with OpenMP support" ON)
+OPTION(USE_LOG "Use logging utilities" ON)
+OPTION(USE_PYTORCH "Build with PyTorch support" OFF)
+OPTION(USE_TRILINOS "Build with Trillinos support" OFF)
+OPTION(USE_TRILINOS_LONG_LONG_TYPE "Specify the integer type that Trilinos has been compiled" OFF)
+OPTION(USE_OPEN_CV "Build with OpenCV support" ON)
+OPTION(USE_RL "Build with RL framework support" ON)
+OPTION(USE_PLANNING "Build plannig modue" ON)
+OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(CENGINE_DEBUG "ON")
@@ -56,7 +60,7 @@ ENDIF()
 configure_file(config.h.in ${PROJECT_SOURCE_DIR}/include/cubic_engine/base/config.h @ONLY)
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/include/cubic_engine/base/version.h @ONLY)
 
-IF(USE_OPEN_CV MATCHES "ON")
+IF(USE_OPEN_CV)
 
     SET(OPENCV_INCL_DIR "/home/alex/MySoftware/opencv/install/include/opencv4")
     SET(OPENCV_LIB_DIR "/home/alex/MySoftware/opencv/install/lib")
@@ -77,9 +81,9 @@ INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 find_package(Boost 1.65.0 REQUIRED)
 
 IF(Boost_FOUND)
-SET(BOOST_INCLUDEDIR ${Boost_INCLUDE_DIRS})
-SET(BOOST_LIBRARYDIR ${Boost_LIBRARY_DIRS})
-SET(Boost_USE_SHARED_LIBS ON)
+    SET(BOOST_INCLUDEDIR ${Boost_INCLUDE_DIRS})
+    SET(BOOST_LIBRARYDIR ${Boost_LIBRARY_DIRS})
+    SET(Boost_USE_SHARED_LIBS ON)
 ENDIF()
 
 # Currently fail the build if the user does not supply the
@@ -112,14 +116,14 @@ else()
     INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})
 endif()
 
-IF(USE_TRILINOS MATCHES "ON")
+IF(USE_TRILINOS)
     SET(TRILINOS_INCL_DIR "/home/alex/MySoftware/trilinos/install/include")
     SET(TRILINOS_LIB_DIR "/home/alex/MySoftware/trilinos/install/lib")
     INCLUDE_DIRECTORIES(${TRILINOS_INCL_DIR})
     LINK_DIRECTORIES(${TRILINOS_LIB_DIR})
 ENDIF()
 
-IF( ENABLE_TESTING MATCHES "ON")
+IF( ENABLE_TESTING)
     SET(GTEST_INC_DIR "/home/alex/MySoftware/gtest/install/include")
     SET(GTEST_LIB_DIR "/home/alex/MySoftware/gtest/install/lib")
     INCLUDE_DIRECTORIES(${GTEST_INC_DIR})
@@ -134,12 +138,14 @@ IF( ENABLE_TESTING MATCHES "ON" AND GTEST_LIB_DIR MATCHES " " )
     MESSAGE( FATAL_ERROR  "Testing is enabled but GTest lib directory has not been specified")
 ENDIF()
 
-IF(USE_PYTORCH MATCHES "ON")
+IF(USE_PYTORCH)
 	find_package(Torch REQUIRED)
 	INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})
+ELSE()
+        MESSAGE(STATUS  "Building without PyTorch support")
 ENDIF()
 
-IF(USE_OPENMP MATCHES "ON")
+IF(USE_OPENMP)
 
     IF(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES " ")
         SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fopenmp -fPIC")
@@ -166,7 +172,9 @@ INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
 
 # define the library name
 ADD_LIBRARY(cubicengine SHARED "")
+SET_TARGET_PROPERTIES(cubicengine PROPERTIES LINKER_LANGUAGE CXX)
 
+# Add source directories
 ADD_SUBDIRECTORY(${PROJECT_SRC_DIR}/estimation)
 ADD_SUBDIRECTORY(${PROJECT_SRC_DIR}/control)
 ADD_SUBDIRECTORY(${PROJECT_SRC_DIR}/ml)
@@ -184,16 +192,13 @@ ELSE()
     MESSAGE(STATUS  "Planning module will not be built")
 ENDIF()
 
-
-SET(PROJECT_LIB_DIR ${CMAKE_INSTALL_PREFIX})
-
-SET_TARGET_PROPERTIES(cubicengine PROPERTIES LINKER_LANGUAGE CXX)
+TARGET_INCLUDE_DIRECTORIES(cubicengine INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 INSTALL(TARGETS cubicengine DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # Add the examples
 ADD_SUBDIRECTORY(examples)
 
-IF (ENABLE_TESTING MATCHES "ON")
+IF (ENABLE_TESTING)
     ENABLE_TESTING()
     ADD_SUBDIRECTORY(tests)
 ENDIF()

@@ -23,17 +23,18 @@ namespace worlds {
 ///
 /// \brief GridWorld class. Models the grid world environment
 ///
-template<typename RewardTp>
+template<typename RewardTp, typename DynamicsTp>
 class GridWorld final: public DiscreteWorld<GridWorldAction,
                                             GridWorldState,
-                                            RewardTp>
+                                            RewardTp, DynamicsTp>
 {
 public:
 
-    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>::reward_t reward_t;
-    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>::action_t action_t;
-    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>::state_t state_t;
-    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>::reward_value_t reward_value_t;
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::reward_t reward_t;
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::action_t action_t;
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::state_t state_t;
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::reward_value_t reward_value_t;
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::dynamics_t dynamics_t;
 
     ///
     /// \brief Global invalid action assumed by the
@@ -73,8 +74,13 @@ public:
     ///
     void execute_action(action_t aid);
 
-private:
+    ///
+    /// \brief build The world with nx elements in the x-direction
+    /// and ny-elements in the y-direction
+    ///
+    void build(const uint_t nx, const uint_t ny);
 
+private:
 
     ///
     /// \brief The reward that the agent should recieve
@@ -83,20 +89,20 @@ private:
     reward_value_t r_;
 };
 
-template<typename RewardTp>
-GridWorld<RewardTp>::GridWorld()
+template<typename RewardTp, typename DynamicsTp>
+GridWorld<RewardTp, DynamicsTp>::GridWorld()
     :
-    DiscreteWorld<GridWorldAction, GridWorldState, RewardTp>(),
+    DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>(),
     r_(0.0)
 {}
 
-template<typename RewardTp>
-GridWorld<RewardTp>::~GridWorld()
+template<typename RewardTp, typename DynamicsTp>
+GridWorld<RewardTp, DynamicsTp>::~GridWorld()
 {}
 
-template<typename RewardTp>
+template<typename RewardTp, typename DynamicsTp>
 void
-GridWorld<RewardTp>::step(const typename GridWorld<RewardTp>::action_t& action){
+GridWorld<RewardTp, DynamicsTp>::step(const typename GridWorld<RewardTp, DynamicsTp>::action_t& action){
 
     if(this->states_.empty()){
         throw std::logic_error("Cell connectivity is not established");
@@ -138,13 +144,156 @@ GridWorld<RewardTp>::step(const typename GridWorld<RewardTp>::action_t& action){
 }
 
 
-template<typename RewardTp>
+template<typename RewardTp, typename DynamicsTp>
 void
-GridWorld<RewardTp>::execute_action(typename GridWorld<RewardTp>::action_t aid){
+GridWorld<RewardTp, DynamicsTp>::execute_action(action_t aid){
 
     this->current_state_ = const_cast<state_t*>(this->current_state_)->execute_action(aid);
 }
 
+
+template<typename RewardTp, typename DynamicsTp>
+void
+GridWorld<RewardTp, DynamicsTp>::build(const uint_t nx, const uint_t ny){
+
+    // clear what ever state we may have
+    this->states_.clear();
+    this->states_.reserve(nx*ny);
+    std::vector<std::string> cell_type(nx*ny);
+
+    uint_t counter=0;
+
+    for(uint_t j=0; j<ny; ++j){
+        for(uint_t i=0; i<nx; ++i){
+            this->states_.push_back(state_t(counter));
+
+            // bottom row
+            if( j == 0){
+
+                if(i == 0){
+                    cell_type[counter] = "BOTTOM_LEFT_CORNER";
+                }
+                else if( i != nx -1 ){
+                    cell_type[counter] = "BOTTOM";
+                }
+                else{
+                   cell_type[counter] = "BOTTOM_RIGHT_CORNER";
+                }
+            }
+            else if( j != ny - 1){
+
+                // middle cells
+                if( i % nx == 0){
+                    cell_type[counter] = "MOST_LEFT_COLUMN";
+                }
+                else if( i != nx -1 ){
+
+                    cell_type[counter] = "MIDDLE";
+                }
+                else{
+                   cell_type[counter] = "MOST_RIGHT_COLUMN";
+                }
+            }
+            else{
+
+                // top row cells
+                if( i % nx == 0){
+                    cell_type[counter] = "TOP_LEFT_CORNER";
+                }
+                else if( i != nx -1 ){
+
+                    cell_type[counter] = "TOP";
+                }
+                else{
+                   cell_type[counter] = "TOP_RIGHT_CORNER";
+                }
+            }
+
+            counter++;
+        }
+    }
+
+    // we now buid the state-action association
+    counter = 0;
+    for(uint_t i=0; i<nx*ny; ++i){
+
+            auto& state = this->get_state(i);
+            auto c_type = cell_type[i];
+
+            if(c_type == "BOTTOM_LEFT_CORNER"){
+
+
+                // fall back to itself for SOUTH and WEST
+                state.set_transition(GridWorldAction::SOUTH, &state);
+                state.set_transition(GridWorldAction::EAST, &this->get_state(i + 1));
+                state.set_transition(GridWorldAction::NORTH, &this->get_state(nx + i));
+                state.set_transition(GridWorldAction::WEST, &state);
+            }
+            else if(c_type == "BOTTOM"){
+
+                // fall back to itself for SOUTH
+                state.set_transition(GridWorldAction::SOUTH, &state);
+                state.set_transition(GridWorldAction::EAST, &this->get_state(i + 1));
+                state.set_transition(GridWorldAction::NORTH, &this->get_state(nx + i));
+                state.set_transition(GridWorldAction::WEST, &this->get_state(i - 1));
+            }
+            else if(c_type == "BOTTOM_RIGHT_CORNER"){
+
+                // fall back to itself for SOUTH and EAST
+                state.set_transition(GridWorldAction::SOUTH, &state);
+                state.set_transition(GridWorldAction::EAST, &state);
+                state.set_transition(GridWorldAction::NORTH, &this->get_state(nx + i));
+                state.set_transition(GridWorldAction::WEST, &this->get_state(i - 1));
+            }
+            else if(c_type == "MOST_LEFT_COLUMN"){
+
+                // fall back to itself for SOUTH and EAST
+                state.set_transition(GridWorldAction::SOUTH, &this->get_state(nx - i));
+                state.set_transition(GridWorldAction::EAST, &this->get_state(i + 1));
+                state.set_transition(GridWorldAction::NORTH, &this->get_state(nx + i));
+                state.set_transition(GridWorldAction::WEST, &state);
+            }
+            else if(c_type == "MIDDLE"){
+
+                state.set_transition(GridWorldAction::SOUTH, &this->get_state(nx - i));
+                state.set_transition(GridWorldAction::EAST, &this->get_state(i + 1));
+                state.set_transition(GridWorldAction::NORTH, &this->get_state(nx + i));
+                state.set_transition(GridWorldAction::WEST, &this->get_state(i - 1));
+            }
+            else if(c_type == "MOST_RIGHT_COLUMN"){
+
+                state.set_transition(GridWorldAction::SOUTH, &this->get_state(nx - i));
+                state.set_transition(GridWorldAction::EAST, &state);
+                state.set_transition(GridWorldAction::NORTH, &this->get_state(nx + i));
+                state.set_transition(GridWorldAction::WEST, &this->get_state(i - 1));
+
+            }
+            else if(c_type == "TOP_LEFT_CORNER"){
+
+                state.set_transition(GridWorldAction::SOUTH, &this->get_state(nx - i));
+                state.set_transition(GridWorldAction::EAST, &this->get_state(i + 1));
+                state.set_transition(GridWorldAction::NORTH, &state);
+                state.set_transition(GridWorldAction::WEST, &state);
+            }
+            else if(c_type == "TOP"){
+
+                state.set_transition(GridWorldAction::SOUTH, &this->get_state(nx - i));
+                state.set_transition(GridWorldAction::EAST, &this->get_state(i + 1));
+                state.set_transition(GridWorldAction::NORTH, &state);
+                state.set_transition(GridWorldAction::WEST, &this->get_state(i - 1));
+            }
+            else if(c_type == "TOP_RIGHT_CORNER"){
+
+                state.set_transition(GridWorldAction::SOUTH, &this->get_state(nx - i));
+                state.set_transition(GridWorldAction::EAST, &state);
+                state.set_transition(GridWorldAction::NORTH, &state);
+                state.set_transition(GridWorldAction::WEST, &this->get_state(i - 1));
+            }
+            else{
+                throw std::logic_error("Cell type " + c_type +" is unknown");
+            }
+        }
+}
 
 }
 }

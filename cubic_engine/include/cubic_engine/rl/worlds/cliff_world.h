@@ -59,6 +59,32 @@ namespace cliff_world_detail{
         ///
         RewardTable<GridWorldAction, real_t> rewards_;
     };
+
+
+    class CliffWorldDynamics
+    {
+    public:
+
+        ///
+        /// \brief ConstantEnvironmentDynamics Constructor
+        ///
+        CliffWorldDynamics()=default;
+
+        ///
+        /// \brief ConstantEnvironmentDynamics Constructor
+        ///
+        CliffWorldDynamics(real_t val);
+
+        ///
+        /// \brief operator () Return the constant dynamics value
+        ///
+        template<typename StateTp, typename ActionTp>
+        real_t operator()(const StateTp& state, const ActionTp& action)const{return 0.0;}
+
+    private:
+
+    };
+
 } // cliff_world_detail
 
 ///
@@ -72,7 +98,9 @@ namespace cliff_world_detail{
 /// optimal path -100 and sends the agent instantly back to the start i.e. state zero
 ///
 class CliffWorld final: public DiscreteWorld<GridWorldAction,
-                                             GridWorldState, cliff_world_detail::CliffWorldRewardProducer>
+                                             GridWorldState,
+                                             cliff_world_detail::CliffWorldRewardProducer,
+                                             cliff_world_detail::CliffWorldDynamics>
 {
 
 public:
@@ -81,19 +109,29 @@ public:
     /// \brief action_t The action type
     ///
     typedef typename DiscreteWorld<GridWorldAction, GridWorldState,
-                                   cliff_world_detail::CliffWorldRewardProducer>::action_t action_t;
+                                   cliff_world_detail::CliffWorldRewardProducer,
+                                   cliff_world_detail::CliffWorldDynamics>::action_t action_t;
 
     ///
     /// \brief state_t The state type
     ///
     typedef typename DiscreteWorld<GridWorldAction, GridWorldState,
-                                   cliff_world_detail::CliffWorldRewardProducer>::state_t state_t;
+                                   cliff_world_detail::CliffWorldRewardProducer,
+                                   cliff_world_detail::CliffWorldDynamics>::state_t state_t;
 
     ///
     /// \brief reward_value_t The reward value type
     ///
     typedef typename DiscreteWorld<GridWorldAction, GridWorldState,
-                                   cliff_world_detail::CliffWorldRewardProducer>::reward_value_t reward_value_t;
+                                   cliff_world_detail::CliffWorldRewardProducer,
+                                   cliff_world_detail::CliffWorldDynamics>::reward_value_t reward_value_t;
+
+    ///
+    /// \brief dynamics_t The dynamics objet
+    ///
+    typedef typename DiscreteWorld<GridWorldAction, GridWorldState,
+                                   cliff_world_detail::CliffWorldRewardProducer,
+                                   cliff_world_detail::CliffWorldDynamics>::dynamics_t dynamics_t;
 
     ///
     /// \brief Global invalid action assumed by the world.

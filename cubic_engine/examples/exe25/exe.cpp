@@ -1,9 +1,14 @@
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/base/kernel_consts.h"
 #include "cubic_engine/rl/worlds/grid_world.h"
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #include "cubic_engine/rl/synchronous_value_function_learning.h"
 #include "cubic_engine/rl/reward_table.h"
+#include "cubic_engine/rl/constant_environment_dynamics.h"
 
 #include <iostream>
 
@@ -17,6 +22,7 @@ using cengine::rl::worlds::GridWorldAction;
 using cengine::rl::SyncValueFuncItr;
 using cengine::rl::SyncValueFuncItrInput;
 using cengine::rl::RewardTable;
+using cengine::rl::ConstantEnvironmentDynamics;
 using kernel::CSVWriter;
 
 class RewardProducer
@@ -25,14 +31,14 @@ public:
 
     typedef real_t value_t;
 
-    /// construcotr
+    // construcotr
     RewardProducer();
 
-    /// returns the reward for the goal
+    // returns the reward for the goal
     real_t goal_reward()const{return 0.0;}
 
-    /// returns the reward for the action
-    /// at  state s when going to state sprime
+    // returns the reward for the action
+    // at  state s when going to state sprime
     template<typename ActionTp, typename StateTp>
     real_t get_reward(const ActionTp& action,
                       const StateTp& s,
@@ -40,8 +46,8 @@ public:
         return rewards_.get_reward(s.get_id(), action);
     }
 
-    /// returns the reward for the action
-    /// at  state s when going to state sprime
+    // returns the reward for the action
+    // at  state s when going to state sprime
      template<typename ActionTp, typename StateTp>
      real_t get_reward(const ActionTp& action,
                           const StateTp& s)const{
@@ -50,10 +56,10 @@ public:
 
 private:
 
-    /// table that holds the rewards
+    // table that holds the rewards
     RewardTable<GridWorldAction, real_t> rewards_;
 
-    /// setup the rewards
+    // setup the rewards
     void setup_rewards();
 };
 
@@ -138,96 +144,13 @@ RewardProducer::setup_rewards(){
     rewards_.set_reward(15, GridWorldAction::WEST, -1.0);
 }
 
-typedef GridWorld<RewardProducer> world_t;
+
+
+typedef GridWorld<RewardProducer, ConstantEnvironmentDynamics> world_t;
 typedef world_t::state_t state_t;
+ typedef world_t::action_t action_t;
 
 const uint_t N_CELLS = 4;
-
-void
-create_wolrd(world_t& w){
-
-   std::vector<state_t> world_states;
-   world_states.reserve(N_CELLS*N_CELLS);
-
-   uint_t counter=0;
-   for(uint_t i=0; i<N_CELLS; ++i){
-       for(uint_t j=0; j<N_CELLS; ++j){
-           world_states.push_back(state_t(counter++));
-       }
-   }
-
-   w.set_states(std::move(world_states));
-
-   counter=0;
-   for(uint_t i=0; i<N_CELLS*N_CELLS; ++i){
-
-       auto& state = w.get_state(i);
-
-       /// bottom row
-       if(i <4){
-
-           state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), &state);
-
-           if(i != 3){
-             state.set_transition(GridWorldAction::EAST, &w.get_state(i+1));
-           }
-           else{
-               state.set_transition(GridWorldAction::EAST, &state);
-           }
-
-           state.set_transition(GridWorldAction::NORTH, &w.get_state(N_CELLS + i));
-
-           if(i == 0){
-                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &state);
-           }
-           else{
-               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &w.get_state(i-1));
-           }
-       }
-       else if(i >= 12 ){
-           /// top row
-
-           state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), &w.get_state(i - N_CELLS));
-
-           if(i != 15){
-             state.set_transition(GridWorldAction::EAST, &w.get_state(i+1));
-           }
-           else{
-               state.set_transition(GridWorldAction::EAST, &state);
-           }
-
-           state.set_transition(GridWorldAction::NORTH, &state);
-
-           if(i == 12){
-               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &state);
-           }
-           else{
-              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &w.get_state(i-1));
-           }
-       }
-       else{
-
-           /// all rows in between
-           state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), &w.get_state(i - N_CELLS));
-
-           if(i != 11 && i != 7){
-               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), &w.get_state(i +1));
-           }
-           else{
-               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), &state);
-           }
-
-           state.set_transition(static_cast<GridWorldAction>(GridWorldAction::NORTH), &w.get_state(i + N_CELLS));
-
-           if(i != 4 && i != 8 ){
-              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &w.get_state(i-1));
-           }
-           else {
-              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &state);
-           }
-       }
-   }
-}
 
 }
 
@@ -237,26 +160,22 @@ int main(){
 
     try{
 
-        typedef GridWorld<RewardProducer> world_t;
-        typedef world_t::state_t state_t;
-        typedef world_t::action_t action_t;
-
         auto policy = [](const action_t&, const state_t&){
           return 0.25;
         };
 
         RewardProducer rproducer;
-        auto dynamics = [&rproducer](const state_t& s1, real_t,
+        /*auto dynamics = [&rproducer](const state_t& s1, real_t,
                 const state_t& s2, const action_t& action){
           return 0.25;
-        };
+        };*/
 
         std::vector<real_t> rewards(1, -1.0);
 
         /// the world of the agent
         world_t world;
-        create_wolrd(world);
-
+        world.build(N_CELLS, N_CELLS);
+        world.get_dynamics_object().set_value(0.25);
 
         std::cout<<"Number of states: "<<world.n_states()<<std::endl;
 
@@ -267,8 +186,8 @@ int main(){
         world.append_goal(goal1);
         world.append_goal(goal2);
 
-        /// simulation parameters
-        /// number of episodes for the agent to learn.
+        // simulation parameters
+        // number of episodes for the agent to learn.
         const uint_t N_ITERATIONS = 160;
         const real_t TOL = 0.001;
         const real_t GAMMA = 1.0;
@@ -285,7 +204,7 @@ int main(){
 
             std::cout<<"At iteration: "<<learner.get_current_iteration()<<std::endl;
 
-            learner.step(policy, dynamics);
+            learner.step(policy);
             auto values = learner.get_values();
 
             for(auto c=0; c<values.size(); ++c){
@@ -304,3 +223,10 @@ int main(){
 
     return 0;
 }
+#else
+#include <iostream>>
+int main(){
+    std::cerr<<"This examples requires RL support. Configure cubicengine with RL support."<<std::endl;
+    return 1;
+}
+#endif
