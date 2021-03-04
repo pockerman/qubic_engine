@@ -100,7 +100,9 @@ public:
     ///
     SyncValueFuncItr();
 
+    ///
     /// \brief Constructor
+    ///
     SyncValueFuncItr(SyncValueFuncItrInput&& input);
 
     ///
