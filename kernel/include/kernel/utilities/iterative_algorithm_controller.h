@@ -35,7 +35,9 @@ public:
    ///
    IterativeAlgorithmController& operator=(const IterativeAlgorithmController&)=default;
 
+   ///
    /// \brief move copy assignement
+   ///
    IterativeAlgorithmController& operator=(IterativeAlgorithmController&&)=default;
 
    ///
