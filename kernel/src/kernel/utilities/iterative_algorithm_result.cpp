@@ -9,6 +9,7 @@ IterativeAlgorithmResult:: print(std::ostream& out)const{
     out<<"Tolerance...: "<<tolerance<<std::endl;
     out<<"Residual....: "<<residual<<std::endl;
     out<<"Iterations..: "<<num_iterations<<std::endl;
+    out<<"Total time..: "<<total_time.count()<<std::endl;
     return out;
 }
 }
