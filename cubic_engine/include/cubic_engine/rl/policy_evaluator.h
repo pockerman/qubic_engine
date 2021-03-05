@@ -35,13 +35,15 @@ public:
     /// \brief operator () Evaluate the policy. Returns
     /// a vector of length world.n_states( representing the value function.
     ///
-    DynVec<real_t> operator()(const world_t& world, const policy_t& policy, real_t discount_factor, real_t tol);
+    DynVec<real_t> operator()(const world_t& world, const policy_t& policy,
+                              real_t discount_factor, real_t tol);
 
 };
 
 template<typename WorldTp, typename PolicyTp>
 DynVec<real_t>
-PolicyEvaluator<WorldTp, PolicyTp>::operator()(const world_t& world, const policy_t& policy, real_t discount_factor, real_t tol){
+PolicyEvaluator<WorldTp, PolicyTp>::operator()(const world_t& world, const policy_t& policy,
+                                               real_t discount_factor, real_t tol){
 
     // Start with a random (all 0) value function
     DynVec<real_t> v(world.n_states(), 0.0);

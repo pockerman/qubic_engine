@@ -7,8 +7,11 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/utilities/iterative_algorithm_controller.h"
+#include "kernel/utilities/iterative_algorithm_result.h"
 #include <iostream>
 #include <chrono>
+#include <ctime>
+#include <stdexcept>
 
 namespace cengine {
 namespace rl {
@@ -33,7 +36,7 @@ struct PolicyIterationInput
 struct PolicyIterationOutput
 {
     real_t total_reward;
-    real_t total_time;
+    std::chrono::seconds total_time;
 };
 
 
@@ -54,7 +57,7 @@ public:
     ///
     /// \brief The output type the train method returns
     ///
-    typedef PolicyIterationOutput output_t;
+    typedef kernel::IterativeAlgorithmResult output_t;
 
     ///
     /// \brief The type of the world
@@ -109,7 +112,6 @@ public:
     ///
     uint_t get_current_iteration()const{return itr_controller_.get_current_iteration();}
 
-
 private:
 
     ///
@@ -131,7 +133,7 @@ private:
     /// \brief one_step_lookahed_. Helper function to calculate the value
     /// for all action in a given state.
     ///
-    DynVec<real_t> one_step_lookahed_(const state_t& state)const;
+    DynVec<real_t> one_step_lookahed_(const state_t& state, const DynVec<real_t>& value_func_table)const;
 };
 
 template<typename WorldTp>
@@ -145,6 +147,39 @@ template<typename WorldTp>
 template<typename PolicyTp, typename PolicyEvaluatorTp>
 void
 PolicyIteration<WorldTp>::step(PolicyTp& policy, PolicyEvaluatorTp& policy_evaluator){
+
+   // Evaluate the current policy
+   auto value_func_table = policy_evaluator(*world_, policy, input_.gamma, input_.tol);
+
+   // Will be set to false if we make any changes to the policy
+   auto policy_stable = true;
+
+   // For each state...
+   for(uint_t s=0; s<world_->n_states(); ++s){
+
+       // The best action we would take under the current policy
+       auto chosen_a = policy.get_best_policy_at_state(world_->get_state(s));
+
+       // Find the best action by one-step lookahead
+       // Ties are resolved arbitarily
+       auto action_values = one_step_lookahead_(s, value_func_table);
+       auto best_a = blaze::max(action_values);
+
+       // Greedily update the policy
+       if( chosen_a != best_a){
+           policy_stable = false;
+       }
+
+       throw std::logic_error("Policy for state not updated");
+       //self._policy[s] = np.eye(self._env.nA)[best_a]
+
+   }
+
+   // If the policy is stable we've found an optimal policy.
+   // signal convergence
+   if(policy_stable){
+       itr_controller_.update_residual( 0. );
+   }
 
 }
 
@@ -168,13 +203,14 @@ PolicyIteration<WorldTp>::train(PolicyTp& policy, PolicyEvaluatorTp& policy_eval
     auto state = itr_controller_.get_state();
 
     end = std::chrono::system_clock::now();
-    state.total_time = end - start;
-    return {0.0, state.total_time.count()};
+    state.total_time = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+
+    return state;
 }
 
 template<typename WorldTp>
 DynVec<real_t>
-PolicyIteration<WorldTp>::one_step_lookahed_(const state_t& state)const{
+PolicyIteration<WorldTp>::one_step_lookahed_(const state_t& state,  const DynVec<real_t>& value_func_table)const{
 
     DynVec<real_t> values(state.n_actions(), 0.0);
 
@@ -184,9 +220,9 @@ PolicyIteration<WorldTp>::one_step_lookahed_(const state_t& state)const{
             auto& trans_state = *state.get_states()[s];
             auto action = state.get_action(a);
             auto prob = world_->get_dynamics(trans_state, action);
-            auto r = world_->get_reward(state, action);
-            auto vs_prime = vold_[trans_state.get_id()];
-            values[a] += prob*(r + input_.gamma*vs_prime );
+            auto reward = world_->get_reward(state, action);
+            auto vs_prime = value_func_table[trans_state.get_id()];
+            values[a] += prob * (reward + input_.gamma * vs_prime );
         }
     }
 
