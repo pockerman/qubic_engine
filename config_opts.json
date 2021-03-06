@@ -8,6 +8,7 @@
   "USE_OPENMP": true,
   "USE_LOG": true,
   "USE_FVM": true,
+  "USE_PYTORCH": false,
 
   "testing": {
     "ENABLE_TESTING": true,
@@ -40,6 +41,10 @@
     "build_cengine": true,
     "CMAKE_INSTALL_PREFIX": "${PROJECT_SOURCE_DIR}/install",
     "USE_PLANNING": true,
-    "USE_RL": true
+    "rl": {
+    "USE_RL": true,
+      "BUILD_EXAMPLES": true,
+      "BUILD_TESTS": true
+  }
   }
 }
