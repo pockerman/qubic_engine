@@ -1,0 +1,31 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+/*DEBUG*/
+#cmakedefine CENGINE_DEBUG
+
+/*Use log */
+#cmakedefine USE_LOG
+
+/*Use OpenMP */
+#cmakedefine USE_OPENMP
+
+/*Use PyTorch */
+#cmakedefine USE_PYTORCH
+
+/*Use OpenCV */
+#cmakedefine USE_OPEN_CV
+
+
+/*Allow Warnings for missing implementation*/
+#cmakedefine USE_WARNINGS_FOR_MISSING_IMPLEMENTATION
+
+/*Use reinforcement learning*/
+#cmakedefine USE_RL
+
+/*Use planning module*/
+#cmakedefine USE_PLANNING
+
+
+#endif
+
