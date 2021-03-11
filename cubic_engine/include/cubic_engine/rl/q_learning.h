@@ -1,8 +1,13 @@
 #ifndef Q_LEARNING_H
 #define Q_LEARNING_H
 
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/reward_table.h"
+#include "cubic_engine/rl/action_state_function_table.h"
 #include "kernel/base/kernel_consts.h"
 
 #if defined(__GNUC__) && (__GNUC___ > 7)
@@ -25,16 +30,17 @@ namespace rl{
 struct QLearningInput
 {
     real_t learning_rate;
-    real_t exploration_factor;
+    real_t epsilon;
     real_t discount_factor;
     bool use_exploration;
     bool show_iterations;
+    uint_t max_num_iterations;
 };
 
 
 ///
 /// \brief The QTableLearning class. Table based implementation
-/// of the Q-learning algorithm.
+/// of the Q-learning algorithm using epsilon-greedy policy.
 template<typename WorldTp>
 class QTableLearning: private boost::noncopyable
 {
@@ -69,14 +75,16 @@ public:
     ///
     /// \brief Train on the given world
     ///
-    void train(const state_t& goal );
+    void train();
 
     ///
     /// \brief Initialize the underlying data structures
     ///
     void initialize(world_t& world, reward_value_t val);
 
+    ///
     /// \brief Returns the learnt Qfunction
+    ///
     const RewardTable<action_t, reward_value_t>& get_table()const{return qtable_;}
 
     ///
@@ -100,6 +108,11 @@ private:
     RewardTable<action_t, reward_value_t> qtable_;
 
     ///
+    /// \brief q_function_
+    ///
+    ActionStateFunctionTable q_function_;
+
+    ///
     /// \brief The world used by the agent
     ///
     world_t* world_ptr_;
@@ -114,6 +127,11 @@ private:
     ///
     template<typename StateTp>
     void initialize_state_(const StateTp& state, reward_value_t val);
+
+    ///
+    /// \brief make_epsilon_greedy_greedy
+    ///
+    void make_epsilon_greedy_greedy();
 };
 
 template<typename WorldTp>
@@ -155,11 +173,34 @@ QTableLearning<WorldTp>::initialize_state_(const StateTp& state, reward_value_t 
 
 template<typename WorldTp>
 void
-QTableLearning<WorldTp>::train(const typename QTableLearning<WorldTp>::state_t& goal ){
+QTableLearning<WorldTp>::train(){
 
     if(!is_initialized_){
         throw std::logic_error("QTableLearning instance is not initialized");
     }
+
+    // the policy we are following
+    auto policy = make_epsilon_greedy_greedy();
+
+    for(uint_t itr=0; itr < input_.max_num_iterations; ++itr){
+
+        // for every iteration reset the environment
+
+        while(true){
+
+            // action probabilities
+            auto action_probs = policy(state);
+            [next_state, reward, done] = world_ptr_->step();
+
+            // TD Update
+            auto best_next_action = np.argmax(Q[next_state])
+            td_target = reward + discount_factor * Q[next_state][best_next_action]
+            td_delta = td_target - Q[state][action]
+            Q[state][action] += alpha * td_delta
+        }
+    }
+
+    auto goal = world_ptr_->get_goal();
 
     uint_t itr_counter = 0;
     while( world_ptr_->get_current_state() != goal && !world_ptr_->is_finished()){
@@ -252,5 +293,5 @@ QTableLearning<WorldTp>::train(const typename QTableLearning<WorldTp>::state_t& 
 }
 
 }
-
+#endif
 #endif // Q_LEARNING_H
