@@ -61,7 +61,7 @@ public:
     /// \brief Transition to a new state by
     /// performing the given action
     ///
-    virtual void step(const action_t&)override final;
+    virtual std::tuple<state_t*, real_t, bool, std::any> step(const action_t&)override final;
 
     ///
     /// \brief Returns the reward associated
@@ -113,7 +113,7 @@ GridWorld<RewardTp, DynamicsTp>::~GridWorld()
 {}
 
 template<typename RewardTp, typename DynamicsTp>
-void
+std::tuple<typename GridWorld<RewardTp, DynamicsTp>::state_t*, real_t, bool, std::any>
 GridWorld<RewardTp, DynamicsTp>::step(const typename GridWorld<RewardTp, DynamicsTp>::action_t& action){
 
     if(this->states_.empty()){
@@ -131,6 +131,7 @@ GridWorld<RewardTp, DynamicsTp>::step(const typename GridWorld<RewardTp, Dynamic
     if(this->is_goal_state(*this->current_state_)){
         r_ = this->reward_.goal_reward();
         this->finished_ = true;
+        return {this->current_state_, this->reward_.goal_reward(), true, std::any()};
     }
     else{
 
@@ -152,6 +153,8 @@ GridWorld<RewardTp, DynamicsTp>::step(const typename GridWorld<RewardTp, Dynamic
             r_ = this->reward_.get_reward(action, *this->current_state_, *next_state);
             this->current_state_ = next_state;
         }
+
+        return {next_state, r_, false, std::any()};
     }
 }
 

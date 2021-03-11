@@ -10,6 +10,8 @@
 
 #include <vector>
 #include <algorithm>
+#include <any>
+#include <tuple>
 
 namespace cengine {
 namespace rl {
@@ -36,9 +38,20 @@ public:
 
     ///
     /// \brief Transition to a new state by
-    /// performing the given action
+    /// performing the given action. It returns a tuple
+    /// with the following information
+    /// arg1: An observation of the environment.
+    /// arg2: Amount of reward achieved by the previous action.
+    /// arg3: Flag indicating whether it’s time to reset the environment again.
+    /// Most (but not all) tasks are divided up into well-defined episodes,
+    /// and done being True indicates the episode has terminated.
+    /// (For example, perhaps the pole tipped too far, or you lost your last life.)
+    /// arg4: The type depends on the subclass overriding this function
+    /// diagnostic information useful for debugging. It can sometimes be useful for
+    /// learning (for example, it might contain the raw probabilities behind the environment’s last state change).
+    /// However, official evaluations of your agent are not allowed to use this for learning.
     ///
-    virtual void step(const action_t&)=0;
+    virtual std::tuple<state_t*, real_t, bool, std::any> step(const action_t&)=0;
 
     ///
     /// \brief Returns true if the given state is a goal state
