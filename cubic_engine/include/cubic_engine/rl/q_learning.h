@@ -9,6 +9,7 @@
 #include "cubic_engine/rl/reward_table.h"
 #include "cubic_engine/rl/action_state_function_table.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/maths/matrix_utilities.h"
 
 #if defined(__GNUC__) && (__GNUC___ > 7)
 #include "magic_enum.hpp"
@@ -20,6 +21,7 @@
 #include <map>
 #include <random>
 #include <iostream>
+#include <cmath>
 
 namespace cengine {
 namespace rl{
@@ -29,12 +31,17 @@ namespace rl{
 /// Helper struct that assembles the input for the QTableLearning class.
 struct QLearningInput
 {
-    real_t learning_rate;
-    real_t epsilon;
-    real_t discount_factor;
+    real_t learning_rate{0.01};
+    real_t epsilon{1.0};
+    real_t max_epsilon{1.0};
+    real_t min_epsilon{0.01};
+    real_t epsilon_decay{0.01};
+    real_t discount_factor{0.6};
     bool use_exploration;
-    bool show_iterations;
+    bool show_iterations{true};
+    bool use_decay{true};
     uint_t max_num_iterations;
+    uint_t total_episodes;
 };
 
 
@@ -110,7 +117,7 @@ private:
     ///
     /// \brief q_function_
     ///
-    ActionStateFunctionTable q_function_;
+    DynMat<real_t> q_function_;
 
     ///
     /// \brief The world used by the agent
@@ -153,6 +160,7 @@ QTableLearning<WorldTp>::initialize(world_t& world, reward_value_t val){
         initialize_state_(world.get_state(s), val);
     }
 
+
     // finally set the world pointer
     world_ptr_ = &world;
     is_initialized_ = true;
@@ -182,43 +190,13 @@ QTableLearning<WorldTp>::train(){
     // the policy we are following
     auto policy = make_epsilon_greedy_greedy();
 
-    for(uint_t itr=0; itr < input_.max_num_iterations; ++itr){
+    uint_t episode_counter = 0;
+    for(uint_t itr=0; itr < input_.total_episodes; ++itr){
 
         // for every iteration reset the environment
+        auto& state = world_ptr_->restart();
 
-        while(true){
-
-            // action probabilities
-            auto action_probs = policy(state);
-            [next_state, reward, done] = world_ptr_->step();
-
-            // TD Update
-            auto best_next_action = np.argmax(Q[next_state])
-            td_target = reward + discount_factor * Q[next_state][best_next_action]
-            td_delta = td_target - Q[state][action]
-            Q[state][action] += alpha * td_delta
-        }
-    }
-
-    auto goal = world_ptr_->get_goal();
-
-    uint_t itr_counter = 0;
-    while( world_ptr_->get_current_state() != goal && !world_ptr_->is_finished()){
-
-        // get the current state of the world
-        auto& state = world_ptr_->get_current_state();
-
-        if(input_.show_iterations){
-            std::cout<<"At iteration: "<<itr_counter +1 <<std::endl;
-            std::cout<<"\tCurrent state: "<<state.get_id()<<std::endl;
-        }
-
-        auto action_idx = qtable_.get_max_reward_action_at_state(state.get_id());
-
-        // generate a random number
-        // between 0 and 1
-        auto r = 0.0;
-        if(input_.use_exploration){
+        for(uint_t step=0; step < input_.max_num_iterations; ++step){
 
             // Will be used to obtain a seed for the random number engine
             std::random_device rd;
@@ -226,68 +204,35 @@ QTableLearning<WorldTp>::train(){
             // Standard mersenne_twister_engine seeded with rd()
             std::mt19937 gen(rd());
             std::uniform_real_distribution<> dis(0.0, 1.1);
-            r = dis(rd);
-        }
+            auto exp_exp_tradeoff = dis(rd);
 
-        // replace with random action to promote exploration
-        if(input_.use_exploration && r < input_.exploration_factor){
+            // do exploration by default
+            auto action_idx = world_ptr_->sample_action();
 
-            // Will be used to obtain a seed for the random number engine
-            std::random_device rd;
-
-            // Standard mersenne_twister_engine seeded with rd()
-            std::mt19937 gen(rd());
-            std::uniform_int_distribution<> dis(0, state.n_actions()-1);
-            auto idx = dis(rd);
-
-            action_idx = state.get_action_from_idx(idx);
-        }
-
-
-        world_ptr_->step(action_idx);
-        if(world_ptr_->is_finished()){
-
-            // the action led to a catastrophy according to
-            // the world
-            if(input_.show_iterations){
-
-#if defined(__GNUC__) && (__GNUC___ > 7)
-                std::cout<<"WORLD FINISHED AT STATE: "<<state.get_id()
-                        <<" AND ACTION: "<<magic_enum::enum_name(action_idx)<<std::endl;
-#else
-                std::cout<<"WORLD FINISHED AT STATE: "<<state.get_id()
-                        <<" AND ACTION: "<<worlds::to_string(action_idx)<<std::endl;
-#endif
-
+            if( exp_exp_tradeoff > input_.epsilon ){
+                  action_idx = kernel::row_argmax(q_function_, state.get_id());
             }
 
-            break;
-        }
-        else{
+            // step in the world
+            auto [new_state, reward, finished, info] = world_ptr_->step(action_idx);
 
+            // update the qtable
+            q_function_(state.get_id(), action_idx) += input_.learning_rate * (reward +
+                                                           input_.discount_factor * kernel::get_row_max(q_function_, new_state.get_id()) -
+                                                            q_function_(state.get_id(), action_idx));
 
-            // get the reward
-            auto reward = world_ptr_->reward();
-            auto current_val = qtable_.get_reward(state.get_id(), action_idx);
+            state = new_state;
 
-            // update the table
-            auto& new_state = world_ptr_->get_current_state();
-
-            auto future_reward = qtable_.get_max_reward_at_state(new_state.get_id());
-
-            auto val = current_val + input_.learning_rate*(reward +
-                                         input_.discount_factor * future_reward - current_val);
-
-            if(input_.show_iterations){
-                std::cout<<"\t Setting for state: "<<state.get_id()
-                        <<" and action: "<<worlds::to_string(action_idx)
-                        <<" to value: "<<val<<std::endl;
+            if( finished ){
+                break;
             }
-            qtable_.set_reward(state.get_id(), action_idx, val );
-
-            itr_counter++;
         }
-      }
+
+        if(input_.use_decay){
+            episode_counter += 1;
+            input_.epsilon = input_.min_epsilon + (input_.max_epsilon - input_.min_epsilon)*std::exp(-input_.epsilon_decay * episode_counter);
+        }
+    }
 }
 
 }
