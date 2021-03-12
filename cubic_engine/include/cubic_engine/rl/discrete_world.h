@@ -90,6 +90,11 @@ public:
     void restart(const state_t& state);
 
     ///
+    /// \brief restart. Restart the world
+    ///
+    const state_t& restart();
+
+    ///
     /// \brief Set up the cells map
     ///
     void set_states(std::vector<state_t>&& states){states_ = states;}

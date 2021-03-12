@@ -75,6 +75,11 @@ public:
     void execute_action(action_t aid);
 
     ///
+    /// \brief n_actions. Max number of actions per state
+    ///
+    uint_t n_actions()const{return 4;}
+
+    ///
     /// \brief build The world with nx elements in the x-direction
     /// and ny-elements in the y-direction
     ///
