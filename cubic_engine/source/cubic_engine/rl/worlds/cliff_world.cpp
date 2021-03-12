@@ -3,8 +3,11 @@
 #ifdef USE_RL
 
 #include "cubic_engine/rl/worlds/cliff_world.h"
+#include "cubic_engine/rl/worlds/grid_world_action_space.h"
+
 #include <algorithm>
 #include <iostream>
+
 namespace cengine{
 namespace rl{
 namespace worlds{
@@ -13,16 +16,20 @@ CliffWorld::CliffWorld()
     :
       DiscreteWorld<GridWorldAction, GridWorldState,
                     cliff_world_detail::CliffWorldRewardProducer,
-                    cliff_world_detail::CliffWorldDynamics>(),
-      goal_(nullptr),
+                    ConstantEnvironmentDynamics>(),
       r_(0.0)
 {}
 
 CliffWorld::~CliffWorld()
 {}
 
+const CliffWorld::action_t
+CliffWorld::sample_action()const{
+    return uniform_sample_grid_world_action();
+}
 
-void
+
+std::tuple<CliffWorld::state_t*, real_t, bool, std::any>
 CliffWorld::step(const CliffWorld::action_t& action){
 
     if(this->states_.empty()){
@@ -46,6 +53,7 @@ CliffWorld::step(const CliffWorld::action_t& action){
     if(*this->current_state_ == *goal){
         r_ = 0.0;
         this->finished_ = true;
+        return {const_cast<state_t*>(this->current_state_), r_, true, std::any()};
     }
     else{
 
@@ -72,11 +80,13 @@ CliffWorld::step(const CliffWorld::action_t& action){
                 this->finished_ = true;
             }
         }
+
+        return {next_state, r_, this->finished_ , std::any()};
     }
 }
 
 void
-CliffWorld::create_world(){
+CliffWorld::build(){
 
     const uint_t N_CELLS = 48;
     const uint_t N_CELLS_X = 12;

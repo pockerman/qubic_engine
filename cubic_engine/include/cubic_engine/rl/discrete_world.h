@@ -7,6 +7,7 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/world.h"
+#include "kernel/base/kernel_consts.h"
 
 #include <vector>
 #include <algorithm>
@@ -54,6 +55,12 @@ public:
     virtual std::tuple<state_t*, real_t, bool, std::any> step(const action_t&)=0;
 
     ///
+    /// \brief sample_action. Sample an action from
+    /// the allowed action space of the world
+    ///
+    virtual const action_t sample_action()const=0;
+
+    ///
     /// \brief Returns true if the given state is a goal state
     ///
     bool is_goal_state(const state_t& state)const;
@@ -90,9 +97,10 @@ public:
     void restart(const state_t& state);
 
     ///
-    /// \brief restart. Restart the world
+    /// \brief restart. Restart the world and
+    /// return the starting state
     ///
-    const state_t& restart();
+    state_t restart();
 
     ///
     /// \brief Set up the cells map
@@ -148,7 +156,7 @@ protected:
     DiscreteWorld();
 
     ///
-    /// \brief The current state
+    /// \brief The current state the world is in
     ///
     const state_t* current_state_;
 
@@ -161,7 +169,7 @@ protected:
     ///
     /// \brief A map that describes the possible state transitions
     /// from one state to another. This is simply a list of
-    /// cell ids the agent can transition to
+    /// cells the agent can transition to
     ///
     std::vector<state_t> states_;
 
@@ -172,9 +180,16 @@ protected:
     bool finished_;
 
     ///
-    /// \brief dynamics_. Object describing the dynamics of the environment
+    /// \brief dynamics_. Object describing the dynamics of the environment.
+    /// that is how likely it is to transition to a state given an action
     ///
     dynamics_t dynamics_;
+
+    ///
+    /// \brief start_state_id_. The id of the state the
+    /// world starts at
+    ///
+    uint_t start_state_id_;
 };
 
 template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
@@ -184,7 +199,8 @@ DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::DiscreteWorld()
     current_state_(nullptr),
     goals_(),
     states_(),
-    finished_(false)
+    finished_(false),
+    start_state_id_(kernel::KernelConsts::invalid_size_type())
 {}
 
 template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
@@ -234,6 +250,7 @@ DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::restart(const state_t& s
     goals_ = std::vector<const state_t*>();
     goals_.push_back( &goal);
     finished_ = false;
+    start_state_id_ = current_state_->get_id();
 
 }
 
@@ -246,6 +263,7 @@ DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::restart(const state_t& s
     goals_ = std::vector<const state_t*>();
     goals_ = goals;
     finished_ = false;
+    start_state_id_ = current_state_->get_id();
 }
 
 template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
@@ -253,6 +271,25 @@ void
 DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::restart(const state_t& start){
     current_state_ = &start;
     finished_ = false;
+    start_state_id_ = current_state_->get_id();
+}
+
+template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
+typename DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::state_t
+DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::restart(){
+
+    if(states_.empty()){
+        throw std::logic_error("Empty world states list. Have you called this->build?");
+    }
+
+    if(start_state_id_ >= states_.size()){
+        throw std::logic_error("Invalid state index. Index=" + std::to_string(start_state_id_) +
+                               " not in [0,"+std::to_string(states_.size()) + ")");
+    }
+
+    current_state_ = &states_[start_state_id_];
+    finished_ = false;
+    return *current_state_;
 }
 
 template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>

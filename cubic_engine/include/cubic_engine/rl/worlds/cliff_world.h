@@ -11,14 +11,17 @@
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #include "cubic_engine/rl/worlds/grid_world_state.h"
 #include "cubic_engine/rl/reward_table.h"
+#include "cubic_engine/rl/constant_environment_dynamics.h"
 
-#include  <stdexcept>
+#include <stdexcept>
+#include <tuple>
 
 namespace cengine{
 namespace rl{
 namespace worlds {
 
 namespace cliff_world_detail{
+
     ///
     /// \brief Inner Class that handles the rewards
     ///
@@ -61,7 +64,11 @@ namespace cliff_world_detail{
     };
 
 
-    class CliffWorldDynamics
+    ///
+    /// \brief The CliffWorldDynamics class. The class
+    /// describing the dynamics
+    ///
+    /*class CliffWorldDynamics
     {
     public:
 
@@ -83,7 +90,7 @@ namespace cliff_world_detail{
 
     private:
 
-    };
+    };*/
 
 } // cliff_world_detail
 
@@ -100,7 +107,7 @@ namespace cliff_world_detail{
 class CliffWorld final: public DiscreteWorld<GridWorldAction,
                                              GridWorldState,
                                              cliff_world_detail::CliffWorldRewardProducer,
-                                             cliff_world_detail::CliffWorldDynamics>
+                                             ConstantEnvironmentDynamics>
 {
 
 public:
@@ -110,28 +117,28 @@ public:
     ///
     typedef typename DiscreteWorld<GridWorldAction, GridWorldState,
                                    cliff_world_detail::CliffWorldRewardProducer,
-                                   cliff_world_detail::CliffWorldDynamics>::action_t action_t;
+                                   ConstantEnvironmentDynamics>::action_t action_t;
 
     ///
     /// \brief state_t The state type
     ///
     typedef typename DiscreteWorld<GridWorldAction, GridWorldState,
                                    cliff_world_detail::CliffWorldRewardProducer,
-                                   cliff_world_detail::CliffWorldDynamics>::state_t state_t;
+                                   ConstantEnvironmentDynamics>::state_t state_t;
 
     ///
     /// \brief reward_value_t The reward value type
     ///
     typedef typename DiscreteWorld<GridWorldAction, GridWorldState,
                                    cliff_world_detail::CliffWorldRewardProducer,
-                                   cliff_world_detail::CliffWorldDynamics>::reward_value_t reward_value_t;
+                                   ConstantEnvironmentDynamics>::reward_value_t reward_value_t;
 
     ///
     /// \brief dynamics_t The dynamics objet
     ///
     typedef typename DiscreteWorld<GridWorldAction, GridWorldState,
                                    cliff_world_detail::CliffWorldRewardProducer,
-                                   cliff_world_detail::CliffWorldDynamics>::dynamics_t dynamics_t;
+                                   ConstantEnvironmentDynamics>::dynamics_t dynamics_t;
 
     ///
     /// \brief Global invalid action assumed by the world.
@@ -154,10 +161,17 @@ public:
     virtual const state_t& sense()override final{return  *this->current_state_;}
 
     ///
+    /// \brief sample_action. Sample an action from
+    /// the allowed action space of the world. The Uniform
+    /// distribution is used for sampling
+    ///
+    virtual const action_t sample_action()const override final;
+
+    ///
     /// \brief Transition to a new state by
     /// performing the given action
     ///
-    virtual void step(const action_t&)override final;
+    virtual std::tuple<state_t*, real_t, bool, std::any> step(const action_t&)override final;
 
     ///
     /// \brief Returns the reward associated
@@ -178,7 +192,7 @@ public:
     ///
     /// \brief Create the world
     ///
-    void create_world();
+    void build();
 
     ///
     /// \brief save_world_as_csv. Save the world in csv format in the
@@ -186,14 +200,7 @@ public:
     ///
     virtual void save_world_as_csv(const std::string& filename)const override final{}
 
-
 private:
-
-    ///
-    /// \brief The goal state
-    ///
-    const state_t* goal_;
-
 
     ///
     /// \brief The reward that the agent should recieve

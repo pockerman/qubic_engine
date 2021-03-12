@@ -58,6 +58,13 @@ public:
     virtual const state_t& sense()override final{return  *this->current_state_;}
 
     ///
+    /// \brief sample_action. Sample an action from
+    /// the allowed action space of the world. The Uniform
+    /// distribution is used for sampling
+    ///
+    virtual const action_t sample_action()const override final;
+
+    ///
     /// \brief Transition to a new state by
     /// performing the given action
     ///
@@ -118,6 +125,13 @@ GridWorld<RewardTp, DynamicsTp>::~GridWorld()
 {}
 
 template<typename RewardTp, typename DynamicsTp>
+const typename GridWorld<RewardTp, DynamicsTp>::action_t
+GridWorld<RewardTp, DynamicsTp>::sample_action()const{
+
+    return uniform_sample_grid_world_action();
+}
+
+template<typename RewardTp, typename DynamicsTp>
 std::tuple<typename GridWorld<RewardTp, DynamicsTp>::state_t*, real_t, bool, std::any>
 GridWorld<RewardTp, DynamicsTp>::step(const typename GridWorld<RewardTp, DynamicsTp>::action_t& action){
 
@@ -136,7 +150,7 @@ GridWorld<RewardTp, DynamicsTp>::step(const typename GridWorld<RewardTp, Dynamic
     if(this->is_goal_state(*this->current_state_)){
         r_ = this->reward_.goal_reward();
         this->finished_ = true;
-        return {this->current_state_, this->reward_.goal_reward(), true, std::any()};
+        return {const_cast<state_t*>(this->current_state_), this->reward_.goal_reward(), this->finished_, std::any()};
     }
     else{
 
