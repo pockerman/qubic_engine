@@ -1,6 +1,7 @@
 import json
 from configuration import INFO
 from configuration.cmake_file_writer import CMakeCubicEngineWriter
+from configuration.kernel_cmake_writer import KernelCMakeWriter
 
 
 def read_json(filename):
@@ -13,6 +14,8 @@ def read_json(filename):
 if __name__ == '__main__':
     print("{0} Generating configuration scripts...".format(INFO))
     config = read_json(filename="config_opts.json")
-    cubic_camke_writer = CMakeCubicEngineWriter(configuration=config)
-    cubic_camke_writer.write_cmake_lists()
+    kernel_cmake_writer = KernelCMakeWriter(configuration=config)
+    kernel_cmake_writer.write_cmake_lists()
+    #cubic_camke_writer = CMakeCubicEngineWriter(configuration=config)
+    #cubic_camke_writer.write_cmake_lists()
     print("{0} finished...".format(INFO))

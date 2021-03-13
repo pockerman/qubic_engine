@@ -26,7 +26,7 @@ class CMakeFileWriter(object):
             fh.write("CMAKE_MINIMUM_REQUIRED(VERSION 3.6)\n")
             fh.write('MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")\n')
             fh.write('\n')
-            fh.write('PROJECT({0} CXX)\n'.format(options["project_name"]))
+            fh.write('PROJECT({0} CXX)\n'.format(self._project_name))
             fh.write('\n')
             fh.write('# -----------------------------------------------------------------------------\n')
             fh.write('# Prevent in-source builds.\n')
@@ -42,10 +42,39 @@ class CMakeFileWriter(object):
             fh.write('\tCMAKE_POLICY(SET CMP0003 NEW)\n')
             fh.write('\tCMAKE_POLICY(SET CMP0048 NEW)\n')
             fh.write('ENDIF(COMMAND cmake_policy)\n')
+
+            fh.write('\n')
+            fh.write('# default options')
+            fh.write('SET(BUILD_SHARED_LIBS ON)\n')
+
+            build_type = self.configuration["CMAKE_BUILD_TYPE"]
+            fh.write('SET(CMAKE_BUILD_TYPE "{0}")\n'.format(build_type))
+            fh.write('SET(CMAKE_CXX_STANDARD 17)\n')
+            fh.write('SET(CMAKE_CXX_STANDARD_REQUIRED True)\n')
+            fh.write('SET(PWD ${PROJECT_SOURCE_DIR})\n')
+            fh.write('SET(CMAKE_INSTALL_PREFIX ${PWD}/install)\n')
+            fh.write('SET(MAGIC_ENUM_INCL_DIR " ")\n')
+            fh.write('SET(CMAKE_LINKER_FLAGS "-pthread")\n')
+
+            blaze_dir = self.configuration["BLAZE_INCL_DIR"]
+            fh.write('SET(BLAZE_INCL_DIR "{0}")\n'.format(blaze_dir))
+
+            nlohmann_json_dir = self.configuration["NLOHMANN_JSON_INCL_DIR"]
+            fh.write('SET(NLOHMANN_JSON_INCL_DIR "{0}")\n'.format(nlohmann_json_dir))
+            fh = self._write_project_variables(fh=fh)
+
+            fh = self._find_boost(fh=fh)
+            fh = self._find_blas(fh=fh)
+            fh = self._write_options(fh=fh)
+            fh = self._write_configure_files(fh=fh)
+
             return fh
 
     def write_test_cmake_lists(self):
         pass
+
+    def _write_project_variables(self, fh):
+        return fh
 
     def _write_build_option(self, fh):
 
@@ -79,6 +108,7 @@ class CMakeFileWriter(object):
         fh.write('ELSE()\n')
         fh.write('\tMESSAGE( FATAL_ERROR  "Boost C++ library is required but not found.")\n')
         fh.write('ENDIF()\n')
+        fh.write('\n')
         return fh
 
     def _find_blas(self, fh):
@@ -90,19 +120,20 @@ class CMakeFileWriter(object):
         fh.write('ELSE()\n')
         fh.write('\tMESSAGE( STATUS  "Found needed BLAS library.")\n')
         fh.write('ENDIF()\n')
+        fh.write('\n')
         return fh
 
     def _write_include_files(self, fh):
         return fh
 
     def _write_options(self, fh):
-        pass
+        return fh
 
     def _write_opencv(self, fh):
         pass
 
     def _write_configure_files(self, fh):
-        pass
+        return fh
 
 
 class CMakeCubicEngineWriter(CMakeFileWriter):
@@ -112,9 +143,6 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
                                                      project_name="CubicEngine")
 
     def write_cmake_lists(self):
-
-        # call super class
-        #super(CMakeCubicEngineWriter, self).write_cmake_lists()
 
         if self.configuration["testing"]:
             self.write_test_cmake_lists()
@@ -131,7 +159,6 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
             if self.configuration["cengine"]["rl"]["BUILD_TESTS"]:
                 print("{0} RL module tests are enabled...".format(INFO))
                 self.write_rl_cmake_tests()
-
 
     def write_rl_cmake_lists(self):
 
@@ -162,8 +189,6 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
 
             nlohmann_json_dir = self.configuration["NLOHMANN_JSON_INCL_DIR"]
             fh.write('SET(NLOHMANN_JSON_INCL_DIR "{0}")\n'.format(nlohmann_json_dir))
-
-
 
             # we want the include dir to have dir cubic_engine/
             # so that include files have have the format

@@ -34,7 +34,8 @@
   },
 
   "kernel": {
-    "CMAKE_INSTALL_PREFIX": "${PROJECT_SOURCE_DIR}/install"
+    "CMAKE_INSTALL_PREFIX": "${PROJECT_SOURCE_DIR}/install",
+    "USE_DISCRETIZATION": false
   },
 
   "cengine": {
