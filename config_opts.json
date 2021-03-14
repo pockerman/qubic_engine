@@ -17,7 +17,7 @@
   },
 
   "trilinos": {
-    "USE_TRILINOS": false,
+    "USE_TRILINOS": true,
     "USE_TRILINOS_LONG_LONG_TYPE": false,
     "TRILINOS_INCL_DIR": "/home/alex/MySoftware/trilinos/install/include",
     "TRILINOS_LIB_DIR": "/home/alex/MySoftware/trilinos/install/lib"

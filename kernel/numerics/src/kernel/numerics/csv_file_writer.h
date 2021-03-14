@@ -3,14 +3,17 @@
 
 #include "kernel/base/types.h"
 #include "kernel/utilities/file_writer_base.h"
-
+#include "kernel/discretization/node_mesh_iterator.h"
+#include "kernel/discretization/mesh_predicates.h"
 #include <vector>
 #include <tuple>
 #include <initializer_list>
 
 namespace kernel{
-namespace utilities {
 
+namespace numerics {
+template<int dim> class LineMesh;
+}
 
 ///
 /// \brief The CSVWriter class. Handles writing into CSV file format
@@ -77,6 +80,17 @@ public:
     ///
     char get_delimiter()const noexcept{return delim_;}
 
+    ///
+    /// \brief Write the given LineMesh into csv format
+    ///
+    void write_mesh(const numerics::LineMesh<2>& mesh );
+
+    ///
+    /// \brief Write the nodes of the given Mesh
+    ///
+    template<typename MeshTp>
+    void write_mesh_nodes(const MeshTp& mesh);
+
 private:
 
     ///
@@ -130,14 +144,47 @@ CSVWriter::write_row(const DynVec<T>& vals){
 
 }
 
+template<typename MeshTp>
+void
+CSVWriter::write_mesh_nodes(const MeshTp& mesh){
+
+    ///if the file is not open throw
+    if(!is_open()){
+        throw std::logic_error("File "+this->file_name_+" is not open");
+    }
+
+    numerics::ConstNodeMeshIterator<numerics::Active, MeshTp> filter(mesh);
+
+    auto begin = filter.begin();
+    auto end = filter.end();
+
+    for(; begin != end; ++begin){
+        auto* node  = *begin;
+
+        for(uint_t d =0; d<MeshTp::dimension; ++d){
+
+           this->file_<<(*node)[d];
+
+            if(d == MeshTp::dimension -1){
+                 this->file_<<std::endl;
+             }
+            else{
+                this->file_<<",";
+            }
+        }
+    }
+
+    this->file_.flush();
+    this->file_.close();
+}
+
+
 template<typename...T>
 void
 CSVWriter::write_row(const std::tuple<T...>& row){
 
     std::apply([&](auto&&...args ){((file_<<args<<","), ...);}, row);
     file_<<std::endl;
-}
-
 }
 
 }

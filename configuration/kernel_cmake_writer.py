@@ -18,23 +18,18 @@ class KernelCMakeWriter(CMakeFileWriter):
         with open("kernel/kernel/CMakeLists.txt", 'w', newline="\n") as fh:
             # call super class
             project_name = 'kernel'
-            fh = self.write_basic_lists(fh=fh, **{"project_name": "kernel"})
+            fh = self.write_basic_lists(fh=fh)
 
             fh.write('INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})\n')
             for directory in self.dirs:
                 fh.write('INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/%s/src/)\n' % (directory))
 
-            fh.write("IF({0})".format("USE_DISCRETIZATION"))
-            fh.write('INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})\n')
-            fh.write("ELSE()\n")
-            fh.write('MESSAGE(STATUS "Discretization module in not built)\n')
-            fh.write("ENDIF()")
+            if self.configuration["trilinos"]["USE_TRILINOS"]:
+                fh.write('INCLUDE_DIRECTORIES(${TRILINOS_INCL_DIR})\n')
 
             fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
             fh.write('\n')
-
             fh.write('ADD_LIBRARY({0} SHARED "")\n'.format(self.project_name))
-
             fh.write('\n')
 
             current_dir = Path(os.getcwd())
@@ -42,7 +37,8 @@ class KernelCMakeWriter(CMakeFileWriter):
             parent_dir = current_dir.parent
             print("Parent dir {0}".format(parent_dir))
 
-            # Add source directories
+            # Add source directories we need to loop
+            # over the submodules and write their CMakeLists
             for directory in self.dirs:
                 fh.write('ADD_SUBDIRECTORY(${PROJECT_SOURCE_DIR}/%s/src/%s/%s/)\n' % (directory, self.project_name, directory))
 
@@ -65,17 +61,23 @@ class KernelCMakeWriter(CMakeFileWriter):
 
         print("{0} Done...".format(INFO))
 
-
     def _write_project_variables(self, fh):
+
+        if self.configuration["CMAKE_BUILD_TYPE"]:
+            fh.write('SET(KERNEL_DEBUG "ON")\n')
+
+        if self.configuration["trilinos"]["USE_TRILINOS"]:
+            fh.write('SET(USE_TRILINOS {0})\n'.format(self.configuration["trilinos"]["USE_TRILINOS"]))
+            fh.write('SET(USE_TRILINOS_LONG_LONG_TYPE {0})\n'.format(self.configuration["trilinos"]["USE_TRILINOS_LONG_LONG_TYPE"]))
+            fh.write('SET(TRILINOS_INCL_DIR {0})\n'.format(self.configuration["trilinos"]["TRILINOS_INCL_DIR"]))
+            fh.write('SET(TRILINOS_LIB_DIR {0})\n'.format(self.configuration["trilinos"]["TRILINOS_LIB_DIR"]))
+
+        current_dir = Path(os.getcwd())
+        fh.write('SET(DATA_SET_FOLDER {0}/data)\n'.format(current_dir))
+
         return fh
 
     def _write_options(self, fh):
-
-        if self.configuration[self.project_name]["USE_DISCRETIZATION"]:
-            fh.write('OPTION({0} "Build with discretization module " ON)\n'.format("USE_DISCRETIZATION"))
-        else:
-            fh.write('OPTION({0} "Build with discretization module " OFF)\n'.format("USE_DISCRETIZATION"))
-
         return fh
 
     def _write_configure_files(self, fh):

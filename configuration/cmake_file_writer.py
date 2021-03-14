@@ -49,12 +49,16 @@ class CMakeFileWriter(object):
 
             build_type = self.configuration["CMAKE_BUILD_TYPE"]
             fh.write('SET(CMAKE_BUILD_TYPE "{0}")\n'.format(build_type))
+            fh.write('SET(CMAKE_CXX_COMPILER {0})\n'.format(self.configuration["CMAKE_CXX_COMPILER"]))
             fh.write('SET(CMAKE_CXX_STANDARD 17)\n')
             fh.write('SET(CMAKE_CXX_STANDARD_REQUIRED True)\n')
+            fh.write('SET(CMAKE_C_COMPILER {0})\n'.format(self.configuration["CMAKE_C_COMPILER"]))
             fh.write('SET(PWD ${PROJECT_SOURCE_DIR})\n')
             fh.write('SET(CMAKE_INSTALL_PREFIX ${PWD}/install)\n')
             fh.write('SET(MAGIC_ENUM_INCL_DIR " ")\n')
             fh.write('SET(CMAKE_LINKER_FLAGS "-pthread")\n')
+            fh.write('SET(USE_OPENMP {0})\n'.format(self.configuration["USE_OPENMP"]))
+            fh.write('SET(USE_LOG {0})\n'.format(self.configuration["USE_LOG"]))
 
             blaze_dir = self.configuration["BLAZE_INCL_DIR"]
             fh.write('SET(BLAZE_INCL_DIR "{0}")\n'.format(blaze_dir))
@@ -68,6 +72,10 @@ class CMakeFileWriter(object):
             fh = self._write_options(fh=fh)
             fh = self._write_configure_files(fh=fh)
 
+            fh.write('MESSAGE(STATUS "Build type: ${CMAKE_BUILD_TYPE}")\n')
+            fh.write('MESSAGE(STATUS "C++ Compiler: ${CMAKE_CXX_COMPILER}")\n')
+            fh.write('MESSAGE(STATUS "C Compiler: ${CMAKE_C_COMPILER}")\n')
+            fh.write('\n')
             return fh
 
     def write_test_cmake_lists(self):
