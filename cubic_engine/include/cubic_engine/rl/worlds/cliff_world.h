@@ -63,35 +63,6 @@ namespace cliff_world_detail{
         RewardTable<GridWorldAction, real_t> rewards_;
     };
 
-
-    ///
-    /// \brief The CliffWorldDynamics class. The class
-    /// describing the dynamics
-    ///
-    /*class CliffWorldDynamics
-    {
-    public:
-
-        ///
-        /// \brief ConstantEnvironmentDynamics Constructor
-        ///
-        CliffWorldDynamics()=default;
-
-        ///
-        /// \brief ConstantEnvironmentDynamics Constructor
-        ///
-        CliffWorldDynamics(real_t val);
-
-        ///
-        /// \brief operator () Return the constant dynamics value
-        ///
-        template<typename StateTp, typename ActionTp>
-        real_t operator()(const StateTp& state, const ActionTp& action)const{return 0.0;}
-
-    private:
-
-    };*/
-
 } // cliff_world_detail
 
 ///
@@ -193,12 +164,6 @@ public:
     /// \brief Create the world
     ///
     void build();
-
-    ///
-    /// \brief save_world_as_csv. Save the world in csv format in the
-    /// file specified by the given filename
-    ///
-    virtual void save_world_as_csv(const std::string& filename)const override final{}
 
 private:
 
