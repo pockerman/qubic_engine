@@ -112,6 +112,16 @@ public:
     ///
     std::vector<const GridWorldState*> get_states()const;
 
+    ///
+    /// \brief get_state_transitions. Returns the state transitions
+    ///
+    std::map<GridWorldAction, GridWorldState*>& get_state_transitions(){return state_transitions_;}
+
+    ///
+    /// \brief get_state_transitions. Returns the state transitions
+    ///
+    const std::map<GridWorldAction, GridWorldState*>& get_state_transitions()const{return state_transitions_;}
+
 
 private:
 
