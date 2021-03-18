@@ -138,7 +138,7 @@ class CMakeFileWriter(object):
         return fh
 
     def _write_opencv(self, fh):
-        pass
+        return fh
 
     def _write_configure_files(self, fh):
         return fh

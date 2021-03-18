@@ -1,8 +1,9 @@
-#include "kernel/maths/direct_solvers/amesos_solver.h"
+#include "kernel/numerics/direct_solvers/amesos_solver.h"
 
 #ifdef USE_TRILINOS
 
-#include "kernel/maths/solvers/solver_package_type.h"
+#include "kernel/numerics/solvers/solver_package_type.h"
+#include "kernel/maths/trilinos_epetra_matrix.h"
 #include "kernel/maths/trilinos_epetra_multivector.h"
 
 //#include <Teuchos_RCP.hpp>

@@ -2,8 +2,8 @@
 #define SOLVER_BASE_H
 
 #include "kernel/base/types.h"
-#include "kernel/maths/solvers/solver_type.h"
-#include "kernel/maths/solvers/solver_package_type.h"
+#include "kernel/numerics/solvers/solver_type.h"
+#include "kernel/numerics/solvers/solver_package_type.h"
 
 #include <boost/noncopyable.hpp>
 

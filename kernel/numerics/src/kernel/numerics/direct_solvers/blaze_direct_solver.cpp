@@ -1,5 +1,5 @@
-#include "kernel/maths/direct_solvers/blaze_direct_solver.h"
-#include "kernel/maths/solvers/solver_package_type.h"
+#include "kernel/numerics/direct_solvers/blaze_direct_solver.h"
+#include "kernel/numerics/solvers/solver_package_type.h"
 
 #include <stdexcept>
 #include <iostream>

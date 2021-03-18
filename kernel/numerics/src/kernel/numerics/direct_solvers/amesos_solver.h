@@ -5,9 +5,8 @@
 
 #ifdef USE_TRILINOS
 
-#include "kernel/maths/direct_solvers/direct_solver_base.h"
-#include "kernel/maths/direct_solvers/direct_solver_type.h"
-#include "kernel/maths/trilinos_epetra_matrix.h"
+#include "kernel/numerics/direct_solvers/direct_solver_base.h"
+#include "kernel/numerics/direct_solvers/direct_solver_type.h"
 
 namespace kernel {
 namespace numerics{

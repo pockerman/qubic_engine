@@ -3,21 +3,36 @@ from pathlib import Path
 from configuration import INFO
 from configuration.cmake_file_writer import CMakeFileWriter
 
+
 class KernelCMakeWriter(CMakeFileWriter):
 
-    def __init__(self, configuration):
+    @staticmethod
+    def kernel_dir_path():
+        current_dir = Path(os.getcwd())
+        return current_dir / "kernel" / "kernel"
+
+    @staticmethod
+    def kernel_dirs():
+        return ['base', 'data_structs', 'geometry', 'maths',
+                     'parallel', 'patterns', 'utilities']
+
+    def __init__(self, configuration: dict) -> None:
         super(KernelCMakeWriter, self).__init__(configuration=configuration,
                                                 project_name="kernel")
 
-        self.dirs = ['base', 'data_structs', 'geometry', 'maths',
-                     'parallel', 'patterns', 'utilities']
+        self.dirs = KernelCMakeWriter.kernel_dirs()
 
     def write_cmake_lists(self):
 
         print("{0} Writing CMakeLists for project {1}".format(INFO, self.project_name))
+
+        # set the kernel path
+        current_dir = Path(os.getcwd())
+        print("Current dir {0}".format(current_dir))
+
         with open("kernel/kernel/CMakeLists.txt", 'w', newline="\n") as fh:
             # call super class
-            project_name = 'kernel'
+
             fh = self.write_basic_lists(fh=fh)
 
             fh.write('INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})\n')
@@ -31,11 +46,6 @@ class KernelCMakeWriter(CMakeFileWriter):
             fh.write('\n')
             fh.write('ADD_LIBRARY({0} SHARED "")\n'.format(self.project_name))
             fh.write('\n')
-
-            current_dir = Path(os.getcwd())
-            print("Current dir {0}".format(current_dir))
-            parent_dir = current_dir.parent
-            print("Parent dir {0}".format(parent_dir))
 
             # Add source directories we need to loop
             # over the submodules and write their CMakeLists

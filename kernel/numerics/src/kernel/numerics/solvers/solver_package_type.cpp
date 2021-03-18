@@ -1,4 +1,4 @@
-#include "kernel/maths/solvers/solver_package_type.h"
+#include "kernel/numerics/solvers/solver_package_type.h"
 
 namespace kernel{
 namespace maths{

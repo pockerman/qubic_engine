@@ -1,8 +1,8 @@
 #ifndef BLAZE_DIRECT_SOLVER_H
 #define BLAZE_DIRECT_SOLVER_H
 
-#include "kernel/maths/direct_solvers/direct_solver_base.h"
-#include "kernel/maths/direct_solvers/direct_solver_type.h"
+#include "kernel/numerics/direct_solvers/direct_solver_base.h"
+#include "kernel/numerics/direct_solvers/direct_solver_type.h"
 
 namespace kernel{
 namespace maths {

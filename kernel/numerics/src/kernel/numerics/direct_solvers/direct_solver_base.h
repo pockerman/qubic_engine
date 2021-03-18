@@ -1,9 +1,9 @@
 #ifndef DIRECT_SOLVER_BASE_H
 #define DIRECT_SOLVER_BASE_H
 
-#include "kernel/maths/solvers/solver_base.h"
-#include "kernel/maths/solvers/solver_type.h"
-#include "kernel/maths/solvers/solver_package_type.h"
+#include "kernel/numerics/solvers/solver_base.h"
+#include "kernel/numerics/solvers/solver_type.h"
+#include "kernel/numerics/solvers/solver_package_type.h"
 
 namespace kernel {
 namespace maths{

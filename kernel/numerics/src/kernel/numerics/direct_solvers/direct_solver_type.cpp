@@ -1,4 +1,4 @@
-#include "kernel/maths/direct_solvers/direct_solver_type.h"
+#include "kernel/numerics/direct_solvers/direct_solver_type.h"
 
 namespace kernel {
 namespace maths{

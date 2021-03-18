@@ -2,6 +2,7 @@ import json
 from configuration import INFO
 from configuration.cmake_file_writer import CMakeCubicEngineWriter
 from configuration.kernel_cmake_writer import KernelCMakeWriter
+from configuration.numerics_cmake_writer import NumericsCMakeWriter
 
 
 def read_json(filename):
@@ -15,7 +16,14 @@ if __name__ == '__main__':
     print("{0} Generating configuration scripts...".format(INFO))
     config = read_json(filename="config_opts.json")
     kernel_cmake_writer = KernelCMakeWriter(configuration=config)
-    kernel_cmake_writer.write_cmake_lists()
+    #kernel_cmake_writer.write_cmake_lists()
+
+    if config["kernel"]["USE_NUMERICS"]:
+        numerics_cmake_writer = NumericsCMakeWriter(configuration=config,
+                                                    kernel_dirs=KernelCMakeWriter.kernel_dirs(),
+                                                    kernel_dir=KernelCMakeWriter.kernel_dir_path())
+        numerics_cmake_writer.write_cmake_lists()
+
     #cubic_camke_writer = CMakeCubicEngineWriter(configuration=config)
     #cubic_camke_writer.write_cmake_lists()
     print("{0} finished...".format(INFO))
