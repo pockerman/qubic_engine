@@ -1,3 +1,7 @@
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/utilities/csv_file_writer.h"
 #include "kernel/base/kernel_consts.h"
@@ -87,3 +91,5 @@ int main(){
 
     return 0;
 }
+
+#endif

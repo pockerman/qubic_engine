@@ -59,6 +59,31 @@ public:
                             std::map<std::string, boost::any> >::vector_t vector_t;
 
     ///
+    /// \brief integrate_state_v1
+    ///
+    static SysState<3> integrate_state_v1(const SysState<3>& state, real_t tol, real_t dt,
+                                                real_t v, real_t w, const std::array<real_t, 2>& errors);
+
+
+    ///
+    /// \brief integrate_state_v2
+    ///
+    static SysState<3> integrate_state_v2(const SysState<3>& state, real_t dt,
+                                                real_t v, real_t w, const std::array<real_t, 2>& errors);
+
+    ///
+    /// \brief integrate_state_v3
+    ///
+    static SysState<3> integrate_state_v3(const SysState<3>& state, real_t r, real_t l, real_t dt, real_t w1,
+                                                real_t w2, const std::array<real_t, 2>& errors);
+
+    ///
+    /// \brief integrate Factory method to apply
+    /// the different integration methods
+    ///
+    static SysState<3> integrate(const SysState<3>& state, const input_t& input, const DynamicVersion version);
+
+    ///
     /// \brief Constructor
     ///
     explicit DiffDriveDynamics(DynamicVersion type = DynamicVersion::V1);
