@@ -8,6 +8,8 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/world.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/utilities/csv_file_writer.h"
+#include <nlohmann/json.hpp>
 
 #include <vector>
 #include <algorithm>
@@ -146,7 +148,7 @@ public:
     /// \brief save_world_as_csv. Save the world in csv format in the
     /// file specified by the given filename
     ///
-    virtual void save_world_as_csv(const std::string& filename)const=0;
+    virtual void save_world_as_json(const std::string& filename)const;
 
 protected:
 
@@ -299,8 +301,37 @@ DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::get_dynamics(const state
     return dynamics_(state, action);
 }
 
-}
+template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
+void
+DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::save_world_as_json(const std::string& filename)const{
 
+    using json = nlohmann::json;
+
+    json json_data;
+    std::ofstream file_stream(filename);
+
+    "n_states", this->states_.size() >> json_data;
+    file_stream << json_data <<std::endl;
+
+    for(uint_t c=0; c<this->states_.size(); ++c){
+        auto& this_cell = this->states_[c];
+
+        // the cell id
+        "state_id", this_cell.get_id() >> json_data;
+
+        file_stream << json_data <<std::endl;
+
+        auto& state_transitions = this_cell.get_state_transitions();
+        auto itr_begin = state_transitions.begin();
+        auto itr_end = state_transitions.end();
+        for(; itr_begin != itr_end; ++itr_begin){
+            "action_id", itr_begin->first >> json_data;
+            "transition_id", itr_begin->second >> json_data;
+            file_stream << json_data <<std::endl;
+        }
+    }
+  }
+}
 }
 
 #endif
