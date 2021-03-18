@@ -37,6 +37,12 @@ public:
 	///
     std::vector<std::string> read_line();
 
+    ///
+    /// \brief read_line_as_uint. Read the line
+    /// as uint
+    ///
+    std::vector<uint_t> read_line_as_uint();
+
 	///
     /// \brief Attempts to open the file for reading
 	///
