@@ -11,6 +11,8 @@
 #include "cubic_engine/rl/worlds/grid_world_state.h"
 #include "cubic_engine/rl/discrete_world.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/utilities/csv_file_reader.h"
+
 
 #include <map>
 #include <vector>
@@ -93,16 +95,10 @@ public:
     void build(const uint_t nx, const uint_t ny);
 
     ///
-    /// \brief save_world_as_csv. Save the world in csv format in the
-    /// file specified by the given filename
-    ///
-    virtual void save_world_as_csv(const std::string& filename)const override final{}
-
-    ///
     /// \brief load_world_from_csv. Load the world from csv format in the
     /// file specified by the given filename
     ///
-    void load_world_from_csv(const std::string& filename){}
+    void load_world_from_json(const std::string& filename);
 
 private:
 
@@ -327,6 +323,36 @@ GridWorld<RewardTp, DynamicsTp>::build(const uint_t nx, const uint_t ny){
                 throw std::logic_error("Cell type " + c_type +" is unknown");
             }
         }
+}
+
+template<typename RewardTp, typename DynamicsTp>
+void
+GridWorld<RewardTp, DynamicsTp>::load_world_from_json(const std::string& filename){
+
+    using json = nlohmann::json;
+    json json_data;
+    std::ifstream file_stream(filename);
+
+    // read from the file stream
+    file_stream >> json_data;
+
+    auto n_states = static_cast<uint_t>(json_data["n_states"]);
+    this->states_.resize(n_states);
+
+    for(uint_t s=0; s<n_states; ++s){
+
+        auto state_id = static_cast<uint_t>(json_data["state_" + std::to_string(s)]);
+        auto& state = this->states_[s];
+        state.set_id(state_id);
+
+        for(uint_t tr=0; tr<4; ++tr){
+            auto action_idx = static_cast<uint_t>(json_data["action_id"]);
+            auto trans_idx = static_cast<uint_t>(json_data["transition_id"]);
+
+        }
+
+    }
+
 }
 
 }
