@@ -133,6 +133,37 @@ get_row(const DynMat<T>& matrix, uint_t row_idx){
     return row;
 }
 
+template<typename T>
+T
+get_row_max(const DynMat<T>& matrix, uint_t row_idx){
+
+    auto row = get_row(matrix, row_idx);
+    return blaze::max(row);
+}
+
+template<typename T>
+T
+get_row_min(const DynMat<T>& matrix, uint_t row_idx){
+
+    auto row = get_row(matrix, row_idx);
+    return blaze::min(row);
+}
+
+template<typename T>
+uint_t
+row_argmax(const DynMat<T>& matrix, uint_t row_idx){
+    auto row = get_row(matrix, row_idx);
+    return blaze::argmax(row);
+}
+
+
+template<typename T>
+uint_t
+row_argmin(const DynMat<T>& matrix, uint_t row_idx){
+    auto row = get_row(matrix, row_idx);
+    return blaze::argmin(row);
+}
+
 
 template<typename T>
 void 

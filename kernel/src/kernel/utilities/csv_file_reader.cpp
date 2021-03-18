@@ -59,6 +59,19 @@ CSVFileReader::read_line(){
     return result;
 }
 
+std::vector<uint_t>
+CSVFileReader::read_line_as_uint(){
+
+    auto line = read_line();
+    std::vector<uint_t> line_int(line.size());
+
+    for(uint_t i=0; i<line.size(); ++i){
+        line_int[i] = std::stoull(line[i]);
+    }
+
+    return line_int;
+}
+
 bool
 CSVFileReader::eof()const{
     return file_reader_.eof();

@@ -42,7 +42,7 @@ SET(PROJECT_INCL_DIR ${PROJECT_SOURCE_DIR}/include)
 SET(PROJECT_SRC_DIR  ${PROJECT_SOURCE_DIR}/source/cubic_engine)
 
 # optional configuration
-OPTION(ENABLE_TESTING "Build tests" ON)
+OPTION(ENABLE_TESTING "Build tests" OFF)
 OPTION(USE_OPENMP "Build with OpenMP support" ON)
 OPTION(USE_LOG "Use logging utilities" ON)
 OPTION(USE_PYTORCH "Build with PyTorch support" OFF)
@@ -169,6 +169,7 @@ SET(CMAKE_LINKER_FLAGS "-pthread")
 
 INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR})
 INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})
+INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})
 
 # define the library name
 ADD_LIBRARY(cubicengine SHARED "")
@@ -201,4 +202,6 @@ ADD_SUBDIRECTORY(examples)
 IF (ENABLE_TESTING)
     ENABLE_TESTING()
     ADD_SUBDIRECTORY(tests)
+ELSE()
+    MESSAGE(STATUS "Tests will not be built")
 ENDIF()

@@ -11,6 +11,8 @@
 #include "cubic_engine/rl/worlds/grid_world_state.h"
 #include "cubic_engine/rl/discrete_world.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/utilities/csv_file_reader.h"
+
 
 #include <map>
 #include <vector>
@@ -58,10 +60,17 @@ public:
     virtual const state_t& sense()override final{return  *this->current_state_;}
 
     ///
+    /// \brief sample_action. Sample an action from
+    /// the allowed action space of the world. The Uniform
+    /// distribution is used for sampling
+    ///
+    virtual const action_t sample_action()const override final;
+
+    ///
     /// \brief Transition to a new state by
     /// performing the given action
     ///
-    virtual void step(const action_t&)override final;
+    virtual std::tuple<state_t*, real_t, bool, std::any> step(const action_t&)override final;
 
     ///
     /// \brief Returns the reward associated
@@ -75,10 +84,21 @@ public:
     void execute_action(action_t aid);
 
     ///
+    /// \brief n_actions. Max number of actions per state
+    ///
+    uint_t n_actions()const{return 4;}
+
+    ///
     /// \brief build The world with nx elements in the x-direction
     /// and ny-elements in the y-direction
     ///
     void build(const uint_t nx, const uint_t ny);
+
+    ///
+    /// \brief load_world_from_csv. Load the world from csv format in the
+    /// file specified by the given filename
+    ///
+    void load_world_from_json(const std::string& filename);
 
 private:
 
@@ -101,7 +121,14 @@ GridWorld<RewardTp, DynamicsTp>::~GridWorld()
 {}
 
 template<typename RewardTp, typename DynamicsTp>
-void
+const typename GridWorld<RewardTp, DynamicsTp>::action_t
+GridWorld<RewardTp, DynamicsTp>::sample_action()const{
+
+    return uniform_sample_grid_world_action();
+}
+
+template<typename RewardTp, typename DynamicsTp>
+std::tuple<typename GridWorld<RewardTp, DynamicsTp>::state_t*, real_t, bool, std::any>
 GridWorld<RewardTp, DynamicsTp>::step(const typename GridWorld<RewardTp, DynamicsTp>::action_t& action){
 
     if(this->states_.empty()){
@@ -119,6 +146,7 @@ GridWorld<RewardTp, DynamicsTp>::step(const typename GridWorld<RewardTp, Dynamic
     if(this->is_goal_state(*this->current_state_)){
         r_ = this->reward_.goal_reward();
         this->finished_ = true;
+        return {const_cast<state_t*>(this->current_state_), this->reward_.goal_reward(), this->finished_, std::any()};
     }
     else{
 
@@ -140,6 +168,8 @@ GridWorld<RewardTp, DynamicsTp>::step(const typename GridWorld<RewardTp, Dynamic
             r_ = this->reward_.get_reward(action, *this->current_state_, *next_state);
             this->current_state_ = next_state;
         }
+
+        return {next_state, r_, false, std::any()};
     }
 }
 
@@ -293,6 +323,36 @@ GridWorld<RewardTp, DynamicsTp>::build(const uint_t nx, const uint_t ny){
                 throw std::logic_error("Cell type " + c_type +" is unknown");
             }
         }
+}
+
+template<typename RewardTp, typename DynamicsTp>
+void
+GridWorld<RewardTp, DynamicsTp>::load_world_from_json(const std::string& filename){
+
+    using json = nlohmann::json;
+    json json_data;
+    std::ifstream file_stream(filename);
+
+    // read from the file stream
+    file_stream >> json_data;
+
+    auto n_states = static_cast<uint_t>(json_data["n_states"]);
+    this->states_.resize(n_states);
+
+    for(uint_t s=0; s<n_states; ++s){
+
+        auto state_id = static_cast<uint_t>(json_data["state_" + std::to_string(s)]);
+        auto& state = this->states_[s];
+        state.set_id(state_id);
+
+        for(uint_t tr=0; tr<4; ++tr){
+            auto action_idx = static_cast<uint_t>(json_data["action_id"]);
+            auto trans_idx = static_cast<uint_t>(json_data["transition_id"]);
+
+        }
+
+    }
+
 }
 
 }

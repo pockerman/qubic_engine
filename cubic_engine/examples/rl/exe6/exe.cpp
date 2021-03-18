@@ -2,7 +2,7 @@
 
 #ifdef USE_RL
 
-/*#include "cubic_engine/base/cubic_engine_types.h"
+#include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/utilities/csv_file_writer.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/utilities/csv_file_writer.h"
@@ -10,6 +10,7 @@
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #include "cubic_engine/rl/q_learning.h"
 #include "cubic_engine/rl/reward_table.h"
+#include "cubic_engine/rl/constant_environment_dynamics.h"
 
 #include <cmath>
 #include <utility>
@@ -28,6 +29,7 @@ using cengine::rl::worlds::GridWorldAction;
 using cengine::rl::QTableLearning;
 using cengine::rl::QLearningInput;
 using cengine::rl::RewardTable;
+using cengine::rl::ConstantEnvironmentDynamics;
 using kernel::CSVWriter;
 const uint_t N_CELLS = 7;
 const real_t PENALTY = -100;
@@ -324,146 +326,51 @@ RewardProducer::get_reward(const ActionTp& action,
 
 }
 
-typedef GridWorld<RewardProducer> world_t;
+typedef GridWorld<RewardProducer, ConstantEnvironmentDynamics> world_t;
 typedef world_t::state_t state_t;
 
-void
-create_wolrd(world_t& w){
-
-   std::vector<state_t> world_states;
-   world_states.reserve(N_CELLS*N_CELLS);
-
-   uint_t counter=0;
-   for(uint_t i=0; i<N_CELLS; ++i){
-       for(uint_t j=0; j<N_CELLS; ++j){
-           world_states.push_back(state_t(counter++));
-       }
-   }
-
-   w.set_states(std::move(world_states));
-
-   counter=0;
-   for(uint_t i=0; i<N_CELLS*N_CELLS; ++i){
-
-       auto& state = w.get_state(i);
-
-       /// bottom row
-       if(i <7){
-
-           state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), nullptr);
-
-           if(i != 6){
-             state.set_transition(GridWorldAction::EAST, &w.get_state(i+1));
-           }
-           else{
-               state.set_transition(GridWorldAction::EAST, nullptr);
-           }
-
-           state.set_transition(GridWorldAction::NORTH, &w.get_state(N_CELLS + i));
-
-           if(i == 0){
-                state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
-           }
-           else{
-               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &w.get_state(i-1));
-           }
-       }
-       else if(i >= 42 ){
-           /// top row
-
-           state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), &w.get_state(i - N_CELLS));
-
-           if(i != 48){
-             state.set_transition(GridWorldAction::EAST, &w.get_state(i+1));
-           }
-           else{
-               state.set_transition(GridWorldAction::EAST, nullptr);
-           }
-
-           state.set_transition(GridWorldAction::NORTH, nullptr);
-
-           if(i == 42){
-               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
-           }
-           else{
-              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &w.get_state(i-1));
-           }
-       }
-       else{
-
-           /// all rows in between
-           state.set_transition(static_cast<GridWorldAction>(GridWorldAction::SOUTH), &w.get_state(i - N_CELLS));
-
-           if(i != 13 && i != 20 && i != 27 && i != 41 && i != 34){
-               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), &w.get_state(i +1));
-           }
-           else{
-               state.set_transition(static_cast<GridWorldAction>(GridWorldAction::EAST), nullptr);
-           }
-
-           state.set_transition(static_cast<GridWorldAction>(GridWorldAction::NORTH), &w.get_state(i + N_CELLS));
-
-           if(i != 7 && i != 14 && i != 21 && i != 28 && i != 35){
-              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), &w.get_state(i-1));
-           }
-           else {
-              state.set_transition(static_cast<GridWorldAction>(GridWorldAction::WEST), nullptr);
-           }
-       }
-   }
 }
-
-}*/
 
 int main() {
 
-    /*using namespace exe;
+    using namespace exe;
 
     /// the world of the agent
     world_t world;
 
-    create_wolrd(world);
+    // build a 6x6
+    world.build(6, 6);
 
     std::cout<<"Number of states: "<<world.n_states()<<std::endl;
 
-    state_t start(36);
-    state_t goal(12);
+    state_t start(30);
+    state_t goal(5);
 
     /// simulation parameters
     const real_t EPSILON = 0.1;
 
-    QLearningInput qinput={1.0, EPSILON, 0.0, true, true};
+    QLearningInput qinput;
+    qinput.discount_factor = 1.0;
+    qinput.epsilon = 1.0;
+    qinput.max_epsilon = 1.0;
+    qinput.min_epsilon = 0.01;
+    qinput.show_iterations = true;
+    qinput.total_episodes = 15;
+    qinput.max_num_iterations = 100;
+    qinput.use_decay = true;
+
     QTableLearning<world_t> qlearner(std::move(qinput));
-
-    CSVWriter writer("agent_rewards.csv", ',', true);
-
-    writer.write_column_names({"Episode", "Reward"}, true);
-
-    /// number of episodes for the agent to
-    /// learn the Q-values.
-    const uint_t N_ITERATIONS = 10000;
-
-    std::vector<real_t> row(2);
     qlearner.initialize(world, PENALTY);
 
-    for(uint_t episode=0; episode < N_ITERATIONS; ++episode){
-        world.restart(start, goal);
-        qlearner.train(goal);
+    // train the agent
+    qlearner.train();
 
-        auto reward = qlearner.get_table().get_total_reward();
-        writer.write_row(std::make_tuple(episode, reward));
-        std::cout<<"At episode: "<<episode<<" total reward: "<<reward<<std::endl;
-    }
-
-    /// now that we train let's play
-    auto& qtable = qlearner.get_table();
-
-    auto stop = false;
-
+    // now that we train let's play
+    auto& qtable = qlearner.get_q_function();
     world.restart(start, goal);
 
     auto counter = 0;
-    while(!stop){
+    /*while(!stop){
 
         auto& state = world.get_current_state();
         std::cout<<"At state: "<<state.get_id()<<std::endl;
@@ -480,8 +387,8 @@ int main() {
         std::cout<<"MAximum reward is: "<<qtable.get_max_reward_at_state(state.get_id())<<std::endl;
         world.execute_action(action);
         counter++;
-    }
-    */
+    }*/
+
    return 0;
 }
 #else
