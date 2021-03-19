@@ -86,7 +86,7 @@ public:
     ///
     /// \brief n_actions. Max number of actions per state
     ///
-    uint_t n_actions()const{return 4;}
+    uint_t n_actions()const override final{return 4;}
 
     ///
     /// \brief build The world with nx elements in the x-direction
@@ -314,7 +314,7 @@ GridWorld<RewardTp, DynamicsTp>::build(const uint_t nx, const uint_t ny){
             }
             else if(c_type == "TOP_RIGHT_CORNER"){
 
-                state.set_transition(GridWorldAction::SOUTH, &this->get_state(nx - i));
+                state.set_transition(GridWorldAction::SOUTH, &this->get_state(i - nx));
                 state.set_transition(GridWorldAction::EAST, &state);
                 state.set_transition(GridWorldAction::NORTH, &state);
                 state.set_transition(GridWorldAction::WEST, &this->get_state(i - 1));
@@ -341,13 +341,23 @@ GridWorld<RewardTp, DynamicsTp>::load_world_from_json(const std::string& filenam
 
     for(uint_t s=0; s<n_states; ++s){
 
-        auto state_id = static_cast<uint_t>(json_data["state_" + std::to_string(s)]);
-        auto& state = this->states_[s];
-        state.set_id(state_id);
+        std::string id_str = std::to_string(s);
+        //auto state_id = json_data[id_str];
 
-        for(uint_t tr=0; tr<4; ++tr){
-            auto action_idx = static_cast<uint_t>(json_data["action_id"]);
-            auto trans_idx = static_cast<uint_t>(json_data["transition_id"]);
+        auto state_actions = json_data[id_str]["actions"];
+        auto neighbors = json_data[id_str]["neighbors"];
+        auto& state = this->states_[s];
+        state.set_id(s);
+
+        for(uint_t tr=0; tr<n_actions(); ++tr){
+            auto action = static_cast<GridWorldAction>(state_actions[tr]);
+            auto trans_idx = static_cast<uint_t>(neighbors[tr]);
+
+            if(state.has_action(action)){
+                throw std::logic_error("Attempt tp overwrite action transition");
+            }
+
+            state.set_transition(action, &this->states_[trans_idx]);
 
         }
 
