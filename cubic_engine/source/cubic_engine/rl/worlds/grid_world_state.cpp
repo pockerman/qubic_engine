@@ -42,6 +42,12 @@ GridWorldState::GridWorldState(uint_t id)
       state_transitions_()
 {}
 
+GridWorldState::GridWorldState(const GridWorldState& other)
+    :
+      id_(other.id_),
+      state_transitions_(other.state_transitions_)
+{}
+
 GridWorldState&
 GridWorldState::operator=(const GridWorldState& other){
 
@@ -157,6 +163,11 @@ GridWorldState::get_states()const{
     }
 
     return states;
+}
+
+bool
+GridWorldState::has_action(GridWorldAction action)const{
+    return state_transitions_.find(action) != state_transitions_.end();
 }
 
 
