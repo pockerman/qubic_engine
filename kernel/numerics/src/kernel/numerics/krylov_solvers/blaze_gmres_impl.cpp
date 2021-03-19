@@ -1,4 +1,4 @@
-#include "kernel/maths/krylov_solvers/blaze_gmres_impl.h"
+#include "kernel/numerics/krylov_solvers/blaze_gmres_impl.h"
 
 #include <iostream> //std::cout below
 namespace kernel{

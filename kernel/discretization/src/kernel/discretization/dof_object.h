@@ -2,7 +2,7 @@
 #define DOF_OBJECT_H
 
 #include "kernel/base/types.h"
-#include "kernel/numerics/dof.h"
+#include "kernel/discretization/dof.h"
 
 #include <vector>
 #include <string>

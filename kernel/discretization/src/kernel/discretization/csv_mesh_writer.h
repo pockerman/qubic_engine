@@ -1,10 +1,11 @@
-#ifndef CSV_FILE_WRITER_H
-#define CSV_FILE_WRITER_H
+#ifndef CSV_MESH_WRITER_H
+#define CSV_MESH_WRITER_H
 
 #include "kernel/base/types.h"
-#include "kernel/utilities/file_writer_base.h"
+#include "kernel/utilities/csv_file_writer.h"
 #include "kernel/discretization/node_mesh_iterator.h"
 #include "kernel/discretization/mesh_predicates.h"
+
 #include <vector>
 #include <tuple>
 #include <initializer_list>
@@ -18,7 +19,7 @@ template<int dim> class LineMesh;
 ///
 /// \brief The CSVWriter class. Handles writing into CSV file format
 ///
-class CSVWriter: public FileWriterBase
+class CSVMeshWriter
 {
 
 public:
@@ -31,8 +32,8 @@ public:
     ///
     /// \brief Constructor
     ///
-    CSVWriter(const std::string& filename, char delim=CSVWriter::default_delimiter(),
-              bool open_file=false, const std::ios_base::openmode mode=std::ios_base::out);
+    CSVMeshWriter(const std::string& filename, char delim=kernel::utilities::CSVWriter::default_delimiter(),
+                  bool open_file=false, const std::ios_base::openmode mode=std::ios_base::out);
 
     ///
     /// \brief Write the column names
@@ -73,12 +74,17 @@ public:
     ///
     /// \brief Set the delimiter
     ///
-    void set_delimiter(char delim)noexcept{delim_=delim;}
+    void set_delimiter(char delim)noexcept{writer_.set_delimiter(delim);}
 
     ///
     /// \brief Returns the column delimiter
     ///
-    char get_delimiter()const noexcept{return delim_;}
+    char get_delimiter()const noexcept{return writer_.get_delimiter();}
+    
+    ///
+    /// \brief Returns true if the file is open
+    ///
+    bool is_open()const{return writer_.is_open();}
 
     ///
     /// \brief Write the given LineMesh into csv format
@@ -94,66 +100,58 @@ public:
 private:
 
     ///
-    /// \brief The delimiter used to separate the values
+    /// \brief The object that handles the CSV
     ///
-    char delim_;
+    kernel::utilities::CSVWriter writer_;
 
 };
 
-template<typename T>
+inline
 void
-CSVWriter::write_row(const std::vector<T>& vals){
+CSVMeshWriter::write_column_names(const std::vector<std::string>& col_names, bool write_header){
 
-    if(!is_open()){
-        throw std::logic_error("File "+this->file_name_+" is not open");
-    }
+   writer_.write_column_names(col_names, write_header); 
+}
 
-    for(uint_t c=0; c<vals.size(); ++c){
+inline
+void
+CSVMeshWriter::write_column_names(const std::vector<std::string_view>& col_names, bool write_header){
 
-        file_<<vals[c];
+    writer_.write_column_names(col_names, write_header); 
+}
 
-        if(c == vals.size()-1){
-            file_<<std::endl;
-        }
-        else{
-           file_<<",";
-        }
-    }
+inline
+void
+CSVMeshWriter::write_column_names(const std::initializer_list<std::string_view>& col_names, bool write_header){
+
+    std::vector<std::string_view> names(col_names);
+    write_column_names(names, write_header);
 }
 
 template<typename T>
 void
-CSVWriter::write_row(const DynVec<T>& vals){
+CSVMeshWriter::write_row(const std::vector<T>& vals){
+	writer_.write_row(vals);
+}
 
-    /// if the file is not open
-    if(!is_open()){
-        throw std::logic_error("File "+this->file_name_+" is not open");
-    }
+template<typename T>
+void
+CSVMeshWriter::write_row(const DynVec<T>& vals){
 
-    for(uint_t c=0; c<vals.size(); ++c){
-
-        file_<<vals[c];
-
-        if(c == vals.size()-1){
-            file_<<std::endl;
-        }
-        else{
-           file_<<",";
-        }
-    }
-
+    writer_.write_row(vals);
 }
 
 template<typename MeshTp>
 void
-CSVWriter::write_mesh_nodes(const MeshTp& mesh){
+CSVMeshWriter::write_mesh_nodes(const MeshTp& mesh){
 
     ///if the file is not open throw
     if(!is_open()){
-        throw std::logic_error("File "+this->file_name_+" is not open");
+        throw std::logic_error("File " + writer_.get_filename() + " is not open");
     }
 
     numerics::ConstNodeMeshIterator<numerics::Active, MeshTp> filter(mesh);
+    auto& file_stream = writer_.get_file_stream(); 
 
     auto begin = filter.begin();
     auto end = filter.end();
@@ -163,28 +161,26 @@ CSVWriter::write_mesh_nodes(const MeshTp& mesh){
 
         for(uint_t d =0; d<MeshTp::dimension; ++d){
 
-           this->file_<<(*node)[d];
+           file_stream<<(*node)[d];
 
             if(d == MeshTp::dimension -1){
-                 this->file_<<std::endl;
+                 file_stream<<std::endl;
              }
             else{
-                this->file_<<",";
+                file_stream<<",";
             }
         }
     }
 
-    this->file_.flush();
-    this->file_.close();
+    file_stream.flush();
+    file_stream.close();
 }
 
 
 template<typename...T>
 void
-CSVWriter::write_row(const std::tuple<T...>& row){
-
-    std::apply([&](auto&&...args ){((file_<<args<<","), ...);}, row);
-    file_<<std::endl;
+CSVMeshWriter::write_row(const std::tuple<T...>& row){
+	writer_.write_row(row);
 }
 
 }

@@ -1,4 +1,4 @@
-#include "kernel/maths/krylov_solvers/krylov_solver_output.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_output.h"
 
 namespace kernel{
 namespace numerics{

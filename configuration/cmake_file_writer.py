@@ -5,12 +5,11 @@ from configuration import INFO
 
 
 class CMakeFileWriter(object):
-    def __init__(self, configuration, project_name):
+    def __init__(self, configuration, project_name, install_prefix):
         self._configuration = configuration
         self._project_name = project_name
+        self._install_prefix = install_prefix
 
-        if self._project_name == "CubicEngine":
-            self._main_cmake = 'cubic_engine/CMakeLists_test.txt'
 
     @property
     def configuration(self):
@@ -54,7 +53,7 @@ class CMakeFileWriter(object):
             fh.write('SET(CMAKE_CXX_STANDARD_REQUIRED True)\n')
             fh.write('SET(CMAKE_C_COMPILER {0})\n'.format(self.configuration["CMAKE_C_COMPILER"]))
             fh.write('SET(PWD ${PROJECT_SOURCE_DIR})\n')
-            fh.write('SET(CMAKE_INSTALL_PREFIX ${PWD}/install)\n')
+            fh.write('SET(CMAKE_INSTALL_PREFIX {0})\n'.format(self._install_prefix))
             fh.write('SET(MAGIC_ENUM_INCL_DIR " ")\n')
             fh.write('SET(CMAKE_LINKER_FLAGS "-pthread")\n')
             fh.write('SET(USE_OPENMP {0})\n'.format(self.configuration["USE_OPENMP"]))

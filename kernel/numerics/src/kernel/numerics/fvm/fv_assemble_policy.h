@@ -2,8 +2,8 @@
 #define FV_ASSEMBLE_POLICY_H
 
 #include "kernel/base/types.h"
-#include "kernel/numerics/dof.h"
-
+#include "kernel/discretization/dof.h"
+     
 #include <vector>
 
 namespace kernel {

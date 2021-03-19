@@ -2,8 +2,8 @@
 #define BLAZE_KRYLOV_SOLVER_IMPL_BASE_H
 
 #include "kernel/base/types.h"
-#include "kernel/maths/krylov_solvers/krylov_solver_output.h"
-#include "kernel/maths/krylov_solvers/krylov_solver_data.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_output.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_data.h"
 #include "kernel/utilities/iterative_algorithm_controller.h"
 
 #include <boost/noncopyable.hpp>

@@ -1,14 +1,15 @@
-#include "kernel/utilities/vtk_writer.h"
-
-#include "kernel/utilities/file_formats.h"
-#include "kernel/utilities/predicates.h"
+#include "kernel/discretization/vtk_writer.h"
 #include "kernel/discretization/mesh.h"
 #include "kernel/discretization/element_mesh_iterator.h"
 #include "kernel/discretization/node_mesh_iterator.h"
 #include "kernel/discretization/element.h"
 #include "kernel/discretization/node.h"
 #include "kernel/discretization/mesh_predicates.h"
-#include "kernel/numerics/dof_manager.h"
+#include "kernel/discretization/dof_manager.h"
+#include "kernel/utilities/file_formats.h"
+#include "kernel/utilities/predicates.h"
+
+#include "kernel/base/config.h"
 
 #ifdef USE_TRILINOS
 #include "kernel/maths/trilinos_epetra_vector.h"

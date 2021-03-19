@@ -1,4 +1,4 @@
-#include "kernel/maths/krylov_solvers/preconditioner_type.h"
+#include "kernel/numerics/krylov_solvers/preconditioner_type.h"
 
 namespace kernel{
 namespace numerics {

@@ -1,5 +1,4 @@
-#include "kernel/numerics/dof_manager.h"
-#include "kernel/numerics/scalar_variable.h"
+#include "kernel/discretization/dof_manager.h"
 #include "kernel/discretization/element_mesh_iterator.h"
 #include "kernel/discretization/mesh_predicates.h"
 #include "kernel/discretization/element.h"
@@ -19,17 +18,6 @@ template<int dim>
 FVDoFManager<dim>::~FVDoFManager()
 {}
 
-
-template<int dim>
-void
-FVDoFManager<dim>::distribute_dofs(Mesh<dim>& mesh, const ScalarVar& var){
-
-    n_dofs_ = 0;
-    var_name_ = var.name();
-
-    invalidate_dofs(mesh);
-    do_distribute_dofs(mesh);
-}
 
 template<int dim>
 void

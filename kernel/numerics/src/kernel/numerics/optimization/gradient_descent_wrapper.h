@@ -1,11 +1,11 @@
 #ifndef BATCH_GRADIENT_DESCENT_WRAPPER_H
 #define BATCH_GRADIENT_DESCENT_WRAPPER_H
 
-#include "cubic_engine/base/cubic_engine_types.h"
-#include "kernel/maths/optimization/utils/gd_control.h"
-#include "kernel/maths/optimization/utils/gd_info.h"
-#include "kernel/maths/optimization/serial_gradient_descent.h"
-#include "kernel/maths/optimization/threaded_gradient_descent.h"
+#include "kernel/base/types.h"
+#include "kernel/numerics/optimization/utils/gd_control.h"
+#include "kernel/numerics/optimization/utils/gd_info.h"
+#include "kernel/numerics/optimization/serial_gradient_descent.h"
+#include "kernel/numerics/optimization/threaded_gradient_descent.h"
 
 #include <boost/noncopyable.hpp>
 

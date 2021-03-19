@@ -1,4 +1,4 @@
-#include "kernel/utilities/vtk_mesh_file_writer.h"
+#include "kernel/discretization/vtk_mesh_file_writer.h"
 #include "kernel/utilities/file_formats.h"
 #include "kernel/utilities/predicates.h"
 #include "kernel/discretization/mesh.h"
@@ -12,10 +12,8 @@
 #include <chrono>
 #include <exception>
 
-namespace kernel
-{
-namespace numerics
-{
+namespace kernel{
+namespace numerics{
 
 VtkMeshFileWriter::VtkMeshFileWriter(const std::string& filename, bool open_file)
     :

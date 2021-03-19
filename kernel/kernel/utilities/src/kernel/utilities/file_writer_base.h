@@ -70,6 +70,21 @@ public:
      * @brief Returns the type of the file
      */
     FileFormats::Type get_type()const{return t_;}
+    
+    ///
+    /// \brief Returns the underlying file stream
+    ///
+    std::ofstream& get_file_stream(){return file_;}
+    
+    ///
+    /// \brief Returns the underlying file stream
+    ///
+    const std::ofstream& get_file_stream()const{return file_;}
+    
+    ///
+    /// \brief Returns the filename that is used to write
+    ///
+    std::string get_filename()const{return file_name_;}
 
 protected:
 

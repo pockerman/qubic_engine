@@ -1,4 +1,4 @@
-#include "kernel/maths/optimization/utils/gd_info.h"
+#include "kernel/numerics/optimization/utils/gd_info.h"
 
 namespace kernel{
 namespace maths {

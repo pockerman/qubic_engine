@@ -2,8 +2,8 @@
 #define ELEMENT_H
 
 #include "kernel/discretization/mesh_entity.h"
-#include "kernel/numerics/dof_object.h"
-#include "kernel/numerics/dof.h"
+#include "kernel/discretization/dof_object.h"
+#include "kernel/discretization/dof.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/discretization/edge_face_selector.h"
 #include "kernel/discretization/element_traits.h"

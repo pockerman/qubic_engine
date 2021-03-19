@@ -7,10 +7,10 @@
 
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
-#include "kernel/maths/krylov_solvers/krylov_solver_type.h"
-#include "kernel/maths/krylov_solvers/preconditioner_type.h"
-#include "kernel/maths/krylov_solvers/krylov_solver_output.h"
-#include "kernel/maths/krylov_solvers/krylov_solver_data.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_type.h"
+#include "kernel/numerics/krylov_solvers/preconditioner_type.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_output.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_data.h"
 
 // Trilinos include files.
 #include <AztecOO.h>

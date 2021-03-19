@@ -2,8 +2,8 @@
 #define KRYLOV_SOLVER_DATA_H
 
 #include "kernel/base/types.h"
-#include "kernel/maths/krylov_solvers/krylov_solver_type.h"
-#include "kernel/maths/krylov_solvers/preconditioner_type.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_type.h"
+#include "kernel/numerics/krylov_solvers/preconditioner_type.h"
 
 namespace kernel{
 namespace numerics {

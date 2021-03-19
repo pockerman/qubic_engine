@@ -1,4 +1,4 @@
-#include "kernel/maths/optimization/admm.h"
+#include "kernel/numerics/optimization/admm.h"
 #include <stdexcept>
 
 namespace kernel{

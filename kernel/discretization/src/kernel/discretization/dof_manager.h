@@ -25,7 +25,8 @@ public:
     virtual ~FVDoFManager();
 
     /// \brief Distibute the dofs
-    void distribute_dofs(Mesh<dim>& mesh, const ScalarVar& var);
+    template<typename VarTp>
+    void distribute_dofs(Mesh<dim>& mesh, const VarTp& var);
 
     /// \brief Get the dofs on the given elem
     void get_dofs(const Element<dim>& elem, std::vector<DoF>& dofs)const;
@@ -53,6 +54,18 @@ private:
     /// \brief The name of the variable the manager is working on
     std::string_view var_name_;
 };
+
+template<int dim>
+template<typename VarTp>
+void
+FVDoFManager<dim>::distribute_dofs(Mesh<dim>& mesh, const VarTp& var){
+
+    n_dofs_ = 0;
+    var_name_ = var.name();
+
+    invalidate_dofs(mesh);
+    do_distribute_dofs(mesh);
+}
 
 }
 }

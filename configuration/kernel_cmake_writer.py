@@ -18,7 +18,8 @@ class KernelCMakeWriter(CMakeFileWriter):
 
     def __init__(self, configuration: dict) -> None:
         super(KernelCMakeWriter, self).__init__(configuration=configuration,
-                                                project_name="kernel")
+                                                project_name="kernel",
+                                                install_prefix=configuration["kernel"]["CMAKE_INSTALL_PREFIX"])
 
         self.dirs = KernelCMakeWriter.kernel_dirs()
 
@@ -28,10 +29,8 @@ class KernelCMakeWriter(CMakeFileWriter):
 
         # set the kernel path
         current_dir = Path(os.getcwd())
-        print("Current dir {0}".format(current_dir))
 
         with open("kernel/kernel/CMakeLists.txt", 'w', newline="\n") as fh:
-            # call super class
 
             fh = self.write_basic_lists(fh=fh)
 

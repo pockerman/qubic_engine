@@ -1,10 +1,11 @@
 #include "kernel/numerics/fvm/fv_convection_assemble_policy.h"
 #include "kernel/numerics/fvm/fv_interpolate_base.h"
 
-#include "kernel/numerics/dof_manager.h"
+
 #include "kernel/numerics/boundary_function_base.h"
 #include "kernel/numerics/boundary_conditions_type.h"
 
+#include "kernel/discretization/dof_manager.h"
 #include "kernel/discretization/element.h"
 #include "kernel/discretization/face_element.h"
 #include "kernel/discretization/mesh.h"

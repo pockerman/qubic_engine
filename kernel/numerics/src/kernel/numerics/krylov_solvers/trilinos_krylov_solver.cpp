@@ -1,4 +1,4 @@
-#include "kernel/maths/krylov_solvers/trilinos_krylov_solver.h"
+#include "kernel/numerics/krylov_solvers/trilinos_krylov_solver.h"
 
 #ifdef USE_TRILINOS
 

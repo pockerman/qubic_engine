@@ -7,11 +7,8 @@
 #include <string>
 #include <vector>
 
-namespace kernel
-{
-
-namespace numerics
-{
+namespace kernel{
+namespace numerics{
 
 struct VtkMeshMeshCellOptions
 {

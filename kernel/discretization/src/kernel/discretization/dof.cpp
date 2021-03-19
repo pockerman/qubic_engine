@@ -1,4 +1,4 @@
-#include "kernel/numerics/dof.h"
+#include "kernel/discretization/dof.h"
 #include "kernel/base/kernel_consts.h"
 
 namespace kernel {

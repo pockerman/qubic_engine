@@ -3,7 +3,7 @@
 
 #include "kernel/base/types.h"
 #include "kernel/geometry/geom_point.h"
-#include "kernel/numerics/dof_object.h"
+#include "kernel/discretization/dof_object.h"
 #include "kernel/discretization/face_element.h"
 #include "kernel/base/kernel_consts.h"
 

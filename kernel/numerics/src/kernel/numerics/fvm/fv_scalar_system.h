@@ -3,12 +3,12 @@
 
 #include "kernel/base/types.h"
 #include "kernel/numerics/scalar_variable.h"
-#include "kernel/numerics/dof_manager.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_data.h"
+#include "kernel/discretization/dof_manager.h"
 #include "kernel/discretization/element_mesh_iterator.h"
 #include "kernel/discretization/mesh_predicates.h"
 #include "kernel/discretization/element.h"
-#include "kernel/maths/krylov_solvers/krylov_solver_data.h"
-#include "kernel/utilities/vtk_writer.h"
+#include "kernel/discretization/vtk_writer.h"
 
 #include <boost/noncopyable.hpp>
 #include <string>

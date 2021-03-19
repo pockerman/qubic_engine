@@ -1,5 +1,5 @@
 #include "kernel/numerics/fvm/fv_assemble_policy.h"
-#include "kernel/numerics/dof_manager.h"
+#include "kernel/discretization/dof_manager.h"
 #include "kernel/discretization/element.h"
 #include "kernel/discretization/mesh.h"
 

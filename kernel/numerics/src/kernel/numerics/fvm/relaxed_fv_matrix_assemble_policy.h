@@ -5,7 +5,7 @@
 #include "kernel/discretization/element_mesh_iterator.h"
 #include "kernel/discretization/face_mesh_iterator.h"
 #include "kernel/discretization/mesh_predicates.h"
-#include "kernel/numerics/dof.h"
+#include "kernel/discretization/dof.h"
 
 #include "boost/noncopyable.hpp"
 

@@ -34,8 +34,8 @@
   },
 
   "kernel": {
-    "CMAKE_INSTALL_PREFIX": "${PROJECT_SOURCE_DIR}/install",
-    "USE_DISCRETIZATION": false,
+    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_new_build/kernel/install",
+    "USE_DISCRETIZATION": true,
     "USE_NUMERICS": true
   },
 

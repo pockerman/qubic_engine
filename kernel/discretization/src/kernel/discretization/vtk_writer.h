@@ -4,7 +4,7 @@
 #include "kernel/base/config.h"
 #include "kernel/base/types.h"
 #include "kernel/utilities/file_writer_base.h"
-#include "kernel/utilities/vtk_mesh_file_writer.h"
+#include "kernel/discretization/vtk_mesh_file_writer.h"
 
 namespace kernel{
 namespace numerics{

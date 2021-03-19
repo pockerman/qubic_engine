@@ -1,8 +1,8 @@
 #ifndef BLAZE_GMRES_IMPL_H
 #define BLAZE_GMRES_IMPL_H
 
-#include "kernel/maths/krylov_solvers/blaze_krylov_solver_impl_base.h"
-#include "kernel/maths/krylov_solvers/krylov_solver_data.h"
+#include "kernel/numerics/krylov_solvers/blaze_krylov_solver_impl_base.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_data.h"
 
 
 namespace kernel{

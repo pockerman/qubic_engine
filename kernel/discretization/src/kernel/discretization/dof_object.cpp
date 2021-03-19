@@ -1,4 +1,4 @@
-#include "kernel/numerics/dof_object.h"
+#include "kernel/discretization/dof_object.h"
 #include "kernel/base/kernel_consts.h"
 
 #include <algorithm>

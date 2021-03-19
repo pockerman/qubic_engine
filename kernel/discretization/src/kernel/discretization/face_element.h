@@ -2,7 +2,7 @@
 #define FACE_ELEMENT_H
 
 #include "kernel/base/types.h"
-#include "kernel/numerics/dof_object.h"
+#include "kernel/discretization/dof_object.h"
 #include "kernel/discretization/edge_face_selector.h"
 #include "kernel/discretization/element_traits.h"
 #include "kernel/geometry/geom_point.h"

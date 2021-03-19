@@ -2,9 +2,9 @@
 #define THREADED_BATCH_GRADIENT_DESCENT_H
 
 #include "kernel/base/types.h"
-#include "kernel/maths/optimization/utils/gd_control.h"
-#include "kernel/maths/optimization/utils/gd_info.h"
-#include "kernel/maths/functions/dummy_function.h"
+#include "kernel/numerics/optimization/utils/gd_control.h"
+#include "kernel/numerics/optimization/utils/gd_info.h"
+#include "kernel/numerics/functions/dummy_function.h"
 
 #include <boost/noncopyable.hpp>
 #include <chrono>
