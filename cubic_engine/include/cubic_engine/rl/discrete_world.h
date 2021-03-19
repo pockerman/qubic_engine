@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <any>
 #include <tuple>
+#include <initializer_list>
 
 namespace cengine {
 namespace rl {
@@ -38,6 +39,11 @@ public:
     /// \brief n_states. Returns the number of states
     ///
     uint_t n_states()const{return states_.size();}
+
+    ///
+    /// \brief n_actions. Max number of actions per state
+    ///
+    virtual uint_t n_actions()const=0;
 
     ///
     /// \brief Transition to a new state by
@@ -307,29 +313,39 @@ DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::save_world_as_json(const
 
     using json = nlohmann::json;
 
-    json json_data;
-    std::ofstream file_stream(filename);
 
-    "n_states", this->states_.size() >> json_data;
-    file_stream << json_data <<std::endl;
+    json json_data = {{"n_states", this->states_.size()}};
 
     for(uint_t c=0; c<this->states_.size(); ++c){
         auto& this_cell = this->states_[c];
 
-        // the cell id
-        "state_id", this_cell.get_id() >> json_data;
-
-        file_stream << json_data <<std::endl;
 
         auto& state_transitions = this_cell.get_state_transitions();
         auto itr_begin = state_transitions.begin();
         auto itr_end = state_transitions.end();
+
+        std::vector<uint_t> actions;
+        actions.reserve(n_actions());
+
+        std::vector<uint_t> states;
+        states.reserve(n_actions());
+
         for(; itr_begin != itr_end; ++itr_begin){
-            "action_id", itr_begin->first >> json_data;
-            "transition_id", itr_begin->second >> json_data;
-            file_stream << json_data <<std::endl;
+
+            actions.push_back(static_cast<uint_t>(itr_begin->first));
+            states.push_back(itr_begin->second->get_id());
         }
+
+        json json_state_data;
+        json_state_data[std::to_string(this_cell.get_id())]["actions"] = actions;
+        json_state_data[std::to_string(this_cell.get_id())]["neighbors"] = states;
+        json_data.insert(json_state_data.begin(), json_state_data.end());
+
     }
+
+    std::ofstream file_stream(filename);
+    file_stream << json_data <<std::endl;
+    file_stream.close();
   }
 }
 }

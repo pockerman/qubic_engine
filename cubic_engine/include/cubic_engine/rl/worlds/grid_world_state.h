@@ -40,6 +40,11 @@ public:
     explicit GridWorldState(uint_t id);
 
     ///
+    /// \brief GridWorldState. Copy constructor
+    ///
+    GridWorldState(const GridWorldState& other);
+
+    ///
     /// \brief Copy assignement
     ///
     GridWorldState& operator=(const GridWorldState& other);
@@ -64,6 +69,11 @@ public:
     /// \brief Returns the id of the state
     ///
     uint_t get_id()const{return id_;}
+
+    ///
+    /// \brief set_id. Set the id of the state
+    ///
+    void set_id(uint_t id){id_ = id;}
 
     ///
     /// \brief Set the transitions for this state
@@ -122,6 +132,10 @@ public:
     ///
     const std::map<GridWorldAction, GridWorldState*>& get_state_transitions()const{return state_transitions_;}
 
+    ///
+    /// \brief has_action. Returns true if the stat has the given action
+    ///
+    bool has_action(GridWorldAction action)const;
 
 private:
 
