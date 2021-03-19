@@ -10,7 +10,11 @@
 namespace cengine {
 namespace rl{
 
-
+///
+/// \brief The ConstantEnvironmentDynamics class. Helper
+/// modeling environment dynamics where all states have
+/// the same probability to occur
+///
 class ConstantEnvironmentDynamics
 {
 public:
@@ -45,7 +49,7 @@ private:
 
 };
 
-
+inline
 ConstantEnvironmentDynamics::ConstantEnvironmentDynamics(real_t val)
     :
       val_(val)

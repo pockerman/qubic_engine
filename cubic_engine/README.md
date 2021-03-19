@@ -89,7 +89,7 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
-- <a href="examples/exe6/doc/exe.ipynb">Example 6: </a> Qlearning applied on simple ```GridWorld```
+- <a href="examples/exe6/exe.cpp">Example 6: </a> Qlearning applied on simple ```GridWorld```
 - <a href="examples/exe22/doc/exe.ipynb">Example 22: </a> SARSA learning applied on ```CliffWorld```
 - <a href="examples/exe25/doc/exe.ipynb">Example 25: </a> Iterative policy evaluation
 - <a href="examples/exe26/doc/exe.ipynb">Example 26: </a> Policy iteration 

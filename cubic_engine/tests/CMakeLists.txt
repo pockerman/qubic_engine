@@ -7,6 +7,7 @@ ADD_SUBDIRECTORY(test_pure_persuit_tracker)
 ADD_SUBDIRECTORY(test_waypoint_path)
 ADD_SUBDIRECTORY(test_unscented_kalman_filter)
 ADD_SUBDIRECTORY(test_rrt)
+ADD_SUBDIRECTORY(test_grid_world)
 INCLUDE_DIRECTORIES(${PROJECT_INCL_DIR})
 LINK_DIRECTORIES(${PROJECT_LIB_DIR})
 
