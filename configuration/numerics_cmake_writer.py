@@ -31,11 +31,13 @@ class NumericsCMakeWriter(CMakeFileWriter):
                 fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.kernel_dir / kdir / 'src'))
 
             fh.write('INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/)\n')
-            #for directory in self.dirs:
-            #    fh.write('INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/%s)\n' % (directory))
 
             if self.configuration["trilinos"]["USE_TRILINOS"]:
                 fh.write('INCLUDE_DIRECTORIES(${TRILINOS_INCL_DIR})\n')
+                fh.write('SET(TRILINOS_LIB_DIR {0})\n'.format(self.configuration["trilinos"]["TRILINOS_LIB_DIR"]))
+
+            if self.configuration["opencv"]["USE_OPEN_CV"]:
+                fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
 
             fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
             fh.write('\n')
@@ -70,10 +72,10 @@ class NumericsCMakeWriter(CMakeFileWriter):
 
     def _write_project_variables(self, fh):
 
-        if self.configuration["trilinos"]["USE_TRILINOS"]:
-            fh.write('SET(USE_TRILINOS {0})\n'.format(self.configuration["trilinos"]["USE_TRILINOS"]))
-            fh.write('SET(USE_TRILINOS_LONG_LONG_TYPE {0})\n'.format(
-                self.configuration["trilinos"]["USE_TRILINOS_LONG_LONG_TYPE"]))
-            fh.write('SET(TRILINOS_INCL_DIR {0})\n'.format(self.configuration["trilinos"]["TRILINOS_INCL_DIR"]))
-            fh.write('SET(TRILINOS_LIB_DIR {0})\n'.format(self.configuration["trilinos"]["TRILINOS_LIB_DIR"]))
+        #if self.configuration["trilinos"]["USE_TRILINOS"]:
+        #    fh.write('SET(USE_TRILINOS {0})\n'.format(self.configuration["trilinos"]["USE_TRILINOS"]))
+        #    fh.write('SET(USE_TRILINOS_LONG_LONG_TYPE {0})\n'.format(
+        #        self.configuration["trilinos"]["USE_TRILINOS_LONG_LONG_TYPE"]))
+        #    fh.write('SET(TRILINOS_INCL_DIR {0})\n'.format(self.configuration["trilinos"]["TRILINOS_INCL_DIR"]))
+        #    fh.write('SET(TRILINOS_LIB_DIR {0})\n'.format(self.configuration["trilinos"]["TRILINOS_LIB_DIR"]))
         return fh

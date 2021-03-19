@@ -58,6 +58,10 @@ class CMakeFileWriter(object):
             fh.write('SET(CMAKE_LINKER_FLAGS "-pthread")\n')
             fh.write('SET(USE_OPENMP {0})\n'.format(self.configuration["USE_OPENMP"]))
             fh.write('SET(USE_LOG {0})\n'.format(self.configuration["USE_LOG"]))
+            fh.write('SET(USE_DISCRETIZATION {0})\n'.format(self.configuration["kernel"]["USE_DISCRETIZATION"]))
+            fh.write('SET(USE_RIGID_BODY_DYNAMICS {0})\n'.format(self.configuration["kernel"]["USE_NUMERICS"]))
+            fh.write('SET(USE_NUMERICS {0})\n'.format(self.configuration["kernel"]["USE_RIGID_BODY_DYNAMICS"]))
+            fh.write('SET(USE_FVM {0})\n'.format(self.configuration["kernel"]["USE_FVM"]))
 
             blaze_dir = self.configuration["BLAZE_INCL_DIR"]
             fh.write('SET(BLAZE_INCL_DIR "{0}")\n'.format(blaze_dir))
@@ -101,6 +105,7 @@ class CMakeFileWriter(object):
                 fh.write('SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -pthread -fPIC")\n')
                 fh.write('SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/opt)\n')
 
+        fh.write("\n")
         return fh
 
     def _find_boost(self, fh):

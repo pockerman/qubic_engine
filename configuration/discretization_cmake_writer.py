@@ -34,6 +34,10 @@ class DiscretizationCMakeWriter(CMakeFileWriter):
 
             if self.configuration["trilinos"]["USE_TRILINOS"]:
                 fh.write('INCLUDE_DIRECTORIES(${TRILINOS_INCL_DIR})\n')
+                fh.write('SET(TRILINOS_LIB_DIR {0})\n'.format(self.configuration["trilinos"]["TRILINOS_LIB_DIR"]))
+
+            if self.configuration["opencv"]["USE_OPEN_CV"]:
+                fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
 
             fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
             fh.write('\n')

@@ -7,11 +7,10 @@
   "NLOHMANN_JSON_INCL_DIR": "/home/alex/MySoftware/nlohman_json/install/include",
   "USE_OPENMP": true,
   "USE_LOG": true,
-  "USE_FVM": true,
+
   "USE_PYTORCH": false,
 
   "testing": {
-    "ENABLE_TESTING": true,
     "GTEST_INC_DIR": "/home/alex/MySoftware/gtest/install/include",
     "GTEST_LIB_DIR": "/home/alex/MySoftware/gtest/install/lib"
   },
@@ -36,7 +35,10 @@
   "kernel": {
     "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_new_build/kernel/install",
     "USE_DISCRETIZATION": true,
-    "USE_NUMERICS": true
+    "USE_NUMERICS": true,
+    "USE_RIGID_BODY_DYNAMICS": true,
+    "USE_FVM": true,
+    "BUILD_KERNEL_TESTS": true
   },
 
   "cengine": {

@@ -31,6 +31,14 @@
 /*Use discretization module*/
 #cmakedefine USE_DISCRETIZATION
 
+/*Use Numerics module*/
+#cmakedefine USE_NUMERICS
+
+/*Use Rigid body dynamics module*/
+#cmakedefine USE_RIGID_BODY_DYNAMICS
+
+
+
 
 #endif
 

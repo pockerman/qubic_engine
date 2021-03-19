@@ -4,6 +4,7 @@ from configuration.cmake_file_writer import CMakeCubicEngineWriter
 from configuration.kernel_cmake_writer import KernelCMakeWriter
 from configuration.numerics_cmake_writer import NumericsCMakeWriter
 from configuration.discretization_cmake_writer import DiscretizationCMakeWriter
+from configuration.rigid_body_dynamics_cmake_writer import RBDynamicsCMakeWriter
 
 def read_json(filename):
 
@@ -36,6 +37,12 @@ if __name__ == '__main__':
                                                     kernel_dirs=KernelCMakeWriter.kernel_dirs(),
                                                     kernel_dir=KernelCMakeWriter.kernel_dir_path())
         numerics_cmake_writer.write_cmake_lists()
+
+    if config["kernel"]["USE_RIGID_BODY_DYNAMICS"]:
+        rd_dynamics_cmake_writer = RBDynamicsCMakeWriter(configuration=config,
+                                                         kernel_dirs=KernelCMakeWriter.kernel_dirs(),
+                                                         kernel_dir=KernelCMakeWriter.kernel_dir_path())
+        rd_dynamics_cmake_writer.write_cmake_lists()
 
     #cubic_camke_writer = CMakeCubicEngineWriter(configuration=config)
     #cubic_camke_writer.write_cmake_lists()
