@@ -35,7 +35,9 @@ if __name__ == '__main__':
     if config["kernel"]["USE_NUMERICS"]:
         numerics_cmake_writer = NumericsCMakeWriter(configuration=config,
                                                     kernel_dirs=KernelCMakeWriter.kernel_dirs(),
-                                                    kernel_dir=KernelCMakeWriter.kernel_dir_path())
+                                                    kernel_dir=KernelCMakeWriter.kernel_dir_path(),
+                                                    discretization_dirs=DiscretizationCMakeWriter.discretization_dirs(),
+                                                    discretization_dir=DiscretizationCMakeWriter.discretization_dir_path())
         numerics_cmake_writer.write_cmake_lists()
 
     if config["kernel"]["USE_RIGID_BODY_DYNAMICS"]:

@@ -76,6 +76,9 @@ class KernelCMakeWriter(CMakeFileWriter):
         if self.configuration["kernel"]["BUILD_KERNEL_TESTS"]:
             self._write_tests_cmake()
 
+        if self.configuration["kernel"]["BUILD_KERNEL_EXAMPLES"]:
+            self._write_examples_cmake()
+
         print("{0} Done...".format(INFO))
 
     def _write_project_variables(self, fh):
@@ -107,7 +110,94 @@ class KernelCMakeWriter(CMakeFileWriter):
         fh.write('\n')
         return fh
 
-    def _write_tests_cmake(self):
+    def _write_single_cmake(self, path: Path, directory: str, example: bool) -> None:
+
+        with open(path / "CMakeLists.txt", "w", newline="\n") as tfh:
+            # set the kernel path
+            current_dir = Path(os.getcwd())
+            tfh.write("cmake_minimum_required(VERSION 3.0)\n")
+            tfh.write("PROJECT({0} CXX)\n".format(directory))
+            tfh.write("SET(SOURCE {0}.cpp)\n".format(directory))
+            tfh.write("SET(EXECUTABLE  {0})\n".format(directory))
+
+            tfh = self._find_boost(fh=tfh)
+            tfh = self._find_blas(fh=tfh)
+            tfh = self._write_build_option(fh=tfh)
+
+            tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["BLAZE_INCL_DIR"]))
+            for directory in self.dirs:
+                tfh.write('INCLUDE_DIRECTORIES(%s/%s/src/)\n' % (current_dir / "kernel" / "kernel", directory))
+
+            if self.configuration["trilinos"]["USE_TRILINOS"]:
+                tfh.write(
+                    'INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["trilinos"]["TRILINOS_INCL_DIR"]))
+
+            if self.configuration["opencv"]["USE_OPEN_CV"]:
+                tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
+
+            tfh.write('INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})\n')
+            if example is False:
+                tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["testing"]["GTEST_INC_DIR"]))
+            tfh.write('\n')
+
+            if example:
+                link_dirs = [self.configuration["kernel"]["CMAKE_INSTALL_PREFIX"],
+                             "${Boost_LIBRARY_DIRS}"]
+            else:
+                link_dirs = [self.configuration["kernel"]["CMAKE_INSTALL_PREFIX"],
+                             self.configuration["testing"]["GTEST_LIB_DIR"],
+                             "${Boost_LIBRARY_DIRS}"]
+
+            if self.configuration["trilinos"]["USE_TRILINOS"]:
+                link_dirs.append(self.configuration["trilinos"]["TRILINOS_LIB_DIR"])
+
+            for link_dir in link_dirs:
+                tfh.write("LINK_DIRECTORIES({0})\n".format(link_dir))
+
+            tfh.write("\n")
+            tfh.write('ADD_EXECUTABLE(%s %s)\n' % ("${EXECUTABLE}", "${SOURCE}"))
+            tfh.write("\n")
+            tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.project_name))
+
+            if example is False:
+                tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest)\n')
+                tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest_main) '
+                          '# so that tests dont need to have a main\n')
+            tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} pthread)\n')
+            tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)\n')
+
+            if self.configuration["trilinos"]["USE_TRILINOS"]:
+                libs = ["epetra", "aztecoo", "amesos"]
+                for lib in libs:
+                    tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} %s)\n' % lib)
+
+    def _write_multiple_cmakes(self, path: Path, example: bool) -> None:
+
+        # set the kernel path
+        current_dir = Path(os.getcwd())
+
+        # get the test directories
+        working_path = current_dir / path
+        working_dirs = os.listdir(working_path)
+
+        for w_dir in working_dirs:
+            w_dir_path = Path(working_path / w_dir)
+
+            if w_dir_path.is_dir():
+                self._write_single_cmake(path=w_dir_path, directory=w_dir, example=example)
+
+    def _write_examples_cmake(self) -> None:
+        """
+        Write the examples CMakeLists
+        :return:
+        """
+        current_dir = Path(os.getcwd())
+
+        # get the test directories
+        examples_path = current_dir / "kernel/kernel/examples"
+        self._write_multiple_cmakes(path=examples_path, example=True)
+
+    def _write_tests_cmake(self) -> None:
         """
         Write the CMakeLists for tests
         """
@@ -116,59 +206,5 @@ class KernelCMakeWriter(CMakeFileWriter):
         current_dir = Path(os.getcwd())
 
         # get the test directories
-        test_path = current_dir / "kernel/kernel/tests"
-        test_dirs = os.listdir(test_path)
-
-        for test_dir in test_dirs:
-            test_dir_path = Path(test_path / test_dir)
-
-            if test_dir_path.is_dir():
-
-                with open(current_dir / "kernel/kernel/tests" / test_dir / "CMakeLists.txt", "w", newline="\n") as tfh:
-                    tfh.write("cmake_minimum_required(VERSION 3.0)\n")
-                    tfh.write("PROJECT({0} CXX)\n".format(test_dir))
-                    tfh.write("SET(SOURCE test.cpp)\n")
-                    tfh.write("SET(EXECUTABLE  {0})\n".format(test_dir))
-
-                    tfh = self._find_boost(fh=tfh)
-                    tfh = self._find_blas(fh=tfh)
-                    tfh = self._write_build_option(fh=tfh)
-
-                    tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["BLAZE_INCL_DIR"]))
-                    for directory in self.dirs:
-                        tfh.write('INCLUDE_DIRECTORIES(%s/%s/src/)\n' % (current_dir / "kernel" / "kernel", directory))
-
-                    if self.configuration["trilinos"]["USE_TRILINOS"]:
-                        tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["trilinos"]["TRILINOS_INCL_DIR"]))
-
-                    if self.configuration["opencv"]["USE_OPEN_CV"]:
-                        tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
-
-                    tfh.write('INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})\n')
-                    tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["testing"]["GTEST_INC_DIR"]))
-                    tfh.write('\n')
-
-                    link_dirs = [self.configuration["kernel"]["CMAKE_INSTALL_PREFIX"],
-                                 self.configuration["testing"]["GTEST_LIB_DIR"],
-                                 "${Boost_LIBRARY_DIRS}"]
-
-                    if self.configuration["trilinos"]["USE_TRILINOS"]:
-                        link_dirs.append(self.configuration["trilinos"]["TRILINOS_LIB_DIR"])
-
-                    for link_dir in link_dirs:
-                        tfh.write("LINK_DIRECTORIES({0})\n".format(link_dir))
-
-                    tfh.write("\n")
-                    tfh.write('ADD_EXECUTABLE(%s %s)\n' % ("${EXECUTABLE}", "${SOURCE}"))
-                    tfh.write("\n")
-                    tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.project_name))
-                    tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest)\n')
-                    tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest_main) '
-                              '# so that tests dont need to have a main\n')
-                    tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} pthread)\n')
-                    tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)\n')
-
-                    if self.configuration["trilinos"]["USE_TRILINOS"]:
-                        libs = ["epetra", "aztecoo", "amesos"]
-                        for lib in libs:
-                            tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} %s)\n' % lib)
+        path = current_dir / "kernel/kernel/tests"
+        self._write_multiple_cmakes(path=path, example=False)

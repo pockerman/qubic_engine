@@ -28,3 +28,7 @@ kernel/rigid_body_dynamics/src/kernel/dynamics/CMakeLists.txt
 kernel/rigid_body_dynamics/CMakeLists.txt
 kernel/numerics/src/kernel/numerics/CMakeLists.txt
 kernel/numerics/CMakeLists.txt
+kernel/kernel/utilities/src/kernel/utilities/CMakeLists.txt
+kernel/kernel/parallel/src/kernel/parallel/CMakeLists.txt
+kernel/kernel/parallel/src/kernel/parallel/CMakeLists.txt
+kernel/kernel/parallel/CMakeLists.txt

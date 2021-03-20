@@ -7,7 +7,6 @@
   "NLOHMANN_JSON_INCL_DIR": "/home/alex/MySoftware/nlohman_json/install/include",
   "USE_OPENMP": true,
   "USE_LOG": true,
-
   "USE_PYTORCH": false,
 
   "testing": {
@@ -38,7 +37,8 @@
     "USE_NUMERICS": true,
     "USE_RIGID_BODY_DYNAMICS": true,
     "USE_FVM": true,
-    "BUILD_KERNEL_TESTS": true
+    "BUILD_KERNEL_TESTS": true,
+    "BUILD_KERNEL_EXAMPLES": true
   },
 
   "cengine": {
