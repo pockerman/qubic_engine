@@ -7,7 +7,7 @@
   "NLOHMANN_JSON_INCL_DIR": "/home/alex/MySoftware/nlohman_json/install/include",
   "USE_OPENMP": true,
   "USE_LOG": true,
-  "USE_PYTORCH": false,
+  "USE_PYTORCH": true,
 
   "testing": {
     "GTEST_INC_DIR": "/home/alex/MySoftware/gtest/install/include",
@@ -37,18 +37,40 @@
     "USE_NUMERICS": true,
     "USE_RIGID_BODY_DYNAMICS": true,
     "USE_FVM": true,
-    "BUILD_KERNEL_TESTS": true,
-    "BUILD_KERNEL_EXAMPLES": true
+    "BUILD_KERNEL_TESTS": false,
+    "BUILD_KERNEL_EXAMPLES": false
   },
 
   "cengine": {
     "build_cengine": true,
-    "CMAKE_INSTALL_PREFIX": "${PROJECT_SOURCE_DIR}/install",
-    "USE_PLANNING": true,
+    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_new_build/cubic_engine/install",
+    "BUILD_EXAMPLES": false,
+    "BUILD_TESTS": false,
     "rl": {
     "USE_RL": true,
       "BUILD_EXAMPLES": true,
       "BUILD_TESTS": true
-  }
+    },
+    "ml": {
+      "USE_ML": true,
+      "BUILD_EXAMPLES": true,
+      "BUILD_TESTS": true
+    },
+    "estimation": {
+      "USE_ESTIMATION": true,
+      "BUILD_EXAMPLES": true,
+      "BUILD_TESTS": true
+    },
+    "planning": {
+      "USE_PLANNING": true,
+      "BUILD_EXAMPLES": true,
+      "BUILD_TESTS": true
+    },
+    "control": {
+      "USE_CONTROL": true,
+      "BUILD_EXAMPLES": true,
+      "BUILD_TESTS": true
+    }
+
   }
 }

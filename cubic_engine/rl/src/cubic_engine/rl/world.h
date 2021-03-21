@@ -1,6 +1,11 @@
 #ifndef WORLD_H
 #define WORLD_H
 
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
+#include "cubic_engine/base/config.h"
 #include "boost/noncopyable.hpp"
 
 namespace cengine {
@@ -50,4 +55,5 @@ protected:
 }
 }
 
+#endif
 #endif // WORLD_H

@@ -1,6 +1,10 @@
 #ifndef REWARD_TABLE_H
 #define REWARD_TABLE_H
 
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 
@@ -10,7 +14,7 @@
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #endif
 
-//#include "kernel/utilities/csv_file_writer.h"
+#include "kernel/utilities/csv_file_writer.h"
 
 #include <stdexcept>
 #include <map>
@@ -218,7 +222,7 @@ template<typename ActionTp, typename RewardTp>
 void
 RewardTable<ActionTp, RewardTp>::save_to_csv(const std::string& filename)const{
 
-    /*kernel::CSVWriter writer(filename, ',', true);
+    kernel::CSVWriter writer(filename, ',', true);
 
     std::vector<std::string> col_names = {"StateId", "Action", "Reward"};
     writer.write_column_names(col_names, true);
@@ -233,10 +237,11 @@ RewardTable<ActionTp, RewardTp>::save_to_csv(const std::string& filename)const{
                                                                      itr->second);
 
         writer.write_row(row);
-    }*/
+    }
 }
 
 }
 }
 
+#endif
 #endif // REWARD_TABLE_H

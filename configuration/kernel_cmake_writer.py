@@ -83,6 +83,11 @@ class KernelCMakeWriter(CMakeFileWriter):
 
     def _write_project_variables(self, fh):
 
+        fh.write('SET(USE_DISCRETIZATION {0})\n'.format(self.configuration["kernel"]["USE_DISCRETIZATION"]))
+        fh.write('SET(USE_RIGID_BODY_DYNAMICS {0})\n'.format(self.configuration["kernel"]["USE_NUMERICS"]))
+        fh.write('SET(USE_NUMERICS {0})\n'.format(self.configuration["kernel"]["USE_RIGID_BODY_DYNAMICS"]))
+        fh.write('SET(USE_FVM {0})\n'.format(self.configuration["kernel"]["USE_FVM"]))
+
         if self.configuration["CMAKE_BUILD_TYPE"]:
             fh.write('SET(KERNEL_DEBUG "ON")\n')
 

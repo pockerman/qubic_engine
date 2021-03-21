@@ -1,8 +1,11 @@
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/rl/worlds/grid_world_state.h"
 
 #include <random>
 #include <stdexcept>
-
 namespace cengine{
 namespace rl {
 namespace worlds {
@@ -37,6 +40,12 @@ GridWorldState::GridWorldState(uint_t id)
     :
       id_(id),
       state_transitions_()
+{}
+
+GridWorldState::GridWorldState(const GridWorldState& other)
+    :
+      id_(other.id_),
+      state_transitions_(other.state_transitions_)
 {}
 
 GridWorldState&
@@ -156,8 +165,16 @@ GridWorldState::get_states()const{
     return states;
 }
 
+bool
+GridWorldState::has_action(GridWorldAction action)const{
+    return state_transitions_.find(action) != state_transitions_.end();
+}
+
+
+
 
 }
 }
 }
 
+#endif

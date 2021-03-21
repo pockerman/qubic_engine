@@ -1,6 +1,10 @@
 #ifndef GRID_WORLD_STATE_H
 #define GRID_WORLD_STATE_H
 
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #include "kernel/base/kernel_consts.h"
@@ -36,6 +40,11 @@ public:
     explicit GridWorldState(uint_t id);
 
     ///
+    /// \brief GridWorldState. Copy constructor
+    ///
+    GridWorldState(const GridWorldState& other);
+
+    ///
     /// \brief Copy assignement
     ///
     GridWorldState& operator=(const GridWorldState& other);
@@ -60,6 +69,11 @@ public:
     /// \brief Returns the id of the state
     ///
     uint_t get_id()const{return id_;}
+
+    ///
+    /// \brief set_id. Set the id of the state
+    ///
+    void set_id(uint_t id){id_ = id;}
 
     ///
     /// \brief Set the transitions for this state
@@ -108,6 +122,20 @@ public:
     ///
     std::vector<const GridWorldState*> get_states()const;
 
+    ///
+    /// \brief get_state_transitions. Returns the state transitions
+    ///
+    std::map<GridWorldAction, GridWorldState*>& get_state_transitions(){return state_transitions_;}
+
+    ///
+    /// \brief get_state_transitions. Returns the state transitions
+    ///
+    const std::map<GridWorldAction, GridWorldState*>& get_state_transitions()const{return state_transitions_;}
+
+    ///
+    /// \brief has_action. Returns true if the stat has the given action
+    ///
+    bool has_action(GridWorldAction action)const;
 
 private:
 
@@ -143,4 +171,5 @@ bool operator!=(const GridWorldState& s1, const GridWorldState& s2){
 }
 }
 
+#endif
 #endif // GRID_WORLD_STATE_H

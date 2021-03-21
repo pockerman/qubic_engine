@@ -1,12 +1,13 @@
 import json
 from configuration import INFO
-from configuration.cmake_file_writer import CMakeCubicEngineWriter
+from configuration.cengine_cmake_writer import CMakeCubicEngineWriter
 from configuration.kernel_cmake_writer import KernelCMakeWriter
 from configuration.numerics_cmake_writer import NumericsCMakeWriter
 from configuration.discretization_cmake_writer import DiscretizationCMakeWriter
 from configuration.rigid_body_dynamics_cmake_writer import RBDynamicsCMakeWriter
 from configuration.build_tests import build_tests
 from configuration.build_examples import build_examples
+
 
 def read_json(filename):
 
@@ -33,7 +34,6 @@ if __name__ == '__main__':
 
     if config["kernel"]["BUILD_KERNEL_EXAMPLES"]:
         build_examples(path=KernelCMakeWriter.dir_path() / "examples")
-
 
     if config["kernel"]["USE_DISCRETIZATION"]:
         discretization_cmake_writer = DiscretizationCMakeWriter(configuration=config,
@@ -72,8 +72,12 @@ if __name__ == '__main__':
 
         if config["kernel"]["BUILD_KERNEL_EXAMPLES"]:
             build_examples(path=RBDynamicsCMakeWriter.dir_path() / "examples")
-    
 
-    #cubic_camke_writer = CMakeCubicEngineWriter(configuration=config)
-    #cubic_camke_writer.write_cmake_lists()
+    if config["cengine"]["build_cengine"]:
+
+        cubic_camke_writer = CMakeCubicEngineWriter(configuration=config,
+                                                    kernel_dir=KernelCMakeWriter.dir_path(),
+                                                    kernel_dirs=KernelCMakeWriter.module_dirs())
+        cubic_camke_writer.write_cmake_lists()
+
     print("{0} finished...".format(INFO))

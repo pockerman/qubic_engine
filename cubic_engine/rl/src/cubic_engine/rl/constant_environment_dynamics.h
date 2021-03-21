@@ -1,12 +1,20 @@
 #ifndef CONSTANT_ENVIRONMENT_DYNAMICS_H
 #define CONSTANT_ENVIRONMENT_DYNAMICS_H
 
+#include "cubic_engine/base/config.h"
+
+#ifdef USE_RL
+
 #include "cubic_engine/base/cubic_engine_types.h"
 
 namespace cengine {
 namespace rl{
 
-
+///
+/// \brief The ConstantEnvironmentDynamics class. Helper
+/// modeling environment dynamics where all states have
+/// the same probability to occur
+///
 class ConstantEnvironmentDynamics
 {
 public:
@@ -41,7 +49,7 @@ private:
 
 };
 
-
+inline
 ConstantEnvironmentDynamics::ConstantEnvironmentDynamics(real_t val)
     :
       val_(val)
@@ -50,6 +58,6 @@ ConstantEnvironmentDynamics::ConstantEnvironmentDynamics(real_t val)
 }
 
 }
-
+#endif
 
 #endif // CONSTANT_ENVIRONMENT_DYNAMICS_H
