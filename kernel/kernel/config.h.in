@@ -1,0 +1,44 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+/*DEBUG*/
+#cmakedefine KERNEL_DEBUG
+
+/*Use log */
+#cmakedefine USE_LOG
+
+/*Use OpenMP */
+#cmakedefine USE_OPENMP
+
+/*Use FVM*/
+#cmakedefine USE_FVM
+
+/*Use Trilinos*/
+#cmakedefine USE_TRILINOS
+
+/*Trilinos integer type*/
+#cmakedefine USE_TRILINOS_LONG_LONG_TYPE
+
+/*Path to the datasets*/
+#cmakedefine DATA_SET_FOLDER "@DATA_SET_FOLDER@"
+
+/* Path to the project*/
+#cmakedefine PROJECT_PATH "@PROJECT_PATH@"
+
+/*Use OpenCV */
+#cmakedefine USE_OPEN_CV
+
+/*Use discretization module*/
+#cmakedefine USE_DISCRETIZATION
+
+/*Use Numerics module*/
+#cmakedefine USE_NUMERICS
+
+/*Use Rigid body dynamics module*/
+#cmakedefine USE_RIGID_BODY_DYNAMICS
+
+
+
+
+#endif
+

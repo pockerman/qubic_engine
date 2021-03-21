@@ -1,0 +1,76 @@
+{
+  "BUILD_SHARED_LIBS": true,
+  "CMAKE_BUILD_TYPE": "Debug",
+  "CMAKE_CXX_COMPILER": "gcc",
+  "CMAKE_C_COMPILER": "gcc",
+  "BLAZE_INCL_DIR": "/home/alex/MySoftware/blaze-3.8/install/include",
+  "NLOHMANN_JSON_INCL_DIR": "/home/alex/MySoftware/nlohman_json/install/include",
+  "USE_OPENMP": true,
+  "USE_LOG": true,
+  "USE_PYTORCH": true,
+
+  "testing": {
+    "GTEST_INC_DIR": "/home/alex/MySoftware/gtest/install/include",
+    "GTEST_LIB_DIR": "/home/alex/MySoftware/gtest/install/lib"
+  },
+
+  "trilinos": {
+    "USE_TRILINOS": true,
+    "USE_TRILINOS_LONG_LONG_TYPE": false,
+    "TRILINOS_INCL_DIR": "/home/alex/MySoftware/trilinos/install/include",
+    "TRILINOS_LIB_DIR": "/home/alex/MySoftware/trilinos/install/lib"
+  },
+
+  "opencv": {
+    "USE_OPEN_CV": true,
+    "OPENCV_INCL_DIR": "/home/alex/MySoftware/opencv/install/include/opencv4"
+  },
+
+  "magic_enum": {
+     "USE_MAGIC_ENUM": false,
+     "MAGIC_ENUM_INCL_DIR": ""
+  },
+
+  "kernel": {
+    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_new_build/kernel/install",
+    "USE_DISCRETIZATION": true,
+    "USE_NUMERICS": true,
+    "USE_RIGID_BODY_DYNAMICS": true,
+    "USE_FVM": true,
+    "BUILD_KERNEL_TESTS": false,
+    "BUILD_KERNEL_EXAMPLES": false
+  },
+
+  "cengine": {
+    "build_cengine": true,
+    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_new_build/cubic_engine/install",
+    "BUILD_EXAMPLES": false,
+    "BUILD_TESTS": false,
+    "rl": {
+    "USE_RL": true,
+      "BUILD_EXAMPLES": false,
+      "BUILD_TESTS": false
+    },
+    "ml": {
+      "USE_ML": true,
+      "BUILD_EXAMPLES": true,
+      "BUILD_TESTS": true
+    },
+    "estimation": {
+      "USE_ESTIMATION": true,
+      "BUILD_EXAMPLES": true,
+      "BUILD_TESTS": true
+    },
+    "planning": {
+      "USE_PLANNING": true,
+      "BUILD_EXAMPLES": true,
+      "BUILD_TESTS": true
+    },
+    "control": {
+      "USE_CONTROL": true,
+      "BUILD_EXAMPLES": true,
+      "BUILD_TESTS": true
+    }
+
+  }
+}

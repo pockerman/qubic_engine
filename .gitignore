@@ -23,3 +23,16 @@ cubic_engine/examples/exe33/doc/.ipynb_checkpoints/
 cubic_engine/examples/exe34/doc/.ipynb_checkpoints/exe-checkpoint.ipynb
 kernel/examples/example_31/doc/.ipynb_checkpoints
 cubic_engine/examples/exe35/doc/.ipynb_checkpoints
+configuration/__pycache__/
+kernel/rigid_body_dynamics/src/kernel/dynamics/CMakeLists.txt
+kernel/rigid_body_dynamics/CMakeLists.txt
+kernel/numerics/src/kernel/numerics/CMakeLists.txt
+kernel/numerics/CMakeLists.txt
+kernel/kernel/utilities/src/kernel/utilities/CMakeLists.txt
+kernel/kernel/parallel/src/kernel/parallel/CMakeLists.txt
+kernel/kernel/parallel/src/kernel/parallel/CMakeLists.txt
+kernel/kernel/parallel/CMakeLists.txt
+kernel/discretization/CMakeLists.txt
+kernel/kernel/CMakeLists.txt
+kernel/discretization/src/kernel/discretization/CMakeLists.txt
+kernel/numerics/examples/example_8/build/
