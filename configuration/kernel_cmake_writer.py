@@ -7,12 +7,12 @@ from configuration.cmake_file_writer import CMakeFileWriter
 class KernelCMakeWriter(CMakeFileWriter):
 
     @staticmethod
-    def kernel_dir_path():
+    def dir_path():
         current_dir = Path(os.getcwd())
         return current_dir / "kernel" / "kernel"
 
     @staticmethod
-    def kernel_dirs():
+    def module_dirs():
         return ['base', 'data_structs', 'geometry', 'maths',
                 'parallel', 'patterns', 'utilities']
 
@@ -21,7 +21,7 @@ class KernelCMakeWriter(CMakeFileWriter):
                                                 project_name="kernel",
                                                 install_prefix=configuration["kernel"]["CMAKE_INSTALL_PREFIX"])
 
-        self.dirs = KernelCMakeWriter.kernel_dirs()
+        self.dirs = KernelCMakeWriter.module_dirs()
 
     def write_cmake_lists(self):
 

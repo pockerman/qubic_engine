@@ -32,3 +32,7 @@ kernel/kernel/utilities/src/kernel/utilities/CMakeLists.txt
 kernel/kernel/parallel/src/kernel/parallel/CMakeLists.txt
 kernel/kernel/parallel/src/kernel/parallel/CMakeLists.txt
 kernel/kernel/parallel/CMakeLists.txt
+kernel/discretization/CMakeLists.txt
+kernel/kernel/CMakeLists.txt
+kernel/discretization/src/kernel/discretization/CMakeLists.txt
+kernel/numerics/examples/example_8/build/

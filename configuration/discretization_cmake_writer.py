@@ -7,12 +7,12 @@ from configuration.cmake_file_writer import CMakeFileWriter
 class DiscretizationCMakeWriter(CMakeFileWriter):
 
     @staticmethod
-    def discretization_dir_path():
+    def dir_path():
         current_dir = Path(os.getcwd())
         return current_dir / "kernel" / "discretization"
 
     @staticmethod
-    def discretization_dirs():
+    def module_dirs():
         return ['utils']
 
     def __init__(self, configuration: dict, kernel_dirs: list, kernel_dir: Path) -> None:
@@ -22,7 +22,7 @@ class DiscretizationCMakeWriter(CMakeFileWriter):
 
         self.kernel_dirs = kernel_dirs
         self.kernel_dir = kernel_dir
-        self.dirs = DiscretizationCMakeWriter.discretization_dirs()
+        self.dirs = DiscretizationCMakeWriter.module_dirs()
 
     def write_cmake_lists(self):
         """

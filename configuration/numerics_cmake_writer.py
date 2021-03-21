@@ -5,6 +5,17 @@ from configuration.cmake_file_writer import CMakeFileWriter
 
 
 class NumericsCMakeWriter(CMakeFileWriter):
+
+    @staticmethod
+    def dir_path():
+        current_dir = Path(os.getcwd())
+        return current_dir / "kernel" / "numerics"
+
+    @staticmethod
+    def module_dirs():
+        return ['statistics', 'direct_solvers', 'fvm', 'optimization',
+                'solvers', 'krylov_solvers']
+
     def __init__(self, configuration: dict, kernel_dirs: list, kernel_dir: Path,
                  discretization_dirs: list, discretization_dir: Path) -> None:
         super(NumericsCMakeWriter, self).__init__(configuration=configuration,
@@ -15,8 +26,7 @@ class NumericsCMakeWriter(CMakeFileWriter):
         self.kernel_dir = kernel_dir
         self.discretization_dirs = discretization_dirs
         self.discretization_dir = discretization_dir
-        self.dirs = ['statistics', 'direct_solvers', 'fvm', 'optimization',
-                     'solvers', 'krylov_solvers']
+        self.dirs = NumericsCMakeWriter.module_dirs()
 
     def write_cmake_lists(self):
         """
@@ -127,9 +137,13 @@ class NumericsCMakeWriter(CMakeFileWriter):
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["testing"]["GTEST_INC_DIR"]))
             tfh.write('\n')
 
-            link_dirs = [self.configuration["kernel"]["CMAKE_INSTALL_PREFIX"],
-                         self.configuration["testing"]["GTEST_LIB_DIR"],
-                         "${Boost_LIBRARY_DIRS}"]
+            if example is False:
+                link_dirs = [self.configuration["kernel"]["CMAKE_INSTALL_PREFIX"],
+                             "${Boost_LIBRARY_DIRS}"]
+            else:
+                link_dirs = [self.configuration["kernel"]["CMAKE_INSTALL_PREFIX"],
+                             self.configuration["testing"]["GTEST_LIB_DIR"],
+                             "${Boost_LIBRARY_DIRS}"]
 
             if self.configuration["trilinos"]["USE_TRILINOS"]:
                 link_dirs.append(self.configuration["trilinos"]["TRILINOS_LIB_DIR"])
