@@ -5,6 +5,7 @@ from configuration.kernel_cmake_writer import KernelCMakeWriter
 from configuration.numerics_cmake_writer import NumericsCMakeWriter
 from configuration.discretization_cmake_writer import DiscretizationCMakeWriter
 from configuration.rigid_body_dynamics_cmake_writer import RBDynamicsCMakeWriter
+from configuration.cengine_rl_cmake_writer import RLCMakeWriter
 from configuration.build_tests import build_tests
 from configuration.build_examples import build_examples
 
@@ -75,9 +76,17 @@ if __name__ == '__main__':
 
     if config["cengine"]["build_cengine"]:
 
-        cubic_camke_writer = CMakeCubicEngineWriter(configuration=config,
+        cubic_cmake_writer = CMakeCubicEngineWriter(configuration=config,
                                                     kernel_dir=KernelCMakeWriter.dir_path(),
                                                     kernel_dirs=KernelCMakeWriter.module_dirs())
-        cubic_camke_writer.write_cmake_lists()
+        cubic_cmake_writer.write_cmake_lists()
+
+        if config["cengine"]["rl"]["USE_RL"]:
+            rl_cmake_writer = RLCMakeWriter(configuration=config,
+                                            kernel_dir=KernelCMakeWriter.dir_path(),
+                                            kernel_dirs=KernelCMakeWriter.module_dirs(),
+                                            cengine_dir=CMakeCubicEngineWriter.dir_path(),
+                                            cengine_dirs=CMakeCubicEngineWriter.module_dirs())
+            rl_cmake_writer.write_cmake_lists()
 
     print("{0} finished...".format(INFO))

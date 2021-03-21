@@ -50,6 +50,8 @@ class DiscretizationCMakeWriter(CMakeFileWriter):
                 fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
 
             fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
+            # NLOHMANN_JSON_INCL_DIR
+            fh.write('INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})\n')
             fh.write('\n')
             fh.write('ADD_LIBRARY({0} SHARED "")\n'.format(self.project_name))
             fh.write('\n')

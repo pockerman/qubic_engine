@@ -48,8 +48,8 @@
     "BUILD_TESTS": false,
     "rl": {
     "USE_RL": true,
-      "BUILD_EXAMPLES": true,
-      "BUILD_TESTS": true
+      "BUILD_EXAMPLES": false,
+      "BUILD_TESTS": false
     },
     "ml": {
       "USE_ML": true,

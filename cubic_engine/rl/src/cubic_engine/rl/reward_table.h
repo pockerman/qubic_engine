@@ -222,7 +222,7 @@ template<typename ActionTp, typename RewardTp>
 void
 RewardTable<ActionTp, RewardTp>::save_to_csv(const std::string& filename)const{
 
-    kernel::CSVWriter writer(filename, ',', true);
+    kernel::utilities::CSVWriter writer(filename, ',', true);
 
     std::vector<std::string> col_names = {"StateId", "Action", "Reward"};
     writer.write_column_names(col_names, true);
