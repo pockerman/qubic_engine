@@ -34,6 +34,7 @@ if __name__ == '__main__':
     if config["kernel"]["BUILD_KERNEL_EXAMPLES"]:
         build_examples(path=KernelCMakeWriter.dir_path() / "examples")
 
+
     if config["kernel"]["USE_DISCRETIZATION"]:
         discretization_cmake_writer = DiscretizationCMakeWriter(configuration=config,
                                                                 kernel_dirs=KernelCMakeWriter.module_dirs(),
@@ -71,6 +72,7 @@ if __name__ == '__main__':
 
         if config["kernel"]["BUILD_KERNEL_EXAMPLES"]:
             build_examples(path=RBDynamicsCMakeWriter.dir_path() / "examples")
+    
 
     #cubic_camke_writer = CMakeCubicEngineWriter(configuration=config)
     #cubic_camke_writer.write_cmake_lists()
