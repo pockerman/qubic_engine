@@ -27,7 +27,7 @@ namespace rl {
 ///
 /// \brief The SarsaLearningInput struct
 /// Helper struct that collects all the
-/// parameters for the  SarsaTableLearning class
+/// parameters for the  Sarsa class
 ///
 struct SarsaLearningInput
 {
@@ -35,13 +35,29 @@ struct SarsaLearningInput
     real_t exploration_factor;
     real_t discount_factor;
     bool use_exploration;
-    bool show_iterations;
+
+    ///
+    /// \brief show_iterations. Flag indicating if informative
+    /// messages be printed during training
+    ///
+    bool show_iterations{true};
+
+    ///
+    /// \brief max_num_iterations. How many iterations should be
+    /// performed per training episode.
+    ///
+    uint_t max_num_iterations;
+
+    ///
+    /// \brief total_episodes. Total number of training episodes
+    ///
+    uint_t total_episodes;
 };
 
 ///
 /// \brief The SarsaLearningOutput struct
 /// Helper struct to account for output of
-/// SarsaTableLearning class
+/// Sarsa class
 ///
 struct SarsaLearningOutput
 {
@@ -50,10 +66,11 @@ struct SarsaLearningOutput
 };
 
 ///
-/// \brief Table-based implementation of SARSA algorithm
+/// \brief SARSA algorithm: On-policy TD control.
+///  Finds the optimal epsilon-greedy policy.
 ///
 template<typename WorldTp>
-class SarsaTableLearning: private boost::noncopyable
+class Sarsa: private boost::noncopyable
 {
 
 public:
@@ -73,7 +90,9 @@ public:
     ///
     typedef typename world_t::reward_value_t reward_value_t;
 
+    ///
     /// \brief The type of the state
+    ///
     typedef typename world_t::state_t state_t;
 
     ///
@@ -89,26 +108,33 @@ public:
     ///
     /// \brief Constructor
     ///
-    SarsaTableLearning(SarsaLearningInput&& input);
+    Sarsa(SarsaLearningInput&& input);
 
     ///
     /// \brief Train on the given world
     ///
-    output_t train(const state_t& goal );
+    output_t train();
+
+    ///
+    /// \brief step. Performs the iterations for
+    /// one training episode
+    ///
+    void step(const action_t& action);
 
     ///
     /// \brief Initialize the underlying data structures
+    ///
     void initialize(world_t& world, reward_value_t val);
 
     ///
-    /// \brief Returns the learnt tabular Qfunction
+    /// \brief Returns the learnt Qfunction
     ///
-    const RewardTable<action_t, reward_value_t>& get_table()const{return qtable_;}
+    const DynMat<real_t>& get_q_function()const{return qtable_;}
 
     ///
-    /// \brief Returns the learnt tabular Qfunction
+    /// \brief Returns the learnt Qfunction
     ///
-    RewardTable<action_t, reward_value_t>& get_table(){return qtable_;}
+    DynMat<real_t>& get_q_function(){return qtable_;}
 
 private:
 
@@ -118,12 +144,10 @@ private:
     SarsaLearningInput input_;
 
     ///
-    /// \brief The QTable. A state is identified
-    /// by an id. At each state a number of actions are
-    /// possible. The score for each action is stored in
-    /// a contiguous array
+    /// \brief qtable_. The tabe that represents the state-action_value
+    /// pairs for each action
     ///
-    RewardTable<action_t, reward_value_t> qtable_;
+    DynMat<real_t> qtable_;
 
     ///
     /// \brief The world used by the agent
@@ -137,16 +161,14 @@ private:
     bool is_initialized_;
 
     ///
-    /// \brief Initialize the QTable entries
-    /// for the given state
+    /// \brief Apply epsilon greedy strategy for action selection
     ///
-    template<typename StateTp>
-    void initialize_state_(const StateTp& state, reward_value_t val);
+    action_t epsilon_greedy_(const state_t& state);
 
 };
 
 template<typename WorldTp>
-SarsaTableLearning<WorldTp>::SarsaTableLearning(SarsaLearningInput&& input)
+Sarsa<WorldTp>::Sarsa(SarsaLearningInput&& input)
     :
     input_(std::move(input)),
     qtable_(),
@@ -156,14 +178,18 @@ SarsaTableLearning<WorldTp>::SarsaTableLearning(SarsaLearningInput&& input)
 
 template<typename WorldTp>
 void
-SarsaTableLearning<WorldTp>::initialize(typename SarsaTableLearning<WorldTp>::world_t& world,
-                                    typename SarsaTableLearning<WorldTp>::reward_value_t val){
+Sarsa<WorldTp>::initialize(typename Sarsa<WorldTp>::world_t& world,
+                                    typename Sarsa<WorldTp>::reward_value_t val){
 
+    // clear any entries that we may have
+    qtable_.clear();
+    qtable_.resize(world.n_states(), world.n_actions());
 
     // loop over the states of the world and initialize
     // the action scores
     for(uint_t s=0; s<world.n_states(); ++s){
-        initialize_state_(world.get_state(s), val);
+        for(uint_t a=0; a < world.n_actions(); ++a)
+        qtable_(s, a) = val;
     }
 
     // finally set the world pointer
@@ -171,32 +197,64 @@ SarsaTableLearning<WorldTp>::initialize(typename SarsaTableLearning<WorldTp>::wo
     is_initialized_ = true;
 }
 
-template<typename WorldTp>
+/*template<typename WorldTp>
 template<typename StateTp>
 void
-SarsaTableLearning<WorldTp>::initialize_state_(const StateTp& state,
-                                           typename SarsaTableLearning<WorldTp>::reward_value_t val){
+Sarsa<WorldTp>::initialize_state_(const StateTp& state,
+                                           typename Sarsa<WorldTp>::reward_value_t val){
 
     for(uint_t a = 0; a<state.n_actions(); ++a){
         if(state.is_active_action(a)){
             qtable_.add_reward(state.get_id(), state.get_action_from_idx(a),  val);
         }
     }
-}
-
+}*/
 
 template<typename WorldTp>
-typename SarsaTableLearning<WorldTp>::output_t
-SarsaTableLearning<WorldTp>::train(const typename SarsaTableLearning<WorldTp>::state_t& goal ){
+void
+Sarsa<WorldTp>::step(const action_t& action){
+
+    action_t next_action = WorldTp::INVALID_ACTION;
+    state_t* state = WorldTp::INVALID_STATE;
+
+    for(uint_t itr=1; itr < input_.max_num_iterations; ++itr){
+
+        // step in the world
+        auto [next_state_ptr, reward, done, info] = world_ptr_->step(action);
+
+        if(!next_state_ptr){
+            throw std::logic_error("Next state pointer is NULL");
+        }
+
+        // Pick the next action
+        next_action = epsilon_greedy_(*next_state_ptr);
+        state = next_state_ptr;
+
+        // TD Update
+        auto td_target = reward + input_.discount_factor * qtable_(next_state_ptr->get_id(), next_action);
+        auto td_delta = td_target - qtable_(next_state_ptr->get_id(), next_action);
+        qtable_(next_state_ptr->get_id(), next_action) += input_.learning_rate  * td_delta;
+
+        if(done){
+           break;
+        }
+    }
+}
+
+template<typename WorldTp>
+typename Sarsa<WorldTp>::output_t
+Sarsa<WorldTp>::train(){
 
     if(!is_initialized_){
-        throw std::logic_error("SarsaTableLearning instance is not initialized");
+        throw std::logic_error("QLearning instance is not initialized");
     }
 
     auto start = std::chrono::steady_clock::now();
-    typename SarsaTableLearning<WorldTp>::output_t output;
+    typename Sarsa<WorldTp>::output_t output;
     output.total_reward = 0.0;
     output.total_time = 0.0;
+
+
 
     auto action_idx = WorldTp::invalid_action;
 

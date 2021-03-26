@@ -29,11 +29,39 @@ class DiscreteWorld: public World<ActionTp, StateTp, RewardTp>
 {
 public:
 
+    ///
+    /// \brief reward_t The type of the object responsible for
+    /// delivering the rewards
+    ///
     typedef typename World<ActionTp, StateTp, RewardTp>::reward_t reward_t;
+
+    ///
+    /// \brief action_t The type of the action
+    ///
     typedef typename World<ActionTp, StateTp, RewardTp>::action_t action_t;
+
+    ///
+    /// \brief state_t The type of the state
+    ///
     typedef typename World<ActionTp, StateTp, RewardTp>::state_t state_t;
+
+    ///
+    /// \brief reward_value_t The returned reward value type. Typically this will
+    /// be kernel::real_t
+    ///
     typedef typename World<ActionTp, StateTp, RewardTp>::reward_value_t reward_value_t;
+
+    ///
+    /// \brief dynamics_t The type responsible for handling the dynamics
+    /// of the environment
+    ///
     typedef DynamicsTp dynamics_t;
+
+    ///
+    /// \brief invalid_action Indicate an invalid action on the world
+    /// Useful for uniform initialization when action is unknown
+    ///
+    static constexpr action_t INVALID_ACTION = ActionTp::INVALID_ACTION;
 
     ///
     /// \brief n_states. Returns the number of states

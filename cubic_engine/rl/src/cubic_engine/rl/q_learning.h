@@ -6,7 +6,7 @@
 #ifdef USE_RL
 
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/rl/reward_table.h"
+#include "cubic_engine/rl/td_base.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/maths/matrix_utilities.h"
 
@@ -17,7 +17,7 @@
 #endif
 #include <boost/noncopyable.hpp>
 #include <string>
-//#include <map>
+
 #include <random>
 #include <iostream>
 #include <cmath>
@@ -27,7 +27,7 @@ namespace rl{
 
 ///
 /// \brief The QLearningInput struct
-/// Helper struct that assembles the input for the QTableLearning class.
+/// Helper struct that assembles the input for the QLearning class.
 struct QLearningInput
 {
     ///
@@ -88,13 +88,13 @@ struct QLearningInput
 
 
 ///
-/// \brief The QTableLearning class. Table based implementation
+/// \brief The QLearning class. Table based implementation
 /// of the Q-learning algorithm using epsilon-greedy policy.
 /// The implementation also allows for exponential decay
 /// of the used epsilon
 ///
 template<typename WorldTp>
-class QTableLearning: private boost::noncopyable
+class QLearning: public TDBase<WorldTp>
 {
 
 public:
@@ -122,27 +122,13 @@ public:
     ///
     /// \brief Constructor
     ///
-    QTableLearning(const QLearningInput& input);
+    QLearning(const QLearningInput& input);
 
     ///
-    /// \brief Train on the given world
+    /// \brief step. Performs the iterations for
+    /// one training episode
     ///
-    void train();
-
-    ///
-    /// \brief Initialize the underlying data structures
-    ///
-    void initialize(world_t& world, reward_value_t val);
-
-    ///
-    /// \brief Returns the learnt Qfunction
-    ///
-    const DynMat<real_t>& get_q_function()const{return q_function_;}
-
-    ///
-    /// \brief Returns the learnt Qfunction
-    ///
-    DynMat<real_t>& get_q_function(){return q_function_;}
+    virtual void step()override final;
 
 private:
 
@@ -152,58 +138,39 @@ private:
     QLearningInput input_;
 
     ///
-    /// \brief q_function_
+    /// \brief episode_counter_ Counter for the episodes
+    /// encountered
     ///
-    DynMat<real_t> q_function_;
+    uint_t episode_counter_;
 
     ///
-    /// \brief The world used by the agent
+    /// \brief actions_before_episodes_ Actions performed before starting
+    /// the episodes
     ///
-    world_t* world_ptr_;
+    virtual void actions_before_episodes_(){episode_counter_ = 0;}
 
     ///
-    /// \brief Flag indicating if the trainer has been initialized
+    /// \brief actions_after_iterations_ Actions performed after finishing
+    /// the iterations
     ///
-    bool is_initialized_;
+    virtual void actions_after_iterations_();
 
 };
 
 template<typename WorldTp>
-QTableLearning<WorldTp>::QTableLearning(const QLearningInput& input)
+QLearning<WorldTp>::QLearning(const QLearningInput& input)
     :
+    TDBase<WorldTp> (input.total_episodes),
     input_(input),
-    q_function_(),
-    world_ptr_(nullptr),
-    is_initialized_(false)
+    episode_counter_(0)
 {}
 
-template<typename WorldTp>
-void
-QTableLearning<WorldTp>::initialize(world_t& world, reward_value_t val){
-
-    q_function_.resize(world.n_states(), world.n_actions(), val);
-
-    // finally set the world pointer
-    world_ptr_ = &world;
-    is_initialized_ = true;
-}
-
 
 template<typename WorldTp>
 void
-QTableLearning<WorldTp>::train(){
+QLearning<WorldTp>::step(){
 
-    if(!is_initialized_){
-        throw std::logic_error("QTableLearning instance is not initialized");
-    }
-
-    uint_t episode_counter = 0;
-    for(uint_t itr=0; itr < input_.total_episodes; ++itr){
-
-        // for every iteration reset the environment
-        auto state = world_ptr_->restart();
-
-        for(uint_t step=0; step < input_.max_num_iterations; ++step){
+    for(uint_t step=0; step < input_.max_num_iterations; ++step){
 
             // Will be used to obtain a seed for the random number engine
             std::random_device rd;
@@ -214,36 +181,38 @@ QTableLearning<WorldTp>::train(){
             auto exp_exp_tradeoff = dis(rd);
 
             // do exploration by default
-            auto action_idx = world_ptr_->sample_action();
+            auto action_idx = this->world_ptr_->sample_action();
 
             if( exp_exp_tradeoff > input_.epsilon ){
-                  action_idx = static_cast<action_t>(kernel::row_argmax(q_function_, state.get_id()));
+                  action_idx = static_cast<action_t>(kernel::row_argmax(this->q_function_, this->state_->get_id()));
             }
 
             // step in the world
-            auto [new_state, reward, finished, info] = world_ptr_->step(action_idx);
+            auto [new_state, reward, finished, info] = this->world_ptr_->step(action_idx);
 
             // update the qtable
-            q_function_(state.get_id(), static_cast<uint_t>(action_idx)) += input_.learning_rate * (reward +
-                                                           input_.discount_factor * kernel::get_row_max(q_function_, new_state->get_id()) -
-                                                            q_function_(state.get_id(), static_cast<uint_t>(action_idx)));
+            this->q_function_(this->state_->get_id(), static_cast<uint_t>(action_idx)) += input_.learning_rate * (reward +
+                                                           input_.discount_factor * kernel::get_row_max(this->q_function_, new_state->get_id()) -
+                                                            this->q_function_(this->state_->get_id(), static_cast<uint_t>(action_idx)));
 
-            state = *new_state;
+            this->state = new_state;
 
             if( finished ){
                 break;
             }
         }
+   }
 
-        episode_counter += 1;
-        if(input_.use_decay){
-            input_.epsilon = input_.min_epsilon + (input_.max_epsilon - input_.min_epsilon)*std::exp(-input_.epsilon_decay * episode_counter);
-        }
+template<typename WorldTp>
+void
+QLearning<WorldTp>::actions_after_iterations_(){
+    episode_counter_ += 1;
+    if(input_.use_decay){
+        input_.epsilon = input_.min_epsilon + (input_.max_epsilon - input_.min_epsilon)*std::exp(-input_.epsilon_decay * episode_counter_);
     }
 }
 
 }
-
 }
 #endif
 #endif // Q_LEARNING_H
