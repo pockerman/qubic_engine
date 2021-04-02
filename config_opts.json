@@ -7,7 +7,7 @@
   "NLOHMANN_JSON_INCL_DIR": "/home/alex/MySoftware/nlohman_json/install/include",
   "USE_OPENMP": true,
   "USE_LOG": true,
-  "USE_PYTORCH": true,
+  "USE_PYTORCH": false,
 
   "testing": {
     "GTEST_INC_DIR": "/home/alex/MySoftware/gtest/install/include",
@@ -52,22 +52,22 @@
       "BUILD_TESTS": false
     },
     "ml": {
-      "USE_ML": true,
+      "USE_ML": false,
       "BUILD_EXAMPLES": true,
       "BUILD_TESTS": true
     },
     "estimation": {
-      "USE_ESTIMATION": true,
+      "USE_ESTIMATION": false,
       "BUILD_EXAMPLES": true,
       "BUILD_TESTS": true
     },
     "planning": {
-      "USE_PLANNING": true,
+      "USE_PLANNING": false,
       "BUILD_EXAMPLES": true,
       "BUILD_TESTS": true
     },
     "control": {
-      "USE_CONTROL": true,
+      "USE_CONTROL": false,
       "BUILD_EXAMPLES": true,
       "BUILD_TESTS": true
     }
