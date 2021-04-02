@@ -28,17 +28,9 @@ namespace rl{
 ///
 /// \brief The QLearningInput struct
 /// Helper struct that assembles the input for the QLearning class.
-struct QLearningInput
+///
+struct QLearningInput: public TDInput
 {
-    ///
-    /// \breif learning_rate The learning rate
-    ///
-    real_t learning_rate{0.01};
-
-    ///
-    /// \brief epsilon. The exploration coefficient
-    ///
-    real_t epsilon{1.0};
 
     ///
     /// \brief max_epsilon. The maximum the exploration
@@ -59,31 +51,10 @@ struct QLearningInput
     real_t epsilon_decay{0.01};
 
     ///
-    /// \brief discount_factor. The gamma coefficient
-    ///
-    real_t discount_factor{0.6};
-
-    ///
-    /// \brief show_iterations. Flag indicating if informative
-    /// messages be printed during training
-    ///
-    bool show_iterations{true};
-
-    ///
     /// \brief Flag indicating if decaying is used
     ///
     bool use_decay{true};
 
-    ///
-    /// \brief max_num_iterations. How many iterations should be
-    /// performed per training episode.
-    ///
-    uint_t max_num_iterations;
-
-    ///
-    /// \brief total_episodes. Total number of training episodes
-    ///
-    uint_t total_episodes;
 };
 
 
@@ -135,7 +106,7 @@ private:
     ///
     /// \brief Basic input
     ///
-    QLearningInput input_;
+    QLearningInput q_input_;
 
     ///
     /// \brief episode_counter_ Counter for the episodes
@@ -160,8 +131,8 @@ private:
 template<typename WorldTp>
 QLearning<WorldTp>::QLearning(const QLearningInput& input)
     :
-    TDBase<WorldTp> (input.total_episodes),
-    input_(input),
+    TDBase<WorldTp> (input),
+    q_input_(input),
     episode_counter_(0)
 {}
 
@@ -170,7 +141,8 @@ template<typename WorldTp>
 void
 QLearning<WorldTp>::step(){
 
-    for(uint_t step=0; step < input_.max_num_iterations; ++step){
+
+    for(uint_t step=0; step < this->get_total_itrs_per_episode(); ++step){
 
             // Will be used to obtain a seed for the random number engine
             std::random_device rd;
@@ -183,7 +155,7 @@ QLearning<WorldTp>::step(){
             // do exploration by default
             auto action_idx = this->world_ptr_->sample_action();
 
-            if( exp_exp_tradeoff > input_.epsilon ){
+            if( exp_exp_tradeoff > this->get_epsilon() ){
                   action_idx = static_cast<action_t>(kernel::row_argmax(this->q_function_, this->state_->get_id()));
             }
 
@@ -191,11 +163,11 @@ QLearning<WorldTp>::step(){
             auto [new_state, reward, finished, info] = this->world_ptr_->step(action_idx);
 
             // update the qtable
-            this->q_function_(this->state_->get_id(), static_cast<uint_t>(action_idx)) += input_.learning_rate * (reward +
-                                                           input_.discount_factor * kernel::get_row_max(this->q_function_, new_state->get_id()) -
+            this->q_function_(this->state_->get_id(), static_cast<uint_t>(action_idx)) += this->get_learning_rate() * (reward +
+                                                           this->get_discount_factor() * kernel::get_row_max(this->q_function_, new_state->get_id()) -
                                                             this->q_function_(this->state_->get_id(), static_cast<uint_t>(action_idx)));
 
-            this->state = new_state;
+            this->state_ = new_state;
 
             if( finished ){
                 break;
@@ -207,8 +179,10 @@ template<typename WorldTp>
 void
 QLearning<WorldTp>::actions_after_iterations_(){
     episode_counter_ += 1;
-    if(input_.use_decay){
-        input_.epsilon = input_.min_epsilon + (input_.max_epsilon - input_.min_epsilon)*std::exp(-input_.epsilon_decay * episode_counter_);
+    if(q_input_.use_decay){
+
+        auto epsilon = q_input_.min_epsilon + (q_input_.max_epsilon - q_input_.min_epsilon)*std::exp(-q_input_.epsilon_decay * episode_counter_);
+        this->set_epsilon(epsilon);
     }
 }
 

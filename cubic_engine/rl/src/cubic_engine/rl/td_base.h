@@ -19,9 +19,53 @@ namespace rl{
 
 
 ///
+/// \brief The QLearningInput struct
+/// Helper struct that assembles the input for the QLearning class.
+///
+struct TDInput
+{
+    ///
+    /// \breif learning_rate The learning rate
+    ///
+    real_t learning_rate{0.01};
+
+    ///
+    /// \brief epsilon. The exploration coefficient
+    ///
+    real_t epsilon{1.0};
+
+    ///
+    /// \brief discount_factor. The gamma coefficient
+    ///
+    real_t discount_factor{0.6};
+
+    ///
+    /// \brief show_iterations. Flag indicating if informative
+    /// messages be printed during training
+    ///
+    bool show_iterations{true};
+
+    ///
+    /// \brief max_num_iterations. How many iterations should be
+    /// performed per training episode.
+    ///
+    uint_t max_num_iterations;
+
+    ///
+    /// \brief total_episodes. Total number of training episodes
+    ///
+    uint_t total_episodes;
+
+    ///
+    /// \brief random_seed
+    ///
+    uint_t random_seed;
+};
+
+
+///
 ///\brief Class for learning state-value functions
 /// using TD
-
 template<typename WorldTp>
 class TDBase: private boost::noncopyable
 {
@@ -78,12 +122,59 @@ public:
     ///
     DynMat<real_t>& get_q_function(){return q_function_;}
 
+    ///
+    /// \brief get_discount_factor
+    ///
+    real_t get_discount_factor()const{return input_.discount_factor;}
+
+    ///
+    /// \brief set_discount_factor
+    /// \param gamm
+    ///
+    void set_discount_factor(real_t gamma){input_.discount_factor = gamma;}
+
+    ///
+    /// \brief get_epsilon
+    ///
+    real_t get_epsilon()const{return input_.epsilon;}
+
+    ///
+    /// \brief set_epsilon
+    ///
+    void set_epsilon(real_t eps){input_.epsilon = eps;}
+
+    ///
+    /// \brief get_random_seed
+    ///
+    uint_t get_random_seed()const{return input_.random_seed;}
+
+    ///
+    /// \brief set_random_seed
+    ///
+    void set_random_seed(uint_t seed){input_.random_seed = seed;}
+
+    ///
+    /// \brief get_total_episodes
+    ///
+    uint_t get_total_episodes()const{return input_.total_episodes;}
+
+    ///
+    /// \brief get_total_itrs_per_episode
+    ///
+    uint_t get_total_itrs_per_episode()const{return input_.max_num_iterations;}
+
+    ///
+    /// \brief get_learning_rate
+    ///
+    real_t get_learning_rate()const{return input_.learning_rate;}
+
+
 protected:
 
     ///
     /// \brief Constructor
     ///
-    TDBase(uint_t max_iterations);
+    TDBase(const TDInput& input);
 
     ///
     /// \brief q_function_
@@ -110,16 +201,6 @@ protected:
     /// episode iterations
     ///
     kernel::IterativeAlgorithmController episode_controller_;
-
-    ///
-    /// \brief epsilon_
-    ///
-    real_t epsilon_;
-
-    ///
-    /// \brief random_seed_
-    ///
-    uint_t random_seed_;
 
     ///
     /// \brief actions_before_episodes_ Actions performed before starting
@@ -149,19 +230,25 @@ protected:
     /// \brief action_selection_policy. Select the action to perform
     /// By default applies an epsilon greedy policy
     ///
-    virtual action_t action_selection_policy();
+    virtual action_t action_selection_policy(const state_t& state);
+
+private:
+
+    ///
+    /// \brief input_ Constants used by the algorithms
+    ///
+    TDInput input_;
 
 };
 
 template<typename WorldTp>
-TDBase<WorldTp>::TDBase(uint_t max_iterations)
+TDBase<WorldTp>::TDBase(const TDInput& input)
     :
     q_function_(),
     world_ptr_(nullptr),
+    state_(nullptr),
     is_initialized_(false),
-    episode_controller_(max_iterations, std::numeric_limits<real_t>::max()),
-    epsilon_(0.1),
-    random_seed_(42)
+    episode_controller_(input.total_episodes, std::numeric_limits<real_t>::max())
 {}
 
 template<typename WorldTp>
@@ -172,6 +259,7 @@ TDBase<WorldTp>::initialize(world_t& world, reward_value_t val){
 
     // finally set the world pointer
     world_ptr_ = &world;
+    state_ = nullptr;
     is_initialized_ = true;
 }
 
@@ -184,8 +272,8 @@ TDBase<WorldTp>::train(){
         throw std::logic_error("TD instance is not initialized");
     }
 
-    //uint_t episode_counter = 0;
     actions_before_episodes_();
+
     while(episode_controller_.continue_iterations()){
 
         // for every iteration reset the environment
@@ -205,12 +293,12 @@ TDBase<WorldTp>::train(){
 
 template<typename WorldTp>
 typename TDBase<WorldTp>::action_t
-TDBase<WorldTp>::action_selection_policy(){
+TDBase<WorldTp>::action_selection_policy(const state_t& state){
 
     // Will be used to obtain a seed for the random number engine
     //std::random_device rd;
 
-    std::seed_seq seed{random_seed_};
+    std::seed_seq seed{input_.random_seed};
 
     // Standard mersenne_twister_engine seeded with rd()
     std::mt19937 gen(seed); //rd(random_seed_));
@@ -220,13 +308,12 @@ TDBase<WorldTp>::action_selection_policy(){
     // do exploration by default
     auto action_idx = world_ptr_->sample_action();
 
-    if( exp_exp_tradeoff > epsilon_ ){
-          action_idx = static_cast<action_t>(kernel::row_argmax(q_function_, state_->get_id()));
+    if( exp_exp_tradeoff > input_.epsilon ){
+          action_idx = static_cast<action_t>(kernel::row_argmax(q_function_, state.get_id()));
     }
 
     return action_idx;
 }
-
 
 }
 }
