@@ -63,8 +63,8 @@ You can find the HTML documentation <a href="https://pockerman.github.io/cubic_e
 
 You can find some example applications below
 
-- < a href="kernel/README.md">kernel</a>
-- < a href="cubic_engine/README.md">cengine</a>
+- <a href="kernel/README.md">kernel</a>
+- <a href="cubic_engine/README.md">cengine</a>
 
 ## Images (some are simply wrong :) )
 
