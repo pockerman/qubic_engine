@@ -22,6 +22,9 @@
 /*Path to the datasets*/
 #cmakedefine DATA_SET_FOLDER "@DATA_SET_FOLDER@"
 
+/*Path to the datasets for testing*/
+#cmakedefine TEST_DATA_SET_DIRECTORY "@TEST_DATA_DIR@"
+
 /* Path to the project*/
 #cmakedefine PROJECT_PATH "@PROJECT_PATH@"
 
