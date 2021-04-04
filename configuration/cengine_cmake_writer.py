@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 from configuration.cmake_file_writer import CMakeFileWriter
+from configuration.build_libs import build_library
 from configuration import INFO
 
 
@@ -77,6 +78,11 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
             fh.write('SET_TARGET_PROPERTIES({0} PROPERTIES LINKER_LANGUAGE CXX)\n'.format(self.project_name))
             fh.write('INSTALL(TARGETS %s DESTINATION ${CMAKE_INSTALL_PREFIX})\n' % self.project_name)
             fh.write('MESSAGE(STATUS "Installation destination at: ${CMAKE_INSTALL_PREFIX}")\n')
+
+        if self.configuration["BUILD_LIBS"]:
+            print("{0} Building {1}".format(INFO, self.project_name))
+            path = Path(os.getcwd())
+            build_library(path=path / "cubic_engine" / "cengine")
 
         if self.configuration["cengine"]["BUILD_TESTS"]:
             self._write_tests_cmake()

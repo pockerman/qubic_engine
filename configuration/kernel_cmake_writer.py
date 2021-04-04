@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from configuration import INFO
+from configuration.build_libs import build_library
 from configuration.cmake_file_writer import CMakeFileWriter
 
 
@@ -73,6 +74,11 @@ class KernelCMakeWriter(CMakeFileWriter):
             fh.write('INSTALL(TARGETS %s DESTINATION ${CMAKE_INSTALL_PREFIX})\n' % self.project_name)
             fh.write('MESSAGE(STATUS "Installation destination at: ${CMAKE_INSTALL_PREFIX}")\n')
 
+        if self.configuration["BUILD_LIBS"]:
+            print("{0} Building {1}".format(INFO, self.project_name))
+            path = Path(os.getcwd())
+            build_library(path=path / "kernel" / "kernel")
+
         if self.configuration["kernel"]["BUILD_KERNEL_TESTS"]:
             self._write_tests_cmake()
 
@@ -103,6 +109,7 @@ class KernelCMakeWriter(CMakeFileWriter):
 
         current_dir = Path(os.getcwd())
         fh.write('SET(DATA_SET_FOLDER {0}/data)\n'.format(current_dir))
+        fh.write('SET(TEST_DATA_DIR {0})\n'.format(current_dir / 'test_data'))
 
         return fh
 

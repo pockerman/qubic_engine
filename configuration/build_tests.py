@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from utils import remove_directory
+from configuration.utils import remove_directory
 
 
 def build_test(path: Path) -> None:

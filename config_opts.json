@@ -1,5 +1,6 @@
 {
   "BUILD_SHARED_LIBS": true,
+  "BUILD_LIBS": true,
   "CMAKE_BUILD_TYPE": "Debug",
   "CMAKE_CXX_COMPILER": "gcc",
   "CMAKE_C_COMPILER": "gcc",
@@ -15,7 +16,7 @@
   },
 
   "trilinos": {
-    "USE_TRILINOS": true,
+    "USE_TRILINOS": false,
     "USE_TRILINOS_LONG_LONG_TYPE": false,
     "TRILINOS_INCL_DIR": "/home/alex/MySoftware/trilinos/install/include",
     "TRILINOS_LIB_DIR": "/home/alex/MySoftware/trilinos/install/lib"
@@ -36,7 +37,7 @@
     "USE_DISCRETIZATION": true,
     "USE_NUMERICS": true,
     "USE_RIGID_BODY_DYNAMICS": true,
-    "USE_FVM": true,
+    "USE_FVM": false,
     "BUILD_KERNEL_TESTS": false,
     "BUILD_KERNEL_EXAMPLES": false
   },
@@ -47,9 +48,9 @@
     "BUILD_EXAMPLES": false,
     "BUILD_TESTS": false,
     "rl": {
-    "USE_RL": true,
-      "BUILD_EXAMPLES": false,
-      "BUILD_TESTS": false
+      "USE_RL": true,
+      "BUILD_EXAMPLES": true,
+      "BUILD_TESTS": true
     },
     "ml": {
       "USE_ML": false,
@@ -71,6 +72,5 @@
       "BUILD_EXAMPLES": true,
       "BUILD_TESTS": true
     }
-
   }
 }
