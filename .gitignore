@@ -36,3 +36,5 @@ kernel/discretization/CMakeLists.txt
 kernel/kernel/CMakeLists.txt
 kernel/discretization/src/kernel/discretization/CMakeLists.txt
 kernel/numerics/examples/example_8/build/
+cubic_engine/cengine/src/cubic_engine/base/CMakeLists.txt
+cubic_engine/cengine/CMakeLists.txt
