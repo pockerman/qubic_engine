@@ -21,6 +21,8 @@ class CMakeFileWriter(object):
 
     def write_basic_lists(self, fh, **options):
 
+            current_dir = Path(os.getcwd())
+
             # start creating main CMakeLists
             fh.write("CMAKE_MINIMUM_REQUIRED(VERSION 3.6)\n")
             fh.write('MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")\n')
