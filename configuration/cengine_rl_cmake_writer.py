@@ -2,30 +2,38 @@ from pathlib import Path
 import os
 from configuration.cmake_file_writer import CMakeFileWriter
 from configuration.build_libs import build_library
+from configuration.build_examples import build_examples
+from configuration.build_tests import build_tests
 from configuration import INFO
 
 
 class RLCMakeWriter(CMakeFileWriter):
 
     @staticmethod
-    def dir_path():
+    def dir_path() -> Path:
         current_dir = Path(os.getcwd())
-        return current_dir / "cubic_engine" / "cengine"
+        return current_dir / "cubic_engine" / "rl"
 
     @staticmethod
-    def module_dirs():
+    def module_dirs() -> list:
         return ['worlds', ]
 
+    @staticmethod
+    def module_name() -> str:
+        return "cengine_rl"
+
     def __init__(self, configuration: dict, kernel_dir: Path, kernel_dirs: list,
-                 cengine_dir: Path, cengine_dirs: list) -> None:
+                 kernel_name: str,  cengine_dir: Path, cengine_dirs: list, cengine_name: str) -> None:
         super(RLCMakeWriter, self).__init__(configuration=configuration,
                                             project_name="cengine_rl",
                                             install_prefix=configuration["cengine"]["CMAKE_INSTALL_PREFIX"])
 
         self.kernel_dirs = kernel_dirs
         self.kernel_dir = kernel_dir
+        self.kernel_name = kernel_name
         self.cengine_dirs = cengine_dirs
         self.cengine_dir = cengine_dir
+        self.cengine_name = cengine_name
         self.dirs = RLCMakeWriter.module_dirs()
 
     def write_cmake_lists(self):
@@ -43,7 +51,7 @@ class RLCMakeWriter(CMakeFileWriter):
             fh.write('INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})\n')
 
             # library include files
-            fh.write('INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/)\n')
+            fh.write('INCLUDE_DIRECTORIES(%s/src/)\n' % RLCMakeWriter.dir_path())
 
             for kdir in self.kernel_dirs:
                 fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.kernel_dir / kdir / 'src'))
@@ -60,6 +68,7 @@ class RLCMakeWriter(CMakeFileWriter):
 
             # boost includes
             fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
+
             # NLOHMANN_JSON_INCL_DIR
             fh.write('INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})\n')
             fh.write('\n')
@@ -91,11 +100,11 @@ class RLCMakeWriter(CMakeFileWriter):
 
         if self.configuration["cengine"]["rl"]["BUILD_TESTS"]:
             self._write_tests_cmake()
+            build_tests(path=RLCMakeWriter.dir_path() / "tests" )
 
         if self.configuration["cengine"]["rl"]["BUILD_EXAMPLES"]:
             self._write_examples_cmake()
-
-
+            build_examples(path=RLCMakeWriter.dir_path() / "examples")
 
         print("{0} Done...".format(INFO))
 
@@ -110,8 +119,9 @@ class RLCMakeWriter(CMakeFileWriter):
     def _write_single_cmake(self, path: Path, directory: str, example: bool) -> None:
 
         with open(path / "CMakeLists.txt", "w", newline="\n") as tfh:
+
             # set the kernel path
-            current_dir = Path(os.getcwd())
+            current_dir = path
             tfh.write("cmake_minimum_required(VERSION 3.0)\n")
             tfh.write("PROJECT({0} CXX)\n".format(directory))
             tfh.write("SET(SOURCE {0}.cpp)\n".format(directory))
@@ -122,8 +132,15 @@ class RLCMakeWriter(CMakeFileWriter):
             tfh = self._write_build_option(fh=tfh)
 
             tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["BLAZE_INCL_DIR"]))
-            for directory in self.dirs:
-                tfh.write('INCLUDE_DIRECTORIES(%s/%s/src/)\n' % (current_dir / "kernel" / "kernel", directory))
+
+            # library include files
+            tfh.write('INCLUDE_DIRECTORIES(%s/src/)\n' % RLCMakeWriter.dir_path())
+
+            for kdir in self.kernel_dirs:
+                tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.kernel_dir / kdir / 'src'))
+
+            # cengine includes
+            tfh.write('INCLUDE_DIRECTORIES({0}/src/)\n'.format(self.cengine_dir))
 
             if self.configuration["trilinos"]["USE_TRILINOS"]:
                 tfh.write(
@@ -133,17 +150,17 @@ class RLCMakeWriter(CMakeFileWriter):
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
 
             tfh.write('INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})\n')
+            tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["NLOHMANN_JSON_INCL_DIR"]))
             if example is False:
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["testing"]["GTEST_INC_DIR"]))
             tfh.write('\n')
 
-            if example:
-                link_dirs = [self.configuration["kernel"]["CMAKE_INSTALL_PREFIX"],
-                             "${Boost_LIBRARY_DIRS}"]
-            else:
-                link_dirs = [self.configuration["kernel"]["CMAKE_INSTALL_PREFIX"],
-                             self.configuration["testing"]["GTEST_LIB_DIR"],
-                             "${Boost_LIBRARY_DIRS}"]
+            link_dirs = [self.configuration["kernel"]["CMAKE_INSTALL_PREFIX"],
+                         self.configuration["cengine"]["CMAKE_INSTALL_PREFIX"],
+                             "${Boost_LIBRARY_DIRS}", ]
+
+            if example is False:
+                link_dirs.append(self.configuration["testing"]["GTEST_LIB_DIR"])
 
             if self.configuration["trilinos"]["USE_TRILINOS"]:
                 link_dirs.append(self.configuration["trilinos"]["TRILINOS_LIB_DIR"])
@@ -155,11 +172,14 @@ class RLCMakeWriter(CMakeFileWriter):
             tfh.write('ADD_EXECUTABLE(%s %s)\n' % ("${EXECUTABLE}", "${SOURCE}"))
             tfh.write("\n")
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.project_name))
+            tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.cengine_name))
+            tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.kernel_name))
 
             if example is False:
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest)\n')
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest_main) '
                           '# so that tests dont need to have a main\n')
+
             tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} pthread)\n')
             tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)\n')
 
@@ -170,11 +190,8 @@ class RLCMakeWriter(CMakeFileWriter):
 
     def _write_multiple_cmakes(self, path: Path, example: bool) -> None:
 
-        # set the kernel path
-        current_dir = Path(os.getcwd())
-
         # get the test directories
-        working_path = current_dir / path
+        working_path = path
         working_dirs = os.listdir(working_path)
 
         for w_dir in working_dirs:
@@ -188,10 +205,9 @@ class RLCMakeWriter(CMakeFileWriter):
         Write the examples CMakeLists
         :return:
         """
-        current_dir = Path(os.getcwd())
 
         # get the test directories
-        examples_path = current_dir / "kernel/kernel/examples"
+        examples_path = RLCMakeWriter.dir_path() / "examples"
         self._write_multiple_cmakes(path=examples_path, example=True)
 
     def _write_tests_cmake(self) -> None:
@@ -199,9 +215,6 @@ class RLCMakeWriter(CMakeFileWriter):
         Write the CMakeLists for tests
         """
 
-        # set the kernel path
-        current_dir = Path(os.getcwd())
-
         # get the test directories
-        path = current_dir / "kernel/kernel/tests"
+        path = RLCMakeWriter.dir_path() / "tests"
         self._write_multiple_cmakes(path=path, example=False)

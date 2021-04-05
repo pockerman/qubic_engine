@@ -8,14 +8,18 @@ from configuration.cmake_file_writer import CMakeFileWriter
 class KernelCMakeWriter(CMakeFileWriter):
 
     @staticmethod
-    def dir_path():
+    def dir_path() -> Path:
         current_dir = Path(os.getcwd())
         return current_dir / "kernel" / "kernel"
 
     @staticmethod
-    def module_dirs():
+    def module_dirs() -> list:
         return ['base', 'data_structs', 'geometry', 'maths',
                 'parallel', 'patterns', 'utilities']
+
+    @staticmethod
+    def module_name() -> str:
+        return "kernel"
 
     def __init__(self, configuration: dict) -> None:
         super(KernelCMakeWriter, self).__init__(configuration=configuration,

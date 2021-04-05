@@ -8,7 +8,7 @@
 #include "kernel/utilities/csv_file_writer.h"
 #include "cubic_engine/rl/worlds/cliff_world.h"
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
-#include "cubic_engine/rl/tabular_sarsa_learning.h"
+#include "cubic_engine/rl/sarsa_learning.h"
 #include "cubic_engine/rl/reward_table.h"
 
 #include <cmath>
@@ -24,10 +24,10 @@ int main(){
     using cengine::real_t;
     using cengine::rl::worlds::CliffWorld;
     using cengine::rl::worlds::GridWorldAction;
-    using cengine::rl::SarsaTableLearning;
-    using cengine::rl::SarsaLearningInput;
+    using cengine::rl::Sarsa;
+    using cengine::rl::TDInput;
     using cengine::rl::RewardTable;
-    using kernel::CSVWriter;
+    using kernel::utilities::CSVWriter;
 
     try{
 
@@ -51,34 +51,19 @@ int main(){
         const real_t GAMMA = 1.0;
         const real_t PENALTY = -100.0;
 
-        SarsaLearningInput qinput={ETA, EPSILON, GAMMA, true, true};
-        SarsaTableLearning<world_t> sarsalearner(std::move(qinput));
+        TDInput tdinput;
+        tdinput.learning_rate =ETA;
+        tdinput.epsilon = EPSILON;
+        tdinput.discount_factor = GAMMA;
+        tdinput.show_iterations = true;
+        tdinput.max_num_iterations = 100;
+        tdinput.total_episodes = 1000;
+        tdinput.random_seed = 42;
 
-        CSVWriter writer("agent_rewards.csv", ',', true);
-        writer.write_column_names({"Episode", "Reward"}, true);
-
-        std::vector<real_t> row(2);
+        Sarsa<world_t> sarsalearner(tdinput);
         sarsalearner.initialize(world, PENALTY);
+        sarsalearner.train();
 
-        auto& table = sarsalearner.get_table();
-        table.save_to_csv("table_rewards" + std::to_string(0) + ".csv");
-
-        for(uint_t episode=0; episode < N_ITERATIONS; ++episode){
-
-            std::cout<<"At episode: "<<episode<<std::endl;
-            world.restart(start, goal);
-            auto result = sarsalearner.train(goal);
-
-            /// the total reward the agent obtained in this episode
-            auto reward = result.total_reward;
-            writer.write_row(std::make_tuple(episode, reward));
-            std::cout<<"At episode: "<<episode<<" total reward: "<<reward<<std::endl;
-
-            if(episode == N_ITERATIONS - 1){
-                auto& table = sarsalearner.get_table();
-                table.save_to_csv("table_rewards" + std::to_string(episode) + ".csv");
-            }
-        }
     }
     catch(std::exception& e){
 
