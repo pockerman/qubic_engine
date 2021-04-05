@@ -43,10 +43,11 @@
 
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
-- <a href="examples/exe6/exe.cpp">Example 6: </a> Qlearning applied on simple ```GridWorld```
-- <a href="examples/exe22/doc/exe.ipynb">Example 22: </a> SARSA learning applied on ```CliffWorld```
-- <a href="examples/exe25/doc/exe.ipynb">Example 25: </a> Iterative policy evaluation
-- <a href="examples/exe26/doc/exe.ipynb">Example 26: </a> Policy iteration 
+- <a href="rl/examples/example_1/example_1.cpp">Example 1: </a> Policy iteration
+- <a href="rl/examples/example_2/example_2.cpp">Example 2: </a> Value iteration
+- <a href="rl/examples/example_3/example_3.cpp">Example 3: </a> SARSA
+- <a href="rl/examples/example_4/example_4.cpp">Example 4: </a> Q-learning 
+- <a href="rl/examples/example_5/example_5.cpp">Example 5: </a> Expected SARSA 
 
 ### <a name="using_ros"></a> Robotics Simulations
 
