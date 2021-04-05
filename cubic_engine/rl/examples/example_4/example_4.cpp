@@ -23,7 +23,7 @@ using cengine::rl::SyncValueFuncItr;
 using cengine::rl::SyncValueFuncItrInput;
 using cengine::rl::RewardTable;
 using cengine::rl::ConstantEnvironmentDynamics;
-using kernel::CSVWriter;
+using kernel::utilities::CSVWriter;
 
 class RewardProducer
 {

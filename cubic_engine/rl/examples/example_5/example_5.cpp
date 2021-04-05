@@ -19,7 +19,7 @@ namespace example
 using cengine::uint_t;
 using cengine::real_t;
 using cengine::DynMat;
-using kernel::CSVWriter;
+using kernel::utilities::CSVWriter;
 
 // max number of cars in each location
 const int MAX_CARS = 20;

@@ -16,13 +16,18 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
     def module_dirs():
         return ['base', 'grids', 'maths',]
 
-    def __init__(self, configuration: dict, kernel_dir: Path, kernel_dirs: list) -> None:
+    @staticmethod
+    def module_name() -> str:
+        return "cengine"
+
+    def __init__(self, configuration: dict, kernel_dir: Path, kernel_dirs: list, kernel_name: str) -> None:
         super(CMakeCubicEngineWriter, self).__init__(configuration=configuration,
                                                      project_name="cengine",
                                                      install_prefix=configuration["cengine"]["CMAKE_INSTALL_PREFIX"])
 
         self.kernel_dirs = kernel_dirs
         self.kernel_dir = kernel_dir
+        self.kernel_name = kernel_name
         self.dirs = CMakeCubicEngineWriter.module_dirs()
 
     def write_cmake_lists(self):
@@ -167,6 +172,7 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
             tfh.write('ADD_EXECUTABLE(%s %s)\n' % ("${EXECUTABLE}", "${SOURCE}"))
             tfh.write("\n")
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.project_name))
+            tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.kernel_name))
 
             if example is False:
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest)\n')
@@ -200,10 +206,9 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
         Write the examples CMakeLists
         :return:
         """
-        current_dir = Path(os.getcwd())
 
         # get the test directories
-        examples_path = current_dir / "kernel/kernel/examples"
+        examples_path = CMakeCubicEngineWriter.dir_path() / "examples"
         self._write_multiple_cmakes(path=examples_path, example=True)
 
     def _write_tests_cmake(self) -> None:
@@ -211,9 +216,6 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
         Write the CMakeLists for tests
         """
 
-        # set the kernel path
-        current_dir = Path(os.getcwd())
-
         # get the test directories
-        path = current_dir / "kernel/kernel/tests"
+        path = CMakeCubicEngineWriter.dir_path() / "tests"
         self._write_multiple_cmakes(path=path, example=False)
