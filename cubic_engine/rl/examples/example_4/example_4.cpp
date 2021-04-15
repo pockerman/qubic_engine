@@ -48,10 +48,9 @@ public:
 
     // returns the reward for the action
     // at  state s when going to state sprime
-     template<typename ActionTp, typename StateTp>
-     real_t get_reward(const ActionTp& action,
-                          const StateTp& s)const{
-            return rewards_.get_reward(s.get_id(), action);
+     template<typename ActionTp>
+     real_t get_reward(uint_t id, const ActionTp& action)const{
+            return rewards_.get_reward(id, action);
      }
 
 private:
