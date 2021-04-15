@@ -299,11 +299,13 @@ TDBase<WorldTp>::action_selection_policy(const state_t& state){
     //std::random_device rd;
 
     std::seed_seq seed{input_.random_seed};
+    //std::random_device rd(input_.random_seed);
+    std::mt19937 rd(input_.random_seed);
 
     // Standard mersenne_twister_engine seeded with rd()
     std::mt19937 gen(seed); //rd(random_seed_));
     std::uniform_real_distribution<> dis(0.0, 1.0);
-    auto exp_exp_tradeoff = dis(seed);
+    auto exp_exp_tradeoff = dis(rd);
 
     // do exploration by default
     auto action_idx = world_ptr_->sample_action();

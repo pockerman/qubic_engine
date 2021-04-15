@@ -34,7 +34,7 @@ class RewardTable
 public:
 
     typedef ActionTp action_t;
-    typedef RewardTp reward_value_t;
+    typedef RewardTp value_t;
 
     ///
     /// \brief Constructor
@@ -44,68 +44,91 @@ public:
     ///
     /// \brief Add a reward
     ///
-    void add_reward(uint_t state_id, const action_t& action, const reward_value_t& r);
+    void add_reward(uint_t state_id, const action_t& action, const value_t& r);
 
     ///
     /// \brief Set the reward corresponding to the
     /// given state/action pair
     ///
-    void set_reward(uint_t state_id, const action_t& action, const reward_value_t& r);
+    void set_reward(uint_t state_id, const action_t& action, const value_t& r);
 
     ///
     /// \brief Returns the rewrad associated with the
     /// given state when performing the given action
     ///
-    const reward_value_t get_reward(uint_t state_id, const action_t& action)const;
+    const value_t get_reward(uint_t state_id, const action_t& action)const;
 
+    ///
     /// \brief Returns the Action/Reward mapping for the
     /// given state id
-    std::vector<std::pair<action_t, reward_value_t>> get_action_reward_mapping_for_state(uint_t sid)const;
+    ///
+    std::vector<std::pair<action_t, value_t>> get_action_reward_mapping_for_state(uint_t sid)const;
 
+    ///
     /// \brief Returns the Action with the maximum reward
     /// for the given state index
+    ///
     action_t get_max_reward_action_at_state(uint_t sid)const;
 
+    ///
     /// \brief Get the maximum reward for the state
-    reward_value_t get_max_reward_at_state(uint_t sid)const;
+    ///
+    value_t get_max_reward_at_state(uint_t sid)const;
 
+    ///
     /// \brief Returns the total reward
-    reward_value_t get_total_reward()const;
+    ///
+    value_t get_total_reward()const;
 
+    ///
+    /// \brief goal_reward. Returns the goal reward
+    ///
+    value_t goal_reward()const{return goal_reward_;}
+
+    ///
     /// \brief save the reward table in a CSV format
+    ///
     void save_to_csv(const std::string& filename)const;
 
 private:
 
+    ///
     /// \brief A map that holds the reward values given
     /// a state and an action
-    std::map<std::pair<uint_t, action_t>, reward_value_t> reward_table_;
+    ///
+    std::map<std::pair<uint_t, action_t>, value_t> reward_table_;
+
+    ///
+    /// \brief goal_reward_. The reward returnd for goal
+    ///
+    value_t goal_reward_;
 
 };
 
 template<typename ActionTp, typename RewardTp>
 RewardTable<ActionTp, RewardTp>::RewardTable()
     :
-    reward_table_()
+    reward_table_(),
+    goal_reward_(0.0)
 {}
 
 template<typename ActionTp, typename RewardTp>
 void
 RewardTable<ActionTp, RewardTp>::add_reward(uint_t state_id,
                                             const typename RewardTable<ActionTp, RewardTp>::action_t& action,
-                                            const RewardTable<ActionTp, RewardTp>::reward_value_t& r){
+                                            const RewardTable<ActionTp, RewardTp>::value_t& r){
 
     reward_table_.insert_or_assign(std::make_pair(state_id, action), r);
 }
 
 template<typename ActionTp, typename RewardTp>
 void
-RewardTable<ActionTp, RewardTp>::set_reward(uint_t state_id, const action_t& action, const reward_value_t& r){
+RewardTable<ActionTp, RewardTp>::set_reward(uint_t state_id, const action_t& action, const value_t& r){
     add_reward(state_id, action, r);
 }
 
 template<typename ActionTp, typename RewardTp>
-const typename RewardTable<ActionTp, RewardTp>::reward_value_t
+const typename RewardTable<ActionTp, RewardTp>::value_t
 RewardTable<ActionTp, RewardTp>::get_reward(uint_t state_id, const action_t& action)const{
 
     auto itr = reward_table_.find({state_id, action});
@@ -130,11 +153,11 @@ RewardTable<ActionTp, RewardTp>::get_reward(uint_t state_id, const action_t& act
 
 template<typename ActionTp, typename RewardTp>
 std::vector<std::pair<typename RewardTable<ActionTp, RewardTp>::action_t,
-                      typename RewardTable<ActionTp, RewardTp>::reward_value_t>>
+                      typename RewardTable<ActionTp, RewardTp>::value_t>>
 RewardTable<ActionTp, RewardTp>::get_action_reward_mapping_for_state(uint_t sid)const{
 
     std::vector<std::pair<typename RewardTable<ActionTp, RewardTp>::action_t,
-            typename RewardTable<ActionTp, RewardTp>::reward_value_t>> values;
+            typename RewardTable<ActionTp, RewardTp>::value_t>> values;
 
     auto begin = reward_table_.begin();
     auto end = reward_table_.end();
@@ -176,7 +199,7 @@ RewardTable<ActionTp, RewardTp>::get_max_reward_action_at_state(uint_t sid)const
 }
 
 template<typename ActionTp, typename RewardTp>
-typename RewardTable<ActionTp, RewardTp>::reward_value_t
+typename RewardTable<ActionTp, RewardTp>::value_t
 RewardTable<ActionTp, RewardTp>::get_max_reward_at_state(uint_t sid)const{
 
     auto actions = get_action_reward_mapping_for_state(sid);
@@ -200,10 +223,10 @@ RewardTable<ActionTp, RewardTp>::get_max_reward_at_state(uint_t sid)const{
 }
 
 template<typename ActionTp, typename RewardTp>
-typename RewardTable<ActionTp, RewardTp>::reward_value_t
+typename RewardTable<ActionTp, RewardTp>::value_t
 RewardTable<ActionTp, RewardTp>::get_total_reward()const{
 
-    typedef typename RewardTable<ActionTp, RewardTp>::reward_value_t reward_value_t;
+    typedef typename RewardTable<ActionTp, RewardTp>::value_t reward_value_t;
 
     reward_value_t total = reward_value_t(0);
 

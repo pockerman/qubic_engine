@@ -77,6 +77,7 @@ if __name__ == '__main__':
     if config["cengine"]["build_cengine"]:
 
         cubic_cmake_writer = CMakeCubicEngineWriter(configuration=config,
+                                                    kernel_name=KernelCMakeWriter.module_name(),
                                                     kernel_dir=KernelCMakeWriter.dir_path(),
                                                     kernel_dirs=KernelCMakeWriter.module_dirs())
         cubic_cmake_writer.write_cmake_lists()
@@ -85,8 +86,10 @@ if __name__ == '__main__':
             rl_cmake_writer = RLCMakeWriter(configuration=config,
                                             kernel_dir=KernelCMakeWriter.dir_path(),
                                             kernel_dirs=KernelCMakeWriter.module_dirs(),
+                                            kernel_name=KernelCMakeWriter.module_name(),
                                             cengine_dir=CMakeCubicEngineWriter.dir_path(),
-                                            cengine_dirs=CMakeCubicEngineWriter.module_dirs())
+                                            cengine_dirs=CMakeCubicEngineWriter.module_dirs(),
+                                            cengine_name=CMakeCubicEngineWriter.module_name())
             rl_cmake_writer.write_cmake_lists()
 
     print("{0} finished...".format(INFO))
