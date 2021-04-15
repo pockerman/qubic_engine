@@ -103,7 +103,7 @@ void
 Sarsa<WorldTp>::step(){
 
     action_t next_action = WorldTp::INVALID_ACTION;
-    state_t* state = WorldTp::INVALID_STATE;
+    state_t* state = nullptr;
 
     auto action = this->action_selection_policy(*this->state_);
 
@@ -122,9 +122,9 @@ Sarsa<WorldTp>::step(){
         state = next_state_ptr;
 
         // TD Update
-        auto td_target = reward + this->get_discount_factor() * qtable(next_state_ptr->get_id(), next_action);
-        auto td_delta = td_target - qtable(next_state_ptr->get_id(), next_action);
-        qtable(next_state_ptr->get_id(), next_action) += this->get_learning_rate()  * td_delta;
+        auto td_target = reward + this->get_discount_factor() * qtable(next_state_ptr->get_id(), static_cast<uint_t>(next_action));
+        auto td_delta = td_target - qtable(next_state_ptr->get_id(), static_cast<uint_t>(next_action));
+        qtable(next_state_ptr->get_id(), static_cast<uint_t>(next_action)) += this->get_learning_rate()  * td_delta;
 
         if(done){
            break;

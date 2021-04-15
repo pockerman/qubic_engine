@@ -32,10 +32,29 @@ class GridWorld final: public DiscreteWorld<GridWorldAction,
 {
 public:
 
+    ///
+    /// \brief reward_t
+    ///
     typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::reward_t reward_t;
+
+    ///
+    /// \brief action_t
+    ///
     typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::action_t action_t;
+
+    ///
+    /// \brief state_t
+    ///
     typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::state_t state_t;
+
+    ///
+    /// \brief reward_value_t
+    ///
     typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::reward_value_t reward_value_t;
+
+    ///
+    /// \brief dynamics_t
+    ///
     typedef typename DiscreteWorld<GridWorldAction, GridWorldState, RewardTp, DynamicsTp>::dynamics_t dynamics_t;
 
     ///
@@ -162,10 +181,10 @@ GridWorld<RewardTp, DynamicsTp>::step(const typename GridWorld<RewardTp, Dynamic
             this->finished_ = true;
 
             // what is the return for this?
-            r_ = this->reward_.get_reward(action, *this->current_state_);
+            r_ = this->reward_.get_reward(this->current_state_->get_id(), action);
         }
         else{
-            r_ = this->reward_.get_reward(action, *this->current_state_, *next_state);
+            r_ = this->reward_.get_reward(this->current_state_->get_id(), action);
             this->current_state_ = next_state;
         }
 

@@ -29,7 +29,7 @@ public:
     ///
     /// \brief Destructor
     ///
-    ~World(){}
+    ~World()=default;
 
     ///
     /// \brief Returns the state

@@ -136,7 +136,7 @@ public:
     /// \brief restart. Restart the world and
     /// return the starting state
     ///
-    state_t restart();
+    state_t* restart();
 
     ///
     /// \brief Set up the cells map
@@ -163,7 +163,7 @@ public:
     /// and the given actions
     ///
     reward_value_t get_reward(const state_t& state, const action_t& action)const{
-        return this->reward_.get_reward(action, state);
+        return this->reward_.get_reward(state.get_id(), action);
     }
 
     ///
@@ -194,7 +194,7 @@ protected:
     ///
     /// \brief The current state the world is in
     ///
-    const state_t* current_state_;
+    state_t* current_state_;
 
     ///
     /// \brief The goal states. More than one goal
@@ -305,13 +305,13 @@ DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::restart(const state_t& s
 template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
 void
 DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::restart(const state_t& start){
-    current_state_ = &start;
+    current_state_ = const_cast<state_t*>(&start);
     finished_ = false;
     start_state_id_ = current_state_->get_id();
 }
 
 template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>
-typename DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::state_t
+typename DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::state_t*
 DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::restart(){
 
     if(states_.empty()){
@@ -325,7 +325,7 @@ DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::restart(){
 
     current_state_ = &states_[start_state_id_];
     finished_ = false;
-    return *current_state_;
+    return current_state_;
 }
 
 template<typename ActionTp, typename StateTp, typename RewardTp, typename DynamicsTp>

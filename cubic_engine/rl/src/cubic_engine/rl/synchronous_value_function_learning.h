@@ -103,7 +103,7 @@ public:
     ///
     /// \brief Constructor
     ///
-    SyncValueFuncItr(SyncValueFuncItrInput&& input);
+    SyncValueFuncItr(const SyncValueFuncItrInput& input);
 
     ///
     /// \brief Train on the given world using the given policy
@@ -183,7 +183,7 @@ SyncValueFuncItr<WorldTp>::SyncValueFuncItr()
 {}
 
 template<typename WorldTp>
-SyncValueFuncItr<WorldTp>::SyncValueFuncItr(SyncValueFuncItrInput&& input)
+SyncValueFuncItr<WorldTp>::SyncValueFuncItr(const SyncValueFuncItrInput& input)
     :
     input_(input),
     itr_controller_(input.n_iterations, input.tol),

@@ -20,8 +20,6 @@ CliffWorld::CliffWorld()
       r_(0.0)
 {}
 
-CliffWorld::~CliffWorld()
-{}
 
 const CliffWorld::action_t
 CliffWorld::sample_action()const{
@@ -86,7 +84,7 @@ CliffWorld::step(const CliffWorld::action_t& action){
 }
 
 void
-CliffWorld::build(){
+CliffWorld::create_world(){
 
     const uint_t N_CELLS = 48;
     const uint_t N_CELLS_X = 12;

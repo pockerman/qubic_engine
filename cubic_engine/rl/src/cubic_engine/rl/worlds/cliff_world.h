@@ -124,7 +124,12 @@ public:
     ///
     /// \brief Destructor
     ///
-    ~CliffWorld();
+    ~CliffWorld()=default;
+
+    ///
+    /// \brief n_actions. Max number of actions per state
+    ///
+    virtual uint_t n_actions()const override final{return 4;}
 
     ///
     /// \brief Returns the current state
@@ -163,7 +168,7 @@ public:
     ///
     /// \brief Create the world
     ///
-    void build();
+    void create_world();
 
 private:
 
