@@ -7,6 +7,7 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/td_base.h"
+#include "cubic_engine/rl/rl_iterative_algo_input.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/maths/matrix_utilities.h"
 
@@ -29,7 +30,7 @@ namespace rl{
 /// \brief The QLearningInput struct
 /// Helper struct that assembles the input for the QLearning class.
 ///
-struct QLearningInput: public TDInput
+struct QLearningInput: public RLIterativeAlgoInput
 {
 
     ///
@@ -73,7 +74,7 @@ public:
     ///
     /// \brief The type of the world
     ///
-    typedef WorldTp world_t;
+    typedef typename TDBase<WorldTp>::world_t world_t;
 
     ///
     /// \brief The type of the action

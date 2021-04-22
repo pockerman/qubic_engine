@@ -36,13 +36,13 @@ public:
     ///
     /// \brief The input to initialize the algorithm
     ///
-    typedef TDInput input_t;
+    typedef RLIterativeAlgoInput input_t;
 
 
     ///
     /// \brief Constructor
     ///
-    ExpectedSARSA(const TDInput& input);
+    ExpectedSARSA(const RLIterativeAlgoInput& input);
 
     ///
     /// \brief step. Performs the iterations for
