@@ -1,9 +1,7 @@
 #ifndef TABULAR_SARSA_LEARNING_H
 #define TABULAR_SARSA_LEARNING_H
 
-#include "cubic_engine/base/config.h"
 
-#ifdef USE_RL
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/reward_table.h"
@@ -134,5 +132,5 @@ Sarsa<WorldTp>::step(){
 
 }
 }
-#endif
+
 #endif // TABULAR_SARSA_LEARNING_H

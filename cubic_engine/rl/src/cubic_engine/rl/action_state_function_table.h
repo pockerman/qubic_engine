@@ -1,9 +1,7 @@
 #ifndef ACTION_STATE_FUNCTION_TABLE_H
 #define ACTION_STATE_FUNCTION_TABLE_H
 
-#include "cubic_engine/base/config.h"
 
-#ifdef USE_RL
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include <utility>
@@ -51,8 +49,6 @@ private:
 };
 
 }
-
 }
 
-#endif
 #endif // ACTION_STATE_FUNCTION_TABLE_H

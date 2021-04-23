@@ -1,10 +1,6 @@
 #ifndef REWARD_TABLE_H
 #define REWARD_TABLE_H
 
-#include "cubic_engine/base/config.h"
-
-#ifdef USE_RL
-
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 
@@ -266,5 +262,4 @@ RewardTable<ActionTp, RewardTp>::save_to_csv(const std::string& filename)const{
 }
 }
 
-#endif
 #endif // REWARD_TABLE_H

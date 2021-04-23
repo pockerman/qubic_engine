@@ -1,10 +1,6 @@
 #ifndef Q_LEARNING_H
 #define Q_LEARNING_H
 
-#include "cubic_engine/base/config.h"
-
-#ifdef USE_RL
-
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/td_base.h"
 #include "cubic_engine/rl/rl_iterative_algo_input.h"
@@ -189,5 +185,5 @@ QLearning<WorldTp>::actions_after_iterations_(){
 
 }
 }
-#endif
+
 #endif // Q_LEARNING_H

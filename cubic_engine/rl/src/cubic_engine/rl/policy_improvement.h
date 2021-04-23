@@ -1,10 +1,6 @@
 #ifndef POLICY_IMPROVEMENT_H
 #define POLICY_IMPROVEMENT_H
 
-#include "cubic_engine/base/config.h"
-
-#ifdef USE_RL
-
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/utilities/iterative_algorithm_controller.h"
 #include "kernel/utilities/iterative_algorithm_result.h"
@@ -233,5 +229,4 @@ PolicyIteration<WorldTp>::one_step_lookahed_(const state_t& state,  const DynVec
 }
 }
 
-#endif
 #endif // POLICY_IMPROVEMENT_H

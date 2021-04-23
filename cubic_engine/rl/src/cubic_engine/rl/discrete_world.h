@@ -1,10 +1,6 @@
 #ifndef DISCRETE_WORLD_H
 #define DISCRETE_WORLD_H
 
-#include "cubic_engine/base/config.h"
-
-#ifdef USE_RL
-
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/world.h"
 #include "kernel/base/kernel_consts.h"
@@ -378,5 +374,4 @@ DiscreteWorld<ActionTp, StateTp, RewardTp, DynamicsTp>::save_world_as_json(const
 }
 }
 
-#endif
 #endif // DISCRETE_WORLD_H

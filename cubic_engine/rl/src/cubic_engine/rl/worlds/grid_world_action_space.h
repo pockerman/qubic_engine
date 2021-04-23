@@ -2,9 +2,6 @@
 #define GRID_WORLD_ACTION_SPACE_H
 
 #include "cubic_engine/base/config.h"
-
-#ifdef USE_RL
-
 #include "cubic_engine/base/cubic_engine_types.h"
 #include <string>
 
@@ -35,5 +32,4 @@ GridWorldAction uniform_sample_grid_world_action();
 }
 }
 
-#endif
 #endif // GRID_WORLD_ACTION_SPACE_H

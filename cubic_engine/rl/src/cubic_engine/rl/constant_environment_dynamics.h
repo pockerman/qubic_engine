@@ -1,10 +1,6 @@
 #ifndef CONSTANT_ENVIRONMENT_DYNAMICS_H
 #define CONSTANT_ENVIRONMENT_DYNAMICS_H
 
-#include "cubic_engine/base/config.h"
-
-#ifdef USE_RL
-
 #include "cubic_engine/base/cubic_engine_types.h"
 
 namespace cengine {
@@ -58,6 +54,4 @@ ConstantEnvironmentDynamics::ConstantEnvironmentDynamics(real_t val)
 }
 
 }
-#endif
-
 #endif // CONSTANT_ENVIRONMENT_DYNAMICS_H

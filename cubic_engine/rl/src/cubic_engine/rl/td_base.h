@@ -1,10 +1,6 @@
 #ifndef TD_BASE_H
 #define TD_BASE_H
 
-#include "cubic_engine/base/config.h"
-
-#ifdef USE_RL
-
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/rl_iterative_algo_input.h"
 #include "cubic_engine/rl/rl_algorithm_base.h"
@@ -142,5 +138,4 @@ TDBase<WorldTp>::action_selection_policy(const state_t& state){
 }
 }
 
-#endif
 #endif // TD_H

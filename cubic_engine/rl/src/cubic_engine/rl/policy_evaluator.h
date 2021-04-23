@@ -1,10 +1,6 @@
 #ifndef POLICY_EVALUATOR_H
 #define POLICY_EVALUATOR_H
 
-#include "cubic_engine/base/config.h"
-
-#ifdef USE_RL
-
 #include "cubic_engine/base/cubic_engine_types.h"
 
 namespace cengine{
@@ -96,5 +92,4 @@ PolicyEvaluator<WorldTp, PolicyTp>::operator()(const world_t& world, const polic
 }
 }
 
-#endif
 #endif // POLICY_EVALUATOR_H
