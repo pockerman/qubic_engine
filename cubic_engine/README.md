@@ -48,6 +48,7 @@
 - <a href="rl/examples/example_3/example_3.cpp">Example 3: </a> SARSA
 - <a href="rl/examples/example_4/example_4.cpp">Example 4: </a> Q-learning 
 - <a href="rl/examples/example_5/example_5.cpp">Example 5: </a> Expected SARSA 
+- <a href="rl/examples/example_6/example_6.cpp">Example 6: </a> Monte Carlo control with importance sampling
 
 ### <a name="using_ros"></a> Robotics Simulations
 
