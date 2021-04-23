@@ -1,7 +1,3 @@
-#include "cubic_engine/base/config.h"
-
-#ifdef USE_RL
-
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/base/kernel_consts.h"
 #include "cubic_engine/rl/worlds/grid_world.h"
@@ -222,10 +218,4 @@ int main(){
 
     return 0;
 }
-#else
-#include <iostream>>
-int main(){
-    std::cerr<<"This examples requires RL support. Configure cubicengine with RL support."<<std::endl;
-    return 1;
-}
-#endif
+
