@@ -3,24 +3,20 @@
 #ifdef USE_TRILINOS
 
 #include "kernel/base/types.h"
-#include "kernel/utilities/filtered_iterator.h"
-#include "kernel/utilities/vtk_mesh_file_writer.h"
-#include "kernel/geometry/geom_point.h"
-
 #include "kernel/discretization/mesh.h"
 #include "kernel/discretization/quad_mesh_generation.h"
+#include "kernel/geometry/geom_point.h"
 #include "kernel/discretization/element.h"
+#include "kernel/utilities/filtered_iterator.h"
 #include "kernel/discretization/element_mesh_iterator.h"
 #include "kernel/discretization/mesh_predicates.h"
-
 #include "kernel/numerics/fvm/fv_scalar_system.h"
-#include "kernel/numerics/fvm/fv_laplace_assemble_policy_threaded.h"
+#include "kernel/numerics/fvm/fv_laplace_assemble_policy.h"
+#include "kernel/numerics/trilinos_solution_policy.h"
 #include "kernel/numerics/fvm/fv_grad_factory.h"
 #include "kernel/numerics/fvm/fv_grad_types.h"
-#include "kernel/numerics/trilinos_solution_policy.h"
-#include "kernel/numerics/boundary_function_base.h"
 #include "kernel/numerics/scalar_dirichlet_bc_function.h"
-
+#include "kernel/numerics/boundary_function_base.h"
 #include "kernel/maths/trilinos_epetra_matrix.h"
 #include "kernel/maths/trilinos_epetra_vector.h"
 #include "kernel/maths/krylov_solvers/trilinos_krylov_solver.h"
@@ -28,9 +24,6 @@
 #include "kernel/maths/krylov_solvers/krylov_solver_type.h"
 #include "kernel/maths/krylov_solvers/preconditioner_type.h"
 #include "kernel/maths/functions/numeric_scalar_function.h"
-
-#include "kernel/parallel/utilities/linear_mesh_partitioner.h"
-#include "kernel/parallel/threading/thread_pool.h"
 
 
 #include <cmath>
@@ -44,11 +37,9 @@ using kernel::numerics::Mesh;
 using kernel::GeomPoint;
 using kernel::numerics::ScalarFVSystem;
 using kernel::numerics::TrilinosSolutionPolicy;
-using kernel::numerics::FVLaplaceAssemblyPolicyThreaded;
+using kernel::numerics::FVLaplaceAssemblyPolicy;
 using kernel::numerics::ScalarDirichletBCFunc;
 using kernel::numerics::KrylovSolverData;
-using kernel::ThreadPool;
-
 
 class RhsVals: public kernel::numerics::NumericScalarFunction<2>
 {
@@ -71,9 +62,6 @@ int main(){
 
     try{
 
-
-        // use four threads
-        ThreadPool executor(4);
         Mesh<2> mesh;
 
         {
@@ -88,17 +76,6 @@ int main(){
 
             // generate the mesh
             kernel::numerics::build_quad_mesh(mesh, nx, ny, start, end);
-
-            // create the partitions
-            kernel::numerics::linear_mesh_partition(mesh, executor.n_processing_elements());
-
-            // finally let's save the mesh for visualization
-            kernel::numerics::VtkMeshFileWriter mesh_writer("example_20_mesh.vtk", true);
-            kernel::numerics::VtkMeshMeshCellOptions options;
-            options.options.push_back("pid");
-
-            mesh_writer.write_mesh(mesh, options);
-
         }
 
         // data for the solver
@@ -114,7 +91,7 @@ int main(){
         RhsVals rhs;
 
         // laplace system
-        ScalarFVSystem<2, FVLaplaceAssemblyPolicyThreaded<2, ThreadPool>, TrilinosSolutionPolicy> laplace("Laplace", "U", mesh);
+        ScalarFVSystem<2, FVLaplaceAssemblyPolicy<2>, TrilinosSolutionPolicy> laplace("Laplace", "U", mesh);
 
         // system configuration
         laplace.set_boundary_function(bc_func);
@@ -126,7 +103,6 @@ int main(){
         };
 
         laplace.get_assembly_policy().build_gradient(grad_builder);
-        laplace.get_assembly_policy().set_executor(executor);
 
         // distribute the dofs
         laplace.distribute_dofs();
@@ -134,7 +110,8 @@ int main(){
 
         laplace.assemble_system();
         laplace.solve();
-        laplace.save_solution("threaded_laplace_system.vtk");
+        laplace.save_solution("laplace_system.vtk");
+
     }
     catch(std::logic_error& error){
 

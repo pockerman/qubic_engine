@@ -1,127 +1,124 @@
+#include "kernel/base/config.h"
 #include "kernel/base/types.h"
-#include "kernel/discretization/mesh.h"
-#include "kernel/discretization/quad_mesh_generation.h"
+#include "kernel/base/kernel_consts.h"
+#include "kernel/utilities/common_uitls.h"
+#include "kernel/maths/optimization/stochastic_gradient_descent.h"
+#include "kernel/maths/errorfunctions/sse_function.h"
+#include "kernel/maths/functions/real_vector_polynomial.h"
+#include "kernel/maths/functions/function_limiter.h"
+#include "kernel/maths/matrix_traits.h"
 
-#include "kernel/maths/functions/numeric_scalar_function.h"
-#include "kernel/numerics/trilinos_solution_policy.h"
-#include "kernel/numerics/boundary_function_base.h"
-#include "kernel/numerics/fvm/fv_steady_state_ns_system.h"
-
+#include <cmath>
 #include <iostream>
+#include <string>
+#include <utility>
 
-namespace example
-{
+namespace example {
+
 using kernel::real_t;
 using kernel::uint_t;
-using kernel::Null;
-using kernel::numerics::Mesh;
-using kernel::GeomPoint;
-using kernel::numerics::SteadyStateNSSystem;
-using kernel::numerics::TrilinosSolutionPolicy;
-struct VelocityAssemblyPolicy{};
-struct PressureAssemblyPolicy{};
+using kernel::DynMat;
+using kernel::DynVec;
+using kernel::RealVectorPolynomialFunction;
+using kernel::SSEFunction;
+using kernel::maths::functions::FunctionLimiter;
+using kernel::maths::opt::SGD;
+using kernel::maths::opt::GDConfig;
 
+std::pair<DynMat<real_t>, DynVec<real_t>> create_data(){
 
-class UCompBC: public kernel::numerics::BoundaryFunctionBase<2>
-{
-public:
+    DynMat<real_t> mat(10, 3);
+    mat(0,0)=1.0;
+    mat(0,1)=2.7810836;
+    mat(0,2)=2.550537003;
 
-    typedef kernel::numerics::BoundaryFunctionBase<2>::input_t input_t;
-    typedef kernel::numerics::BoundaryFunctionBase<2>::output_t output_t;
+    mat(1,0)=1.0;
+    mat(1,1)=1.465489372;
+    mat(1,2)=2.362125076;
 
-    /// constructor
-    UCompBC();
+    mat(2,0)=1.0;
+    mat(2,1)=3.396561688;
+    mat(2,2)=4.400293529;
 
-    /// \brief Returns the value of the function on the Dirichlet boundary
-    virtual output_t value(const GeomPoint<2>&  /*input*/)const override final;
-};
+    mat(3,0)=1.0;
+    mat(3,1)=1.38807019;
+    mat(3,2)=1.850220317;
 
-UCompBC::UCompBC()
-    :
-    kernel::numerics::BoundaryFunctionBase<2>()
-{
-    this->set_bc_type(0, kernel::numerics::BCType::ZERO_DIRICHLET);
-    this->set_bc_type(1, kernel::numerics::BCType::ZERO_DIRICHLET);
-    this->set_bc_type(2, kernel::numerics::BCType::DIRICHLET);
-    this->set_bc_type(3, kernel::numerics::BCType::ZERO_DIRICHLET);
-}
+    mat(4,0)=1.0;
+    mat(4,1)=3.06407232;
+    mat(4,2)=3.005305973;
 
-UCompBC::output_t
-UCompBC::value(const GeomPoint<2>&  p)const{
+    mat(5,0)=1.0;
+    mat(5,1)=7.627531214;
+    mat(5,2)=2.759262235;
 
-    if(p[1] == 1.0){
-        return 2.0;
+    mat(6,0)=1.0;
+    mat(6,1)=5.332441248;
+    mat(6,2)=2.088626775;
+
+    mat(7,0)=1.0;
+    mat(7,1)=6.922596716;
+    mat(7,2)=1.77106367;
+
+    mat(8,0)=1.0;
+    mat(8,1)=8.675418651;
+    mat(8,2)=-0.242068655;
+
+    mat(9,0)=1.0;
+    mat(9,1)=7.673756466;
+    mat(9,2)=3.508563011;
+
+    DynVec<real_t> vec(10, 0.0);
+    for(uint_t idx=5; idx<vec.size(); ++idx){
+       vec[idx] = 1.0;
     }
 
-    return 0.0;
+    return {mat, vec};
 }
 
-class VCompBC: public kernel::numerics::BoundaryFunctionBase<2>
-{
-public:
-
-    typedef kernel::numerics::BoundaryFunctionBase<2>::input_t input_t;
-    typedef kernel::numerics::BoundaryFunctionBase<2>::output_t output_t;
-
-    /// constructor
-    VCompBC();
-
-    /// \brief Returns the value of the function on the Dirichlet boundary
-    virtual output_t value(const GeomPoint<2>&  /*input*/)const override final;
-};
-
-VCompBC::VCompBC()
-    :
-    kernel::numerics::BoundaryFunctionBase<2>()
-{
-    this->set_bc_type(0, kernel::numerics::BCType::ZERO_DIRICHLET);
-    this->set_bc_type(1, kernel::numerics::BCType::ZERO_DIRICHLET);
-    this->set_bc_type(2, kernel::numerics::BCType::ZERO_DIRICHLET);
-    this->set_bc_type(3, kernel::numerics::BCType::ZERO_DIRICHLET);
-}
-
-VCompBC::output_t
-VCompBC::value(const GeomPoint<2>&  p)const{return 0.0;}
-
-class PCompBC: public kernel::numerics::BoundaryFunctionBase<2>
-{
-public:
-
-    typedef kernel::numerics::BoundaryFunctionBase<2>::input_t input_t;
-    typedef kernel::numerics::BoundaryFunctionBase<2>::output_t output_t;
-
-    /// constructor
-    PCompBC();
-
-    /// \brief Returns the value of the function on the Dirichlet boundary
-    virtual output_t value(const GeomPoint<2>&  /*input*/)const override final{return 0.0;}
-};
 
 }
 
 int main(){
 
     using namespace example;
-
     try{
 
-        Mesh<2> mesh;
+        typedef  SSEFunction<FunctionLimiter<RealVectorPolynomialFunction>,
+                             DynMat<real_t>, DynVec<real_t>> error_t;
 
-        {
-            uint_t nx = 2;
-            uint_t ny = 2;
+        auto data = create_data();
+        GDConfig config(5, kernel::KernelConsts::tolerance(), 0.1);
+        config.set_show_iterations_flag(true);
+        SGD sgd(config);
 
-            GeomPoint<2> start(0.0);
-            GeomPoint<2> end(1.0);
+        std::vector<int> order_coeffs(3, 0);
+        order_coeffs[1] = 1;
+        order_coeffs[2] = 1;
 
-            std::cout<<"Starting point: "<<start<<std::endl;
-            std::cout<<"Ending point: "<<end<<std::endl;
+        DynVec<real_t> coeffs(3, 0.0);
 
-            // generate the mesh
-            kernel::numerics::build_quad_mesh(mesh, nx, ny, start, end);   
+        // the model to use
+        RealVectorPolynomialFunction model(coeffs, order_coeffs);
+        FunctionLimiter<RealVectorPolynomialFunction> limiter(model);
+        limiter.set_max_clip_value(1.0);
+        limiter.set_use_max_clip_value_flag(true);
+        limiter.set_max_limit_clip_value(0.0);
+        limiter.set_min_clip_value(0.0);
+        limiter.set_use_min_clip_value_flag(true);
+
+        // the error function
+        error_t err_func(limiter);
+
+        auto info = sgd.solve(data.first, data.second, err_func, model);
+        std::cout<<info<<std::endl;
+
+        for(uint_t idx=0; idx < data.first.rows(); ++idx){
+
+            auto value = limiter.value(kernel::matrix_row_trait<DynMat<real_t>>::get_row(data.first, idx));
+            std::cout<<"Predicted: "<<value<<" expected: "<<data.second[idx]<<std::endl;
         }
 
-        SteadyStateNSSystem<2, VelocityAssemblyPolicy, PressureAssemblyPolicy, TrilinosSolutionPolicy> stokes;
     }
     catch(std::logic_error& error){
 

@@ -1,209 +1,116 @@
-/**
-  * Parallel Implementation of Jacobi Iteration
-  *
-  **/
+#include "kernel/base/config.h"
+
+#ifdef USE_OPENMP
+
 #include "kernel/base/types.h"
-#include "kernel/utilities/algorithm_info.h"
-#include "kernel/parallel/threading/thread_pool.h"
-#include "kernel/parallel/parallel_algos/parallel_reduce.h"
+#include "kernel/base/kernel_consts.h"
+#include "kernel/parallel/threading/task_base.h"
+#include "kernel/parallel/threading/openmp_executor.h"
 #include "kernel/parallel/utilities/reduction_operations.h"
-#include "kernel/parallel/utilities/array_partitioner.h"
-#include "kernel/parallel/utilities/partitioned_type.h"
-#include "kernel/parallel/threading/simple_task.h"
-#include "kernel/parallel/parallel_algos/linear_algebra/dot_product.h"
-#include "kernel/parallel/parallel_algos/linear_algebra/matrix_vector_product.h"
-#include "kernel/parallel/parallel_algos/linear_algebra/vector_updater.h"
-#include "kernel/utilities/scaled_ops.h"
 
-
-#include <thread>
-#include <vector>
+#include <random>
 #include <iostream>
-#include <stdexcept>
-#include <cmath>
 
-
-namespace  {
-
-    using kernel::uint_t;
-    using kernel::real_t;
-    using kernel::ThreadPool;
-    using ThreadPool = kernel::ThreadPool;
-    using Matrix = kernel::PartitionedType<kernel::DynMat<real_t>>;
-    using Vector = kernel::PartitionedType<kernel::DynVec<real_t>>;
-
-class CGSolver
+namespace exe
 {
+using kernel::real_t;
+using kernel::uint_t;
 
+// number of iterations
+const uint_t N_ITERATIONS = 100000;
+
+// lower and upper limits
+const real_t a = 1.0;
+const real_t b = 3.0;
+
+real_t f(real_t x){
+    return x*x;
+}
+
+class Task: public kernel::TaskBase
+{
 public:
 
-    // Constructor
-    CGSolver(uint_t nitrs, real_t res);
+     Task()
+         :
+       TaskBase(),
+       a_(a),
+       b_(b),
+       result_(0.0)
+     {}
 
-    // solve the Ax=b. It assumes that the matrix and Vector
-    // types already have their partitions established
-    kernel::AlgInfo solve(const Matrix& mat, Vector& x, const Vector& b, ThreadPool& executor );
+     real_t get_result()const{return result_;}
+
+protected:
+
+     virtual void run() override final;
 
 private:
 
-    uint_t n_itrs_;
-    real_t res_;
+     const real_t a_;
+     const real_t b_;
+     real_t result_;
 };
 
-CGSolver::CGSolver(uint_t nitrs, real_t res)
-    :
-      n_itrs_(nitrs),
-      res_(res)
-{}
+void
+Task::run(){
 
-kernel::AlgInfo
-CGSolver::solve(const Matrix& mat, Vector& x, const Vector& b, ThreadPool& executor ){
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd());
 
-    // do basic checks
-    kernel::AlgInfo info;
-    info.nthreads = executor.get_n_threads();
+    std::uniform_real_distribution<real_t> x_distribution(a_, b_);
 
-    // allocate helper vectors
-    Vector g(x.size());
-    g.set_partitions(b.get_partitions());
-    Vector r(x.size());
-    r.set_partitions(b.get_partitions());
+    auto y_lower = 0.0;
+    auto y_upper = f(b_);
+    std::uniform_real_distribution<real_t> y_distribution(y_lower, y_upper);
 
-    const auto one = 1.0;
-    auto alpha = 0.0;
-    auto beta = 0.0;
-    auto old_r_dot_product = 0.0;
+    // generate random x and y points
+    real_t x = x_distribution(gen);
+    real_t y = y_distribution(gen);
 
-    kernel::ResultHolder<Vector> x_rsult(std::move(x));
-    kernel::ResultHolder<Vector> g_rsult(std::move(g));
-    kernel::ResultHolder<Vector> r_rsult(std::move(r));
-    kernel::ResultHolder<Vector> w_rsult;
-
-    // object to perform the dot product
-    kernel::MatVecProduct<Matrix, Vector> A_times_g(mat, g_rsult.get_resource());
-    A_times_g.get_copy(w_rsult);
-
-    kernel::DotProduct<Vector, real_t> gg_dotproduct(g_rsult, g_rsult);
-    kernel::DotProduct<Vector, real_t> gw_dotproduct(g_rsult, w_rsult);
-    kernel::DotProduct<Vector, real_t> rr_dotproduct(r_rsult);
-
-    // update the solution vector
-    kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_x(x_rsult, x_rsult.get_resource(), g_rsult.get_resource(), one, alpha);
-    kernel::VectorUpdater<Vector, kernel::ScaledSum<real_t>, real_t> update_g(g_rsult, r_rsult.get_resource(), g_rsult.get_resource(), one, beta);
-
-    // update the residual vector
-    kernel::VectorUpdater<Vector, kernel::ScaledDif<real_t>, real_t> update_r(r_rsult, r_rsult.get_resource(), g_rsult.get_resource(), one, alpha);
-
-    {
-        // compute A*x_0
-        kernel::MatVecProduct<Matrix, Vector> A_times_x(mat, x_rsult.get_resource());
-
-        // compute A*x_0
-        A_times_x.execute(executor, kernel::Null());
-        auto& tmp = A_times_x.get_or_wait();
-
-        // compute r_0 = b - A*x_0
-        kernel::VectorUpdater<Vector, kernel::ScaledDif<real_t>, real_t> update_r0(r_rsult, b, tmp.get_resource(), 1.0, 1.0);
-        update_r0.execute(executor);
+    if( y  <= f(x)){
+       result_ += 1;
     }
-
-    // initialize g vector with r vector
-    g_rsult.get_resource() = r_rsult.get_resource();
-
-    for(uint itr = 0; itr < n_itrs_; ++itr){
-
-        info.niterations = itr +1 ;
-
-        // w = compute A*g
-        A_times_g.reexecute(executor, kernel::Null());
-        A_times_g.get_or_wait_copy(w_rsult);
-
-        gw_dotproduct.reexecute(executor, kernel::Null());
-        auto& gw_dot = gw_dotproduct.get_or_wait();
-
-        rr_dotproduct.reexecute(executor, kernel::Null());
-        auto& result_2 = rr_dotproduct.get_or_wait();
-
-        // hold a copy of the just computed gTg product
-        old_r_dot_product = *(result_2.get().first);
-
-        // compute alpha
-        alpha = old_r_dot_product / *(gw_dot.get().first);
-
-        // update solution x
-        update_x.reexecute(executor);
-
-        // update residual r
-        update_r.reexecute(executor);
-
-        // check whether we converged... compute L2 norm of residual
-        rr_dotproduct.reexecute(executor, kernel::Null());
-        auto& result_rr_dot_product = rr_dotproduct.get_or_wait();
-        auto res = std::sqrt( *result_rr_dot_product.get().first );
-        std::cout<<"Residual computed: "<<res<<" needed for convergence: "<<res_<<std::endl;
-
-        if( res < res_ ){
-            info.converged = true;
-            info.residual = res;
-            break; // iterations converged so break
-        }
-
-        // compute beta
-        beta = *(result_rr_dot_product.get().first) / old_r_dot_product;
-
-        // update g
-        update_g.reexecute(executor);
-    }
-
-    x = std::move(x_rsult.get_resource());
-    return info;
 }
 
 }
 
 int main(){
 
-    try {
+    using namespace exe;
 
-        using kernel::ThreadPool;
-        Vector x(5, 0.0);
-        Vector b(5, 2.0);
-        Matrix A(5, 5);
+    // the area of the rectangle [a,b]x[f(a), f(b)]
+    const real_t RECT_AREA = (b-a)*(f(b)-0.0);
 
-        // diagonilize A
-        for(uint_t r=0; r < A.rows(); ++r){
-            for(uint_t c=0; c < A.columns(); ++c){
+    kernel::OMPExecutor executor(4);
+    kernel::Sum<real_t> operation;
+    executor.parallel_for_reduce<Task, kernel::Sum<real_t>>(N_ITERATIONS, operation);
 
-                if(r == c){
-                    A(r,c) = 1.0;
-                }
-            }
-        }
+    if(!operation.is_result_valid()){
 
-        //create a pool and start it with four threads
-        ThreadPool pool(4);
-
-        //create the partitions
-        std::vector<kernel::range1d<uint_t>> partitions;
-        uint_t start =0;
-        uint_t end = A.rows();
-        kernel::partition_range(start, end, partitions, pool.get_n_threads());
-        A.set_partitions(partitions);
-        x.set_partitions(partitions);
-        b.set_partitions(partitions);
-
-        CGSolver solver(1, kernel::KernelConsts::tolerance());
-        auto info = solver.solve(A, x, b, pool);
-
-        // print useful information
-        std::cout<<info<<std::endl;
-
-        // uncomment this to view the solution
-        std::cout<<x<<std::endl;
+        std::cout<<"Result is not valid..."<<std::endl;
     }
-    catch (std::logic_error& e) {
-        std::cout<<e.what()<<std::endl;
+    else{
+
+        real_t total_area = static_cast<real_t>(N_ITERATIONS);
+        real_t area_under_curve = operation.get_resource();
+        std::cout<<"Rectangle area: "<<RECT_AREA<<std::endl;
+
+        if(area_under_curve != 0.){
+            std::cout<<"Total area points: "<<total_area<<std::endl;
+            std::cout<<"Area under curve points: "<<area_under_curve<<std::endl;
+            std::cout<<"Calculated area: "<<RECT_AREA*(area_under_curve/total_area)<<std::endl;
+        }
     }
 
     return 0;
 }
+#else
+#include <iostream>
+int main(){
+    std::cout<<"You need OpenMP to run this example. Reconfigure kernel with OpenMP support"<<std::endl;
+}
+#endif
+
+
+

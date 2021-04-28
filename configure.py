@@ -39,28 +39,19 @@ if __name__ == '__main__':
     if config["kernel"]["USE_DISCRETIZATION"]:
         discretization_cmake_writer = DiscretizationCMakeWriter(configuration=config,
                                                                 kernel_dirs=KernelCMakeWriter.module_dirs(),
-                                                                kernel_dir=KernelCMakeWriter.dir_path())
+                                                                kernel_dir=KernelCMakeWriter.dir_path(),
+                                                                kernel_name=KernelCMakeWriter.module_name())
         discretization_cmake_writer.write_cmake_lists()
-
-        if config["kernel"]["BUILD_KERNEL_TESTS"]:
-            build_tests(path=DiscretizationCMakeWriter.dir_path() / "tests")
-
-        if config["kernel"]["BUILD_KERNEL_EXAMPLES"]:
-            build_examples(path=DiscretizationCMakeWriter.dir_path() / "examples")
 
     if config["kernel"]["USE_NUMERICS"]:
         numerics_cmake_writer = NumericsCMakeWriter(configuration=config,
                                                     kernel_dirs=KernelCMakeWriter.module_dirs(),
                                                     kernel_dir=KernelCMakeWriter.dir_path(),
+                                                    kernel_name=KernelCMakeWriter.module_name(),
                                                     discretization_dirs=DiscretizationCMakeWriter.module_dirs(),
-                                                    discretization_dir=DiscretizationCMakeWriter.dir_path())
+                                                    discretization_dir=DiscretizationCMakeWriter.dir_path(),
+                                                    discretization_name=DiscretizationCMakeWriter.module_name())
         numerics_cmake_writer.write_cmake_lists()
-
-        if config["kernel"]["BUILD_KERNEL_TESTS"]:
-            build_tests(path=NumericsCMakeWriter.dir_path() / "tests")
-
-        if config["kernel"]["BUILD_KERNEL_EXAMPLES"]:
-            build_examples(path=NumericsCMakeWriter.dir_path() / "examples")
 
     if config["kernel"]["USE_RIGID_BODY_DYNAMICS"]:
         rd_dynamics_cmake_writer = RBDynamicsCMakeWriter(configuration=config,

@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 from configuration import INFO
 from configuration.build_libs import build_library
+from configuration.build_examples import build_examples
+from configuration.build_tests import build_tests
 from configuration.cmake_file_writer import CMakeFileWriter
 
 
@@ -80,14 +82,15 @@ class KernelCMakeWriter(CMakeFileWriter):
 
         if self.configuration["BUILD_LIBS"]:
             print("{0} Building {1}".format(INFO, self.project_name))
-            path = Path(os.getcwd())
-            build_library(path=path / "kernel" / "kernel")
+            build_library(path=KernelCMakeWriter.dir_path())
 
         if self.configuration["kernel"]["BUILD_KERNEL_TESTS"]:
             self._write_tests_cmake()
+            build_tests(path=KernelCMakeWriter.dir_path() / "tests")
 
         if self.configuration["kernel"]["BUILD_KERNEL_EXAMPLES"]:
             self._write_examples_cmake()
+            build_examples(path=KernelCMakeWriter.dir_path() / "examples")
 
         print("{0} Done...".format(INFO))
 
@@ -138,9 +141,11 @@ class KernelCMakeWriter(CMakeFileWriter):
 
             tfh = self._find_boost(fh=tfh)
             tfh = self._find_blas(fh=tfh)
-            tfh = self._write_build_option(fh=tfh)
+            tfh = self._write_build_option(fh=tfh, example=example)
 
             tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["BLAZE_INCL_DIR"]))
+            tfh.write('INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})\n')
+
             for directory in self.dirs:
                 tfh.write('INCLUDE_DIRECTORIES(%s/%s/src/)\n' % (current_dir / "kernel" / "kernel", directory))
 
@@ -151,7 +156,6 @@ class KernelCMakeWriter(CMakeFileWriter):
             if self.configuration["opencv"]["USE_OPEN_CV"]:
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
 
-            tfh.write('INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})\n')
             if example is False:
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["testing"]["GTEST_INC_DIR"]))
             tfh.write('\n')
@@ -179,6 +183,7 @@ class KernelCMakeWriter(CMakeFileWriter):
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest)\n')
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest_main) '
                           '# so that tests dont need to have a main\n')
+
             tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} pthread)\n')
             tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)\n')
 
@@ -189,11 +194,8 @@ class KernelCMakeWriter(CMakeFileWriter):
 
     def _write_multiple_cmakes(self, path: Path, example: bool) -> None:
 
-        # set the kernel path
-        current_dir = Path(os.getcwd())
-
         # get the test directories
-        working_path = current_dir / path
+        working_path = path
         working_dirs = os.listdir(working_path)
 
         for w_dir in working_dirs:
@@ -207,20 +209,13 @@ class KernelCMakeWriter(CMakeFileWriter):
         Write the examples CMakeLists
         :return:
         """
-        current_dir = Path(os.getcwd())
-
-        # get the test directories
-        examples_path = current_dir / "kernel/kernel/examples"
-        self._write_multiple_cmakes(path=examples_path, example=True)
+        path = KernelCMakeWriter.dir_path() / "examples"
+        self._write_multiple_cmakes(path=path, example=True)
 
     def _write_tests_cmake(self) -> None:
         """
         Write the CMakeLists for tests
         """
 
-        # set the kernel path
-        current_dir = Path(os.getcwd())
-
-        # get the test directories
-        path = current_dir / "kernel/kernel/tests"
+        path = KernelCMakeWriter.dir_path() / "tests"
         self._write_multiple_cmakes(path=path, example=False)
