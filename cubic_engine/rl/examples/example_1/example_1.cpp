@@ -1,6 +1,4 @@
-#include "cubic_engine/base/config.h"
 
-#ifdef USE_RL
 
 /*#include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/utilities/csv_file_writer.h"
@@ -484,12 +482,5 @@ int main() {
     */
    return 0;
 }
-#else
-#include <iostream>
-int main(){
 
-    std::cerr<<"You need to configure CubicEngine with RL support in order to run this example"<<std::endl;
-    return 0;
-}
-#endif
 

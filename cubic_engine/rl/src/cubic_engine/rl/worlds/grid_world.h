@@ -1,9 +1,6 @@
 #ifndef GRID_WORLD_H
 #define GRID_WORLD_H
 
-#include "cubic_engine/base/config.h"
-
-#ifdef USE_RL
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/world.h"
@@ -387,5 +384,5 @@ GridWorld<RewardTp, DynamicsTp>::load_world_from_json(const std::string& filenam
 }
 }
 }
-#endif
+
 #endif // GRID_WORLD_H

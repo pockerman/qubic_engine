@@ -1,10 +1,6 @@
 #ifndef CLIFF_WORLD_H
 #define CLIFF_WORLD_H
 
-#include "cubic_engine/base/config.h"
-
-#ifdef USE_RL
-
 #include "cubic_engine/base/cubic_engine_types.h"
 
 #include "cubic_engine/rl/discrete_world.h"
@@ -191,5 +187,4 @@ CliffWorld::execute_action(CliffWorld::action_t aid){
 }
 }
 
-#endif // USE_RL
 #endif // CLIFF_WORLD_H

@@ -1,7 +1,3 @@
-#include "cubic_engine/base/config.h"
-
-#ifdef USE_RL
-
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/utilities/csv_file_writer.h"
 #include "kernel/base/kernel_consts.h"
@@ -10,6 +6,7 @@
 #include "cubic_engine/rl/worlds/grid_world_action_space.h"
 #include "cubic_engine/rl/sarsa_learning.h"
 #include "cubic_engine/rl/reward_table.h"
+#include "cubic_engine/rl/rl_iterative_algo_input.h"
 
 #include <cmath>
 #include <utility>
@@ -25,7 +22,7 @@ int main(){
     using cengine::rl::worlds::CliffWorld;
     using cengine::rl::worlds::GridWorldAction;
     using cengine::rl::Sarsa;
-    using cengine::rl::TDInput;
+    using cengine::rl::RLIterativeAlgoInput;
     using cengine::rl::RewardTable;
     using kernel::utilities::CSVWriter;
 
@@ -51,7 +48,7 @@ int main(){
         const real_t GAMMA = 1.0;
         const real_t PENALTY = -100.0;
 
-        TDInput tdinput;
+        RLIterativeAlgoInput tdinput;
         tdinput.learning_rate =ETA;
         tdinput.epsilon = EPSILON;
         tdinput.discount_factor = GAMMA;
@@ -77,4 +74,3 @@ int main(){
     return 0;
 }
 
-#endif

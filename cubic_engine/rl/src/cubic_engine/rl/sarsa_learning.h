@@ -1,9 +1,7 @@
 #ifndef TABULAR_SARSA_LEARNING_H
 #define TABULAR_SARSA_LEARNING_H
 
-#include "cubic_engine/base/config.h"
 
-#ifdef USE_RL
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/reward_table.h"
@@ -69,7 +67,7 @@ public:
     ///
     /// \brief The input to initialize the algorithm
     ///
-    typedef TDInput input_t;
+    typedef RLIterativeAlgoInput input_t;
 
     ///
     /// \brief The output type the train method returns
@@ -79,7 +77,7 @@ public:
     ///
     /// \brief Constructor
     ///
-    Sarsa(const TDInput& input);
+    Sarsa(const RLIterativeAlgoInput& input);
 
     ///
     /// \brief step. Performs the iterations for
@@ -92,7 +90,7 @@ private:
 };
 
 template<typename WorldTp>
-Sarsa<WorldTp>::Sarsa(const TDInput& input)
+Sarsa<WorldTp>::Sarsa(const RLIterativeAlgoInput& input)
     :
     TDBase<WorldTp>(input)
 {}
@@ -134,5 +132,5 @@ Sarsa<WorldTp>::step(){
 
 }
 }
-#endif
+
 #endif // TABULAR_SARSA_LEARNING_H
