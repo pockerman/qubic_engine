@@ -49,13 +49,10 @@ class NumericsCMakeWriter(CMakeFileWriter):
 
             fh = self.write_basic_lists(fh=fh)
             fh.write('INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})\n')
-            # include dirs for discretization
-            #fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.discretization_dir / "src"))
-
-            # my own includes
             fh.write('INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/)\n')
             fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
             fh.write('INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})\n')
+            fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.discretization_dir / 'src'))
 
             # include dirs for kernel
             for kdir in self.kernel_dirs:

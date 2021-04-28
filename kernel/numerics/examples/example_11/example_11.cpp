@@ -13,13 +13,13 @@
 
 #include "kernel/maths/trilinos_epetra_matrix.h"
 #include "kernel/maths/trilinos_epetra_vector.h"
-#include "kernel/maths/krylov_solvers/trilinos_krylov_solver.h"
-#include "kernel/maths/krylov_solvers/krylov_solver_data.h"
-#include "kernel/maths/krylov_solvers/krylov_solver_type.h"
-#include "kernel/maths/krylov_solvers/preconditioner_type.h"
 #include "kernel/maths/functions/numeric_scalar_function.h"
 #include "kernel/maths/functions/numeric_vector_function.h"
 
+#include "kernel/numerics/krylov_solvers/trilinos_krylov_solver.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_data.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_type.h"
+#include "kernel/numerics/krylov_solvers/preconditioner_type.h"
 #include "kernel/numerics/scalar_dirichlet_bc_function.h"
 #include "kernel/numerics/fvm/fv_interpolation_factory.h"
 #include "kernel/numerics/fvm/fv_interpolation_types.h"
