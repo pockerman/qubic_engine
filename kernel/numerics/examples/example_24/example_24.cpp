@@ -2,7 +2,7 @@
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/utilities/common_uitls.h"
-#include "kernel/maths/optimization/stochastic_gradient_descent.h"
+#include "kernel/numerics/optimization/stochastic_gradient_descent.h"
 #include "kernel/maths/errorfunctions/sse_function.h"
 #include "kernel/maths/functions/real_vector_polynomial.h"
 #include "kernel/maths/functions/function_limiter.h"

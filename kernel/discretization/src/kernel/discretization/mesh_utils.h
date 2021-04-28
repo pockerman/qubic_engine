@@ -1,12 +1,12 @@
-#ifndef GEOMETRY_UTILS_H
-#define GEOMETRY_UTILS_H
+#ifndef MESH_UTILS_H
+#define MESH_UTILS_H
 
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/geometry/geom_point.h"
 #include "kernel/geometry/generic_line.h"
-//#include "kernel/discretization/element_mesh_iterator.h"
-//#include "kernel/discretization/mesh_predicates.h"
+#include "kernel/discretization/element_mesh_iterator.h"
+#include "kernel/discretization/mesh_predicates.h"
 #include "kernel/geometry/shapes/circle.h"
 
 #include <stdexcept>

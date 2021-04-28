@@ -19,10 +19,11 @@
 #include "kernel/numerics/boundary_function_base.h"
 #include "kernel/maths/trilinos_epetra_matrix.h"
 #include "kernel/maths/trilinos_epetra_vector.h"
-#include "kernel/maths/krylov_solvers/trilinos_krylov_solver.h"
-#include "kernel/maths/krylov_solvers/krylov_solver_data.h"
-#include "kernel/maths/krylov_solvers/krylov_solver_type.h"
-#include "kernel/maths/krylov_solvers/preconditioner_type.h"
+
+#include "kernel/numerics/krylov_solvers/trilinos_krylov_solver.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_data.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_type.h"
+#include "kernel/numerics/krylov_solvers/preconditioner_type.h"
 #include "kernel/maths/functions/numeric_scalar_function.h"
 
 

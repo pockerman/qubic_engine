@@ -12,7 +12,7 @@ int main(){
 
     using kernel::real_t;
     using kernel::uint_t;
-    using kernel::CSVWriter;
+    using kernel::utilities::CSVWriter;
 
 
     // the lambda coeff

@@ -2,9 +2,9 @@
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/utilities/common_uitls.h"
-#include "kernel/maths/optimization/admm.h"
-#include "kernel/maths/optimization/quadratic_problem.h"
-#include "kernel/maths/direct_solvers/blaze_direct_solver.h"
+#include "kernel/numerics/optimization/admm.h"
+#include "kernel/numerics/optimization/quadratic_problem.h"
+#include "kernel/numerics/direct_solvers/blaze_direct_solver.h"
 
 
 #include <cmath>

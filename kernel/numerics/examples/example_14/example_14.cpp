@@ -121,7 +121,7 @@ int main(){
             kernel::numerics::build_quad_mesh(mesh, nx, ny, start, end);   
         }
 
-        SteadyStateNSSystem<2, VelocityAssemblyPolicy, PressureAssemblyPolicy, TrilinosSolutionPolicy> stokes;
+        //SteadyStateNSSystem<2, VelocityAssemblyPolicy, PressureAssemblyPolicy, TrilinosSolutionPolicy> stokes;
     }
     catch(std::logic_error& error){
 

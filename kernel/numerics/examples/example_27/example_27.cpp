@@ -2,7 +2,7 @@
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/utilities/common_uitls.h"
-#include "kernel/maths/optimization/serial_gradient_descent.h"
+#include "kernel/numerics/optimization/serial_gradient_descent.h"
 #include "kernel/maths/functions/function_base.h"
 
 #include <iostream>

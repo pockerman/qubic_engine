@@ -1,5 +1,5 @@
 #include "kernel/base/types.h"
-#include "kernel/maths/solvers/newton_solver.h"
+#include "kernel/numerics/solvers/newton_solver.h"
 #include "kernel/geometry/geom_point.h"
 #include "kernel/base/kernel_consts.h"
 #include "kernel/maths/functions/numeric_scalar_function.h"

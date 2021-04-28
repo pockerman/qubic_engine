@@ -1,5 +1,5 @@
 #include "kernel/base/types.h"
-#include "kernel/maths/solvers/bisection_solver.h"
+#include "kernel/numerics/solvers/bisection_solver.h"
 #include "kernel/geometry/geom_point.h"
 #include "kernel/base/kernel_consts.h"
 

@@ -4,7 +4,6 @@
 
 #include "kernel/base/types.h"
 #include "kernel/utilities/filtered_iterator.h"
-#include "kernel/utilities/vtk_mesh_file_writer.h"
 #include "kernel/geometry/geom_point.h"
 
 #include "kernel/discretization/mesh.h"
@@ -12,6 +11,7 @@
 #include "kernel/discretization/element.h"
 #include "kernel/discretization/element_mesh_iterator.h"
 #include "kernel/discretization/mesh_predicates.h"
+#include "kernel/discretization/vtk_mesh_file_writer.h"
 
 #include "kernel/numerics/fvm/fv_scalar_system.h"
 #include "kernel/numerics/fvm/fv_laplace_assemble_policy_threaded.h"
@@ -23,10 +23,10 @@
 
 #include "kernel/maths/trilinos_epetra_matrix.h"
 #include "kernel/maths/trilinos_epetra_vector.h"
-#include "kernel/maths/krylov_solvers/trilinos_krylov_solver.h"
-#include "kernel/maths/krylov_solvers/krylov_solver_data.h"
-#include "kernel/maths/krylov_solvers/krylov_solver_type.h"
-#include "kernel/maths/krylov_solvers/preconditioner_type.h"
+#include "kernel/numerics/krylov_solvers/trilinos_krylov_solver.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_data.h"
+#include "kernel/numerics/krylov_solvers/krylov_solver_type.h"
+#include "kernel/numerics/krylov_solvers/preconditioner_type.h"
 #include "kernel/maths/functions/numeric_scalar_function.h"
 
 #include "kernel/parallel/utilities/linear_mesh_partitioner.h"

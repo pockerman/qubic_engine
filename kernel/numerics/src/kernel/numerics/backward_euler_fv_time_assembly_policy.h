@@ -3,9 +3,9 @@
 
 #include "kernel/base/types.h"
 #include "kernel/base/config.h"
-#include "kernel/numerics/dof.h"
-#include "kernel/numerics/dof_manager.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/discretization/dof.h"
+#include "kernel/discretization/dof_manager.h"
 #include "kernel/discretization/element.h"
 #include "kernel/discretization/mesh.h"
 #include "kernel/discretization/mesh_predicates.h"
