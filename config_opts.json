@@ -33,7 +33,7 @@
   },
 
   "kernel": {
-    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_new_build/kernel/install",
+    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_rl/install",
     "USE_DISCRETIZATION": true,
     "USE_NUMERICS": true,
     "USE_RIGID_BODY_DYNAMICS": true,
@@ -44,7 +44,7 @@
 
   "cengine": {
     "build_cengine": true,
-    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_new_build/cubic_engine/install",
+    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_rl/install",
     "BUILD_EXAMPLES": false,
     "BUILD_TESTS": false,
     "rl": {
