@@ -1,68 +1,52 @@
-#include "kernel/base/config.h"
-
 #include "kernel/base/types.h"
-#include "kernel/maths/functions/real_vector_polynomial.h"
-#include "kernel/maths/errorfunctions/sse_function.h"
-#include "kernel/utilities/data_set_loaders.h"
+#include "kernel/numerics/solvers/bisection_solver.h"
+#include "kernel/geometry/geom_point.h"
+#include "kernel/base/kernel_consts.h"
 
-#include "kernel/parallel/utilities/reduction_operations.h"
-
-#ifdef USE_OPENMP
-#include "kernel/parallel/threading/openmp_executor.h"
-#include "kernel/parallel/utilities/partitioned_type.h"
-#endif
-
+#include <cmath>
 #include <iostream>
 
+namespace example
+{
+using kernel::real_t;
+using kernel::uint_t;
+using kernel::GeomPoint;
+
+}
 
 int main(){
 
-    using kernel::real_t;
-    using kernel::uint_t;
-    using kernel::RealVectorPolynomialFunction;
-    using kernel::SSEFunction;
-    using DynMat = kernel::DynMat<real_t>;
-    using DynVec = kernel::DynVec<real_t>;
+    using namespace example;
 
-    {
-        // the hypothesis function y = w_0 + w_1*x
-        RealVectorPolynomialFunction function({0.409, 0.499});
+    try{
 
-        // the Mean Squared Error calculation
-        SSEFunction<RealVectorPolynomialFunction, DynMat, DynVec> sse(function);
+        const uint_t N_ITRS = 1000;
+        const real_t TOL = kernel::KernelConsts::tolerance();
 
-        // load the data set
-        std::pair<DynMat, DynVec> data_set = kernel::load_car_plant_dataset();
+        auto f = [&](const kernel::GeomPoint<1> x){
+            return 3.0*x[0] + std::sin(x[0]) - std::exp(x[0]);
+        };
 
-        auto value = sse.value(data_set.first, data_set.second);
-        std::cout<<"SSE error is: "<<value.get_resource()<<std::endl;
+        kernel::maths::solvers::BisectionSolver<GeomPoint<1>, decltype (f)> bs(N_ITRS, TOL);
+        auto [output, solution] = bs.solve(kernel::GeomPoint<1>({0.0}),
+                                           kernel::GeomPoint<1>({1.0}), f);
+
+        std::cout<<output<<std::endl;
+        std::cout<<solution<<std::endl;
+
+
     }
+    catch(std::logic_error& error){
 
-#ifdef USE_OPENMP
-    {
-
-        // use two threads
-        kernel::OMPExecutor executor(2);
-
-        // the hypothesis function y = w_0 + w_1*x
-        RealVectorPolynomialFunction function({0.409, 0.499});
-
-        // the Mean Squared Error calculation
-        SSEFunction<RealVectorPolynomialFunction,
-                    kernel::PartitionedType<DynMat>,
-                    kernel::PartitionedType<DynVec> > sse(function);
-
-        // load the data set
-        auto data_set = kernel::load_car_plant_dataset_with_partitions(executor.get_n_threads());
-
-        auto value = sse.value(data_set.first, data_set.second, executor, kernel::OMPOptions());
-        std::cout<<"SSE error is: "<<value.get_resource()<<std::endl;
+        std::cerr<<error.what()<<std::endl;
     }
-
-#endif
+    catch(...){
+        std::cerr<<"Unknown exception occured"<<std::endl;
+    }
 
     return 0;
 }
+
 
 
 

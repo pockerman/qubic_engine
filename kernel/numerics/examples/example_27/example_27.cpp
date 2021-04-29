@@ -1,55 +1,92 @@
+#include "kernel/base/config.h"
 #include "kernel/base/types.h"
-#include <cmath>
-#include <iostream>
-#include <array>
-#include <random>
+#include "kernel/base/kernel_consts.h"
+#include "kernel/utilities/common_uitls.h"
+#include "kernel/numerics/optimization/serial_gradient_descent.h"
+#include "kernel/maths/functions/function_base.h"
 
-namespace example
-{
+#include <iostream>
+
+namespace example {
+
 using kernel::real_t;
 using kernel::uint_t;
+using kernel::DynMat;
+using kernel::DynVec;
+using kernel::maths::opt::Gd;
+using kernel::maths::opt::GDConfig;
+
+class Function: public kernel::FunctionBase<real_t, DynVec<real_t>>
+{
+public:
+
+    typedef kernel::FunctionBase<real_t, DynVec<real_t>>::output_t output_t;
+
+    // constructor
+    Function(const DynVec<real_t>& coeffs);
+
+    // compute the value of the function
+    virtual output_t value(const DynVec<real_t>&  input)const override final;
+
+    // compute the gradients of the function
+    virtual DynVec<real_t> gradients(const DynVec<real_t>&  input)const override final;
+
+    // the number of coefficients
+    virtual uint_t n_coeffs()const override final{return 2;}
+
+    // reset the coefficients
+    void set_coeffs(const DynVec<real_t>&  coeffs){coeffs_ = coeffs;}
+
+    // get a copy of the coefficients
+    DynVec<real_t> coeffs()const{return coeffs_;}
+
+private:
+
+    // coefficients vector
+    DynVec<real_t> coeffs_;
+
+};
+
+Function::Function(const DynVec<real_t>& coeffs)
+    :
+      coeffs_(coeffs)
+{}
+
+Function::output_t
+Function::value(const DynVec<real_t>&  input)const{
+    return 0.5*(kernel::utils::sqr(kernel::utils::sqr(input[0]) - input[1])) +
+           0.5*(kernel::utils::sqr(input[0] - 1.0));
+}
+
+DynVec<real_t>
+Function::gradients(const DynVec<real_t>&  input)const{
+
+    auto grad1= 2.0*input[0]*(kernel::utils::sqr(input[0]) - input[1]) + (input[0] - 1.0);
+    auto grad2 = -(kernel::utils::sqr(input[0]) - input[1]);
+    DynVec<real_t> rslt(2, 0.0);
+    rslt[0] = grad1;
+    rslt[1] = grad2;
+    return rslt;
+}
+
 }
 
 int main(){
 
     using namespace example;
-
     try{
 
-        std::array<std::string, 3> doors;
-        doors[0] = "A";
-        doors[1] = "B";
-        doors[2] = "C";
+        GDConfig config(20, kernel::KernelConsts::tolerance(), 0.1);
+        config.set_show_iterations_flag(true);
+        Gd gd(config);
 
-        uint_t first_choice_wins = 0;
-        uint_t change_wins = 0;
+        DynVec<real_t> coeffs(2, 0.0);
 
-        const uint_t N_ITRS = 1000;
+        Function f(coeffs);
 
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<uint_t> distribution(0, 2);
+        auto info = gd.solve(f);
+        std::cout<<info<<std::endl;
 
-        for(uint_t itr=0; itr<N_ITRS; ++itr){
-
-            auto winner_idx = distribution(gen);
-            auto pick_idx = distribution(gen);
-
-            std::cout<<"You chose: "<<doors[pick_idx]<<" Winner door: "
-                    <<doors[winner_idx]<<std::endl;
-
-            if(winner_idx == pick_idx){
-                first_choice_wins++;
-            }
-            else{
-                change_wins++;
-            }
-        }
-
-        std::cout<<"Wins with original choice: "<<first_choice_wins<<std::endl;
-        std::cout<<"Wins with change choice: "<<change_wins<<std::endl;
-        std::cout<<"Probability of winning with initial guess: "<<static_cast<real_t>(first_choice_wins)/N_ITRS<<std::endl;
-        std::cout<<"Probability of winning with change guess: "<<static_cast<real_t>(change_wins)/N_ITRS<<std::endl;
     }
     catch(std::logic_error& error){
 

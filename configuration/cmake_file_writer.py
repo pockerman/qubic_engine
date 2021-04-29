@@ -85,23 +85,31 @@ class CMakeFileWriter(object):
     def _write_project_variables(self, fh):
         return fh
 
-    def _write_build_option(self, fh):
+    def _write_build_option(self, fh, example=None, test=None):
 
         if self.configuration["USE_OPENMP"]:
             if self.configuration["CMAKE_BUILD_TYPE"]:
                 fh.write('SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fopenmp -fPIC")\n')
-                fh.write('SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)\n')
+
+                if example is None and test is None:
+                    fh.write('SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)\n')
             else:
                 fh.write('SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -pthread -fopenmp -fPIC")\n')
-                fh.write('SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/opt)\n')
+
+                if example is None and test is None:
+                    fh.write('SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/opt)\n')
         else:
 
             if self.configuration["CMAKE_BUILD_TYPE"]:
                 fh.write('SET(CMAKE_CXX_FLAGS "-std=c++17 -g -pthread -fPIC")\n')
-                fh.write('SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)\n')
+
+                if example is None and test is None:
+                    fh.write('SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/dbg)\n')
             else:
                 fh.write('SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -pthread -fPIC")\n')
-                fh.write('SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/opt)\n')
+
+                if example is None and test is None:
+                    fh.write('SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/opt)\n')
 
         fh.write("\n")
         return fh
