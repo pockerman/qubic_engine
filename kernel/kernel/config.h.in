@@ -13,6 +13,9 @@
 /*Use FVM*/
 #cmakedefine USE_FVM
 
+/*Use FEM*/
+#cmakedefine USE_FEM
+
 /*Use Trilinos*/
 #cmakedefine USE_TRILINOS
 

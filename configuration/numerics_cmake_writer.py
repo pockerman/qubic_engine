@@ -110,22 +110,16 @@ class NumericsCMakeWriter(CMakeFileWriter):
 
     def _write_project_variables(self, fh):
 
-        fh.write('SET(USE_FVM {0})\n'.format(self.configuration["kernel"]["USE_FVM"]))
-        fh.write('SET(USE_FEM {0})\n'.format(self.configuration["kernel"]["USE_FEM"]))
-
         if self.configuration["trilinos"]["USE_TRILINOS"]:
-            fh.write('SET(USE_TRILINOS {0})\n'.format(self.configuration["trilinos"]["USE_TRILINOS"]))
-            fh.write('SET(USE_TRILINOS_LONG_LONG_TYPE {0})\n'.format(
-                self.configuration["trilinos"]["USE_TRILINOS_LONG_LONG_TYPE"]))
             fh.write('SET(TRILINOS_INCL_DIR {0})\n'.format(self.configuration["trilinos"]["TRILINOS_INCL_DIR"]))
             fh.write('SET(TRILINOS_LIB_DIR {0})\n'.format(self.configuration["trilinos"]["TRILINOS_LIB_DIR"]))
 
         if self.configuration["opencv"]["USE_OPEN_CV"]:
             fh.write('SET(USE_OPEN_CV {0})\n'.format(self.configuration["opencv"]["USE_OPEN_CV"]))
 
-        current_dir = Path(os.getcwd())
-        fh.write('SET(DATA_SET_FOLDER {0}/data)\n'.format(current_dir))
-        fh.write('SET(TEST_DATA_DIR {0})\n'.format(current_dir / 'test_data'))
+        #current_dir = Path(os.getcwd())
+        #fh.write('SET(DATA_SET_FOLDER {0}/data)\n'.format(current_dir))
+        #fh.write('SET(TEST_DATA_DIR {0})\n'.format(current_dir / 'test_data'))
 
         return fh
 
