@@ -49,13 +49,11 @@ class DiscretizationCMakeWriter(CMakeFileWriter):
             fh.write('INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})\n')
             fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
             fh.write('INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})\n')
+            fh.write('INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/)\n')
 
             # kernel directories
             for kdir in self.kernel_dirs:
                 fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.kernel_dir / kdir / 'src'))
-
-            # our own includes
-            fh.write('INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/)\n')
 
             if self.configuration["trilinos"]["USE_TRILINOS"]:
                 fh.write('INCLUDE_DIRECTORIES(${TRILINOS_INCL_DIR})\n')
