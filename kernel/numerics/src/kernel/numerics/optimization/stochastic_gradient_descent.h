@@ -4,7 +4,7 @@
 #include "kernel/base/types.h"
 #include "kernel/numerics/optimization/utils/gd_control.h"
 #include "kernel/numerics/optimization/utils/gd_info.h"
-#include "kernel/numerics/matrix_traits.h"
+#include "kernel/maths/matrix_traits.h"
 
 #include <boost/noncopyable.hpp>
 #include <chrono>

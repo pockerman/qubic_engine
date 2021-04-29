@@ -9,7 +9,7 @@
 #include "kernel/discretization/face_mesh_iterator.h"
 #include "kernel/discretization/mesh_predicates.h"
 #include "kernel/utilities/predicates.h"
-#include "kernel/utilities/vtk_mesh_file_writer.h"
+#include "kernel/discretization/vtk_mesh_file_writer.h"
 
 #include <iostream>
 

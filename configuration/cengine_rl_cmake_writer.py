@@ -121,7 +121,6 @@ class RLCMakeWriter(CMakeFileWriter):
         with open(path / "CMakeLists.txt", "w", newline="\n") as tfh:
 
             # set the kernel path
-            current_dir = path
             tfh.write("cmake_minimum_required(VERSION 3.0)\n")
             tfh.write("PROJECT({0} CXX)\n".format(directory))
             tfh.write("SET(SOURCE {0}.cpp)\n".format(directory))
@@ -129,13 +128,14 @@ class RLCMakeWriter(CMakeFileWriter):
 
             tfh = self._find_boost(fh=tfh)
             tfh = self._find_blas(fh=tfh)
-            tfh = self._write_build_option(fh=tfh)
+            tfh = self._write_build_option(fh=tfh, example=example)
 
             tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["BLAZE_INCL_DIR"]))
-
-            # library include files
             tfh.write('INCLUDE_DIRECTORIES(%s/src/)\n' % RLCMakeWriter.dir_path())
+            tfh.write('INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})\n')
+            tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["NLOHMANN_JSON_INCL_DIR"]))
 
+            # kernel includes
             for kdir in self.kernel_dirs:
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.kernel_dir / kdir / 'src'))
 
@@ -149,15 +149,14 @@ class RLCMakeWriter(CMakeFileWriter):
             if self.configuration["opencv"]["USE_OPEN_CV"]:
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
 
-            tfh.write('INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})\n')
-            tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["NLOHMANN_JSON_INCL_DIR"]))
             if example is False:
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["testing"]["GTEST_INC_DIR"]))
+
             tfh.write('\n')
 
             link_dirs = [self.configuration["kernel"]["CMAKE_INSTALL_PREFIX"],
                          self.configuration["cengine"]["CMAKE_INSTALL_PREFIX"],
-                             "${Boost_LIBRARY_DIRS}", ]
+                         "${Boost_LIBRARY_DIRS}", ]
 
             if example is False:
                 link_dirs.append(self.configuration["testing"]["GTEST_LIB_DIR"])

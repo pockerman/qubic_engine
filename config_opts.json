@@ -16,14 +16,14 @@
   },
 
   "trilinos": {
-    "USE_TRILINOS": false,
+    "USE_TRILINOS": true,
     "USE_TRILINOS_LONG_LONG_TYPE": false,
     "TRILINOS_INCL_DIR": "/home/alex/MySoftware/trilinos/install/include",
     "TRILINOS_LIB_DIR": "/home/alex/MySoftware/trilinos/install/lib"
   },
 
   "opencv": {
-    "USE_OPEN_CV": true,
+    "USE_OPEN_CV": false,
     "OPENCV_INCL_DIR": "/home/alex/MySoftware/opencv/install/include/opencv4"
   },
 
@@ -33,17 +33,18 @@
   },
 
   "kernel": {
-    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_new_build/kernel/install",
+    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_numerics/install",
     "USE_DISCRETIZATION": true,
     "USE_NUMERICS": true,
-    "USE_RIGID_BODY_DYNAMICS": true,
+    "USE_RIGID_BODY_DYNAMICS": false,
     "USE_FVM": false,
-    "BUILD_KERNEL_TESTS": false,
-    "BUILD_KERNEL_EXAMPLES": false
+    "USE_FEM": true,
+    "BUILD_KERNEL_TESTS": true,
+    "BUILD_KERNEL_EXAMPLES": true
   },
 
   "cengine": {
-    "build_cengine": true,
+    "build_cengine": false,
     "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_new_build/cubic_engine/install",
     "BUILD_EXAMPLES": false,
     "BUILD_TESTS": false,

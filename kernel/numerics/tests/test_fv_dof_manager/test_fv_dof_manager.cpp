@@ -1,5 +1,5 @@
 #include "kernel/base/types.h"
-#include "kernel/numerics/dof_object.h"
+#include "kernel/discretization/dof_object.h"
 
 #include <vector>
 #include <gtest/gtest.h>

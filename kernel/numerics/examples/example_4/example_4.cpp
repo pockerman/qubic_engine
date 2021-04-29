@@ -1,231 +1,76 @@
-#include "kernel/parallel/threading/thread_pool.h"
-#include "kernel/parallel/threading/simple_task.h"
-#include "kernel/utilities/algorithm_info.h"
-#include "kernel/utilities/iterative_algorithm_controller.h"
 #include "kernel/base/types.h"
 #include "kernel/base/kernel_consts.h"
-#include "kernel/utilities/range_1d.h"
+#include "kernel/geometry/shapes/circle.h"
+#include "kernel/geometry/geom_point.h"
 
-#include <blaze/Math.h>
-
-#include <thread>
-#include <vector>
+#include <random>
 #include <iostream>
-#include <stdexcept>
+#include <array>
 
-
-namespace  {
-
-    using kernel::uint_t;
-    using kernel::real_t;
-    using kernel::ThreadPool;
-    using kernel::IterativeAlgorithmController;
-    using kernel::range1d;
-    using kernel::SimpleTaskBase;
-    using kernel::AlgInfo;
-
-    using Vector = blaze::DynamicVector<real_t>;
-    using Matrix = blaze::DynamicMatrix<real_t>;
-
-class JacobiIterator
-{
-
-public:
-
-    JacobiIterator(const IterativeAlgorithmController& control )
-        :
-      ctrl_(control)
-    {}
-
-    AlgInfo iterate(const Matrix& mat, const Vector& b, Vector& x, ThreadPool& executor);
-
-private:
-
-    /// Inner struct that describes the Jacobi task
-    struct JacobiTask: public SimpleTaskBase<kernel::Null>
-    {
-        public:
-
-            typedef Vector vector_t;
-            typedef Matrix matrix_t;
-
-            JacobiTask(const Vector& b, Vector& old_x, Vector& x,
-                       const Matrix& mat, const range1d<uint_t>& range)
-                :
-                  SimpleTaskBase<kernel::Null>(),
-                  b_(b),
-                  old_x_(old_x),
-                  x_(x),
-                  mat_(mat),
-                  range_(range)
-            {}
-
-        protected:
-
-            void run()override final;
-
-        private:
-
-            const vector_t& b_;
-            vector_t& old_x_;
-            vector_t& x_;
-            const matrix_t& mat_;
-            const range1d<uint_t> range_;
-    };
-
-    IterativeAlgorithmController ctrl_;
-
-    /// A vector of Jacobi tasks to be executed and synchronized
-    std::vector<std::unique_ptr<JacobiTask>> tasks_;
-
-    /// checke if the Jacobi tasks finished
-    bool jacobi_tasks_finished()const;
-
-    /// reset all tasks to PENDING
-    void reset_jacobi_tasks_pending()const;
-
-};
-
-void
-JacobiIterator::JacobiTask::run(){
-
-    auto idx_b = range_.begin();
-    auto idx_e = range_.end();
-
-    for(; idx_b != idx_e; idx_b++){
-
-        real_t sum = 0.0;
-
-        for(uint_t col=0; col < old_x_.size(); col++ ){
-
-            if( col != idx_b){
-                sum += mat_(idx_b, col)*old_x_[col];
-            }
-        }
-
-        real_t a_ii = mat_(idx_b, idx_b);
-        real_t b_i  = b_[idx_b];
-        x_[idx_b] = (1./a_ii)*(b_i - sum);
-    }
-}
-
-bool
-JacobiIterator::jacobi_tasks_finished()const{
-
-    for(uint_t t=0; t< tasks_.size(); ++t){
-
-        if(tasks_[t]->get_state() != kernel::TaskBase::TaskState::FINISHED){
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void
-JacobiIterator::reset_jacobi_tasks_pending()const{
-
-    for(uint_t t=0; t< tasks_.size(); ++t){
-        tasks_[t]->set_state(kernel::TaskBase::TaskState::PENDING);
-    }
-}
-
-AlgInfo
-JacobiIterator::iterate(const Matrix& mat, const Vector& b, Vector& x, ThreadPool& executor){
-
-    AlgInfo info;
-    info.nthreads = executor.get_n_threads();
-
-    Vector old_solution(x);
-
-    {
-        /// partition the space of indices
-        std::vector<range1d<uint_t>> ranges = kernel::partitioners::partition_range_1d(static_cast<uint_t>(0),
-																					   static_cast<uint_t>(mat.rows()), 
-																					   executor.get_n_threads());
-
-        //create the tasks
-        tasks_.reserve(executor.get_n_threads());
-
-        for(uint_t t=0; t< executor.get_n_threads(); ++t){
-            tasks_.push_back(std::make_unique<JacobiIterator::JacobiTask>(b, old_solution, x, mat, ranges[t]));
-        }
-    }
-
-	while(ctrl_.continue_iterations()){
-		
-		/// for each iteration assign the tasks for iteration
-        for(uint_t t=0; t<tasks_.size(); ++t){
-            executor.add_task(*(tasks_[t].get()));
-        }
-		
-		 /// wait here until the tasks finish
-        while(!jacobi_tasks_finished()){
-            std::this_thread::yield();
-        }
-		
-		//reset all the tasks to pending
-        reset_jacobi_tasks_pending();
-
-        /// compute the difference between the old and the computed solution
-        real_t res = l2Norm(x - old_solution);
-		ctrl_.update_residual(res);
-		
-		info.residual = res;
-        info.niterations = ctrl_.get_current_iteration(); 
-
-        if( res < ctrl_.get_exit_tolerance()){
-            info.converged = true;
-            break;
-        }
-
-        // set the old solution to the current one
-        old_solution = x;
-	}
-    
-    return info;
-}
-
-}
 
 int main(){
 
-    using kernel::ThreadPool;
-    using kernel::IterativeAlgorithmController;
-    using kernel::AlgInfo;
+    using kernel::real_t;
+    using kernel::uint_t;
+    using kernel::GeomPoint;
 
-    Vector b(100, 2.0);
-    Vector x(100, 0.0);
-    Matrix A(100, 100, 0.0);
+    // number of iterations
+    const uint_t N_ITERATIONS = 100000;
 
-    /// diagonalize the matrix
-    for(uint_t r=0; r < A.rows(); ++r){
-        for(uint_t c=0; c < A.columns(); ++c){
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd());
 
-            if(r == c){
-                A(r,c) = 1.0;
-            }
+    kernel::Circle circle(2.0);
+
+    real_t x0 = - circle.radius();
+    real_t x1 = circle.radius();
+
+    // distribution of the x-coordinate
+    std::uniform_real_distribution<real_t> x_distribution(x0, x1);
+
+    auto y0 = - circle.radius();
+    auto y1 = circle.radius();
+    std::uniform_real_distribution<real_t> y_distribution(y0, y1);
+
+    real_t total_area = 0.0;
+    real_t area_under_curve = 0.0;
+
+    // the area of the rectangle
+    const real_t RECT_AREA = (x1-x0)*(y1-y0);
+
+    // the coordinates of the generated point
+    std::array<real_t, 2> coords;
+
+    for(uint_t itr=0; itr < N_ITERATIONS; ++itr){
+
+        // generate random x and y points
+        coords[0] = x_distribution(gen);
+        coords[1] = y_distribution(gen);
+
+        GeomPoint<2> point(coords);
+
+        std::cout<<"Generated point: "<<coords[0]<<","<<coords[0]<<std::endl;
+
+        // add 1 to count of points within the whole area
+        total_area += 1.0;
+
+        if( circle.is_inside(point)){
+           area_under_curve += 1;
         }
     }
 
-    //create a pool and start it with four threads
-    ThreadPool pool(4);
+    std::cout<<"Rectangle area: "<<RECT_AREA<<std::endl;
+    std::cout<<"Total area points: "<<total_area<<std::endl;
 
-    // create the control
-    IterativeAlgorithmController control(100, kernel::KernelConsts::tolerance());
-	control.set_num_threads(pool.get_n_threads());
+    if(area_under_curve != 0.){
 
-    // the object responsible for Jacobi iteration
-    JacobiIterator iterator(control);
-
-    // this will block until all iterations finish
-    auto info = iterator.iterate(A, b, x, pool);
-
-    // print useful information
-    std::cout<<info<<std::endl;
-
-    // uncomment this to view the solution
-    //std::cout<<x<<std::endl;
+        std::cout<<"Area under curve points: "<<area_under_curve<<std::endl;
+        std::cout<<"Calculated area: "<<RECT_AREA*(area_under_curve/total_area)<<std::endl;
+        std::cout<<"Circle area: "<<circle.area()<<std::endl;
+    }
 
     return 0;
 }
+
+
+

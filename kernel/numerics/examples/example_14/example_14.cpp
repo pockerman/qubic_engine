@@ -1,116 +1,140 @@
-#include "kernel/base/config.h"
-
-#ifdef USE_OPENMP
-
 #include "kernel/base/types.h"
-#include "kernel/base/kernel_consts.h"
-#include "kernel/parallel/threading/task_base.h"
-#include "kernel/parallel/threading/openmp_executor.h"
-#include "kernel/parallel/utilities/reduction_operations.h"
+#include "kernel/discretization/mesh.h"
+#include "kernel/discretization/quad_mesh_generation.h"
 
-#include <random>
+#include "kernel/maths/functions/numeric_scalar_function.h"
+#include "kernel/numerics/trilinos_solution_policy.h"
+#include "kernel/numerics/boundary_function_base.h"
+#include "kernel/numerics/fvm/fv_steady_state_ns_system.h"
+
 #include <iostream>
 
-namespace exe
+namespace example
 {
 using kernel::real_t;
 using kernel::uint_t;
+using kernel::Null;
+using kernel::numerics::Mesh;
+using kernel::GeomPoint;
+using kernel::numerics::SteadyStateNSSystem;
+using kernel::numerics::TrilinosSolutionPolicy;
+struct VelocityAssemblyPolicy{};
+struct PressureAssemblyPolicy{};
 
-// number of iterations
-const uint_t N_ITERATIONS = 100000;
 
-// lower and upper limits
-const real_t a = 1.0;
-const real_t b = 3.0;
-
-real_t f(real_t x){
-    return x*x;
-}
-
-class Task: public kernel::TaskBase
+class UCompBC: public kernel::numerics::BoundaryFunctionBase<2>
 {
 public:
 
-     Task()
-         :
-       TaskBase(),
-       a_(a),
-       b_(b),
-       result_(0.0)
-     {}
+    typedef kernel::numerics::BoundaryFunctionBase<2>::input_t input_t;
+    typedef kernel::numerics::BoundaryFunctionBase<2>::output_t output_t;
 
-     real_t get_result()const{return result_;}
+    /// constructor
+    UCompBC();
 
-protected:
-
-     virtual void run() override final;
-
-private:
-
-     const real_t a_;
-     const real_t b_;
-     real_t result_;
+    /// \brief Returns the value of the function on the Dirichlet boundary
+    virtual output_t value(const GeomPoint<2>&  /*input*/)const override final;
 };
 
-void
-Task::run(){
-
-    std::random_device rd;  //Will be used to obtain a seed for the random number engine
-    std::mt19937 gen(rd());
-
-    std::uniform_real_distribution<real_t> x_distribution(a_, b_);
-
-    auto y_lower = 0.0;
-    auto y_upper = f(b_);
-    std::uniform_real_distribution<real_t> y_distribution(y_lower, y_upper);
-
-    // generate random x and y points
-    real_t x = x_distribution(gen);
-    real_t y = y_distribution(gen);
-
-    if( y  <= f(x)){
-       result_ += 1;
-    }
+UCompBC::UCompBC()
+    :
+    kernel::numerics::BoundaryFunctionBase<2>()
+{
+    this->set_bc_type(0, kernel::numerics::BCType::ZERO_DIRICHLET);
+    this->set_bc_type(1, kernel::numerics::BCType::ZERO_DIRICHLET);
+    this->set_bc_type(2, kernel::numerics::BCType::DIRICHLET);
+    this->set_bc_type(3, kernel::numerics::BCType::ZERO_DIRICHLET);
 }
+
+UCompBC::output_t
+UCompBC::value(const GeomPoint<2>&  p)const{
+
+    if(p[1] == 1.0){
+        return 2.0;
+    }
+
+    return 0.0;
+}
+
+class VCompBC: public kernel::numerics::BoundaryFunctionBase<2>
+{
+public:
+
+    typedef kernel::numerics::BoundaryFunctionBase<2>::input_t input_t;
+    typedef kernel::numerics::BoundaryFunctionBase<2>::output_t output_t;
+
+    /// constructor
+    VCompBC();
+
+    /// \brief Returns the value of the function on the Dirichlet boundary
+    virtual output_t value(const GeomPoint<2>&  /*input*/)const override final;
+};
+
+VCompBC::VCompBC()
+    :
+    kernel::numerics::BoundaryFunctionBase<2>()
+{
+    this->set_bc_type(0, kernel::numerics::BCType::ZERO_DIRICHLET);
+    this->set_bc_type(1, kernel::numerics::BCType::ZERO_DIRICHLET);
+    this->set_bc_type(2, kernel::numerics::BCType::ZERO_DIRICHLET);
+    this->set_bc_type(3, kernel::numerics::BCType::ZERO_DIRICHLET);
+}
+
+VCompBC::output_t
+VCompBC::value(const GeomPoint<2>&  p)const{return 0.0;}
+
+class PCompBC: public kernel::numerics::BoundaryFunctionBase<2>
+{
+public:
+
+    typedef kernel::numerics::BoundaryFunctionBase<2>::input_t input_t;
+    typedef kernel::numerics::BoundaryFunctionBase<2>::output_t output_t;
+
+    /// constructor
+    PCompBC();
+
+    /// \brief Returns the value of the function on the Dirichlet boundary
+    virtual output_t value(const GeomPoint<2>&  /*input*/)const override final{return 0.0;}
+};
 
 }
 
 int main(){
 
-    using namespace exe;
+    using namespace example;
 
-    // the area of the rectangle [a,b]x[f(a), f(b)]
-    const real_t RECT_AREA = (b-a)*(f(b)-0.0);
+    try{
 
-    kernel::OMPExecutor executor(4);
-    kernel::Sum<real_t> operation;
-    executor.parallel_for_reduce<Task, kernel::Sum<real_t>>(N_ITERATIONS, operation);
+        Mesh<2> mesh;
 
-    if(!operation.is_result_valid()){
+        {
+            uint_t nx = 2;
+            uint_t ny = 2;
 
-        std::cout<<"Result is not valid..."<<std::endl;
-    }
-    else{
+            GeomPoint<2> start(0.0);
+            GeomPoint<2> end(1.0);
 
-        real_t total_area = static_cast<real_t>(N_ITERATIONS);
-        real_t area_under_curve = operation.get_resource();
-        std::cout<<"Rectangle area: "<<RECT_AREA<<std::endl;
+            std::cout<<"Starting point: "<<start<<std::endl;
+            std::cout<<"Ending point: "<<end<<std::endl;
 
-        if(area_under_curve != 0.){
-            std::cout<<"Total area points: "<<total_area<<std::endl;
-            std::cout<<"Area under curve points: "<<area_under_curve<<std::endl;
-            std::cout<<"Calculated area: "<<RECT_AREA*(area_under_curve/total_area)<<std::endl;
+            // generate the mesh
+            kernel::numerics::build_quad_mesh(mesh, nx, ny, start, end);   
         }
+
+        //SteadyStateNSSystem<2, VelocityAssemblyPolicy, PressureAssemblyPolicy, TrilinosSolutionPolicy> stokes;
+    }
+    catch(std::logic_error& error){
+
+        std::cerr<<error.what()<<std::endl;
+    }
+    catch(...){
+        std::cerr<<"Unknown exception occured"<<std::endl;
     }
 
     return 0;
 }
-#else
-#include <iostream>
-int main(){
-    std::cout<<"You need OpenMP to run this example. Reconfigure kernel with OpenMP support"<<std::endl;
-}
-#endif
+
+
 
 
 

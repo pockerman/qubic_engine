@@ -25,6 +25,7 @@ public:
     typedef PressureAssemblyPolicy  pressure_assembly_t;
     typedef VelocitAssemblyPolicy   velocity_assembly_policy_t;
     typedef typename SolutionPolicy::vector_t vector_t;
+    typedef void solver_output_t;
 
     /// \brief Constructor
     SteadyStateNSSystem();
