@@ -100,10 +100,12 @@ class RLCMakeWriter(CMakeFileWriter):
 
         if self.configuration["cengine"]["rl"]["BUILD_TESTS"]:
             self._write_tests_cmake()
+            print("{0} Building tests for project {1}".format(INFO, RLCMakeWriter.dir_path()))
             build_tests(path=RLCMakeWriter.dir_path() / "tests" )
 
         if self.configuration["cengine"]["rl"]["BUILD_EXAMPLES"]:
             self._write_examples_cmake()
+            print("{0} Building examples for project {1}".format(INFO, RLCMakeWriter.dir_path()))
             build_examples(path=RLCMakeWriter.dir_path() / "examples")
 
         print("{0} Done...".format(INFO))

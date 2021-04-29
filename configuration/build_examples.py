@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from configuration import INFO
 from configuration.utils import remove_directory
 
 
@@ -33,5 +34,6 @@ def build_examples(path: Path) -> None:
 
         if directory_path.is_dir():
             if directory.startswith("example_"):
+                print("{0} Building example {1}".format(INFO, directory_path))
                 build_example(path=directory_path)
 

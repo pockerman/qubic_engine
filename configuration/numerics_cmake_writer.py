@@ -94,10 +94,12 @@ class NumericsCMakeWriter(CMakeFileWriter):
 
         if self.configuration["kernel"]["BUILD_KERNEL_TESTS"]:
             self._write_tests_cmake()
+            print("{0} Building tests for project {1}".format(INFO, NumericsCMakeWriter.dir_path()))
             build_tests(path=NumericsCMakeWriter.dir_path() / "tests")
 
         if self.configuration["kernel"]["BUILD_KERNEL_EXAMPLES"]:
             self._write_examples_cmake()
+            print("{0} Building examples for project {1}".format(INFO, NumericsCMakeWriter.dir_path()))
             build_examples(path=NumericsCMakeWriter.dir_path() / "examples")
 
         print("{0} Done...".format(INFO))

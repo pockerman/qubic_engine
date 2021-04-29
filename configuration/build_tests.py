@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from configuration import INFO
 from configuration.utils import remove_directory
 
 
@@ -32,5 +33,6 @@ def build_tests(path: Path) -> None:
 
         if directory_path.is_dir():
             if directory.startswith("test_"):
+                print("{0} Building test {1}".format(INFO, directory_path))
                 build_test(path=directory_path)
 
