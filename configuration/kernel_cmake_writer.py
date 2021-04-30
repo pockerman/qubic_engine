@@ -102,6 +102,7 @@ class KernelCMakeWriter(CMakeFileWriter):
         fh.write('SET(USE_RIGID_BODY_DYNAMICS {0})\n'.format(self.configuration["kernel"]["USE_NUMERICS"]))
         fh.write('SET(USE_NUMERICS {0})\n'.format(self.configuration["kernel"]["USE_RIGID_BODY_DYNAMICS"]))
         fh.write('SET(USE_FVM {0})\n'.format(self.configuration["kernel"]["USE_FVM"]))
+        fh.write('SET(USE_FEM {0})\n'.format(self.configuration["kernel"]["USE_FEM"]))
 
         if self.configuration["CMAKE_BUILD_TYPE"]:
             fh.write('SET(KERNEL_DEBUG "ON")\n')
