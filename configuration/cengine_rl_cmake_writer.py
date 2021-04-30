@@ -16,7 +16,7 @@ class RLCMakeWriter(CMakeFileWriter):
 
     @staticmethod
     def module_dirs() -> list:
-        return ['worlds', ]
+        return ['worlds', 'gym_comm', ]
 
     @staticmethod
     def module_name() -> str:
