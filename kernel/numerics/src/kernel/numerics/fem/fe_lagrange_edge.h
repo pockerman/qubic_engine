@@ -1,0 +1,4 @@
+#ifndef FE_LAGRANGE_EDGE_H
+#define FE_LAGRANGE_EDGE_H
+
+#endif // FE_LAGRANGE_EDGE_H
