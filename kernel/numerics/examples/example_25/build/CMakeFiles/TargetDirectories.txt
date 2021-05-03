@@ -1,3 +1,0 @@
-/home/alex/qi3/ce_numerics/kernel/numerics/examples/example_27/build/CMakeFiles/rebuild_cache.dir
-/home/alex/qi3/ce_numerics/kernel/numerics/examples/example_27/build/CMakeFiles/example_27.dir
-/home/alex/qi3/ce_numerics/kernel/numerics/examples/example_27/build/CMakeFiles/edit_cache.dir
