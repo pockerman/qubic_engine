@@ -5,7 +5,7 @@
 #include "kernel/utilities/algorithm_info.h"
 
 namespace kernel{
-namespace maths {
+namespace numerics {
 namespace opt {
 
 ///
@@ -18,13 +18,13 @@ struct GDInfo: public kernel::AlgInfo
     real_t learning_rate;
 
 
+    ///
     /// \brief Print the information related to the application
-    ///of gradient descent algorithm to the given stream.
+    /// of gradient descent algorithm to the given stream.
+    ///
     virtual std::ostream& print(std::ostream& out)const;
 
 };
-
-
 
 inline
 std::ostream&

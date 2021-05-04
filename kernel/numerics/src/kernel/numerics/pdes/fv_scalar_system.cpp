@@ -1,4 +1,4 @@
-#include "kernel/numerics/fvm/fv_scalar_system.h"
+#include "kernel/numerics/pdes/fv_scalar_system.h"
 #include <exception>
 
 namespace kernel{

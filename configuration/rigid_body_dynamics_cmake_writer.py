@@ -50,6 +50,9 @@ class RBDynamicsCMakeWriter(CMakeFileWriter):
             if self.configuration["opencv"]["USE_OPEN_CV"]:
                 fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
 
+            if self.configuration["pytorch"]["USE_PYTORCH"]:
+                tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["pytorch"]["PYTORCH_INC_DIR"]))
+
             # boost directory
             fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
             # NLOHMANN_JSON_INCL_DIR

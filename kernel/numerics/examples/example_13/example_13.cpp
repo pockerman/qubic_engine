@@ -1,6 +1,6 @@
 #include "kernel/base/config.h"
 
-#ifdef USE_TRILINOS
+#if  defined(USE_TRILINOS) && defined(USE_FVM)
 
 #include "kernel/base/types.h"
 #include "kernel/discretization/mesh.h"
@@ -23,7 +23,7 @@
 #include "kernel/numerics/scalar_dirichlet_bc_function.h"
 #include "kernel/numerics/fvm/fv_convection_assemble_policy.h"
 #include "kernel/numerics/fvm/fv_ud_interpolation.h"
-#include "kernel/numerics/fvm/fv_scalar_timed_system.h"
+#include "kernel/numerics/pdes/fv_scalar_timed_system.h"
 #include "kernel/numerics/backward_euler_fv_time_assembly_policy.h"
 #include "kernel/numerics/fvm/fv_interpolation_factory.h"
 #include "kernel/numerics/fvm/fv_interpolation_types.h"

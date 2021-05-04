@@ -1,6 +1,6 @@
 #include "kernel/base/config.h"
 
-#ifdef USE_TRILINOS
+#if  defined(USE_TRILINOS) && defined(USE_FVM)
 
 #include "kernel/base/types.h"
 #include "kernel/utilities/filtered_iterator.h"
@@ -13,7 +13,7 @@
 #include "kernel/discretization/mesh_predicates.h"
 #include "kernel/discretization/vtk_mesh_file_writer.h"
 
-#include "kernel/numerics/fvm/fv_scalar_system.h"
+#include "kernel/numerics/pdes/fv_scalar_system.h"
 #include "kernel/numerics/fvm/fv_laplace_assemble_policy_threaded.h"
 #include "kernel/numerics/fvm/fv_grad_factory.h"
 #include "kernel/numerics/fvm/fv_grad_types.h"
