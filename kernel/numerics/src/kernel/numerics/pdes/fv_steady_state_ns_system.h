@@ -1,6 +1,10 @@
 #ifndef FV_STEADY_STATE_NS_SYSTEM_H
 #define FV_STEADY_STATE_NS_SYSTEM_H
 
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/base/types.h"
 #include "kernel/numerics/fvm/fv_scalar_system.h"
 #include "boost/noncopyable.hpp"
@@ -222,5 +226,5 @@ PressureAssemblyPolicy, SolutionPolicy>::assemble_system(){
 }
 
 }
-
+#endif
 #endif // STEADY_STATE_NS_SYSTEM_H

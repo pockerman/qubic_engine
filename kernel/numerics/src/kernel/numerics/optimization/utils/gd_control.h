@@ -7,7 +7,7 @@
 
 
 namespace kernel{
-namespace maths {
+namespace numerics {
 namespace opt {
 
 ///
@@ -16,21 +16,29 @@ namespace opt {
 ///
 struct GDConfig: public kernel::IterativeAlgorithmController
 {
+    ///
+    /// \brief DEFAULT_LEARNING_RATE
+    ///
     constexpr static real_t DEFAULT_LEARNING_RATE = 0.01;
 
+    ///
     /// \brief The learning rate
+    ///
     real_t learning_rate;
 
+    ///
     /// \brief Constructor
+    ///
     GDConfig( uint_t max_num_itrs,
                real_t tolerance=kernel::KernelConsts::tolerance(),
                real_t eta=GDConfig::DEFAULT_LEARNING_RATE );
 
+    ///
     /// \brief reset
+    ///
     virtual void reset(const GDConfig& control)final;
 
 };
-
 
 inline
 GDConfig::GDConfig( uint_t max_num_itrs, real_t tolerance, real_t eta_ )

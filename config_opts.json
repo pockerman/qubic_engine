@@ -8,13 +8,20 @@
   "NLOHMANN_JSON_INCL_DIR": "/home/alex/MySoftware/nlohman_json/install/include",
   "USE_OPENMP": true,
   "USE_LOG": true,
-  "USE_PYTORCH": false,
 
   "testing": {
+    "USE_TESTING": false,
     "GTEST_INC_DIR": "/home/alex/MySoftware/gtest/install/include",
     "GTEST_LIB_DIR": "/home/alex/MySoftware/gtest/install/lib"
   },
-
+  
+  "pytorch":{
+    "USE_PYTORCH": true,
+    "PYTORCH_PATH": "/home/alex/MySoftware/libtorch",
+    "PYTORCH_INC_DIR": "/home/alex/MySoftware/libtorch/include",
+    "PYTORCH_LIB_DIR": "/home/alex/MySoftware/libtorch/lib"
+  },
+  
   "trilinos": {
     "USE_TRILINOS": true,
     "USE_TRILINOS_LONG_LONG_TYPE": false,
@@ -33,18 +40,18 @@
   },
 
   "kernel": {
-    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_rl/install",
+    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_numerics/install",
     "USE_DISCRETIZATION": true,
     "USE_NUMERICS": true,
     "USE_RIGID_BODY_DYNAMICS": false,
     "USE_FVM": false,
     "USE_FEM": true,
-    "BUILD_KERNEL_TESTS": true,
+    "BUILD_KERNEL_TESTS": false,
     "BUILD_KERNEL_EXAMPLES": true
   },
 
   "cengine": {
-    "build_cengine": true,
+    "build_cengine": false,
     "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_rl/install",
     "BUILD_EXAMPLES": false,
     "BUILD_TESTS": false,

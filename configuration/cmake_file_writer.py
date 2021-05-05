@@ -111,6 +111,13 @@ class CMakeFileWriter(object):
                 if example is None and test is None:
                     fh.write('SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install/lib/opt)\n')
 
+        if self.configuration['pytorch']['USE_PYTORCH']:
+            fh.write('SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")\n')
+
+        if self.configuration['testing']["USE_TESTING"] and test is True:
+            fh.write('SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIE")\n')
+
+        fh.write('MESSAGE(STATUS " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ")\n')
         fh.write("\n")
         return fh
 
@@ -120,8 +127,6 @@ class CMakeFileWriter(object):
         fh.write('FIND_PACKAGE(Boost 1.65.0 REQUIRED)\n')
         fh.write('IF(Boost_FOUND)\n')
         fh.write('\tMESSAGE( STATUS  "Found needed Boost C++ library.")\n')
-        #fh.write('\tSET(BOOST_INCLUDEDIR ${Boost_INCLUDE_DIRS})\n')
-        #fh.write('\tSET(BOOST_LIBRARYDIR ${Boost_LIBRARY_DIRS})\n')
         fh.write('\tSET(Boost_USE_SHARED_LIBS ON)\n')
         fh.write('ELSE()\n')
         fh.write('\tMESSAGE( FATAL_ERROR  "Boost C++ library is required but not found.")\n')

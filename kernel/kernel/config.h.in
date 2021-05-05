@@ -10,6 +10,10 @@
 /*Use OpenMP */
 #cmakedefine USE_OPENMP
 
+
+/*Use PyTorch */
+#cmakedefine USE_PYTORCH
+
 /*Use FVM*/
 #cmakedefine USE_FVM
 

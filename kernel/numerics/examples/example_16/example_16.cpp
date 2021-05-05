@@ -1,3 +1,7 @@
+#include "kernel/base/config.h"
+
+#ifdef USE_PYTORCH
+
 #include "kernel/base/types.h"
 #include "kernel/numerics/solvers/bisection_solver.h"
 #include "kernel/geometry/geom_point.h"
@@ -47,7 +51,7 @@ int main(){
     return 0;
 }
 
-
+#endif
 
 
 
