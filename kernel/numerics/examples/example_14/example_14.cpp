@@ -137,6 +137,14 @@ int main(){
 
     return 0;
 }
+#else
+#include <iostream>
+#include <stdexcept>
+int main(){
+    std::cout<<"This example requires Trilinos and FVM support. Configure the library with Trilinos and FVM on"<<std::endl;
+    throw std::runtime_error("ERROR: No Trilinos and FVM");
+    return 0;
+}
 #endif
 
 
