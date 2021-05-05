@@ -111,8 +111,6 @@ PYT_StochasticGD::solve(const MatType& data, const VecType& labels, HypothesisFu
     info.niterations = state.num_iterations;
     return info;
 }
-
-
 }
 }
 }
