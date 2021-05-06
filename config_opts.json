@@ -40,19 +40,18 @@
   },
 
   "kernel": {
-<<<<<<< HEAD
     "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_rl/install",
-    "USE_DISCRETIZATION": false,
+    "USE_DISCRETIZATION": true,
     "USE_NUMERICS": true,
     "USE_RIGID_BODY_DYNAMICS": false,
     "USE_FVM": false,
     "USE_FEM": false,
-    "BUILD_KERNEL_TESTS": true,
-    "BUILD_KERNEL_EXAMPLES": true
+    "BUILD_KERNEL_TESTS": false,
+    "BUILD_KERNEL_EXAMPLES": false
   },
 
   "cengine": {
-    "build_cengine": false,
+    "build_cengine": true,
     "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_rl/install",
     "BUILD_EXAMPLES": false,
     "BUILD_TESTS": false,
@@ -62,7 +61,7 @@
       "BUILD_TESTS": true
     },
     "ml": {
-      "USE_ML": false,
+      "USE_ML": true,
       "BUILD_EXAMPLES": true,
       "BUILD_TESTS": true
     },
