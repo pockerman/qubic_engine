@@ -41,7 +41,16 @@ class KernelCMakeWriter(CMakeFileWriter):
 
             fh = self.write_basic_lists(fh=fh)
 
+            if self.configuration["pytorch"]["USE_PYTORCH"]:
+                fh.write('LIST(APPEND CMAKE_PREFIX_PATH {0})\n'.format(self.configuration["pytorch"]["PYTORCH_PATH"]))
+                fh.write('FIND_PACKAGE(Torch REQUIRED CONFIG)\n')
+                fh.write('MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")\n')
+                fh.write('INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})\n')
+                fh.write('\n')
+
             fh.write('INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})\n')
+            fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
+
             for directory in self.dirs:
                 fh.write('INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/%s/src/)\n' % (directory))
 
@@ -54,7 +63,6 @@ class KernelCMakeWriter(CMakeFileWriter):
             if self.configuration["pytorch"]["USE_PYTORCH"]:
                 fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["pytorch"]["PYTORCH_INC_DIR"]))
 
-            fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
             fh.write('\n')
             fh.write('ADD_LIBRARY({0} SHARED "")\n'.format(self.project_name))
             fh.write('\n')
@@ -122,8 +130,6 @@ class KernelCMakeWriter(CMakeFileWriter):
 
         if self.configuration["pytorch"]["USE_PYTORCH"]:
             fh.write('SET(USE_PYTORCH {0})\n'.format(self.configuration["pytorch"]["USE_PYTORCH"]))
-            fh.write('SET(PYTORCH_INCL_DIR {0})\n'.format(self.configuration["pytorch"]["PYTORCH_INC_DIR"]))
-            fh.write('SET(PYTORCH_LIB_DIR {0})\n'.format(self.configuration["pytorch"]["PYTORCH_LIB_DIR"]))
 
         current_dir = Path(os.getcwd())
         fh.write('SET(DATA_SET_FOLDER {0}/data)\n'.format(current_dir))
@@ -150,6 +156,13 @@ class KernelCMakeWriter(CMakeFileWriter):
             tfh.write("SET(SOURCE {0}.cpp)\n".format(directory))
             tfh.write("SET(EXECUTABLE  {0})\n".format(directory))
 
+            if self.configuration["pytorch"]["USE_PYTORCH"]:
+                tfh.write('LIST(APPEND CMAKE_PREFIX_PATH {0})\n'.format(self.configuration["pytorch"]["PYTORCH_PATH"]))
+                tfh.write('FIND_PACKAGE(Torch REQUIRED CONFIG)\n')
+                tfh.write('MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")\n')
+                tfh.write('INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})\n')
+                tfh.write('\n')
+
             tfh = self._find_boost(fh=tfh)
             tfh = self._find_blas(fh=tfh)
             tfh = self._write_build_option(fh=tfh, example=example)
@@ -167,9 +180,6 @@ class KernelCMakeWriter(CMakeFileWriter):
             if self.configuration["opencv"]["USE_OPEN_CV"]:
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
 
-            if self.configuration["pytorch"]["USE_PYTORCH"]:
-                tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["pytorch"]["PYTORCH_INC_DIR"]))
-
             if example is False:
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["testing"]["GTEST_INC_DIR"]))
             tfh.write('\n')
@@ -185,9 +195,6 @@ class KernelCMakeWriter(CMakeFileWriter):
             if self.configuration["trilinos"]["USE_TRILINOS"]:
                 link_dirs.append(self.configuration["trilinos"]["TRILINOS_LIB_DIR"])
 
-            if self.configuration["pytorch"]["USE_PYTORCH"]:
-                link_dirs.append(self.configuration["pytorch"]["PYTORCH_LIB_DIR"])
-
             for link_dir in link_dirs:
                 tfh.write("LINK_DIRECTORIES({0})\n".format(link_dir))
 
@@ -200,6 +207,9 @@ class KernelCMakeWriter(CMakeFileWriter):
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest)\n')
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest_main) '
                           '# so that tests dont need to have a main\n')
+
+            if self.configuration["pytorch"]["USE_PYTORCH"]:
+                tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} ${TORCH_LIBRARIES})\n')
 
             tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} pthread)\n')
             tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)\n')

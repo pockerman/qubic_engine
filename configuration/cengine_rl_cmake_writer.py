@@ -16,7 +16,7 @@ class RLCMakeWriter(CMakeFileWriter):
 
     @staticmethod
     def module_dirs() -> list:
-        return ['worlds', ]
+        return ['worlds', 'gym_comm', ]
 
     @staticmethod
     def module_name() -> str:
@@ -67,7 +67,7 @@ class RLCMakeWriter(CMakeFileWriter):
                 fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
 
             if self.configuration["pytorch"]["USE_PYTORCH"]:
-                tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["pytorch"]["PYTORCH_INC_DIR"]))
+                fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["pytorch"]["PYTORCH_INC_DIR"]))
 
             # boost includes
             fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
@@ -131,6 +131,13 @@ class RLCMakeWriter(CMakeFileWriter):
             tfh.write("SET(SOURCE {0}.cpp)\n".format(directory))
             tfh.write("SET(EXECUTABLE  {0})\n".format(directory))
 
+            if self.configuration["pytorch"]["USE_PYTORCH"]:
+                tfh.write('LIST(APPEND CMAKE_PREFIX_PATH {0})\n'.format(self.configuration["pytorch"]["PYTORCH_PATH"]))
+                tfh.write('FIND_PACKAGE(Torch REQUIRED CONFIG)\n')
+                tfh.write('MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")\n')
+                tfh.write('INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})\n')
+                tfh.write('\n')
+
             tfh = self._find_boost(fh=tfh)
             tfh = self._find_blas(fh=tfh)
             tfh = self._write_build_option(fh=tfh, example=example)
@@ -139,13 +146,11 @@ class RLCMakeWriter(CMakeFileWriter):
             tfh.write('INCLUDE_DIRECTORIES(%s/src/)\n' % RLCMakeWriter.dir_path())
             tfh.write('INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})\n')
             tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["NLOHMANN_JSON_INCL_DIR"]))
+            tfh.write('INCLUDE_DIRECTORIES({0}/src/)\n'.format(self.cengine_dir))
 
             # kernel includes
             for kdir in self.kernel_dirs:
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.kernel_dir / kdir / 'src'))
-
-            # cengine includes
-            tfh.write('INCLUDE_DIRECTORIES({0}/src/)\n'.format(self.cengine_dir))
 
             if self.configuration["trilinos"]["USE_TRILINOS"]:
                 tfh.write(
@@ -183,6 +188,9 @@ class RLCMakeWriter(CMakeFileWriter):
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest)\n')
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest_main) '
                           '# so that tests dont need to have a main\n')
+
+            if self.configuration["pytorch"]["USE_PYTORCH"]:
+                tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} ${TORCH_LIBRARIES})\n')
 
             tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} pthread)\n')
             tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)\n')

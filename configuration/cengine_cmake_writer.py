@@ -1,8 +1,10 @@
 from pathlib import Path
 import os
 from configuration.cmake_file_writer import CMakeFileWriter
-from configuration.build_libs import build_library
 from configuration import INFO
+from configuration.build_libs import build_library
+from configuration.build_examples import build_examples
+from configuration.build_tests import build_tests
 
 
 class CMakeCubicEngineWriter(CMakeFileWriter):
@@ -41,11 +43,18 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
             # write the basic set variables
             fh = self.write_basic_lists(fh=fh)
 
-            # Blaze lib include
-            fh.write('INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})\n')
+            if self.configuration["pytorch"]["USE_PYTORCH"]:
 
-            # library include files
+                fh.write('LIST(APPEND CMAKE_PREFIX_PATH {0})\n'.format(self.configuration["pytorch"]["PYTORCH_PATH"]))
+                fh.write('FIND_PACKAGE(Torch REQUIRED CONFIG)\n')
+                fh.write('MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")\n')
+                fh.write('INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})\n')
+                fh.write('\n')
+
+            fh.write('INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})\n')
             fh.write('INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/)\n')
+            fh.write('INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})\n')
+            fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
 
             for kdir in self.kernel_dirs:
                 fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.kernel_dir / kdir / 'src'))
@@ -56,9 +65,6 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
             if self.configuration["opencv"]["USE_OPEN_CV"]:
                 fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
 
-            fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
-            # NLOHMANN_JSON_INCL_DIR
-            fh.write('INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})\n')
             fh.write('\n')
             fh.write('ADD_LIBRARY({0} SHARED "")\n'.format(self.project_name))
             fh.write('\n')
@@ -86,14 +92,17 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
 
         if self.configuration["BUILD_LIBS"]:
             print("{0} Building {1}".format(INFO, self.project_name))
-            path = Path(os.getcwd())
-            build_library(path=path / "cubic_engine" / "cengine")
+            build_library(path=CMakeCubicEngineWriter.dir_path())
 
         if self.configuration["cengine"]["BUILD_TESTS"]:
             self._write_tests_cmake()
+            print("{0} Building tests for project {1}".format(INFO, CMakeCubicEngineWriter.dir_path()))
+            build_tests(path=CMakeCubicEngineWriter.dir_path() / "tests")
 
         if self.configuration["cengine"]["BUILD_EXAMPLES"]:
             self._write_examples_cmake()
+            print("{0} Building examples for project {1}".format(INFO, CMakeCubicEngineWriter.dir_path()))
+            build_examples(path=CMakeCubicEngineWriter.dir_path() / "examples")
 
         print("{0} Done...".format(INFO))
 
@@ -105,7 +114,7 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
 
     def _write_project_variables(self, fh):
 
-        fh.write('SET(USE_PYTORCH {0})\n'.format(self.configuration["USE_PYTORCH"]))
+        fh.write('SET(USE_PYTORCH {0})\n'.format(self.configuration["pytorch"]["USE_PYTORCH"]))
         fh.write('SET(USE_RL {0})\n'.format(self.configuration["cengine"]["rl"]["USE_RL"]))
         fh.write('SET(USE_ML {0})\n'.format(self.configuration["cengine"]["ml"]["USE_ML"]))
         fh.write('SET(USE_CONTROL {0})\n'.format(self.configuration["cengine"]["control"]["USE_CONTROL"]))
@@ -134,11 +143,20 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
             tfh.write("SET(SOURCE {0}.cpp)\n".format(directory))
             tfh.write("SET(EXECUTABLE  {0})\n".format(directory))
 
+            if self.configuration["pytorch"]["USE_PYTORCH"]:
+                tfh.write('LIST(APPEND CMAKE_PREFIX_PATH {0})\n'.format(self.configuration["pytorch"]["PYTORCH_PATH"]))
+                tfh.write('FIND_PACKAGE(Torch REQUIRED CONFIG)\n')
+                tfh.write('MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")\n')
+                tfh.write('INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})\n')
+                tfh.write("\n")
+
             tfh = self._find_boost(fh=tfh)
             tfh = self._find_blas(fh=tfh)
             tfh = self._write_build_option(fh=tfh)
 
             tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["BLAZE_INCL_DIR"]))
+            tfh.write('INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})\n')
+
             for directory in self.dirs:
                 tfh.write('INCLUDE_DIRECTORIES(%s/%s/src/)\n' % (current_dir / "kernel" / "kernel", directory))
 
@@ -149,7 +167,6 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
             if self.configuration["opencv"]["USE_OPEN_CV"]:
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
 
-            tfh.write('INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})\n')
             if example is False:
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["testing"]["GTEST_INC_DIR"]))
             tfh.write('\n')
@@ -178,6 +195,10 @@ class CMakeCubicEngineWriter(CMakeFileWriter):
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest)\n')
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest_main) '
                           '# so that tests dont need to have a main\n')
+
+            if self.configuration["pytorch"]["USE_PYTORCH"]:
+                tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} ${TORCH_LIBRARIES})\n')
+
             tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} pthread)\n')
             tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)\n')
 
