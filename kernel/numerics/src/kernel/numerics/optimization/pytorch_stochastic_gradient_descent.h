@@ -1,72 +1,66 @@
 #ifndef PYTORCH_STOCHASTIC_GRADIENT_DESCENT_H
 #define PYTORCH_STOCHASTIC_GRADIENT_DESCENT_H
 
-#include "cubic_engine/base/config.h"
+#include "kernel/base/config.h"
 
 #ifdef USE_PYTORCH
 
-#include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/optimization/utils/gd_control.h"
-#include "cubic_engine/optimization/utils/gd_info.h"
+#include "kernel/base/types.h"
+#include "kernel/numerics/optimization/utils/gd_control.h"
+#include "kernel/numerics/optimization/utils/gd_info.h"
 
-#include <torch/optim/sgd.h>
+#include "torch/torch.h"
 
 #include <boost/noncopyable.hpp>
 #include <chrono>
 #include <iostream>
 #include <vector>
 
-namespace cengine
-{
+namespace kernel{
+namespace numerics {
+namespace opt{
+namespace pytorch{
 
-namespace pytorch
-{
-
+///
 /// \brief PY_StochasticDG class. Wrapper to PyTorch Stochastic Gradient Descent algorithm
-template<typename ErrorFunction>
+///
+
 class PYT_StochasticGD: private boost::noncopyable
 {
 
 public:
 
-    /// \brief The type used to measure the error
-    typedef ErrorFunction error_t;
-
+    ///
     /// \brief Expose the type that is returned by this object
     /// when calling its solve functions
+    ///
     typedef GDInfo output_t;
 
+    ///
     /// \brief Constructor
+    ///
     PYT_StochasticGD(const GDConfig& control);
 
-
+    ///
     /// \brief Solves the optimization problem. Returns information
     /// about the performance of the solver.
+    ///
     template<typename MatType, typename VecType, typename HypothesisFuncType>
     output_t solve(const MatType& mat,const VecType& v, HypothesisFuncType& h);
 
-
 private:
 
+    ///
     /// \brief Control of the algorithm
+    ///
     GDConfig control_;
-
-    /// \brief Error function used
-    error_t error_func_;
 
 };
 
-template<typename ErrorFunction>
-PYT_StochasticGD<ErrorFunction>::PYT_StochasticGD(const GDConfig& control)
-    :
-    control_(control),
-    error_func_()
-{}
 
-template<typename ErrorFunction>
 template<typename MatType, typename VecType, typename HypothesisFuncType>
-typename PYT_StochasticGD<ErrorFunction>::output_t
-PYT_StochasticGD<ErrorFunction>::solve(const MatType& data, const VecType& labels, HypothesisFuncType& h){
+PYT_StochasticGD::output_t
+PYT_StochasticGD::solve(const MatType& data, const VecType& labels, HypothesisFuncType& h){
 
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
@@ -75,9 +69,7 @@ PYT_StochasticGD<ErrorFunction>::solve(const MatType& data, const VecType& label
     GDInfo info;
     info.learning_rate = control_.learning_rate;
 
-
     // the coefficients of the hypothesis
-    //auto& model = h.get_model();
     torch::optim::SGDOptions options(control_.learning_rate);
     torch::optim::SGD sgd(h->parameters(), options);
 
@@ -86,7 +78,7 @@ PYT_StochasticGD<ErrorFunction>::solve(const MatType& data, const VecType& label
     while(control_.continue_iterations()){
 
         if(control_.show_iterations()){
-            std::cout<<"PYT_SGD: iteration: "<<sgd.iteration()<<std::endl;
+            std::cout<<"PYT_SGD: iteration: "<<control_.get_state().num_iterations<<std::endl;
         }
 
         // Forward pass
@@ -119,10 +111,9 @@ PYT_StochasticGD<ErrorFunction>::solve(const MatType& data, const VecType& label
     info.niterations = state.num_iterations;
     return info;
 }
-
-
 }
-
+}
+}
 }
 #endif
 #endif // PYTORCH_STOCHASTIC_GRADIENT_DESCENT_H

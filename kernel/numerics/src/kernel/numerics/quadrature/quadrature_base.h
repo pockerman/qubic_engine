@@ -1,0 +1,4 @@
+#ifndef QUADRATURE_BASE_H
+#define QUADRATURE_BASE_H
+
+#endif // QUADRATURE_BASE_H

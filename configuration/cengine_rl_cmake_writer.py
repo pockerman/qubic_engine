@@ -66,6 +66,9 @@ class RLCMakeWriter(CMakeFileWriter):
             if self.configuration["opencv"]["USE_OPEN_CV"]:
                 fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
 
+            if self.configuration["pytorch"]["USE_PYTORCH"]:
+                tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["pytorch"]["PYTORCH_INC_DIR"]))
+
             # boost includes
             fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
 

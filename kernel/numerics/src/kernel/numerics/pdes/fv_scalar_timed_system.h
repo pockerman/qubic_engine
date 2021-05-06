@@ -1,7 +1,11 @@
 #ifndef FV_SCALAR_TIMED_SYSTEM_H
 #define FV_SCALAR_TIMED_SYSTEM_H
 
-#include "kernel/numerics/fvm/fv_scalar_system.h"
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
+#include "kernel/numerics/pdes/fv_scalar_system.h"
 #include <vector>
 
 namespace kernel {
@@ -164,4 +168,5 @@ FVScalarTimedSystem<dim, TimeStepper, AssemblyPolicy, SolutionPolicy >::save_sol
 }
 }
 
+#endif
 #endif // FV_SCALAR_TIMED_SYSTEM_H

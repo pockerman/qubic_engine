@@ -23,7 +23,7 @@ using kernel::RealVectorPolynomialFunction;
 using kernel::SSEFunction;
 using kernel::maths::functions::FunctionLimiter;
 using kernel::maths::opt::SGD;
-using kernel::maths::opt::GDConfig;
+using kernel::numerics::opt::GDConfig;
 
 std::pair<DynMat<real_t>, DynVec<real_t>> create_data(){
 

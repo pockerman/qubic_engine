@@ -16,7 +16,7 @@ class NumericsCMakeWriter(CMakeFileWriter):
 
     @staticmethod
     def module_dirs():
-        return ['statistics', 'direct_solvers', 'fvm', 'optimization',
+        return ['statistics', 'direct_solvers', 'fvm', 'optimization', 'fem',
                 'solvers', 'krylov_solvers']
 
     @staticmethod
@@ -65,6 +65,13 @@ class NumericsCMakeWriter(CMakeFileWriter):
             # OpenCV includes
             if self.configuration["opencv"]["USE_OPEN_CV"]:
                 fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
+
+            if self.configuration["pytorch"]["USE_PYTORCH"]:
+
+                fh.write('list(APPEND CMAKE_PREFIX_PATH {0})\n'.format(self.configuration["pytorch"]["PYTORCH_PATH"]))
+                fh.write('find_package(Torch REQUIRED CONFIG)\n')
+                fh.write('INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})\n')
+                fh.write('MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")\n')
 
             fh.write('\n')
             fh.write('ADD_LIBRARY({0} SHARED "")\n'.format(self.project_name))
@@ -131,6 +138,13 @@ class NumericsCMakeWriter(CMakeFileWriter):
             tfh.write("PROJECT({0} CXX)\n".format(directory))
             tfh.write("SET(SOURCE {0}.cpp)\n".format(directory))
             tfh.write("SET(EXECUTABLE  {0})\n".format(directory))
+            tfh.write("\n")
+            if self.configuration["pytorch"]["USE_PYTORCH"]:
+                tfh.write('LIST(APPEND CMAKE_PREFIX_PATH {0})\n'.format(self.configuration["pytorch"]["PYTORCH_PATH"]))
+                tfh.write('FIND_PACKAGE(Torch REQUIRED CONFIG)\n')
+                tfh.write('INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})\n')
+                tfh.write('MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")\n')
+                tfh.write("\n")
 
             tfh = self._find_boost(fh=tfh)
             tfh = self._find_blas(fh=tfh)
@@ -167,6 +181,9 @@ class NumericsCMakeWriter(CMakeFileWriter):
             if self.configuration["trilinos"]["USE_TRILINOS"]:
                 link_dirs.append(self.configuration["trilinos"]["TRILINOS_LIB_DIR"])
 
+            if self.configuration["pytorch"]["USE_PYTORCH"]:
+                link_dirs.append(self.configuration["pytorch"]["PYTORCH_LIB_DIR"])
+
             for link_dir in link_dirs:
                 tfh.write("LINK_DIRECTORIES({0})\n".format(link_dir))
 
@@ -176,6 +193,9 @@ class NumericsCMakeWriter(CMakeFileWriter):
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.project_name))
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.kernel_name))
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.discretization_name))
+
+            if self.configuration["trilinos"]["USE_TRILINOS"]:
+                tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} ${TORCH_LIBRARIES})\n')
 
             if example is False:
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest)\n')

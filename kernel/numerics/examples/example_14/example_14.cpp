@@ -1,3 +1,7 @@
+#include "kernel/base/config.h"
+
+#if  defined(USE_TRILINOS) && defined(USE_FVM)
+
 #include "kernel/base/types.h"
 #include "kernel/discretization/mesh.h"
 #include "kernel/discretization/quad_mesh_generation.h"
@@ -5,7 +9,7 @@
 #include "kernel/maths/functions/numeric_scalar_function.h"
 #include "kernel/numerics/trilinos_solution_policy.h"
 #include "kernel/numerics/boundary_function_base.h"
-#include "kernel/numerics/fvm/fv_steady_state_ns_system.h"
+#include "kernel/numerics/pdes/fv_steady_state_ns_system.h"
 
 #include <iostream>
 
@@ -133,7 +137,15 @@ int main(){
 
     return 0;
 }
-
+#else
+#include <iostream>
+#include <stdexcept>
+int main(){
+    std::cout<<"This example requires Trilinos and FVM support. Configure the library with Trilinos and FVM on"<<std::endl;
+    throw std::runtime_error("ERROR: No Trilinos and FVM");
+    return 0;
+}
+#endif
 
 
 
