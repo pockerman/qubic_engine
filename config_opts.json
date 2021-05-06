@@ -34,11 +34,11 @@
 
   "kernel": {
     "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_rl/install",
-    "USE_DISCRETIZATION": true,
-    "USE_NUMERICS": true,
+    "USE_DISCRETIZATION": false,
+    "USE_NUMERICS": false,
     "USE_RIGID_BODY_DYNAMICS": false,
     "USE_FVM": false,
-    "USE_FEM": true,
+    "USE_FEM": false,
     "BUILD_KERNEL_TESTS": true,
     "BUILD_KERNEL_EXAMPLES": true
   },

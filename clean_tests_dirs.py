@@ -25,5 +25,5 @@ def main(modules):
 
 
 if __name__ == '__main__':
-    modules = ['kernel/numerics', 'kernel/discretization', 'kernel/kernel']
+    modules = ['kernel/numerics', 'kernel/discretization', 'kernel/kernel', 'cubic_engine/rl']
     main(modules=modules)
