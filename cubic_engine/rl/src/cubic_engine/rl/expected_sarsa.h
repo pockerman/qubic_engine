@@ -7,7 +7,10 @@
 namespace cengine {
 namespace rl{
 
-
+///
+/// \brief The  ExpectedSARSA class. Simple implementation
+/// of the expected SARSA algorithm
+///
 template<typename WorldTp>
 class ExpectedSARSA: public TDBase<WorldTp>
 {
