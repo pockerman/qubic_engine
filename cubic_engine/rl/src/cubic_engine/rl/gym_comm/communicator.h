@@ -50,7 +50,7 @@ class Communicator
     std::unique_ptr<T> get_response();
 
     ///
-    ///
+    /// \brief Send the request
     ///
     template <class T>
     void send_request(const Request<T> &request);

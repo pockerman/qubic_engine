@@ -1,11 +1,11 @@
 #include <memory>
 #include <string>
 
-#include <spdlog/spdlog.h>
+//#include <spdlog/spdlog.h>
 
 #include "cubic_engine/rl/gym_comm/communicator.h"
 #include "cubic_engine/rl/gym_comm/requests.h"
-#include "third_party/zmq.hpp"
+#include "third_party/zmq/zmq.hpp"
 
 #include <string>
 
@@ -21,7 +21,7 @@ Communicator::Communicator(const std::string &url)
     socket = std::make_unique<zmq::socket_t>(*context, ZMQ_PAIR);
 
     socket->connect(url.c_str());
-    spdlog::info(get_raw_response());
+    //spdlog::info(get_raw_response());
 }
 
 

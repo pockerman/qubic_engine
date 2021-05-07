@@ -13,7 +13,7 @@ namespace rl {
 namespace  gym {
 
 ///
-///
+/// \brief 
 ///
 template <class T>
 struct Request
@@ -103,6 +103,8 @@ struct MlpStepResponse : StepResponse
     std::vector<std::vector<float>> observation;
     MSGPACK_DEFINE_MAP(observation, reward, done, real_reward);
 };
+
+
 }
 }
 }

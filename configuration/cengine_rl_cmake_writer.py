@@ -47,33 +47,6 @@ class RLCMakeWriter(CMakeFileWriter):
             # write the basic set variables
             fh = self.write_basic_lists(fh=fh)
 
-            # Blaze lib include
-            fh.write('INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})\n')
-
-            # library include files
-            fh.write('INCLUDE_DIRECTORIES(%s/src/)\n' % RLCMakeWriter.dir_path())
-
-            for kdir in self.kernel_dirs:
-                fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.kernel_dir / kdir / 'src'))
-
-            # cengine includes
-            fh.write('INCLUDE_DIRECTORIES({0}/src/)\n'.format(self.cengine_dir))
-
-            # trilinos includes
-            if self.configuration["trilinos"]["USE_TRILINOS"]:
-                fh.write('INCLUDE_DIRECTORIES(${TRILINOS_INCL_DIR})\n')
-
-            if self.configuration["opencv"]["USE_OPEN_CV"]:
-                fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
-
-            if self.configuration["pytorch"]["USE_PYTORCH"]:
-                fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["pytorch"]["PYTORCH_INC_DIR"]))
-
-            # boost includes
-            fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
-
-            # NLOHMANN_JSON_INCL_DIR
-            fh.write('INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})\n')
             fh.write('\n')
             fh.write('ADD_LIBRARY({0} SHARED "")\n'.format(self.project_name))
             fh.write('\n')
@@ -131,33 +104,28 @@ class RLCMakeWriter(CMakeFileWriter):
             tfh.write("SET(SOURCE {0}.cpp)\n".format(directory))
             tfh.write("SET(EXECUTABLE  {0})\n".format(directory))
 
-            if self.configuration["pytorch"]["USE_PYTORCH"]:
-                tfh.write('LIST(APPEND CMAKE_PREFIX_PATH {0})\n'.format(self.configuration["pytorch"]["PYTORCH_PATH"]))
-                tfh.write('FIND_PACKAGE(Torch REQUIRED CONFIG)\n')
-                tfh.write('MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")\n')
-                tfh.write('INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})\n')
-                tfh.write('\n')
-
             tfh = self._find_boost(fh=tfh)
             tfh = self._find_blas(fh=tfh)
+            tfh = self._find_pytorch(fh=tfh)
             tfh = self._write_build_option(fh=tfh, example=example)
+            tfh = self._write_includes(fh=tfh)
 
-            tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["BLAZE_INCL_DIR"]))
-            tfh.write('INCLUDE_DIRECTORIES(%s/src/)\n' % RLCMakeWriter.dir_path())
-            tfh.write('INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})\n')
-            tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["NLOHMANN_JSON_INCL_DIR"]))
-            tfh.write('INCLUDE_DIRECTORIES({0}/src/)\n'.format(self.cengine_dir))
+            #tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["BLAZE_INCL_DIR"]))
+            #tfh.write('INCLUDE_DIRECTORIES(%s/src/)\n' % RLCMakeWriter.dir_path())
+            #tfh.write('INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})\n')
+            #tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["NLOHMANN_JSON_INCL_DIR"]))
+            #tfh.write('INCLUDE_DIRECTORIES({0}/src/)\n'.format(self.cengine_dir))
 
             # kernel includes
-            for kdir in self.kernel_dirs:
-                tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.kernel_dir / kdir / 'src'))
+            #for kdir in self.kernel_dirs:
+            #    tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.kernel_dir / kdir / 'src'))
 
-            if self.configuration["trilinos"]["USE_TRILINOS"]:
-                tfh.write(
-                    'INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["trilinos"]["TRILINOS_INCL_DIR"]))
+            #if self.configuration["trilinos"]["USE_TRILINOS"]:
+            #    tfh.write(
+            #        'INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["trilinos"]["TRILINOS_INCL_DIR"]))
 
-            if self.configuration["opencv"]["USE_OPEN_CV"]:
-                tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
+            #if self.configuration["opencv"]["USE_OPEN_CV"]:
+            #    tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
 
             if example is False:
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["testing"]["GTEST_INC_DIR"]))
@@ -199,6 +167,14 @@ class RLCMakeWriter(CMakeFileWriter):
                 libs = ["epetra", "aztecoo", "amesos"]
                 for lib in libs:
                     tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} %s)\n' % lib)
+
+    def _write_include_files(self, fh):
+        fh.write('INCLUDE_DIRECTORIES(%s/src/)\n' % RLCMakeWriter.dir_path())
+        fh.write('INCLUDE_DIRECTORIES({0}/src/)\n'.format(self.cengine_dir))
+
+        for kdir in self.kernel_dirs:
+            fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.kernel_dir / kdir / 'src'))
+        return fh
 
     def _write_multiple_cmakes(self, path: Path, example: bool) -> None:
 
