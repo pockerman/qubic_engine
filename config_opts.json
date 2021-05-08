@@ -39,6 +39,18 @@
      "MAGIC_ENUM_INCL_DIR": ""
   },
 
+  "msgpack": {
+    "MSGPACK_INCL_DIR": "/home/alex/MySoftware/msgpack/install/include/"
+  },
+
+  "zmq": {
+
+    "USE_ZMQ": true,
+    "ZMQ_PATH": "/home/alex/MySoftware/zmq/",
+    "ZMQ_INCLUDE_PATH": "/home/alex/MySoftware/zmq/install/include",
+    "ZMQ_LIB_PATH": "/home/alex/MySoftware/zmq/install/lib"
+  },
+
   "kernel": {
     "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_rl_gym_server/install",
     "USE_DISCRETIZATION": true,
