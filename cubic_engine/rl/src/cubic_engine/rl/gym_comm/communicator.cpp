@@ -1,27 +1,33 @@
-#include <memory>
-#include <string>
+#include "kernel/base/config.h"
 
-//#include <spdlog/spdlog.h>
+#ifdef USE_LOG
+#include "kernel/utilities/logger.h"
+#endif
 
 #include "cubic_engine/rl/gym_comm/communicator.h"
 #include "cubic_engine/rl/gym_comm/requests.h"
-#include "third_party/zmq/zmq.hpp"
+#include "zmq/zmq.hpp"
 
-#include <string>
 
 namespace cengine{
 namespace rl {
 namespace  gym{
 
 
-
 Communicator::Communicator(const std::string &url)
+    :
+      context(),
+      socket(),
+      url_(url)
 {
     context = std::make_unique<zmq::context_t>(1);
     socket = std::make_unique<zmq::socket_t>(*context, ZMQ_PAIR);
 
     socket->connect(url.c_str());
-    //spdlog::info(get_raw_response());
+
+#ifdef USE_LOG
+    kernel::Logger::log_info(get_raw_response());
+#endif
 }
 
 
