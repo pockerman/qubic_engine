@@ -18,9 +18,11 @@ def read_json(filename):
 
 
 if __name__ == '__main__':
+
     print("{0} Generating configuration scripts...".format(INFO))
     config = read_json(filename="config_opts.json")
 
+    """
     rl_cmake_writer = NumericsCMakeWriter(configuration=config,
                                           kernel_dirs=KernelCMakeWriter.module_dirs(),
                                           kernel_dir=KernelCMakeWriter.dir_path(),
@@ -28,5 +30,13 @@ if __name__ == '__main__':
                                           discretization_dirs=DiscretizationCMakeWriter.module_dirs(),
                                           discretization_dir=DiscretizationCMakeWriter.dir_path(),
                                           discretization_name=DiscretizationCMakeWriter.module_name())
+    """
+    rl_cmake_writer = RLCMakeWriter(configuration=config,
+                                    kernel_dir=KernelCMakeWriter.dir_path(),
+                                    kernel_dirs=KernelCMakeWriter.module_dirs(),
+                                    kernel_name=KernelCMakeWriter.module_name(),
+                                    cengine_dir=CMakeCubicEngineWriter.dir_path(),
+                                    cengine_dirs=CMakeCubicEngineWriter.module_dirs(),
+                                    cengine_name=CMakeCubicEngineWriter.module_name())
     rl_cmake_writer.write_cmake_lists()
     print("{0} finished...".format(INFO))
