@@ -155,9 +155,11 @@ class CMakeFileWriter(object):
 
     def _write_includes(self, fh):
 
-        fh.write('INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})\n')
+        path = Path(os.getcwd())
+        fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["BLAZE_INCL_DIR"]))
         fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
-        fh.write('INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})\n')
+        fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["NLOHMANN_JSON_INCL_DIR"]))
+        fh.write('INCLUDE_DIRECTORIES("{0}")\n'.format(path / 'third_party/'))
 
         if self.configuration["pytorch"]["USE_PYTORCH"]:
             fh.write('INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})\n')
