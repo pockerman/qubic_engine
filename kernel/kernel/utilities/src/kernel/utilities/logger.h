@@ -21,28 +21,40 @@
 namespace kernel
 {
 
+///
 /// \brief Singleton class to be used for logging.
+///
 class Logger: private boost::noncopyable
 {
 
 public:
 
+    ///
     /// \brief Log the given message
+    ///
     template <typename Type>
     void log(const Type& message );
 
+    ///
     /// \brief Set the file name used for logging
+    ///
     static void set_log_file_name(const std::string& filename);
 
+    ///
     /// \brief Log a warning  message
+    ///
     template<typename Type>
     static void log_warning(const Type& message );
 
+    ///
     /// \brief Log an Error  message
+    ///
     template<typename Type>
     static void log_error(const Type& message );
 
+    ///
     /// \brief Log an Info  message
+    ///
     template<typename Type>
     static void log_info(const Type& message );
 
