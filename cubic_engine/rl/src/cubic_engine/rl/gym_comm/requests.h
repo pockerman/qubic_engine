@@ -1,12 +1,11 @@
 #ifndef REQUESTS_H
 #define REQUESTS_H
 
-
-
 #include <msgpack.hpp>
 
 #include <vector>
 #include <string>
+#include <any>
 
 namespace cengine{
 namespace rl {
@@ -52,9 +51,17 @@ struct ResetParam
 
 struct StepParam
 {
-    std::vector<std::vector<float>> actions;
+    int action;
     bool render;
-    MSGPACK_DEFINE_MAP(actions, render);
+    MSGPACK_DEFINE_MAP(action, render);
+};
+
+struct DiscreteStepResponse
+{
+    int observation;
+    float reward;
+    bool done;
+    MSGPACK_DEFINE_MAP(observation, reward, done);
 };
 
 struct InfoResponse
@@ -65,6 +72,12 @@ struct InfoResponse
     std::vector<int64_t> observation_space_shape;
     MSGPACK_DEFINE_MAP(action_space_type, action_space_shape,
                        observation_space_type, observation_space_shape);
+};
+
+struct ResetResponse
+{
+    std::vector<std::vector<float>> observation;
+    MSGPACK_DEFINE_MAP(observation);
 };
 
 struct MakeResponse

@@ -105,14 +105,14 @@ public:
     /// \brief Train on the given world using the given policy
     /// and the given dynamics function
     ///
-    template<typename PolicyTp>
-    output_t train(PolicyTp& policy);
+    //template<typename PolicyTp>
+    output_t train(/*PolicyTp& policy*/);
 
     ///
     /// \brief Performs one step of the training on the given world
     ///
-    template<typename PolicyTp>
-    void step(PolicyTp& policy);
+    //template<typename PolicyTp>
+    void step(/*PolicyTp& policy*/);
 
     ///
     /// \brief Initialize the underlying data structures
@@ -198,9 +198,9 @@ SyncValueFuncItr<WorldTp>::initialize(world_t& world, real_t init_val){
 }
 
 template<typename WorldTp>
-template<typename PolicyTp>
+/*template<typename PolicyTp>*/
 void
-SyncValueFuncItr<WorldTp>::step(PolicyTp& policy){
+SyncValueFuncItr<WorldTp>::step(/*PolicyTp& policy*/){
 
     if(world_ == nullptr){
         std::runtime_error("World pointer is null.");
@@ -275,8 +275,8 @@ SyncValueFuncItr<WorldTp>::step(PolicyTp& policy){
 
 template<typename WorldTp>
 template<typename PolicyTp>
-typename SyncValueFuncItr<WorldTp>::output_t
-SyncValueFuncItr<WorldTp>::train(PolicyTp& policy){
+//typename SyncValueFuncItr<WorldTp>::output_t
+SyncValueFuncItr<WorldTp>::train(/*PolicyTp& policy*/){
 
     while(itr_controller_.continue_iterations()){
 

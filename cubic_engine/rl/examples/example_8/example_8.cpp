@@ -5,8 +5,9 @@
 #endif
 
 #include "cubic_engine/base/cubic_engine_types.h"
+#include "cubic_engine/rl/worlds/discrete_gym_world.h"
 #include "cubic_engine/rl/gym_comm/communicator.h"
-#include "cubic_engine/rl/gym_comm/requests.h"
+#include "cubic_engine/rl/synchronous_value_function_learning.h"
 
 #include <iostream>
 #include <memory>
@@ -20,12 +21,9 @@ const std::string env_name = "FrozenLake-v0";
 const int num_envs = 1;
 const std::string server_addr = "tcp://127.0.0.1:10201";
 using cengine::rl::gym::Communicator;
-using cengine::rl::gym::MakeParam;
-using cengine::rl::gym::Request;
-using cengine::rl::gym::InfoParam;
-using cengine::rl::gym::InfoResponse;
-using cengine::rl::gym::ResetParam;
-
+using cengine::rl::worlds::DiscreteGymWorld;
+using cengine::rl::SyncValueFuncItr;
+using cengine::rl::SyncValueFuncItrInput;
 }
 
 
@@ -43,7 +41,20 @@ int main(){
         // create the communicator
         Communicator communicator(server_addr);
 
-        auto make_param = std::make_shared<MakeParam>();
+        DiscreteGymWorld world(communicator);
+        world.build(env_name);
+
+        std::cout<<"Number of states="<<world.n_states()<<std::endl;
+        std::cout<<"Number of actions="<<world.n_actions()<<std::endl;
+
+        SyncValueFuncItrInput input;
+
+        SyncValueFuncItr<DiscreteGymWorld> value_function(input);
+        value_function.initialize(world, 0.0);
+        value_function.train();
+
+
+        /*auto make_param = std::make_shared<MakeParam>();
 
         make_param->env_name = env_name;
         make_param->num_envs = num_envs;
@@ -63,7 +74,7 @@ int main(){
 
         for(uint_t itrs = 0; itrs < 100; ++itrs){
 
-        }
+        }*/
 
     }
     catch(std::exception& e){
