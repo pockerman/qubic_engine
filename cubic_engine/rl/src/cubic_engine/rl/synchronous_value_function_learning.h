@@ -20,6 +20,7 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <tuple>
 
 
 namespace cengine {
@@ -105,14 +106,12 @@ public:
     /// \brief Train on the given world using the given policy
     /// and the given dynamics function
     ///
-    //template<typename PolicyTp>
-    output_t train(/*PolicyTp& policy*/);
+    output_t train();
 
     ///
     /// \brief Performs one step of the training on the given world
     ///
-    //template<typename PolicyTp>
-    void step(/*PolicyTp& policy*/);
+    void step();
 
     ///
     /// \brief Initialize the underlying data structures
@@ -198,9 +197,8 @@ SyncValueFuncItr<WorldTp>::initialize(world_t& world, real_t init_val){
 }
 
 template<typename WorldTp>
-/*template<typename PolicyTp>*/
 void
-SyncValueFuncItr<WorldTp>::step(/*PolicyTp& policy*/){
+SyncValueFuncItr<WorldTp>::step(){
 
     if(world_ == nullptr){
         std::runtime_error("World pointer is null.");
@@ -211,59 +209,13 @@ SyncValueFuncItr<WorldTp>::step(/*PolicyTp& policy*/){
     // loop over the states of the world
     for(uint_t s=0; s<world_->n_states(); ++s){
 
-        // get the s-th state
-        auto& state = world_->get_state(s);
-
-        // the world should know which state is terminal
-        if(!world_->is_goal_state(state)){
-
-            // this is not the goal state. Get the
-            // the previous value
-            real_t old_v = vold_[state.get_id()];
-
-            real_t weighted_sum = 0.0;
-
-            // look ahead values for the state
-            auto look_ahead_vals = one_step_lookahed_(state);
-
-            auto best_action_val = blaze::max(look_ahead_vals);
-
-            // loop over all the actions allowed on this
-            // state
-            /*for(uint_t a=0; a<state.n_actions(); ++a){
-
-                auto action = state.get_action(a);
-
-                // get the probability at this state
-                // to take the given action
-                auto action_prob = policy(action, state);
-
-                // loop over the states we can transition
-                // to from this state
-                auto transition_states = state.get_states();
-
-                auto value = 0.0;
-                for(uint_t os=0; os < transition_states.size();  ++os){
-
-                        if(transition_states[os]){
-
-                            // the reward we will receive if at the
-                            // current state we take the given action.
-                            // This means that the agent transitions to
-                            // transition_states[os]
-                            real_t r = world_->get_reward(state, action);
-                            real_t vs_prime = vold_[transition_states[os]->get_id()];
-                            auto p= dynamics(*transition_states[os], r, state, action);
-                            value += p*(r + input_.gamma*vs_prime );
-                    }
-                }
-
-                weighted_sum += action_prob*value;
-            }*/
-
-            v_[state.get_id()] = best_action_val; //weighted_sum;
-            delta = std::max(delta, std::fabs(old_v - best_action_val));//std::max(delta, std::fabs(old_v-weighted_sum));
-        }       
+        // Do a one-step lookahead to find the best action
+        // look ahead values for the state
+        auto look_ahead_vals = one_step_lookahed_(s);
+        auto best_action_val = blaze::max(look_ahead_vals);
+        auto old_v = vold_[s];
+        delta = std::max(delta, std::fabs(old_v - best_action_val));
+        v_[s] = best_action_val;
     }
 
     // update the residual of the controller
@@ -274,16 +226,15 @@ SyncValueFuncItr<WorldTp>::step(/*PolicyTp& policy*/){
 }
 
 template<typename WorldTp>
-template<typename PolicyTp>
-//typename SyncValueFuncItr<WorldTp>::output_t
-SyncValueFuncItr<WorldTp>::train(/*PolicyTp& policy*/){
+typename SyncValueFuncItr<WorldTp>::output_t
+SyncValueFuncItr<WorldTp>::train(){
 
     while(itr_controller_.continue_iterations()){
 
         if(input_.show_iterations){
             std::cout<<itr_controller_.get_state()<<std::endl;
         }
-        step(policy);
+        step();
     }
 }
 
@@ -291,16 +242,19 @@ template<typename WorldTp>
 DynVec<real_t>
 SyncValueFuncItr<WorldTp>::one_step_lookahed_(const state_t& state)const{
 
-    DynVec<real_t> values(state.n_actions(), 0.0);
+    const static auto n_actions = world_->n_actions();
+    DynVec<real_t> values(world_->n_actions(), 0.0);
 
-    for(uint_t a=0; a<state.n_actions(); ++a){
-        for(uint_t s=0; s<state.n_states(); ++s){
+    for(uint_t a=0; a<n_actions; ++a){
 
-            auto& trans_state = *state.get_states()[s];
-            auto action = state.get_action(a);
-            auto prob = world_->get_dynamics(trans_state, action);
-            auto r = world_->get_reward(state, action);
-            auto vs_prime = vold_[trans_state.get_id()];
+        auto dynamics = world_->get_dynamics(state, a);
+
+        for(uint_t item=0; item<dynamics.size(); ++item){
+
+            auto prob = std::get<0>(dynamics[item]);
+            auto next_state = std::get<1>(dynamics[item]);
+            auto r = std::get<2>(dynamics[item]);
+            auto vs_prime = vold_[next_state];
             values[a] += prob*(r + input_.gamma*vs_prime );
         }
     }

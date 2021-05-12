@@ -4,6 +4,7 @@ Classes for building requests to send to pytorch-cpp-rl.
 from abc import ABC, abstractmethod
 import numpy as np
 import msgpack
+import logging
 
 
 class Message(ABC):
@@ -23,18 +24,43 @@ class InfoMessage(Message):
     """
 
     def __init__(self, action_space_type, action_space_shape,
-                 observation_space_type, observation_space_shape):
+                 observation_space_type, observation_space_shape,
+                 observation_space_size):
         self.action_space_type = action_space_type
         self.action_space_shape = action_space_shape
         self.observation_space_type = observation_space_type
         self.observation_space_shape = observation_space_shape
+        self.observation_space_size = observation_space_size
 
     def to_msg(self) -> bytes:
         request = {
             "action_space_type": self.action_space_type,
             "action_space_shape": self.action_space_shape,
             "observation_space_type": self.observation_space_type,
-            "observation_space_shape": self.observation_space_shape
+            "observation_space_shape": self.observation_space_shape,
+            "observation_space_size": self.observation_space_size
+        }
+        return msgpack.packb(request)
+
+
+class DynamicsMessage(Message):
+    """
+    Builds the JSON for returning the result of dynamics request.
+    """
+
+    def __init__(self, prob: float, next_state: int,
+                 reward: float, done: bool) -> None:
+        self.prob = prob
+        self.next_state = next_state
+        self.reward = reward
+        self.done = done
+
+    def to_msg(self) -> bytes:
+        request = {
+            "probability": self.prob,
+            "next_state": self.next_state,
+            "reward": self.reward,
+            "done": self.done,
         }
         return msgpack.packb(request)
 
@@ -60,8 +86,17 @@ class ResetMessage(Message):
         self.observation = observation
 
     def to_msg(self) -> bytes:
+
+        pack_obs = []
+        if isinstance(self.observation, list):
+            for item in self.observation:
+                try:
+                    pack_obs.append(item.tolist())
+                except:
+                    pack_obs.append(item)
+
         request = {
-            "observation": self.observation.tolist()
+            "observation": pack_obs # self.observation.tolist()
         }
         return msgpack.packb(request)
 

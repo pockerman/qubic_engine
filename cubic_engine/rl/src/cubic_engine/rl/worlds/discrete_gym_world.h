@@ -1,6 +1,16 @@
 #ifndef DISCRETE_GYM_WORLD_H
 #define DISCRETE_GYM_WORLD_H
 
+#include "kernel/base/config.h"
+
+#ifdef KERNEL_DEBUG
+#include <cassert>
+#endif
+
+#ifdef USE_LOG
+#include "kernel/utilities/logger.h"
+#endif
+
 #include "kernel/base/kernel_consts.h"
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/discrete_world.h"
@@ -18,6 +28,7 @@ namespace rl {
 namespace worlds {
 
 
+template<typename StateTp>
 class DiscreteGymWorld
 {
 public:
@@ -30,7 +41,7 @@ public:
     ///
     /// \brief state_t The state type
     ///
-    typedef std::vector<std::any> state_t;
+    typedef StateTp state_t;
 
     ///
     /// \brief reward_value_t The reward value type
@@ -85,7 +96,7 @@ public:
     /// \brief sample_action. Sample an action from
     /// the allowed action space of the world
     ///
-    virtual const action_t sample_action()const;
+    virtual const action_t sample_action()const{}
 
     ///
     /// \brief returns the current state of the world
@@ -108,6 +119,10 @@ public:
     /// and the given actions
     ///
     reward_value_t get_reward(const state_t& state, const action_t& action)const;
+    
+protected:
+
+    gym::Communicator* comm(){return comm_;}
 
 private:
 
@@ -139,7 +154,6 @@ private:
     ///
     bool finished_;
 
-
     ///
     /// \brief render_on_step_
     ///
@@ -153,7 +167,131 @@ private:
 
 };
 
+template<typename StateTp>
+DiscreteGymWorld<StateTp>::DiscreteGymWorld(gym::Communicator& comm)
+    :
+      comm_(&comm),
+      current_state_(),
+      is_built_(false),
+      finished_(false)
+{}
 
+
+template<typename StateTp>
+void
+DiscreteGymWorld<StateTp>::build(const std::string& world_name, bool reset, bool get_info_params){
+
+    auto make_param = std::make_shared<gym::MakeParam>();
+    make_param->env_name = world_name;
+    make_param->num_envs = 1;
+
+    gym::Request<gym::MakeParam> make_request("make", make_param);
+    comm_->send_request(make_request);
+
+#ifdef USE_LOG
+    kernel::Logger::log_info(comm_->get_response<gym::MakeResponse>()->result);
+#endif
+
+    world_name_ = world_name;
+    is_built_ = true;
+
+    if(get_info_params){
+        n_states();
+    }
+
+    if(reset){
+        restart();
+    }
+
+
+}
+
+template<typename StateTp>
+std::tuple<typename DiscreteGymWorld<StateTp>::state_t*, real_t, bool, std::any>
+DiscreteGymWorld<StateTp>::step(const action_t& action){
+
+    auto step_param = std::make_shared<gym::StepParam>();
+    step_param->render = render_on_step_;
+    step_param->action = static_cast<int>(action);
+
+    gym::Request<gym::StepParam> step_request("step", step_param);
+    comm_->send_request(step_request);
+
+#ifdef USE_LOG
+    kernel::Logger::log_info("Step in world " + world_name_ + " and action " + std::to_string(action));
+#endif
+
+    auto step_response = comm_->get_response<gym::DiscreteStepResponse>();
+    //current_state_[0] = step_response->observation;
+    //current_state_[1] = step_response->reward;
+    //current_state_[2] = step_response->done;
+
+    finished_ = step_response->done;
+    //return std::make_tuple(&current_state_, step_response->reward, step_response->done, std::any());
+}
+
+template<typename StateTp>
+typename DiscreteGymWorld<StateTp>::state_t*
+DiscreteGymWorld<StateTp>::restart(){
+
+
+    auto reset_param = std::make_shared<gym::ResetParam>();
+    gym::Request<gym::ResetParam> reset_request("reset", reset_param);
+    comm_->send_request(reset_request);
+
+#ifdef USE_LOG
+    kernel::Logger::log_info("Reset world " + world_name_);
+#endif
+
+    // update the current state
+    //current_state_ = comm_->get_response<gym::ResetResponse>()->observation;
+    return &current_state_;
+}
+
+
+template<typename StateTp>
+uint_t
+DiscreteGymWorld<StateTp>::n_states()const{
+
+#ifdef KERNEL_DEBUG
+    assert(is_built_ && "World is not built. Did you call build(world_name)?");
+#endif
+
+    if(!info_response_){
+
+        gym::Request<gym::InfoParam> info_request("info", std::make_shared<gym::InfoParam>());
+        comm_->send_request(info_request);
+        info_response_ = comm_->get_response<gym::InfoResponse>();
+#ifdef USE_LOG
+    kernel::Logger::log_info("Update info response");
+#endif
+    }
+
+    return info_response_->observation_space_size;
+}
+
+
+template<typename StateTp>
+uint_t
+DiscreteGymWorld<StateTp>::n_actions()const{
+
+#ifdef KERNEL_DEBUG
+    assert(is_built_ && "World is not built. Did you call build(world_name)?");
+#endif
+
+    if(!info_response_){
+
+        gym::Request<gym::InfoParam> info_request("info", std::make_shared<gym::InfoParam>());
+        comm_->send_request(info_request);
+        info_response_ = comm_->get_response<gym::InfoResponse>();
+#ifdef USE_LOG
+    kernel::Logger::log_info("Update info response");
+#endif
+    }
+
+    return info_response_->action_space_shape[0]; //size();
+
+}
 
 
 }

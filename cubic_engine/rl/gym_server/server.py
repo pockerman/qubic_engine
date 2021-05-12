@@ -5,26 +5,34 @@ import logging
 from typing import Tuple
 import numpy as np
 import gym
+from zmq_client import ZmqClient
 
 from envs import make_vec_envs
 from messages import (InfoMessage, MakeMessage, ResetMessage,
-                                 StepMessage)
-from zmq_client import ZmqClient
-
+                      StepMessage, DynamicsMessage)
 
 RUNNING_REWARD_HORIZON = 10
 
 
-class Server:
+class Server(object):
+
     """
     When `Server.serve()` is called, provides a ZMQ based API for training
     RL agents on OpenAI gym environments.
     """
 
-    def __init__(self, zmq_client: ZmqClient):
+    def __init__(self, zmq_client: ZmqClient) -> None:
         self.zmq_client: ZmqClient = zmq_client
-        self.env: gym.Env = None
+        self._env: gym.Env = None
         logging.info("Gym server initialized")
+
+    @property
+    def env(self):
+        return self._env
+
+    @env.setter
+    def env(self, value):
+        self._env = value
 
     def serve(self):
         """
@@ -37,6 +45,10 @@ class Server:
             pass
 
     def _serve(self):
+        """
+        Serve the request
+        """
+
         while True:
             request = self.zmq_client.receive()
             method = request['method']
@@ -46,18 +58,44 @@ class Server:
                 (action_space_type,
                  action_space_shape,
                  observation_space_type,
-                 observation_space_shape) = self.__info()
+                 observation_space_shape,
+                 observation_space_size) = self.__info()
+
+                logging.info("Action space type " + action_space_type)
+                logging.info("Action space shape " + str(action_space_shape))
+                logging.info("Observation space type " + observation_space_type)
+                logging.info("Observation space shape " + str(observation_space_shape))
+
                 self.zmq_client.send(InfoMessage(action_space_type,
                                                  action_space_shape,
                                                  observation_space_type,
-                                                 observation_space_shape))
+                                                 observation_space_shape,
+                                                 observation_space_size))
+            elif method == 'dynamics':
+                state = param["state"]
+                action = param["action"]
+                data = self._env.P[state][action]
+                prob = []
+                next_state = []
+                reward = []
+                done = []
+
+                for item in data:
+                    prob.append(item[0])
+                    next_state.append(item[1])
+                    reward.append(item[2])
+                    done.append(item[3])
+
+                self.zmq_client.send(DynamicsMessage(prob=prob, next_state=next_state,
+                                                     reward=reward, done=done))
 
             elif method == 'make':
-                self.__make(param['env_name'], param['num_envs'])
+                self.make(param['env_name'], param['num_envs'])
                 self.zmq_client.send(MakeMessage())
 
             elif method == 'reset':
                 observation = self.__reset()
+                logging.info(" Observation " + str(observation))
                 self.zmq_client.send(ResetMessage(observation))
 
             elif method == 'step':
@@ -75,29 +113,34 @@ class Server:
         """
         Return info about the currently loaded environment
         """
-        action_space_type = self.env.action_space.__class__.__name__
+
+        action_space_type = self._env.action_space.__class__.__name__
         if action_space_type == 'Discrete':
-            action_space_shape = [self.env.action_space.n]
+            action_space_shape = [self._env.action_space.n]
         else:
-            action_space_shape = self.env.action_space.shape
-        observation_space_type = self.env.observation_space.__class__.__name__
-        observation_space_shape = self.env.observation_space.shape
+            action_space_shape = self._env.action_space.shape
+        observation_space_type = self._env.observation_space.__class__.__name__
+        observation_space_shape = self._env.observation_space.shape
+        observation_space_size = self._env.observation_space.n
         return (action_space_type, action_space_shape, observation_space_type,
-                observation_space_shape)
+                observation_space_shape, observation_space_size)
+
+    def n_states(self) -> int:
+        return self._env.observation_space.shape
 
     def make(self, env_name, num_envs):
         """
         Makes a vectorized environment of the type and number specified.
         """
         logging.info("Making %d %ss", num_envs, env_name)
-        self.env = make_vec_envs(env_name, 0, num_envs)
+        self._env = make_vec_envs(env_name, 0, num_envs)
 
     def reset(self) -> np.ndarray:
         """
         Resets the environments.
         """
         logging.info("Resetting environments")
-        return self.env.reset()
+        return self._env.reset()
 
     def step(self,
              actions: np.ndarray,
@@ -106,14 +149,14 @@ class Server:
         """
         Steps the environments.
         """
-        if isinstance(self.env.action_space, gym.spaces.Discrete):
+        if isinstance(self._env.action_space, gym.spaces.Discrete):
             actions = actions.squeeze(-1)
             actions = actions.astype(np.int)
-        observation, reward, done, info = self.env.step(actions)
+        observation, reward, done, info = self._env.step(actions)
         reward = np.expand_dims(reward, -1)
         done = np.expand_dims(done, -1)
         if render:
-            self.env.render()
+            self._env.render()
         return observation, reward, done, info
 
     __info = info

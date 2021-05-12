@@ -160,11 +160,6 @@ int main(){
         };
 
         RewardProducer rproducer;
-        /*auto dynamics = [&rproducer](const state_t& s1, real_t,
-                const state_t& s2, const action_t& action){
-          return 0.25;
-        };*/
-
         std::vector<real_t> rewards(1, -1.0);
 
         /// the world of the agent
@@ -199,7 +194,7 @@ int main(){
 
             std::cout<<"At iteration: "<<learner.get_current_iteration()<<std::endl;
 
-            learner.step(policy);
+            //learner.step(policy);
             auto values = learner.get_values();
 
             for(auto c=0; c<values.size(); ++c){
