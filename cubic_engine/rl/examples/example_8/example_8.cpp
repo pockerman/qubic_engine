@@ -48,7 +48,10 @@ int main(){
         std::cout<<"Number of actions="<<world.n_actions()<<std::endl;
 
         SyncValueFuncItrInput input;
-        input.n_iterations = 2;
+        input.tol = 1.0e-5;
+        input.gamma = 1.0;
+        input.n_iterations = 100;
+        input.show_iterations = true;
 
         SyncValueFuncItr<DiscreteGymWorldWithDynamics> value_function(input);
         value_function.initialize(world, 0.0);

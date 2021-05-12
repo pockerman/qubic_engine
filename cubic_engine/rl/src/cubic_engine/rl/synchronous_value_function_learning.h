@@ -32,10 +32,10 @@ namespace rl {
 ///
 struct SyncValueFuncItrInput
 {
-    real_t tol;
-    real_t gamma;
-    uint_t n_iterations;
-    bool show_iterations;
+    real_t tol{1.0e-5};
+    real_t gamma{0.0};
+    uint_t n_iterations{10};
+    bool show_iterations{true};
 };
 
 ///
