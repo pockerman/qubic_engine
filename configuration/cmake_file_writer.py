@@ -21,8 +21,6 @@ class CMakeFileWriter(object):
 
     def write_basic_lists(self, fh, **options):
 
-            current_dir = Path(os.getcwd())
-
             # start creating main CMakeLists
             fh.write("CMAKE_MINIMUM_REQUIRED(VERSION 3.6)\n")
             fh.write('MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")\n')
@@ -70,6 +68,7 @@ class CMakeFileWriter(object):
 
             fh = self._find_boost(fh=fh)
             fh = self._find_blas(fh=fh)
+            fh = self._find_pytorch(fh=fh)
             fh = self._write_options(fh=fh)
             fh = self._write_configure_files(fh=fh)
 
@@ -77,6 +76,7 @@ class CMakeFileWriter(object):
             fh.write('MESSAGE(STATUS "C++ Compiler: ${CMAKE_CXX_COMPILER}")\n')
             fh.write('MESSAGE(STATUS "C Compiler: ${CMAKE_C_COMPILER}")\n')
             fh.write('\n')
+            fh = self._write_includes(fh=fh)
             return fh
 
     def write_test_cmake_lists(self):
@@ -144,6 +144,33 @@ class CMakeFileWriter(object):
         fh.write('\tMESSAGE( STATUS  "Found needed BLAS library.")\n')
         fh.write('ENDIF()\n')
         fh.write('\n')
+        return fh
+
+    def _find_pytorch(self, fh):
+        if self.configuration["pytorch"]["USE_PYTORCH"]:
+            fh.write('LIST(APPEND CMAKE_PREFIX_PATH {0})\n'.format(self.configuration["pytorch"]["PYTORCH_PATH"]))
+            fh.write('FIND_PACKAGE(Torch REQUIRED CONFIG)\n')
+            fh.write('MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")\n')
+        return fh
+
+    def _write_includes(self, fh):
+
+        path = Path(os.getcwd())
+        fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["BLAZE_INCL_DIR"]))
+        fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
+        fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["NLOHMANN_JSON_INCL_DIR"]))
+        fh.write('INCLUDE_DIRECTORIES("{0}")\n'.format(path / 'third_party/'))
+
+        if self.configuration["pytorch"]["USE_PYTORCH"]:
+            fh.write('INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})\n')
+
+        if self.configuration["trilinos"]["USE_TRILINOS"]:
+            fh.write('INCLUDE_DIRECTORIES(${TRILINOS_INCL_DIR})\n')
+
+        if self.configuration["opencv"]["USE_OPEN_CV"]:
+            fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
+
+        fh = self._write_include_files(fh=fh)
         return fh
 
     def _write_include_files(self, fh):

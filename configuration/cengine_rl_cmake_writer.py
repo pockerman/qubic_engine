@@ -47,33 +47,6 @@ class RLCMakeWriter(CMakeFileWriter):
             # write the basic set variables
             fh = self.write_basic_lists(fh=fh)
 
-            # Blaze lib include
-            fh.write('INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})\n')
-
-            # library include files
-            fh.write('INCLUDE_DIRECTORIES(%s/src/)\n' % RLCMakeWriter.dir_path())
-
-            for kdir in self.kernel_dirs:
-                fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.kernel_dir / kdir / 'src'))
-
-            # cengine includes
-            fh.write('INCLUDE_DIRECTORIES({0}/src/)\n'.format(self.cengine_dir))
-
-            # trilinos includes
-            if self.configuration["trilinos"]["USE_TRILINOS"]:
-                fh.write('INCLUDE_DIRECTORIES(${TRILINOS_INCL_DIR})\n')
-
-            if self.configuration["opencv"]["USE_OPEN_CV"]:
-                fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
-
-            if self.configuration["pytorch"]["USE_PYTORCH"]:
-                fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["pytorch"]["PYTORCH_INC_DIR"]))
-
-            # boost includes
-            fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
-
-            # NLOHMANN_JSON_INCL_DIR
-            fh.write('INCLUDE_DIRECTORIES(${NLOHMANN_JSON_INCL_DIR})\n')
             fh.write('\n')
             fh.write('ADD_LIBRARY({0} SHARED "")\n'.format(self.project_name))
             fh.write('\n')
@@ -102,11 +75,20 @@ class RLCMakeWriter(CMakeFileWriter):
             build_library(path=path / "cubic_engine" / "rl")
 
         if self.configuration["cengine"]["rl"]["BUILD_TESTS"]:
+
+            if self.configuration["zmq"]["USE_ZMQ"]:
+                cmd = " export LD_LIBRARY_PATH={0}".format(self.configuration["zmq"]["ZMQ_LIB_PATH"])
+                os.system(cmd)
             self._write_tests_cmake()
             print("{0} Building tests for project {1}".format(INFO, RLCMakeWriter.dir_path()))
             build_tests(path=RLCMakeWriter.dir_path() / "tests" )
 
         if self.configuration["cengine"]["rl"]["BUILD_EXAMPLES"]:
+
+            if self.configuration["zmq"]["USE_ZMQ"]:
+                cmd = " export LD_LIBRARY_PATH={0}".format(self.configuration["zmq"]["ZMQ_LIB_PATH"])
+                os.system(cmd)
+
             self._write_examples_cmake()
             print("{0} Building examples for project {1}".format(INFO, RLCMakeWriter.dir_path()))
             build_examples(path=RLCMakeWriter.dir_path() / "examples")
@@ -131,33 +113,11 @@ class RLCMakeWriter(CMakeFileWriter):
             tfh.write("SET(SOURCE {0}.cpp)\n".format(directory))
             tfh.write("SET(EXECUTABLE  {0})\n".format(directory))
 
-            if self.configuration["pytorch"]["USE_PYTORCH"]:
-                tfh.write('LIST(APPEND CMAKE_PREFIX_PATH {0})\n'.format(self.configuration["pytorch"]["PYTORCH_PATH"]))
-                tfh.write('FIND_PACKAGE(Torch REQUIRED CONFIG)\n')
-                tfh.write('MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")\n')
-                tfh.write('INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})\n')
-                tfh.write('\n')
-
             tfh = self._find_boost(fh=tfh)
             tfh = self._find_blas(fh=tfh)
+            tfh = self._find_pytorch(fh=tfh)
             tfh = self._write_build_option(fh=tfh, example=example)
-
-            tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["BLAZE_INCL_DIR"]))
-            tfh.write('INCLUDE_DIRECTORIES(%s/src/)\n' % RLCMakeWriter.dir_path())
-            tfh.write('INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})\n')
-            tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["NLOHMANN_JSON_INCL_DIR"]))
-            tfh.write('INCLUDE_DIRECTORIES({0}/src/)\n'.format(self.cengine_dir))
-
-            # kernel includes
-            for kdir in self.kernel_dirs:
-                tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.kernel_dir / kdir / 'src'))
-
-            if self.configuration["trilinos"]["USE_TRILINOS"]:
-                tfh.write(
-                    'INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["trilinos"]["TRILINOS_INCL_DIR"]))
-
-            if self.configuration["opencv"]["USE_OPEN_CV"]:
-                tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
+            tfh = self._write_includes(fh=tfh)
 
             if example is False:
                 tfh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["testing"]["GTEST_INC_DIR"]))
@@ -173,6 +133,9 @@ class RLCMakeWriter(CMakeFileWriter):
 
             if self.configuration["trilinos"]["USE_TRILINOS"]:
                 link_dirs.append(self.configuration["trilinos"]["TRILINOS_LIB_DIR"])
+
+            if self.configuration["zmq"]["USE_ZMQ"]:
+                link_dirs.append(self.configuration["zmq"]["ZMQ_LIB_PATH"])
 
             for link_dir in link_dirs:
                 tfh.write("LINK_DIRECTORIES({0})\n".format(link_dir))
@@ -192,6 +155,9 @@ class RLCMakeWriter(CMakeFileWriter):
             if self.configuration["pytorch"]["USE_PYTORCH"]:
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} ${TORCH_LIBRARIES})\n')
 
+            if self.configuration["zmq"]["USE_ZMQ"]:
+                tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} zmq)\n')
+
             tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} pthread)\n')
             tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} openblas)\n')
 
@@ -199,6 +165,18 @@ class RLCMakeWriter(CMakeFileWriter):
                 libs = ["epetra", "aztecoo", "amesos"]
                 for lib in libs:
                     tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} %s)\n' % lib)
+
+    def _write_include_files(self, fh):
+        fh.write('INCLUDE_DIRECTORIES(%s/src/)\n' % RLCMakeWriter.dir_path())
+        fh.write('INCLUDE_DIRECTORIES({0}/src/)\n'.format(self.cengine_dir))
+        fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["msgpack"]["MSGPACK_INCL_DIR"]))
+
+        if self.configuration["zmq"]["USE_ZMQ"]:
+            fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["zmq"]["ZMQ_INCLUDE_PATH"]))
+
+        for kdir in self.kernel_dirs:
+            fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.kernel_dir / kdir / 'src'))
+        return fh
 
     def _write_multiple_cmakes(self, path: Path, example: bool) -> None:
 

@@ -4,11 +4,11 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 
 #include <msgpack.hpp>
-#include <spdlog/spdlog.h>
-#include <spdlog/fmt/bundled/ostream.h>
+//#include <spdlog/spdlog.h>
+//#include <spdlog/fmt/bundled/ostream.h>
 
 #include "requests.h"
-#include "third_party/zmq.hpp"
+#include "zmq/zmq.hpp"
 
 #include <memory>
 #include <string>
@@ -50,7 +50,7 @@ class Communicator
     std::unique_ptr<T> get_response();
 
     ///
-    ///
+    /// \brief Send the request
     ///
     template <class T>
     void send_request(const Request<T> &request);
@@ -60,6 +60,11 @@ class Communicator
 
     std::unique_ptr<zmq::context_t> context;
     std::unique_ptr<zmq::socket_t> socket;
+
+    ///
+    /// \brief url_ The URL to use
+    ///
+    std::string url_;
 };
 
 template <class T>
@@ -82,7 +87,7 @@ Communicator::get_response()
     }
     catch (...)
     {
-        spdlog::error("Communication error: {}", object);
+        //spdlog::error("Communication error: {}", object);
     }
 
     return response;

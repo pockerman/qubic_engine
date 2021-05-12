@@ -5,6 +5,7 @@ Pytorch-cpp-rl OpenAI gym server main script.
 import logging
 
 from server import Server
+from discrete_world_server import DiscreteWorldServer
 from zmq_client import ZmqClient
 
 
@@ -22,17 +23,24 @@ def main():
                         format=('%(asctime)s %(funcName)s '
                                 '[%(levelname)s]: %(message)s'),
                         datefmt='%Y%m%d %H:%M:%S')
+
+
     logging.info("Initializing gym server")
 
     zmq_client = ZmqClient(10201)
     logging.info("Connecting to client")
     zmq_client.send("Connection established")
     logging.info("Connected")
-    server = Server(zmq_client)
+
+    server = DiscreteWorldServer(zmq_client=zmq_client)
+    #server = Server(zmq_client)
 
     try:
         server.serve()
-    except:  # pylint: disable=bare-except
+    except Exception as e:  # pylint: disable=bare-except
+        print("An exception was raised " + str(e))
+        raise e
+    except:
         import pdb
         pdb.post_mortem()
 
