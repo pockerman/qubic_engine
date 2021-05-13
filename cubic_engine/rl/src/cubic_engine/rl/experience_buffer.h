@@ -12,6 +12,19 @@ namespace cengine{
 namespace rl {
 
 ///
+/// \brief The Transition struct Default transition to use
+/// with the ExperienceBuffer
+///
+struct Transition
+{
+    uint_t state;
+    uint_t action;
+    uint_t next_state;
+    uint_t reward;
+
+};
+
+///
 /// \brief The ExperienceBuffer class. A buffer based on
 /// std::deque to accumulate items of type ExperienceTp.
 ///
@@ -23,7 +36,6 @@ public:
     typedef ExperienceTp value_t ;
     typedef ExperienceTp experience_t;
     typedef AllocatorTp allocator_t ;
-
 
     ///
     /// \brief ExperienceBuffer
@@ -54,7 +66,6 @@ public:
     template<typename BatchTp>
     void sample(uint_t batch_size, BatchTp& batch);
 
-
 private:
 
     ///
@@ -80,6 +91,7 @@ template<typename ExperienceTp, class AllocatorTp>
 void
 ExperienceBuffer<ExperienceTp, AllocatorTp>::append(const experience_t& experience){
 
+    experience_.push_back(experience);
 }
 
 template<typename ExperienceTp, class AllocatorTp>
