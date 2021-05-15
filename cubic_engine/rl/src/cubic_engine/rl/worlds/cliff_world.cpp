@@ -27,10 +27,10 @@ CliffWorld::sample_action()const{
 }
 
 
-std::tuple<CliffWorld::state_t*, real_t, bool, std::any>
+std::tuple<CliffWorld::state_t, real_t, bool, std::any>
 CliffWorld::step(const CliffWorld::action_t& action){
 
-    if(this->states_.empty()){
+    /*if(this->states_.empty()){
         throw std::logic_error("Cell connectivity is not established");
     }
 
@@ -80,7 +80,7 @@ CliffWorld::step(const CliffWorld::action_t& action){
         }
 
         return {next_state, r_, this->finished_ , std::any()};
-    }
+    }*/
 }
 
 void

@@ -22,6 +22,7 @@
 #include <any>
 #include <string>
 #include <memory>
+#include <tuple>
 
 namespace cengine {
 namespace rl {
@@ -90,29 +91,29 @@ public:
     /// learning (for example, it might contain the raw probabilities behind the environment’s last state change).
     /// However, official evaluations of your agent are not allowed to use this for learning.
     ///
-    virtual std::tuple<state_t*, real_t, bool, std::any> step(const action_t&);
+    virtual std::tuple<state_t, real_t, bool, std::any> step(const action_t&);
 
     ///
     /// \brief sample_action. Sample an action from
     /// the allowed action space of the world
     ///
-    virtual const action_t sample_action()const{}
+    virtual action_t sample_action()const;
 
     ///
     /// \brief returns the current state of the world
     ///
-    const state_t& get_current_state()const{return current_state_; }
+    const state_t& get_current_state()const noexcept{return current_state_; }
 
     ///
     /// \brief restart. Restart the world and
     /// return the starting state
     ///
-    state_t* restart();
+    state_t reset();
 
     ///
     /// \brief Returns true if the world is finished
     ///
-    bool is_finished()const{return finished_;}
+    bool is_finished()const noexcept{return finished_;}
 
     ///
     /// \brief Returns the reward for the given state
@@ -173,13 +174,20 @@ DiscreteGymWorld<StateTp>::DiscreteGymWorld(gym::Communicator& comm)
       comm_(&comm),
       current_state_(),
       is_built_(false),
-      finished_(false)
+      finished_(false),
+      render_on_step_(false)
 {}
+
+template<typename StateTp>
+typename DiscreteGymWorld<StateTp>::action_t
+DiscreteGymWorld<StateTp>::sample_action()const{
+    return action_t();
+}
 
 
 template<typename StateTp>
 void
-DiscreteGymWorld<StateTp>::build(const std::string& world_name, bool reset, bool get_info_params){
+DiscreteGymWorld<StateTp>::build(const std::string& world_name, bool restart, bool get_info_params){
 
     auto make_param = std::make_shared<gym::MakeParam>();
     make_param->env_name = world_name;
@@ -199,15 +207,13 @@ DiscreteGymWorld<StateTp>::build(const std::string& world_name, bool reset, bool
         n_states();
     }
 
-    if(reset){
-        restart();
+    if(restart){
+        reset();
     }
-
-
 }
 
 template<typename StateTp>
-std::tuple<typename DiscreteGymWorld<StateTp>::state_t*, real_t, bool, std::any>
+std::tuple<typename DiscreteGymWorld<StateTp>::state_t, real_t, bool, std::any>
 DiscreteGymWorld<StateTp>::step(const action_t& action){
 
     auto step_param = std::make_shared<gym::StepParam>();
@@ -227,12 +233,12 @@ DiscreteGymWorld<StateTp>::step(const action_t& action){
     //current_state_[2] = step_response->done;
 
     finished_ = step_response->done;
-    //return std::make_tuple(&current_state_, step_response->reward, step_response->done, std::any());
+    return std::make_tuple(step_response->observation, step_response->reward, step_response->done, std::any());
 }
 
 template<typename StateTp>
-typename DiscreteGymWorld<StateTp>::state_t*
-DiscreteGymWorld<StateTp>::restart(){
+typename DiscreteGymWorld<StateTp>::state_t
+DiscreteGymWorld<StateTp>::reset(){
 
 
     auto reset_param = std::make_shared<gym::ResetParam>();
@@ -244,8 +250,8 @@ DiscreteGymWorld<StateTp>::restart(){
 #endif
 
     // update the current state
-    //current_state_ = comm_->get_response<gym::ResetResponse>()->observation;
-    return &current_state_;
+    current_state_ = comm_->get_response<gym::DiscreteResetResponse>()->x;
+    return current_state_;
 }
 
 

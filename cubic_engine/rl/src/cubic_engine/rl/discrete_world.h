@@ -84,7 +84,7 @@ public:
     /// learning (for example, it might contain the raw probabilities behind the environment’s last state change).
     /// However, official evaluations of your agent are not allowed to use this for learning.
     ///
-    virtual std::tuple<state_t*, real_t, bool, std::any> step(const action_t&)=0;
+    virtual std::tuple<state_t, real_t, bool, std::any> step(const action_t&)=0;
 
     ///
     /// \brief sample_action. Sample an action from
@@ -179,6 +179,9 @@ public:
     /// file specified by the given filename
     ///
     virtual void save_world_as_json(const std::string& filename)const;
+
+
+    uint_t reset(){return 0;}
 
 protected:
 

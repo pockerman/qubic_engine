@@ -51,6 +51,7 @@ namespace cliff_world_detail{
         /// \brief Setup the rewards
         ///
         void setup_rewards();
+
     private:
 
         ///
@@ -143,7 +144,7 @@ public:
     /// \brief Transition to a new state by
     /// performing the given action
     ///
-    virtual std::tuple<state_t*, real_t, bool, std::any> step(const action_t&)override final;
+    virtual std::tuple<state_t, real_t, bool, std::any> step(const action_t&)override final;
 
     ///
     /// \brief Returns the reward associated

@@ -86,7 +86,7 @@ public:
     /// \brief Transition to a new state by
     /// performing the given action
     ///
-    virtual std::tuple<state_t*, real_t, bool, std::any> step(const action_t&)override final;
+    virtual std::tuple<state_t, real_t, bool, std::any> step(const action_t&)override final;
 
     ///
     /// \brief Returns the reward associated
@@ -144,10 +144,10 @@ GridWorld<RewardTp, DynamicsTp>::sample_action()const{
 }
 
 template<typename RewardTp, typename DynamicsTp>
-std::tuple<typename GridWorld<RewardTp, DynamicsTp>::state_t*, real_t, bool, std::any>
+std::tuple<typename GridWorld<RewardTp, DynamicsTp>::state_t, real_t, bool, std::any>
 GridWorld<RewardTp, DynamicsTp>::step(const typename GridWorld<RewardTp, DynamicsTp>::action_t& action){
 
-    if(this->states_.empty()){
+    /*if(this->states_.empty()){
         throw std::logic_error("Cell connectivity is not established");
     }
 
@@ -159,10 +159,10 @@ GridWorld<RewardTp, DynamicsTp>::step(const typename GridWorld<RewardTp, Dynamic
        throw std::logic_error("Empty goals list");
     }
 
-    if(this->is_goal_state(*this->current_state_)){
+    if(this->is_goal_state(this->current_state_)){
         r_ = this->reward_.goal_reward();
         this->finished_ = true;
-        return {const_cast<state_t*>(this->current_state_), this->reward_.goal_reward(), this->finished_, std::any()};
+        return {this->current_state_, this->reward_.goal_reward(), this->finished_, std::any()};
     }
     else{
 
@@ -186,7 +186,7 @@ GridWorld<RewardTp, DynamicsTp>::step(const typename GridWorld<RewardTp, Dynamic
         }
 
         return {next_state, r_, false, std::any()};
-    }
+    }*/
 }
 
 

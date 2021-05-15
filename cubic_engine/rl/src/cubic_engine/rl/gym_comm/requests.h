@@ -69,8 +69,8 @@ struct GetDynamicsParam
 
 struct DiscreteStepResponse
 {
-    int observation;
-    float reward;
+    uint_t observation;
+    real_t reward;
     bool done;
     MSGPACK_DEFINE_MAP(observation, reward, done);
 };
@@ -94,6 +94,12 @@ struct DiscreteDynamicsResponse
     std::vector<real_t> reward;
     std::vector<bool> done;
     MSGPACK_DEFINE_MAP(probability, next_state, reward, done);
+};
+
+struct DiscreteResetResponse
+{
+    uint_t x;
+    MSGPACK_DEFINE_MAP(x);
 };
 
 struct ResetResponse

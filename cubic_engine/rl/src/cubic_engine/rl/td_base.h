@@ -108,7 +108,7 @@ TDBase<WorldTp>::initialize(world_t& world, reward_value_t val){
 
     // finally set the world pointer
     this->world_ptr_ = &world;
-    this->state_ = nullptr;
+    this->state_ = world.reset();
     this->is_initialized_ = true;
 }
 
@@ -126,10 +126,10 @@ TDBase<WorldTp>::action_selection_policy(const state_t& state){
     auto exp_exp_tradeoff = dis(rd);
 
     // do exploration by default
-    auto action_idx = this->world_ptr_->sample_action();
+    auto action_idx = this->world_ptr()->sample_action();
 
     if( exp_exp_tradeoff > this->input_.epsilon ){
-          action_idx = static_cast<action_t>(kernel::row_argmax(q_function_, state.get_id()));
+          action_idx = static_cast<action_t>(kernel::row_argmax(q_function_, state));
     }
 
     return action_idx;

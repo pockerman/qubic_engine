@@ -119,7 +119,7 @@ MCControl<WorldTp, PolicySamplerTp, TargetPolicyTp>::initialize(world_t& world, 
 
     // finally set the world pointer
     this->world_ptr_ = &world;
-    this->state_ = nullptr;
+    this->state_ = world.reset();
     this->is_initialized_ = true;
 }
 

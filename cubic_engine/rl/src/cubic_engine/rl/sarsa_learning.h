@@ -100,16 +100,16 @@ template<typename WorldTp>
 void
 Sarsa<WorldTp>::step(){
 
-    action_t next_action = WorldTp::INVALID_ACTION;
-    state_t* state = nullptr;
+    /*action_t next_action = WorldTp::INVALID_ACTION;
+    state_t state = 0;
 
-    auto action = this->action_selection_policy(*this->state_);
+    auto action = this->action_selection_policy(this->state_);
 
     auto& qtable = this->get_q_function();
     for(uint_t itr=1; itr < this->get_total_itrs_per_episode(); ++itr){
 
         // step in the world
-        auto [next_state_ptr, reward, done, info] = this->world_ptr_->step(action);
+        auto [next_state_ptr, reward, done, info] = this->world_ptr()->step(action);
 
         if(!next_state_ptr){
             throw std::logic_error("Next state pointer is NULL");
@@ -127,7 +127,7 @@ Sarsa<WorldTp>::step(){
         if(done){
            break;
         }
-    }
+    }*/
 }
 
 }
