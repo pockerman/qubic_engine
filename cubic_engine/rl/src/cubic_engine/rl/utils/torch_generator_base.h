@@ -1,0 +1,54 @@
+#ifndef TORCH_GENERATOR_BASE_H
+#define TORCH_GENERATOR_BASE_H
+
+#include "kernel/base/config.h"
+
+#ifdef USE_PYTORCH
+
+#include "cubic_engine/rl/utils/torch_mini_batch.h"
+
+namespace cengine {
+namespace rl {
+namespace utils {
+
+
+
+class TorchGeneratorBase{
+
+public:
+
+    ///
+    ///
+    ///
+    virtual ~TorchGeneratorBase() = default;
+
+    ///
+    /// \brief done
+    /// \return
+    ///
+    virtual bool done() const = 0;
+
+    ///
+    /// \brief next
+    /// \return
+    ///
+    virtual TorchMinBatch next() = 0;
+
+protected:
+
+    ///
+    ///
+    ///
+    TorchGeneratorBase() = default;
+
+
+};
+
+}
+
+}
+
+}
+
+#endif
+#endif // TORCH_GENERATOR_BASE_H
