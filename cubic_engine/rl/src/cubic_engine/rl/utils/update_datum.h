@@ -14,6 +14,15 @@ struct UpdateDatum
 
     std::string name;
     T value;
+
+    ///
+    /// \brief UpdateDatum
+    ///
+    UpdateDatum(std::string n, const T& v)
+        :
+          name(n),
+          value(v)
+    {}
 };
 
 }
