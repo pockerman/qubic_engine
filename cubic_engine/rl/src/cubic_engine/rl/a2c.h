@@ -16,13 +16,17 @@
 namespace cengine {
 namespace rl {
 
+namespace policies {
 /// Forward declarations
-class Policy;
+class TorchPolicy;
+}
+
 
 
 namespace utils {
 
 //class RolloutStorage;
+template<typename T>
 struct UpdateDatum;
 
 }
@@ -52,21 +56,15 @@ class A2C
 
   public:
 
+    ///
+    /// \brief value_t
+    ///
     typedef real_t value_t ;
 
     ///
     /// \brief A2C Constructor
-    /// \param policy
-    /// \param actor_loss_coef
-    /// \param value_loss_coef
-    /// \param entropy_coef
-    /// \param learning_rate
-    /// \param epsilon
-    /// \param alpha
-    /// \param max_grad_norm
     ///
-    A2C(Policy &policy,
-        const A2CInput input);
+    A2C(policies::TorchPolicy& policy, const A2CInput input);
 
     ///
     /// \brief update
@@ -74,15 +72,20 @@ class A2C
     /// \param decay_level
     /// \return
     ///
-    std::vector<utils::UpdateDatum> update(utils::TorchRolloutStorage &rollouts, value_t decay_level = 1);
+    std::vector<utils::UpdateDatum<value_t>> update(utils::TorchRolloutStorage &rollouts,
+                                           value_t decay_level = 1);
 
+    ///
+    /// \brief decay_learning_rate
+    ///
+    void decay_learning_rate(value_t decay_level=1.0);
 
 private:
 
     ///
     /// \brief policy
     ///
-    Policy& policy_;
+    policies::TorchPolicy& policy_;
 
     ///
     /// \brief input_

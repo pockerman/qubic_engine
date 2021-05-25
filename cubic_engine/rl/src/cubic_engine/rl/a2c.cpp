@@ -3,22 +3,43 @@
 #ifdef USE_PYTORCH
 
 #include "cubic_engine/rl/utils/rollout_storage.h"
+#include "cubic_engine/rl/policies/torch_policy.h"
+#include "cubic_engine/rl/utils/update_datum.h"
 
 namespace cengine{
 namespace rl{
 
-A2C::A2C(Policy& policy, const A2CInput input)
+A2C::A2C(policies::TorchPolicy& policy, const A2CInput input)
     :
      policy_(policy),
      input_(input),
-     optimizer_()
+     optimizer_(std::make_unique<torch::optim::RMSprop>(
+                    policy->parameters(),
+                    torch::optim::RMSpropOptions(input.learning_rate)
+                        .eps(input.epsilon)
+                        .alpha(input.alpha)))
 {}
 
-std::vector<utils::UpdateDatum>
+void
+A2C::decay_learning_rate(value_t decay_level){
+
+
+    for (auto &group : optimizer_->param_groups())
+        {
+            if(group.has_options())
+            {
+                auto &options = static_cast<torch::optim::RMSpropOptions &>(group.options());
+                options.lr(input_.original_learning_rate * decay_level);
+            }
+        }
+}
+
+std::vector<utils::UpdateDatum<A2C::value_t>>
 A2C::update(utils::TorchRolloutStorage &rollouts, value_t decay_level){
 
     // Decay learning rate
-    optimizer_->options.learning_rate(input_.original_learning_rate * decay_level);
+    decay_learning_rate(decay_level);
+    //optimizer_->defaults().lr() = (input_.original_learning_rate * decay_level);
 
     // Prep work
     auto full_obs_shape = rollouts.get_observations().sizes();
@@ -32,15 +53,14 @@ A2C::update(utils::TorchRolloutStorage &rollouts, value_t decay_level){
     int num_processes = rewards_shape[1];
 
     // Update observation normalizer
-    if (policy_.using_observation_normalizer())
-    {
-        policy_.update_observation_normalizer(rollouts.get_observations());
+    if (policy_->using_observation_normalizer()){
+        policy_->update_observation_normalizer(rollouts.get_observations());
     }
 
     // Run evaluation on rollouts
-    auto evaluate_result = policy_.evaluate_actions(
+    auto evaluate_result = policy_->evaluate_actions(
                         rollouts.get_observations().slice(0, 0, -1).view(obs_shape),
-                        rollouts.get_hidden_states()[0].view({-1, policy->get_hidden_size()}),
+                        rollouts.get_hidden_states()[0].view({-1, static_cast<long>(policy_->get_hidden_size())}),
                         rollouts.get_masks().slice(0, 0, -1).view({-1, 1}),
                         rollouts.get_actions().view({-1, action_shape}));
 
@@ -67,9 +87,9 @@ A2C::update(utils::TorchRolloutStorage &rollouts, value_t decay_level){
     loss.backward();
     optimizer_->step();
 
-    return {{"Value loss", value_loss.item().toFloat()},
-            {"Action loss", action_loss.item().toFloat()},
-            {"Entropy", evaluate_result[2].item().toFloat()}};
+    return {utils::UpdateDatum<A2C::value_t>("Value loss", value_loss.item().toFloat()),
+            utils::UpdateDatum<A2C::value_t>("Action loss", action_loss.item().toFloat()),
+            utils::UpdateDatum<A2C::value_t>("Entropy", evaluate_result[2].item().toFloat())};
 
 }
 }
