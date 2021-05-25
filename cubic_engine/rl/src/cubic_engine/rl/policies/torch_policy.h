@@ -7,6 +7,8 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/actions/action_space.h"
+#include "cubic_engine/rl/utils/torch_observation_normalizer.h"
+#include "cubic_engine/rl/networks/torch_nn.h"
 
 #include "torch/torch.h"
 
@@ -34,8 +36,8 @@ public:
     /// \param normalize_observations
     ///
     TorchPolicyImpl(actions::ActionSpace action_space,
-                   std::shared_ptr<NNBase> base,
-                   bool normalize_observations = false);
+                    std::shared_ptr<nets::TorchNNBase> base,
+                    bool normalize_observations = false);
 
     ///
     /// \brief act
@@ -89,20 +91,34 @@ public:
     ///
     void update_observation_normalizer(torch::Tensor observations);
 
-    bool is_recurrent() const { return base->is_recurrent(); }
+    ///
+    /// \brief is_recurrent
+    /// \return
+    ///
+    //bool is_recurrent() const { return base->is_recurrent(); }
+
+    ///
+    /// \brief get_hidden_size
+    /// \return
+    ///
     uint_t get_hidden_size() const{return base->get_hidden_size();}
+
+    ///
+    /// \brief using_observation_normalizer
+    /// \return
+    ///
     bool using_observation_normalizer() const{return !observation_normalizer.is_empty();}
 
 private:
 
     actions::ActionSpace action_space;
-    std::shared_ptr<NNBase> base;
-    ObservationNormalizer observation_normalizer;
-    std::shared_ptr<OutputLayer> output_layer;
+    std::shared_ptr<nets::TorchNNBase> base;
+    utils::TorchObservationNormalizer observation_normalizer;
+    ///std::shared_ptr<OutputLayer> output_layer;
 
     std::vector<torch::Tensor> forward_gru(torch::Tensor x,
-                                               torch::Tensor hxs,
-                                               torch::Tensor masks);
+                                           torch::Tensor hxs,
+                                           torch::Tensor masks);
 
 };
 
