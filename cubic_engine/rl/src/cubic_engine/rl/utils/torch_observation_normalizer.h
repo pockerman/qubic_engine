@@ -6,6 +6,7 @@
 #ifdef USE_PYTORCH
 
 #include "cubic_engine/base/cubic_engine_types.h"
+#include "cubic_engine/rl/utils/torch_running_mean_std.h"
 
 #include "torch/torch.h"
 #include <vector>
@@ -88,8 +89,15 @@ public:
 
 private:
 
-  torch::Tensor clip;
-  RunningMeanStd rms;
+    ///
+    /// \brief clip
+    ///
+    torch::Tensor clip;
+
+    ///
+    /// \brief rms
+    ///
+    TorchRunningMeanStd rms;
 
 };
 
