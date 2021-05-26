@@ -2,7 +2,7 @@
 
 #ifdef USE_PYTORCH
 
-#include "cubic_engine/rl/utils/rollout_storage.h"
+#include "cubic_engine/rl/utils/torch_rollout_storage.h"
 #include "cubic_engine/rl/policies/torch_policy.h"
 #include "cubic_engine/rl/utils/update_datum.h"
 

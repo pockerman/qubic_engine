@@ -6,7 +6,7 @@
 #ifdef USE_PYTORCH
 
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/rl/utils/rollout_storage.h"
+#include "cubic_engine/rl/utils/torch_rollout_storage.h"
 
 
 #include "torch/torch.h"
@@ -68,12 +68,9 @@ class A2C
 
     ///
     /// \brief update
-    /// \param rollouts
-    /// \param decay_level
-    /// \return
     ///
-    std::vector<utils::UpdateDatum<value_t>> update(utils::TorchRolloutStorage &rollouts,
-                                           value_t decay_level = 1);
+    std::vector<utils::UpdateDatum<value_t>>
+    update(utils::TorchRolloutStorage &rollouts, value_t decay_level = 1);
 
     ///
     /// \brief decay_learning_rate
