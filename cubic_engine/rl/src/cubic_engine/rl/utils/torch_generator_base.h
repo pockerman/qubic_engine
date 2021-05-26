@@ -6,6 +6,7 @@
 #ifdef USE_PYTORCH
 
 #include "cubic_engine/rl/utils/torch_mini_batch.h"
+#include "boost/noncopyable.hpp"
 
 namespace cengine {
 namespace rl {
@@ -13,7 +14,7 @@ namespace utils {
 
 
 
-class TorchGeneratorBase{
+class TorchGeneratorBase: private boost::noncopyable{
 
 public:
 
@@ -32,7 +33,7 @@ public:
     /// \brief next
     /// \return
     ///
-    virtual TorchMinBatch next() = 0;
+    virtual TorchMiniBatch next() = 0;
 
 protected:
 
