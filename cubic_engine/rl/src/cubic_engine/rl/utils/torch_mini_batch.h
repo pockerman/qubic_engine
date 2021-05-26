@@ -57,7 +57,7 @@ struct MiniBatch<kernel::torch_t>
 };
 
 //
-using TorchMinBatch = MiniBatch<kernel::torch_t>;
+using TorchMiniBatch = MiniBatch<kernel::torch_t>;
 
 }
 
