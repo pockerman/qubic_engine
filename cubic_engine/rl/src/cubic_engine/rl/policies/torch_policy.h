@@ -101,19 +101,19 @@ public:
     /// \brief get_hidden_size
     /// \return
     ///
-    uint_t get_hidden_size() const{return base->get_hidden_size();}
+    uint_t get_hidden_size() const{return base_->get_hidden_size();}
 
     ///
     /// \brief using_observation_normalizer
     /// \return
     ///
-    bool using_observation_normalizer() const{return !observation_normalizer.is_empty();}
+    bool using_observation_normalizer() const{return !observation_normalizer_.is_empty();}
 
 private:
 
-    actions::ActionSpace action_space;
-    std::shared_ptr<nets::TorchNNBase> base;
-    utils::TorchObservationNormalizer observation_normalizer;
+    actions::ActionSpace action_space_;
+    std::shared_ptr<nets::TorchNNBase> base_;
+    utils::TorchObservationNormalizer observation_normalizer_;
     ///std::shared_ptr<OutputLayer> output_layer;
 
     std::vector<torch::Tensor> forward_gru(torch::Tensor x,
