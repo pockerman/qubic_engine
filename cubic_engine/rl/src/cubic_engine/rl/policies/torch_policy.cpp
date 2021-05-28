@@ -17,9 +17,34 @@ TorchPolicyImpl::TorchPolicyImpl(actions::ActionSpace action_space,
 
 
 std::vector<torch::Tensor>
-TorchPolicyImpl::act(torch::Tensor inputs,
-                               torch::Tensor rnn_hxs,
-                     torch::Tensor masks) const{}
+TorchPolicyImpl::act(torch::Tensor inputs, torch::Tensor rnn_hxs, torch::Tensor masks) const{
+
+    if (observation_normalizer_){
+            inputs = observation_normalizer_->process_observation(inputs);
+    }
+
+    auto base_output = base_->forward(inputs, rnn_hxs, masks);
+    auto dist = output_layer_->forward(base_output[1]);
+
+    auto action = dist->sample();
+    auto action_log_probs = dist->log_prob(action);
+
+    if (action_space_.type == "Discrete")
+    {
+        action = action.unsqueeze(-1);
+        action_log_probs = action_log_probs.unsqueeze(-1);
+    }
+    else
+    {
+        action_log_probs = dist->log_prob(action).sum(-1, true);
+    }
+
+    return {base_output[0], // value
+                action,
+                action_log_probs,
+                base_output[2]}; // rnn_hxs
+
+}
 
 
 std::vector<torch::Tensor>
