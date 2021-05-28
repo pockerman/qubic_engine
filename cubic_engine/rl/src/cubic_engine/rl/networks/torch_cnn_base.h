@@ -26,7 +26,7 @@ public:
     /// \param hidden_size
     ///
     TorchCNNBase(uint_t num_inputs,
-                 uint_t hidden_size = 512);
+                 uint_t output_size = 512);
 
     ///
     /// \brief forward
@@ -41,7 +41,14 @@ public:
 
 private:
 
+    ///
+    /// \brief main_
+    ///
     torch::nn::Sequential main_;
+
+    ///
+    /// \brief critic_linear_
+    ///
     torch::nn::Sequential critic_linear_;
 
 

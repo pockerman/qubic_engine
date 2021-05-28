@@ -24,7 +24,7 @@ public:
     /// \param recurrent_input_size
     /// \param hidden_size
     ///
-    TorchNNBase();
+    TorchNNBase(uint_t output_size);
 
     ///
     /// \brief forward
@@ -37,15 +37,27 @@ public:
                                                torch::Tensor hxs,
                                                torch::Tensor masks)=0;
 
+    ///
+    /// \brief get_hidden_size
+    /// \return
+    ///
+    virtual uint_t get_hidden_size() const{ return 1;}
 
-    uint_t get_hidden_size() const;
-    uint_t get_output_size() const { return hidden_size_; }
+    ///
+    /// \brief get_output_size
+    /// \return
+    ///
+    uint_t get_output_size() const { return output_size_; }
 
 
 private:
 
     torch::nn::GRU gru_;
-    uint_t hidden_size_;
+
+    ///
+    /// \brief output_size_
+    ///
+    uint_t output_size_;
 
 };
 

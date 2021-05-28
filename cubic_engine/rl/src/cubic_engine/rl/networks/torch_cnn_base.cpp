@@ -5,9 +5,9 @@ namespace cengine{
 namespace rl{
 namespace nets{
 
-TorchCNNBase::TorchCNNBase(uint_t num_inputs, uint_t hidden_size)
+TorchCNNBase::TorchCNNBase(uint_t num_inputs, uint_t output_size)
     :
-      TorchNNBase(),
+      TorchNNBase(output_size),
       main_(torch::nn::Conv2d(torch::nn::Conv2dOptions(num_inputs, 32, 8).stride(4)),
       torch::nn::Functional(torch::relu),
       torch::nn::Conv2d(torch::nn::Conv2dOptions(32, 64, 4).stride(2)),
@@ -15,9 +15,9 @@ TorchCNNBase::TorchCNNBase(uint_t num_inputs, uint_t hidden_size)
       torch::nn::Conv2d(torch::nn::Conv2dOptions(64, 32, 3).stride(1)),
       torch::nn::Functional(torch::relu),
       torch::nn::Flatten(),
-      torch::nn::Linear(32 * 7 * 7, hidden_size),
+      torch::nn::Linear(32 * 7 * 7, output_size),
       torch::nn::Functional(torch::relu)),
-      critic_linear_(torch::nn::Linear(hidden_size, 1))
+      critic_linear_(torch::nn::Linear(output_size, 1))
 {
     register_module("main", main_);
     register_module("critic_linear", critic_linear_);
@@ -30,8 +30,7 @@ TorchCNNBase::TorchCNNBase(uint_t num_inputs, uint_t hidden_size)
 }
 
 std::vector<torch::Tensor>
-TorchCNNBase::forward(torch::Tensor inputs, torch::Tensor hxs,
-                      torch::Tensor masks){
+TorchCNNBase::forward(torch::Tensor inputs, torch::Tensor hxs, torch::Tensor masks){
 
     // TODO don't hard code the magic constant
     auto x = main_->forward(inputs / 255.);

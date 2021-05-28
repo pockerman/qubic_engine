@@ -7,16 +7,12 @@ namespace rl {
 namespace nets{
 
 
-TorchNNBase::TorchNNBase()
+TorchNNBase::TorchNNBase(uint_t output_size)
     :
       torch::nn::Module(),
       gru_(nullptr),
-      hidden_size_()
+      output_size_(output_size)
 {}
-
-
-uint_t
-TorchNNBase::get_hidden_size() const{}
 
 }
 }
