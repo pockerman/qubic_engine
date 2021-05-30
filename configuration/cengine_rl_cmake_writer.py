@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+from typing import List
 from configuration.cmake_file_writer import CMakeFileWriter
 from configuration.build_libs import build_library
 from configuration.build_examples import build_examples
@@ -22,8 +23,11 @@ class RLCMakeWriter(CMakeFileWriter):
     def module_name() -> str:
         return "cengine_rl"
 
-    def __init__(self, configuration: dict, kernel_dir: Path, kernel_dirs: list,
-                 kernel_name: str,  cengine_dir: Path, cengine_dirs: list, cengine_name: str) -> None:
+    def __init__(self, configuration: dict,
+                 kernel_dir: Path, kernel_dirs: list, kernel_name: str,
+                 cengine_dir: Path, cengine_dirs: list, cengine_name: str,
+                 numerics_name: str, numerics_dir: Path, numerics_dirs: List[str],
+                 ml_name: str, ml_dir: Path, ml_dirs: List[str]) -> None:
         super(RLCMakeWriter, self).__init__(configuration=configuration,
                                             project_name="cengine_rl",
                                             install_prefix=configuration["cengine"]["CMAKE_INSTALL_PREFIX"])
@@ -31,9 +35,15 @@ class RLCMakeWriter(CMakeFileWriter):
         self.kernel_dirs = kernel_dirs
         self.kernel_dir = kernel_dir
         self.kernel_name = kernel_name
+        self.numerics_name = numerics_name
+        self.numerics_dir = numerics_dir
+        self.numerics_dirs = numerics_dirs
         self.cengine_dirs = cengine_dirs
         self.cengine_dir = cengine_dir
         self.cengine_name = cengine_name
+        self.ml_name = ml_name
+        self.ml_dir =  ml_dir
+        self.ml_dirs = ml_dirs
         self.dirs = RLCMakeWriter.module_dirs()
 
     def write_cmake_lists(self):
@@ -71,8 +81,7 @@ class RLCMakeWriter(CMakeFileWriter):
 
         if self.configuration["BUILD_LIBS"]:
             print("{0} Building {1}".format(INFO, self.project_name))
-            path = Path(os.getcwd())
-            build_library(path=path / "cubic_engine" / "rl")
+            build_library(path=RLCMakeWriter.dir_path())
 
         if self.configuration["cengine"]["rl"]["BUILD_TESTS"]:
 
@@ -146,6 +155,8 @@ class RLCMakeWriter(CMakeFileWriter):
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.project_name))
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.cengine_name))
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.kernel_name))
+            tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.numerics_name))
+            tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.ml_name))
 
             if example is False:
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest)\n')
@@ -170,6 +181,8 @@ class RLCMakeWriter(CMakeFileWriter):
         fh.write('INCLUDE_DIRECTORIES(%s/src/)\n' % RLCMakeWriter.dir_path())
         fh.write('INCLUDE_DIRECTORIES({0}/src/)\n'.format(self.cengine_dir))
         fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["msgpack"]["MSGPACK_INCL_DIR"]))
+        fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.numerics_dir / 'src'))
+        fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.ml_dir / 'src'))
 
         if self.configuration["zmq"]["USE_ZMQ"]:
             fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["zmq"]["ZMQ_INCLUDE_PATH"]))
