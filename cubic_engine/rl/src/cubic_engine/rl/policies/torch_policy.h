@@ -9,7 +9,7 @@
 #include "cubic_engine/rl/actions/action_space.h"
 #include "cubic_engine/rl/utils/torch_observation_normalizer.h"
 #include "cubic_engine/rl/networks/torch_nn.h"
-
+#include "cubic_engine/ml/neural_networks/torch_output_layers.h"
 #include "torch/torch.h"
 
 #include <memory>
@@ -114,7 +114,7 @@ private:
     actions::ActionSpace action_space_;
     std::shared_ptr<nets::TorchNNBase> base_;
     utils::TorchObservationNormalizer observation_normalizer_;
-    ///std::shared_ptr<OutputLayer> output_layer;
+    std::shared_ptr<cengine::ml::nets::LinearOutputLayer> output_layer_;
 
     std::vector<torch::Tensor> forward_gru(torch::Tensor x,
                                            torch::Tensor hxs,
