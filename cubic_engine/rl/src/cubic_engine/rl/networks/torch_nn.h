@@ -49,7 +49,6 @@ public:
     ///
     uint_t get_output_size() const { return output_size_; }
 
-
 private:
 
     torch::nn::GRU gru_;

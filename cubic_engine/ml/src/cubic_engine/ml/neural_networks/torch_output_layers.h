@@ -6,6 +6,7 @@
 #ifdef USE_PYTORCH
 
 #include "cubic_engine/base/cubic_engine_types.h"
+#include "kernel/numerics/statistics/torch_distribution.h"
 #include "torch/torch.h"
 
 #include <memory>
@@ -28,7 +29,7 @@ class OutputLayer : public torch::nn::Module
     /// \param x
     /// \return
     ///
-    virtual std::unique_ptr<Distribution> forward(torch::Tensor x) = 0;
+    virtual std::unique_ptr<kernel::numerics::stats::TorchDistribution> forward(torch::Tensor x) = 0;
 };
 
 class LinearOutputLayer: public OutputLayer
@@ -67,7 +68,7 @@ public:
     /// \param x
     /// \return
     ///
-    std::unique_ptr<Distribution> forward(torch::Tensor x);
+    std::unique_ptr<kernel::numerics::stats::TorchDistribution> forward(torch::Tensor x);
 
 };
 
@@ -87,7 +88,7 @@ public:
     /// \param x
     /// \return
     ///
-    std::unique_ptr<Distribution> forward(torch::Tensor x);
+    std::unique_ptr<kernel::numerics::stats::TorchDistribution> forward(torch::Tensor x);
 
 };
 
@@ -107,7 +108,7 @@ public:
     /// \param x
     /// \return
     ///
-    std::unique_ptr<Distribution> forward(torch::Tensor x);
+    std::unique_ptr<kernel::numerics::stats::TorchDistribution> forward(torch::Tensor x);
 
 private:
 
