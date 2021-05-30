@@ -13,7 +13,7 @@ PYT_LinearRegressor::PYT_LinearRegressor(uint_t n_features)
     hypothesis_(register_module("linear", torch::nn::Linear(n_features, 1)))
 {
     // always include the bias term
-    hypothesis_->options.with_bias(true);
+    //hypothesis_->options.with_bias(true);
 }
 
 PYT_LinearRegressor::PYT_LinearRegressor(const std::vector<real_t>& params)
@@ -25,7 +25,7 @@ PYT_LinearRegressor::PYT_LinearRegressor(const std::vector<real_t>& params)
     set_model_parameters(params);
 
     // always include the bias term
-    hypothesis_->options.with_bias(true);
+    //hypothesis_->options.with_bias(true);
 }
 
 
