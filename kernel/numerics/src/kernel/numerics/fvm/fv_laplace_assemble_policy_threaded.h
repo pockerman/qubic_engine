@@ -1,8 +1,11 @@
 #ifndef FV_LAPLACE_ASSEMBLE_POLICY_THREADED_H
 #define FV_LAPLACE_ASSEMBLE_POLICY_THREADED_H
 
-#include "kernel/base/types.h"
 #include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
+#include "kernel/base/types.h"
 #include "kernel/discretization/element.h"
 #include "kernel/discretization/face_element.h"
 #include "kernel/discretization/element_mesh_iterator.h"
@@ -432,5 +435,5 @@ FVLaplaceAssemblyPolicyThreaded<dim, Executor>::AssembleTask<MatrixTp,VectorTp>:
 }
 
 }
-
+#endif
 #endif // FV_LAPLACE_ASSEMBLE_POLICY_THREADED_H

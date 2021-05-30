@@ -1,6 +1,10 @@
 #ifndef FV_VECTOR_MATRIX_H
 #define FV_VECTOR_MATRIX_H
 
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/maths/fvm/relaxed_fv_matrix_assemble_policy.h"
 
 #include <map>
@@ -87,4 +91,5 @@ FVVectorMatrix<RelaxedFVMatrixAssemblyPolicy<MatrixPolicy>>::A(const std::string
 }
 }
 
+#endif
 #endif // FV_VECTOR_MATRIX_H

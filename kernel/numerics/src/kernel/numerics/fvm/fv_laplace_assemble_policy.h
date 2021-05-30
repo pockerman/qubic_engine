@@ -1,8 +1,11 @@
 #ifndef FV_LAPLACE_ASSEMBLE_POLICY_H
 #define FV_LAPLACE_ASSEMBLE_POLICY_H
 
-#include "kernel/base/types.h"
 #include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
+#include "kernel/base/types.h"
 #include "kernel/discretization/dof.h"
 
 #include <vector>
@@ -148,5 +151,5 @@ FVLaplaceAssemblyPolicy<dim>::build_gradient(const Factory& factory){
 }
 
 }
-
+#endif
 #endif // FV_LAPLACE_ASSEMBLE_POLICY_H

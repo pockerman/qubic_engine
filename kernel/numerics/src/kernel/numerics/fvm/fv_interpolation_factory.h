@@ -1,6 +1,10 @@
 #ifndef FV_INTERPOLATION_FACTORY_H
 #define FV_INTERPOLATION_FACTORY_H
 
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/numerics/fvm/fv_interpolation_types.h"
 #include <memory>
 
@@ -17,5 +21,5 @@ struct FVInterpolationFactory
 
 }
 }
-
+#endif
 #endif // FV_INTERPOLATION_FACTORY_H

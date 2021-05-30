@@ -1,3 +1,7 @@
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/numerics/fvm/fv_interpolate_base.h"
 
 namespace kernel{
@@ -19,3 +23,4 @@ template class FVInterpolateBase<2>;
 template class FVInterpolateBase<3>;
 }
 }
+#endif

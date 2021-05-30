@@ -121,7 +121,7 @@ protected:
     ///
     /// \brief state_
     ///
-    state_t* state_;
+    state_t state_;
 
     ///
     /// \brief Flag indicating if the trainer has been initialized
@@ -149,7 +149,7 @@ protected:
     /// \brief actions_before_iterations_ Actions performed before starting
     /// the iterations
     ///
-    virtual void actions_before_iterations_(){state_ = world_ptr_->restart();}
+    virtual void actions_before_iterations_(){state_ = world_ptr_->reset();}
 
     ///
     /// \brief actions_after_iterations_ Actions performed after finishing
@@ -163,13 +163,18 @@ protected:
     ///
     virtual void actions_after_episodes_(){}
 
+    ///
+    /// \brief world_ptr
+    /// \return
+    ///
+    world_t* world_ptr(){return world_ptr_;}
 };
 
 template<typename WorldTp>
 RLAlgorithmBase<WorldTp>::RLAlgorithmBase(const RLIterativeAlgoInput& input)
     :
     world_ptr_(nullptr),
-    state_(nullptr),
+    state_(0),
     is_initialized_(false),
     episode_controller_(input.total_episodes, std::numeric_limits<real_t>::max()),
     input_(input)

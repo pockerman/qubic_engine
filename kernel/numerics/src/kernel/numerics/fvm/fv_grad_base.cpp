@@ -1,3 +1,7 @@
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/numerics/fvm/fv_grad_base.h"
 
 namespace kernel{
@@ -19,3 +23,5 @@ template class FVGradBase<3>;
 
 }
 }
+
+#endif

@@ -1,6 +1,10 @@
 #ifndef FV_ASSEMBLE_POLICY_H
 #define FV_ASSEMBLE_POLICY_H
 
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/base/types.h"
 #include "kernel/discretization/dof.h"
      
@@ -93,5 +97,5 @@ protected:
 
 }
 }
-
+#endif
 #endif // FV_ASSEMBLE_POLICY_H

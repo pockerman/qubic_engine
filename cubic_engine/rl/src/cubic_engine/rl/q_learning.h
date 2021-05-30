@@ -139,30 +139,22 @@ void
 QLearning<WorldTp>::step(){
 
 
+
     for(uint_t step=0; step < this->get_total_itrs_per_episode(); ++step){
 
-            // Will be used to obtain a seed for the random number engine
-            std::random_device rd;
-
-            // Standard mersenne_twister_engine seeded with rd()
-            std::mt19937 gen(rd());
-            std::uniform_real_distribution<> dis(0.0, 1.0);
-            auto exp_exp_tradeoff = dis(rd);
-
             // do exploration by default
-            auto action_idx = this->world_ptr_->sample_action();
+            auto action_idx = this->action_selection_policy(this->state_);
 
-            if( exp_exp_tradeoff > this->get_epsilon() ){
-                  action_idx = static_cast<action_t>(kernel::row_argmax(this->q_function_, this->state_->get_id()));
-            }
+
 
             // step in the world
-            auto [new_state, reward, finished, info] = this->world_ptr_->step(action_idx);
+            auto [new_state, reward, finished, info] = this->world_ptr()->step(action_idx);
+
 
             // update the qtable
-            this->q_function_(this->state_->get_id(), static_cast<uint_t>(action_idx)) += this->get_learning_rate() * (reward +
-                                                           this->get_discount_factor() * kernel::get_row_max(this->q_function_, new_state->get_id()) -
-                                                            this->q_function_(this->state_->get_id(), static_cast<uint_t>(action_idx)));
+            this->q_function_(this->state_, static_cast<uint_t>(action_idx)) += this->get_learning_rate() * (reward +
+                                                           this->get_discount_factor() * kernel::get_row_max(this->q_function_, new_state) -
+                                                            this->q_function_(this->state_, static_cast<uint_t>(action_idx)));
 
             this->state_ = new_state;
 

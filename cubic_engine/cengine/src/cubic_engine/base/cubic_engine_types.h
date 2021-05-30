@@ -1,9 +1,10 @@
 #ifndef CUBIC_ENGINE_TYPES_H
 #define CUBIC_ENGINE_TYPES_H
 
-#include <cstddef>
+#include "kernel/base/config.h"
 #include "kernel/base/types.h"
 #include <blaze/Math.h>
+#include <cstddef>
 
 namespace cengine{
 
@@ -51,6 +52,12 @@ namespace cengine{
     /// \brief Null type
     ///
     using Null = kernel::Null;
+    
+#ifdef USE_PYTORCH
+    using torch_t = kernel::torch_t;
+#endif
+    
+    
 
 }
 

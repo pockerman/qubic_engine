@@ -1,6 +1,10 @@
 #ifndef FV_GAUSS_GRAD_H
 #define FV_GAUSS_GRAD_H
 
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/numerics/fvm/fv_grad_base.h"
 
 namespace kernel {
@@ -26,7 +30,7 @@ public:
 };
 
 }
-
 }
 
+#endif
 #endif // FV_GAUSS_GRAD_H

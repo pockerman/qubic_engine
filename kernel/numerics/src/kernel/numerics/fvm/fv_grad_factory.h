@@ -1,6 +1,10 @@
 #ifndef FV_GRAD_FACTORY_H
 #define FV_GRAD_FACTORY_H
 
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/numerics/fvm/fv_grad_types.h"
 #include <memory>
 
@@ -19,4 +23,5 @@ struct FVGradFactory
 
 }
 
+#endif
 #endif // FV_GRAD_FACTORY_H

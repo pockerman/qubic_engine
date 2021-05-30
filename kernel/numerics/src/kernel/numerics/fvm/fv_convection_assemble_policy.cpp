@@ -1,6 +1,11 @@
+
+
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/numerics/fvm/fv_convection_assemble_policy.h"
 #include "kernel/numerics/fvm/fv_interpolate_base.h"
-
 
 #include "kernel/numerics/boundary_function_base.h"
 #include "kernel/numerics/boundary_conditions_type.h"
@@ -256,3 +261,4 @@ template class FVConvectionAssemblyPolicy<3>;
 
 }
 }
+#endif

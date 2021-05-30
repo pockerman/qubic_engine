@@ -1,3 +1,7 @@
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/numerics/fvm/fv_interpolation_factory.h"
 #include "kernel/numerics/fvm/fv_ud_interpolation.h"
 #include "kernel/numerics/fvm/fv_linear_interpolation.h"
@@ -35,3 +39,4 @@ template class FVInterpolationFactory<3>;
 
 }
 }
+#endif

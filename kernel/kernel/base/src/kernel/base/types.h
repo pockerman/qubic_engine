@@ -68,6 +68,13 @@ namespace kernel
     /// \brief Null type. Simple placeholder
     ///
     struct Null{};
+    
+#ifdef USE_PYTORCH
+   ///
+   /// \brief placeholder for torch
+   ///
+   struct torch_t {};
+#endif
 
 }
 

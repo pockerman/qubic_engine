@@ -60,13 +60,13 @@ void
 ExpectedSARSA<WorldTp>::step(){
 
     action_t next_action = WorldTp::INVALID_ACTION;
-    state_t* state = WorldTp::INVALID_STATE;
+    state_t state = WorldTp::INVALID_STATE;
 
     // save the id of the old state
-    auto old_state_id = this->state_->get_id();
+    auto old_state_id = this->state_;
 
     // choose an action based on the current state
-    auto action = this->action_selection_policy(*this->state_);
+    auto action = this->action_selection_policy(this->state_);
 
     auto& qtable = this->get_q_function();
     for(uint_t itr=1; itr < this->get_total_itrs_per_episode(); ++itr){
@@ -74,7 +74,7 @@ ExpectedSARSA<WorldTp>::step(){
         auto predict = qtable(this->state_->get_id(), action);
 
         // step in the world
-        auto [next_state_ptr, reward, done, info] = this->world_ptr_->step(action);
+        auto [next_state_ptr, reward, done, info] = this->world_ptr()->step(action);
 
         if(!next_state_ptr){
            throw std::logic_error("Next state pointer is NULL");
@@ -84,25 +84,25 @@ ExpectedSARSA<WorldTp>::step(){
         next_action = this->action_selection_policy(*next_state_ptr);
 
         auto expected_q = 0.0;
-        auto q_max = kernel::get_row_max(qtable, state->get_id());
+        auto q_max = kernel::get_row_max(qtable, state);
         auto greedy_actions = 0;
 
-        for(uint_t a=0; a<this->world_ptr_->n_actions(); ++a){
-            if(qtable(state->get_id(), a)){
+        for(uint_t a=0; a<this->world_ptr()->n_actions(); ++a){
+            if(qtable(state, a)){
                 greedy_actions += 1;
             }
         }
 
-        auto non_greedy_action_probability = this->get_epsilon() / this->world_ptr_->n_actions();
+        auto non_greedy_action_probability = this->get_epsilon() / this->world_ptr()->n_actions();
         auto greedy_action_probability = ((1 - this->get_epsilon()) / greedy_actions) + non_greedy_action_probability;
 
-        for(uint_t i=0; i<this->world_ptr_->n_actions(); ++i) {
+        for(uint_t i=0; i<this->world_ptr()->n_actions(); ++i) {
 
            if(qtable(state->get_id(), i) == q_max){
-               expected_q += qtable(state->get_id(), i) * greedy_action_probability;
+               expected_q += qtable(state, i) * greedy_action_probability;
            }
            else{
-               expected_q += qtable(state->get_id(), i) * non_greedy_action_probability;
+               expected_q += qtable(state, i) * non_greedy_action_probability;
            }
         }
 

@@ -1,6 +1,10 @@
 #ifndef FV_GRAD_BASE_H
 #define FV_GRAD_BASE_H
 
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/base/types.h"
 #include "kernel/numerics/fvm/fv_grad_types.h"
 #include <vector>
@@ -43,5 +47,5 @@ protected:
 };
 }
 }
-
+#endif
 #endif // FV_GRAD_BASE_H
