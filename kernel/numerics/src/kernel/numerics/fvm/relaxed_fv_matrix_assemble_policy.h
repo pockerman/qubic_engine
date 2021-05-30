@@ -1,6 +1,10 @@
 #ifndef RELAXED_FV_MATRIX_ASSEMBLE_POLICY_H
 #define RELAXED_FV_MATRIX_ASSEMBLE_POLICY_H
 
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/base/types.h"
 #include "kernel/discretization/element_mesh_iterator.h"
 #include "kernel/discretization/face_mesh_iterator.h"
@@ -277,4 +281,5 @@ RelaxedFVMatrixAssemblyPolicy<MatrixPolicy>::sum_mag_off_diag(const MeshTp& mesh
 }
 }
 
+#endif
 #endif // RELAXED_FV_MATRIX_ASSEMBLE_POLICY_H

@@ -1,3 +1,7 @@
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/numerics/fvm/fv_linear_interpolation.h"
 
 namespace kernel{
@@ -42,3 +46,4 @@ template class FVLinearInterpolate<3>;
 
 }
 }
+#endif

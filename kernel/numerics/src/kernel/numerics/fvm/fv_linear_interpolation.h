@@ -1,6 +1,10 @@
 #ifndef FV_LINEAR_INTERPOLATION_H
 #define FV_LINEAR_INTERPOLATION_H
 
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/numerics/fvm/fv_interpolate_base.h"
 
 
@@ -43,4 +47,5 @@ protected:
 }
 }
 
+#endif
 #endif // FV_LINEAR_INTERPOLATION_H

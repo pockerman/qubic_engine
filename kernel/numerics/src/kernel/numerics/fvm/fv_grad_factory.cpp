@@ -1,3 +1,7 @@
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/numerics/fvm/fv_grad_factory.h"
 #include "kernel/numerics/fvm/fv_gauss_grad.h"
 
@@ -31,3 +35,4 @@ template class FVGradFactory<3>;
 
 }
 }
+#endif

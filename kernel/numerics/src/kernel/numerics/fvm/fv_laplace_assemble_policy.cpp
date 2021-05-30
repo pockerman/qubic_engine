@@ -1,3 +1,7 @@
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/numerics/fvm/fv_laplace_assemble_policy.h"
 #include "kernel/numerics/fvm/fv_grad_base.h"
 #include "kernel/numerics/boundary_function_base.h"
@@ -245,3 +249,4 @@ template class FVLaplaceAssemblyPolicy<3>;
 
 }
 }
+#endif

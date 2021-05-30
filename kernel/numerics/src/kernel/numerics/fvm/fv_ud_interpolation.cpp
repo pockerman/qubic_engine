@@ -1,3 +1,7 @@
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/numerics/fvm/fv_ud_interpolation.h"
 #include "kernel/discretization/element.h"
 #include "kernel/discretization/face_element.h"
@@ -125,3 +129,4 @@ template class FVUDInterpolate<2>;
 template class FVUDInterpolate<3>;
 }
 }
+#endif

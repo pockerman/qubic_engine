@@ -1,6 +1,10 @@
 #ifndef FV_INTERPOLATE_BASE_H
 #define FV_INTERPOLATE_BASE_H
 
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/base/types.h"
 #include "kernel/numerics/fvm/fv_interpolation_types.h"
 
@@ -45,4 +49,5 @@ protected:
 
 }
 
+#endif
 #endif // FV_INTERPOLATE_BASE_H

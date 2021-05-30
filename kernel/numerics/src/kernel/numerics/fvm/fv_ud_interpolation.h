@@ -1,6 +1,10 @@
 #ifndef FV_UD_INTERPOLATION_H
 #define FV_UD_INTERPOLATION_H
 
+#include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/numerics/fvm/fv_interpolate_base.h"
 #include "kernel/maths/functions/numeric_vector_function.h"
 
@@ -68,4 +72,5 @@ FVUDInterpolate<dim>::compute_flux(const FaceTp& face)const{
 }
 }
 
+#endif
 #endif // FV_UD_INTERPOLATION_H

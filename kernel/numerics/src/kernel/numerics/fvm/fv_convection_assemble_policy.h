@@ -2,6 +2,9 @@
 #define FV_CONVECTION_ASSEMBLE_POLICY_H
 
 #include "kernel/base/config.h"
+
+#ifdef USE_FVM
+
 #include "kernel/base/types.h"
 #include "kernel/discretization/dof.h"
 
@@ -152,5 +155,5 @@ FVConvectionAssemblyPolicy<dim>::build_interpolate_scheme(const Factory& factory
 
 }
 }
-
+#endif
 #endif // FV_CONVECTION_ASSEMBLE_POLICY_H
