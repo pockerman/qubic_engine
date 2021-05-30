@@ -46,6 +46,14 @@ class CMakeFileWriter(object):
             fh.write('# default options')
             fh.write('SET(BUILD_SHARED_LIBS ON)\n')
 
+            if self._project_name == 'kernel':
+                fh.write('SET(KERNELLIB_VERSION_MAJOR 1)\n')
+                fh.write('SET(KERNELLIB_VERSION_MINOR 5)\n')
+                fh.write('SET(KERNELLIB_VERSION_PATCH 2)\n')
+                fh.write('PROJECT(CubicEngineLib VERSION ${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH})\n')
+                fh.write('SET(KERNELLIB_VERSION "${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH}")\n')
+                fh.write('MESSAGE(STATUS "CubicEngineLib Version ${KERNELLIB_VERSION}")\n')
+
             build_type = self.configuration["CMAKE_BUILD_TYPE"]
             fh.write('SET(CMAKE_BUILD_TYPE "{0}")\n'.format(build_type))
             fh.write('SET(CMAKE_CXX_COMPILER {0})\n'.format(self.configuration["CMAKE_CXX_COMPILER"]))
