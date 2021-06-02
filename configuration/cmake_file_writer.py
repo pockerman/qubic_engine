@@ -49,7 +49,7 @@ class CMakeFileWriter(object):
             if self._project_name == 'kernel':
                 fh.write('SET(KERNELLIB_VERSION_MAJOR 1)\n')
                 fh.write('SET(KERNELLIB_VERSION_MINOR 5)\n')
-                fh.write('SET(KERNELLIB_VERSION_PATCH 2)\n')
+                fh.write('SET(KERNELLIB_VERSION_PATCH 3)\n')
                 fh.write('PROJECT(CubicEngineLib VERSION ${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH})\n')
                 fh.write('SET(KERNELLIB_VERSION "${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH}")\n')
                 fh.write('MESSAGE(STATUS "CubicEngineLib Version ${KERNELLIB_VERSION}")\n')
