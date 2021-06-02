@@ -6,12 +6,12 @@
 #ifdef USE_PYTORCH
 
 #include "kernel/base/types.h"
-#include "kernel/numerics/statistics/torch_distribution.h"
+#include "cubic_engine/ml/statistics/torch_distribution.h"
 #include "torch/torch.h"
 
 
-namespace kernel {
-namespace numerics {
+namespace cengine {
+namespace ml {
 namespace stats {
 
 ///
@@ -31,7 +31,7 @@ class TorchNormalDistribution final : public TorchDistribution
     ///
     ///
     ///
-    ~TorchNormalDistribution() = default;
+    virtual ~TorchNormalDistribution();
 
     ///
     /// \brief entropy

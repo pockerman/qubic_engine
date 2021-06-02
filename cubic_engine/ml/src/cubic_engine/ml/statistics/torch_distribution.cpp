@@ -1,9 +1,9 @@
-#include "kernel/numerics/statistics/torch_distribution.h"
+#include "cubic_engine/ml/statistics/torch_distribution.h"
 
 #ifdef USE_PYTORCH
 
-namespace kernel {
-namespace numerics {
+namespace cengine {
+namespace ml {
 namespace stats {
 
 std::vector<int64_t>
