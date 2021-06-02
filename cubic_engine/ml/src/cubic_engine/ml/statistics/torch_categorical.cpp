@@ -1,17 +1,19 @@
-#include "kernel/numerics/statistics/torch_categorical.h"
+#include "cubic_engine/ml/statistics/torch_categorical.h"
 
 #ifdef USE_PYTORCH
 
 #include <stdexcept>
 #include <cmath>
 
-namespace kernel {
-namespace numerics {
+namespace cengine {
+namespace ml {
 namespace stats {
 
 
 TorchCategorical::TorchCategorical(const torch::Tensor *probs,
                                    const torch::Tensor *logits)
+                                   :
+                                   TorchDistribution()
 {
     if ((probs == nullptr) == (logits == nullptr))
     {
@@ -51,6 +53,9 @@ TorchCategorical::TorchCategorical(const torch::Tensor *probs,
         batch_shape_.resize(batch_shape_.size() - 1);
     }
 }
+
+TorchCategorical::~TorchCategorical()
+{}
 
 torch::Tensor
 TorchCategorical::entropy(){

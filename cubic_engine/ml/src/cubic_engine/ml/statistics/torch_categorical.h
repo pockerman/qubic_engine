@@ -8,12 +8,12 @@
 #ifdef USE_PYTORCH
 
 #include "kernel/base/types.h"
-#include "kernel/numerics/statistics/torch_distribution.h"
+#include "cubic_engine/ml/statistics/torch_distribution.h"
 #include "torch/torch.h"
 
 
-namespace kernel {
-namespace numerics {
+namespace cengine {
+namespace ml {
 namespace stats {
 
 class TorchCategorical final : public TorchDistribution
@@ -28,6 +28,9 @@ public:
     /// \param logits
     ///
     TorchCategorical(const torch::Tensor *probs, const torch::Tensor *logits);
+    
+    
+    virtual ~TorchCategorical();
 
     ///
     /// \brief entropy

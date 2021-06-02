@@ -1,11 +1,11 @@
-#include "kernel/numerics/statistics/torch_normal.h"
+#include "cubic_engine/ml/statistics/torch_normal.h"
 
 #ifdef USE_PYTORCH
 
 #include <cmath>
 
-namespace kernel {
-namespace numerics {
+namespace cengine {
+namespace ml {
 namespace stats {
 
 TorchNormalDistribution::TorchNormalDistribution(const torch::Tensor loc,
@@ -21,6 +21,9 @@ TorchNormalDistribution::TorchNormalDistribution(const torch::Tensor loc,
     batch_shape_ = loc_.sizes().vec();
     event_shape_ = {};
 }
+
+TorchNormalDistribution::~TorchNormalDistribution()
+{}
 
 torch::Tensor
 TorchNormalDistribution::entropy(){

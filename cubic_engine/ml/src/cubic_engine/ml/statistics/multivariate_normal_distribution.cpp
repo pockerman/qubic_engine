@@ -1,4 +1,4 @@
-#include "kernel/numerics/statistics/multivariate_normal_distribution.h"
+#include "cubic_engine/ml/statistics/multivariate_normal_distribution.h"
 #include "kernel/maths/constants.h"
 
 #include <stdexcept>

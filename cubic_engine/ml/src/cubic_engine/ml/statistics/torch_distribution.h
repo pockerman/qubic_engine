@@ -10,8 +10,8 @@
 
 #include <vector>
 
-namespace kernel {
-namespace numerics {
+namespace cengine {
+namespace ml {
 namespace stats {
 
 ///

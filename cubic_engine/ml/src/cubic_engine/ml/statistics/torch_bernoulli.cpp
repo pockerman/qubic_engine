@@ -1,11 +1,11 @@
-#include "kernel/numerics/statistics/torch_bernoulli.h"
+#include "cubic_engine/ml/statistics/torch_bernoulli.h"
 
 #ifdef USE_PYTORCH
 
 #include <stdexcept>
 
-namespace kernel {
-namespace numerics {
+namespace cengine {
+namespace ml {
 namespace stats {
 
 
@@ -45,6 +45,9 @@ TorchBernoulli::TorchBernoulli(const torch::Tensor *probs,
     param_ = probs != nullptr ? *probs : *logits;
     batch_shape_ = param_.sizes().vec();
 }
+
+TorchBernoulli::~TorchBernoulli()
+{}
 
 torch::Tensor
 TorchBernoulli::entropy()
