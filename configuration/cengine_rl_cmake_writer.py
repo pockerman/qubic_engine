@@ -133,9 +133,13 @@ class RLCMakeWriter(CMakeFileWriter):
 
             tfh.write('\n')
 
-            link_dirs = [self.configuration["kernel"]["CMAKE_INSTALL_PREFIX"],
-                         self.configuration["cengine"]["CMAKE_INSTALL_PREFIX"],
-                         "${Boost_LIBRARY_DIRS}", ]
+            if self.configuration["kernel"]["CMAKE_INSTALL_PREFIX"] == self.configuration["cengine"]["CMAKE_INSTALL_PREFIX"]:
+                link_dirs = [self.configuration["kernel"]["CMAKE_INSTALL_PREFIX"],
+                            "${Boost_LIBRARY_DIRS}", ]
+            else:
+                link_dirs = [self.configuration["kernel"]["CMAKE_INSTALL_PREFIX"],
+                            self.configuration["cengine"]["CMAKE_INSTALL_PREFIX"],
+                         "  ${Boost_LIBRARY_DIRS}", ]
 
             if example is False:
                 link_dirs.append(self.configuration["testing"]["GTEST_LIB_DIR"])
@@ -152,11 +156,13 @@ class RLCMakeWriter(CMakeFileWriter):
             tfh.write("\n")
             tfh.write('ADD_EXECUTABLE(%s %s)\n' % ("${EXECUTABLE}", "${SOURCE}"))
             tfh.write("\n")
+
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.project_name))
-            tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.cengine_name))
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.kernel_name))
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.numerics_name))
+            tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.cengine_name))
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.ml_name))
+
 
             if example is False:
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest)\n')
