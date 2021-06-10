@@ -6,7 +6,7 @@
 #ifdef USE_PYTORCH
 
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "kernel/numerics/statistics/torch_distribution.h"
+#include "cubic_engine/ml/statistics/torch_distribution.h"
 #include "torch/torch.h"
 
 #include <memory>
@@ -29,11 +29,27 @@ class OutputLayer : public torch::nn::Module
     /// \param x
     /// \return
     ///
-    virtual std::unique_ptr<kernel::numerics::stats::TorchDistribution> forward(torch::Tensor x) = 0;
+    virtual std::unique_ptr<ml::stats::TorchDistribution> forward(torch::Tensor x) = 0;
 };
 
 class LinearOutputLayer: public OutputLayer
 {
+
+public:
+
+	///
+    /// \brief ~OutputLayer
+    ///
+    virtual ~LinearOutputLayer() = default;
+
+    ///
+    /// \brief forward
+    /// \param x
+    /// \return
+    ///
+    virtual std::unique_ptr<ml::stats::TorchDistribution> forward(torch::Tensor x) = 0;
+
+
 
 protected:
 
@@ -42,7 +58,17 @@ protected:
     /// \param num_inputs
     /// \param num_outputs
     ///
-    LinearOutputLayer(uint_t num_inputs, uint_t num_outputs);
+    LinearOutputLayer(uint_t num_inputs, uint_t num_outputs)
+        :
+         LinearOutputLayer(static_cast<unsigned int>(num_inputs), static_cast<unsigned int>(num_outputs))
+        {}
+
+    ///
+    /// \brief LinearOutputLayer
+    /// \param num_inputs
+    /// \param num_outputs
+    ///
+    LinearOutputLayer(unsigned int num_inputs, unsigned int num_outputs);
 
     ///
     /// \brief linear
@@ -56,19 +82,34 @@ class BernoulliOutput : public LinearOutputLayer
 {
 public:
 
+     ///
+    ///
+    ///
+    BernoulliOutput(unsigned int num_inputs, unsigned int num_outputs);
+
     ///
     /// \brief BernoulliOutput
     /// \param num_inputs
     /// \param num_outputs
     ///
-    BernoulliOutput(uint_t num_inputs, uint_t num_outputs);
+    BernoulliOutput(uint_t num_inputs, uint_t num_outputs)
+        :
+        BernoulliOutput(static_cast<unsigned int>(num_inputs), static_cast<unsigned int>(num_outputs))
+    {}
+
+    
+    
+    BernoulliOutput(int num_inputs, int num_outputs)
+    :
+    BernoulliOutput(static_cast<unsigned int>(num_inputs), static_cast<unsigned int>(num_outputs))
+    {}
 
     ///
     /// \brief forward
     /// \param x
     /// \return
     ///
-    std::unique_ptr<kernel::numerics::stats::TorchDistribution> forward(torch::Tensor x);
+    std::unique_ptr<ml::stats::TorchDistribution> forward(torch::Tensor x);
 
 };
 
@@ -88,7 +129,7 @@ public:
     /// \param x
     /// \return
     ///
-    std::unique_ptr<kernel::numerics::stats::TorchDistribution> forward(torch::Tensor x);
+    std::unique_ptr<ml::stats::TorchDistribution> forward(torch::Tensor x);
 
 };
 
@@ -108,7 +149,7 @@ public:
     /// \param x
     /// \return
     ///
-    std::unique_ptr<kernel::numerics::stats::TorchDistribution> forward(torch::Tensor x);
+    std::unique_ptr<ml::stats::TorchDistribution> forward(torch::Tensor x);
 
 private:
 

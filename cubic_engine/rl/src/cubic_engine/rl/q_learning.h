@@ -145,11 +145,8 @@ QLearning<WorldTp>::step(){
             // do exploration by default
             auto action_idx = this->action_selection_policy(this->state_);
 
-
-
             // step in the world
             auto [new_state, reward, finished, info] = this->world_ptr()->step(action_idx);
-
 
             // update the qtable
             this->q_function_(this->state_, static_cast<uint_t>(action_idx)) += this->get_learning_rate() * (reward +

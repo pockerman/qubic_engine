@@ -42,38 +42,38 @@ public:
     ///
     TorchObservationNormalizerImpl(const std::vector<value_t> &means,
                               const std::vector<value_t> &variances,
-                              value_t clip = 10.);
+                                   value_t clip = 10.){}
 
     ///
     /// \brief ObservationNormalizerImpl
     /// \param others
     ///
-    explicit TorchObservationNormalizerImpl(const std::vector<TorchObservationNormalizerImpl> &others);
+    explicit TorchObservationNormalizerImpl(const std::vector<TorchObservationNormalizerImpl> &others){}
 
     ///
     /// \brief process_observation
     /// \param observation
     /// \return
     ///
-    torch::Tensor process_observation(torch::Tensor observation) const;
+    torch::Tensor process_observation(torch::Tensor observation) const{}
 
     ///
     /// \brief get_mean
     /// \return
     ///
-    std::vector<value_t> get_mean() const;
+    std::vector<value_t> get_mean() const{}
 
     ///
     /// \brief get_variance
     /// \return
     ///
-    std::vector<value_t> get_variance() const;
+    std::vector<value_t> get_variance() const{}
 
     ///
     /// \brief update
     /// \param observations
     ///
-    void update(torch::Tensor observations);
+    void update(torch::Tensor observations){}
 
     ///
     /// \brief get_clip_value
@@ -97,7 +97,7 @@ private:
     ///
     /// \brief rms
     ///
-    TorchRunningMeanStd rms;
+    TorchRunningMeanStd rms{nullptr};
 
 };
 

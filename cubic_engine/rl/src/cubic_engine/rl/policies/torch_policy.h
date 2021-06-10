@@ -111,9 +111,24 @@ public:
 
 private:
 
+    ///
+    /// \brief action_space_
+    ///
     actions::ActionSpace action_space_;
+
+    ///
+    /// \brief base_
+    ///
     std::shared_ptr<nets::TorchNNBase> base_;
+
+    ///
+    /// \brief observation_normalizer_
+    ///
     utils::TorchObservationNormalizer observation_normalizer_;
+
+    ///
+    /// \brief output_layer_
+    ///
     std::shared_ptr<cengine::ml::nets::LinearOutputLayer> output_layer_;
 
     std::vector<torch::Tensor> forward_gru(torch::Tensor x,
@@ -121,9 +136,6 @@ private:
                                            torch::Tensor masks);
 
 };
-
-
-//using TorchPolicy = Policy<torch_t>;
 
 TORCH_MODULE(TorchPolicy);
 }
