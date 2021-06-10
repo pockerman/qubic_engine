@@ -41,13 +41,13 @@ public:
     /// \brief get_hidden_size
     /// \return
     ///
-    virtual uint_t get_hidden_size() const{ return 1;}
+    virtual int get_hidden_size() const{ return 1;}
 
     ///
     /// \brief get_output_size
     /// \return
     ///
-    uint_t get_output_size() const { return output_size_; }
+    int get_output_size() const { return static_cast<int>(output_size_); }
 
 private:
 
