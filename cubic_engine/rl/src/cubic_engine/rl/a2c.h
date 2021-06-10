@@ -7,7 +7,7 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/utils/torch_rollout_storage.h"
-
+#include "cubic_engine/rl/gym_comm/communicator.h"
 
 #include "torch/torch.h"
 #include <memory>
@@ -51,6 +51,7 @@ struct A2CInput
 ///
 /// \brief The A2C class. PyTorch based implementation of A2C algorithm
 ///
+
 class A2C
 {
 
@@ -64,7 +65,7 @@ class A2C
     ///
     /// \brief A2C Constructor
     ///
-    A2C(policies::TorchPolicy& policy, const A2CInput input);
+    A2C(gym::Communicator& comm, policies::TorchPolicy& policy, const A2CInput input);
 
     ///
     /// \brief update
@@ -77,7 +78,18 @@ class A2C
     ///
     void decay_learning_rate(value_t decay_level=1.0);
 
+    ///
+    /// \brief train
+    ///
+    void train();
+
 private:
+
+    ///
+    /// \brief comm_ The communicator to communicate
+    /// with the environment
+    ///
+    gym::Communicator* comm_;
 
     ///
     /// \brief policy

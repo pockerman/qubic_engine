@@ -9,7 +9,7 @@
 namespace cengine{
 namespace rl{
 
-A2C::A2C(policies::TorchPolicy& policy, const A2CInput input)
+A2C::A2C(gym::Communicator& comm, policies::TorchPolicy& policy, const A2CInput input)
     :
      policy_(policy),
      input_(input),
@@ -90,6 +90,10 @@ A2C::update(utils::TorchRolloutStorage &rollouts, value_t decay_level){
     return {utils::UpdateDatum<A2C::value_t>("Value loss", value_loss.item().toFloat()),
             utils::UpdateDatum<A2C::value_t>("Action loss", action_loss.item().toFloat()),
             utils::UpdateDatum<A2C::value_t>("Entropy", evaluate_result[2].item().toFloat())};
+
+}
+
+void A2C::train(){
 
 }
 }
