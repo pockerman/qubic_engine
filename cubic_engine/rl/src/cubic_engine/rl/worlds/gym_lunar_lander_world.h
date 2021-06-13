@@ -1,13 +1,5 @@
-#ifndef GYM_LUNAR_LANDER_WORLD_H
+﻿#ifndef GYM_LUNAR_LANDER_WORLD_H
 #define GYM_LUNAR_LANDER_WORLD_H
-
-#include "kernel/base/config.h"
-
-#ifdef KERNEL_DEBUG
-#include <cassert>
-#endif
-
-
 
 #include "cubic_engine/rl/worlds/gym_world_base.h"
 
@@ -27,7 +19,6 @@ class Communicator;
 namespace worlds {
 
 
-
 ///
 /// \brief The GymLunarLanderWorld class
 ///
@@ -43,7 +34,7 @@ public:
     ///
     /// \brief GymLunarLanderWorld
     ///
-    GymLunarLanderWorld(std::string&& version, gym::Communicator& comm);
+    GymLunarLanderWorld(const std::string& version, gym::Communicator& comm);
 
     ///
     /// \brief Transition to a new state by
@@ -73,19 +64,27 @@ public:
     ///
     virtual  void build(bool reset) override;
 
+    ///
+    /// \brief n_copies Returns the  number of copies of the environment
+    ///
+    virtual uint_t n_copies()const override {return 1;}
+
 private:
 
     ///
     /// \brief The GymLunarLanderWorldResetResponse struct
     ///
-    struct GymLunarLanderWorldResetResponse;
+    struct ResetResponse;
 
     ///
     /// \brief GymLunarLanderWorldStepResponse
     ///
-    struct GymLunarLanderWorldStepResponse;
+    struct StepResponse;
 
-
+    ///
+    /// \brief GymLunarLanderWorldInfoResponse
+    ///
+    struct InfoResponse;
 
 
 };
