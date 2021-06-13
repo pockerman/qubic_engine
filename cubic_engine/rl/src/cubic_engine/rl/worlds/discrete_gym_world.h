@@ -189,11 +189,11 @@ template<typename StateTp>
 void
 DiscreteGymWorld<StateTp>::build(const std::string& world_name, bool restart, bool get_info_params){
 
-    auto make_param = std::make_shared<gym::MakeParam>();
+    auto make_param = std::make_shared<gym::MakeRequest>();
     make_param->env_name = world_name;
     make_param->num_envs = 1;
 
-    gym::Request<gym::MakeParam> make_request("make", make_param);
+    gym::Request<gym::MakeRequest> make_request("make", make_param);
     comm_->send_request(make_request);
 
 #ifdef USE_LOG
@@ -216,11 +216,11 @@ template<typename StateTp>
 std::tuple<typename DiscreteGymWorld<StateTp>::state_t, real_t, bool, std::any>
 DiscreteGymWorld<StateTp>::step(const action_t& action){
 
-    auto step_param = std::make_shared<gym::StepParam>();
+    auto step_param = std::make_shared<gym::StepRequest>();
     step_param->render = render_on_step_;
     step_param->action = static_cast<int>(action);
 
-    gym::Request<gym::StepParam> step_request("step", step_param);
+    gym::Request<gym::StepRequest> step_request("step", step_param);
     comm_->send_request(step_request);
 
 #ifdef USE_LOG
@@ -241,8 +241,8 @@ typename DiscreteGymWorld<StateTp>::state_t
 DiscreteGymWorld<StateTp>::reset(){
 
 
-    auto reset_param = std::make_shared<gym::ResetParam>();
-    gym::Request<gym::ResetParam> reset_request("reset", reset_param);
+    auto reset_param = std::make_shared<gym::ResetRequest>();
+    gym::Request<gym::ResetRequest> reset_request("reset", reset_param);
     comm_->send_request(reset_request);
 
 #ifdef USE_LOG
