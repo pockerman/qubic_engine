@@ -61,9 +61,25 @@ public:
     virtual  void build(bool reset)=0;
 
     ///
+    /// \brief n_copies Returns the  number of copies of the environment
+    ///
+    virtual uint_t n_copies()const = 0;
+
+    ///
     /// \brief name
     ///
     std::string name()const{return name_;}
+
+    ///
+    /// \brief is_built
+    /// \return
+    ///
+    bool is_built()const{return is_built_;}
+
+    ///
+    /// \brief make_is_built
+    ///
+    void make_is_built(){is_built_ = true;}
 
 
 protected:
@@ -79,12 +95,18 @@ protected:
     ///
     std::string name_;
 
+    ///
+    ///
+    ///
+    bool is_built_{false};
+
 };
 
 template<typename StateTp, typename ActionTp>
 WorldBase<StateTp, ActionTp>::WorldBase(const std::string& name)
     :
-      name_(name)
+      name_(name),
+      is_built_(false)
 {}
 
 }

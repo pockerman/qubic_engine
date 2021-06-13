@@ -43,9 +43,18 @@ public:
 
     ///
     /// \brief state
-    /// \return
     ///
     state_t& state(){return current_state_;}
+
+    ///
+    /// \brief render_on_step
+    ///
+    bool render_on_step()const{return render_on_step_;}
+
+    ///
+    /// \brief set_render_step_flag
+    ///
+    void set_render_step_flag(bool flag){render_on_step_ = flag;}
 
 protected:
 
@@ -71,6 +80,11 @@ protected:
     state_t current_state_;
 
     ///
+    /// \brief render_on_step_
+    ///
+    bool render_on_step_{false};
+
+    ///
     /// \brief comm_. Access the communicator
     ///
     gym::Communicator* communicator_(){return comm_;}
@@ -82,7 +96,9 @@ GymWorldBase<StateTp, ActionTp>::GymWorldBase(const std::string& name, const std
     :
       WorldBase<StateTp, ActionTp> (name),
       v_(v),
-      comm_(&comm)
+      comm_(&comm),
+      current_state_(),
+      render_on_step_(false)
 {}
 
 }
