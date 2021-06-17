@@ -40,6 +40,10 @@ struct GymLunarLanderWorld::StepResponse
 struct GymLunarLanderWorld::InfoResponse
 {
 
+    std::vector<uint_t> observation_space_shape;
+    std::vector<uint_t> action_space_shape;
+    std::string result;
+    MSGPACK_DEFINE_MAP(observation_space_shape, action_space_shape, result);
 };
 
 GymLunarLanderWorld::GymLunarLanderWorld(const std::string& version, gym::Communicator& comm)

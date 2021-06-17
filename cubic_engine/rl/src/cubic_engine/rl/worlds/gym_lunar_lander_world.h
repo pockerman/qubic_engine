@@ -3,7 +3,9 @@
 
 #include "cubic_engine/rl/worlds/gym_world_base.h"
 
+#include <msgpack.hpp>
 #include <vector>
+#include <array>
 
 namespace cengine {
 namespace rl {
@@ -32,6 +34,37 @@ public:
     typedef GymWorldBase<std::vector<real_t>, uint_t>::state_t state_t;
 
     ///
+    /// \brief The ResetResponse struct
+    ///
+    struct ResetResponse;
+
+    ///
+    /// \brief The StepRequest
+    ///
+    struct StepRequest
+    {
+        std::vector<std::vector<real_t> > actions;
+        bool render;
+        MSGPACK_DEFINE_MAP(actions, render);
+    };
+
+    ///
+    /// \brief StepResponse
+    ///
+    struct StepResponse;
+
+    ///
+    /// \brief InfoResponse
+    ///
+    struct InfoResponse;
+
+    ///
+    /// \brief make_step_request
+    /// \return
+    ///
+    static std::unique_ptr<StepRequest> make_step_request();
+
+    ///
     /// \brief GymLunarLanderWorld
     ///
     GymLunarLanderWorld(const std::string& version, gym::Communicator& comm);
@@ -54,6 +87,14 @@ public:
     virtual std::tuple<state_t, real_t, bool, std::any> step(const action_t&) override;
 
     ///
+    /// \brief step_from_request
+    /// \param request
+    /// \return
+    ///
+    std::tuple<std::vector<state_t>, std::vector<real_t>,
+               std::vector<bool>, std::vector<std::any>> step_from_request(std::unique_ptr<StepRequest> request);
+
+    ///
     /// \brief restart. Restart the world and
     /// return the starting state
     ///
@@ -69,22 +110,29 @@ public:
     ///
     virtual uint_t n_copies()const override {return 1;}
 
+    ///
+    /// \brief observation_space_shape
+    ///
+    std::vector<uint_t> observation_space_shape()const;
+
+    ///
+    /// \brief observation_space_shape
+    ///
+    std::vector<uint_t> action_space_shape()const;
+
+    ///
+    /// \brief action_space_type
+    /// \return
+    ///
+    std::string action_space_type()const;
+
+    ///
+    /// \brief info
+    ///
+    InfoResponse info();
+
 private:
 
-    ///
-    /// \brief The GymLunarLanderWorldResetResponse struct
-    ///
-    struct ResetResponse;
-
-    ///
-    /// \brief GymLunarLanderWorldStepResponse
-    ///
-    struct StepResponse;
-
-    ///
-    /// \brief GymLunarLanderWorldInfoResponse
-    ///
-    struct InfoResponse;
 
 
 };

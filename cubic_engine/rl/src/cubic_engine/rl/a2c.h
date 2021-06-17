@@ -38,6 +38,8 @@ struct UpdateDatum;
 struct A2CInput
 {
     typedef real_t value_t ;
+
+
     value_t actor_loss_coef;
     value_t value_loss_coef;
     value_t entropy_coef;
@@ -46,6 +48,16 @@ struct A2CInput
     value_t epsilon{1e-8};
     value_t alpha{0.99};
     value_t max_grad_norm{0.5};
+
+    ///
+    /// \brief num_envs
+    ///
+    uint_t num_envs;
+
+    ///
+    /// \brief device
+    ///
+    torch::Device device;
 
 };
 
@@ -69,9 +81,14 @@ class A2C
     typedef WorldTp world_t;
 
     ///
-    /// \brief A2C Constructor
+    /// \brief state_t
     ///
-    A2C(world_t& comm, policies::TorchPolicy& policy, const A2CInput input);
+    typedef typename WorldTp::state_t state_t;
+
+    ///
+    /// \brief Destructor
+    ///
+    virtual ~A2C() = default;
 
     ///
     /// \brief update
@@ -87,7 +104,34 @@ class A2C
     ///
     /// \brief train
     ///
-    void train();
+    virtual void train() = 0;
+
+    ///
+    /// \brief num_envs. Returns the number of environments
+    ///
+    uint_t num_envs()const{return input_.num_envs;}
+
+    ///
+    /// \brief device
+    ///
+    torch::Device device()const{return input_.device;}
+
+protected:
+
+    ///
+    /// \brief A2C Constructor
+    ///
+    A2C(world_t& environment, policies::TorchPolicy& policy, const A2CInput input);
+
+    ///
+    /// \brief world
+    ///
+    world_t* world(){return world_ptr_;}
+
+    ///
+    /// \brief policy
+    ///
+    policies::TorchPolicy& policy(){return policy_;}
 
 private:
 
