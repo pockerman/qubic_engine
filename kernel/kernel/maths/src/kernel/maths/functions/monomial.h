@@ -37,6 +37,12 @@ public:
     virtual output_t value(const input_t& input)const override final;
 
     ///
+    /// \brief gradient/ Returns the o-th order gradient of the monomial
+    /// at point p
+    ///
+    real_t gradient(real_t p, uint_t o)const;
+
+    ///
     /// \brief Returns the gradients of the function
     ///
     virtual DynVec<real_t> gradients(const input_t&  input)const override final
