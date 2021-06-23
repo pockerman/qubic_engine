@@ -23,12 +23,18 @@
 namespace kernel{
 namespace numerics{
 
+
 /// forward declarations
 template<int dim> class Mesh;
 template<int dim> class FVGradBase;
 template<int dim> class BoundaryFunctionBase;
 template<int dim> class NumericScalarFunction;
 
+namespace pdes{
+
+///
+/// \brief
+///
 template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
 class ScalarFVSystem: public pdes::ScalarSystemBase<dim, AssemblyPolicy, SolutionPolicy>
 {
@@ -63,16 +69,13 @@ public:
     virtual void assemble_system();
 
     ///
-    /// \brief Solve the system
-    ///
-    virtual solver_output_t solve();
-
-    ///
     /// \brief Save the solution vector
     ///
     virtual void save_solution(const std::string& file_name)const;
 
+    ///
     /// \brief Returns the number of dofs
+    ///
     uint_t n_dofs()const{return dofs_manager_.n_dofs();}
 
     ///
@@ -83,11 +86,8 @@ public:
 protected:
 
     ///
-    /// \brief Pointer to the Mesh over which the system will be solved
-    ///
-    Mesh<dim>* m_ptr_;
-
     /// \brief The object that manages the DoFs for the system
+    ///
     FVDoFManager<dim> dofs_manager_;
 
     ///
@@ -102,9 +102,7 @@ protected:
 template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
 ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy >::ScalarFVSystem(const std::string& sys_name, const std::string&  var_name)
     :
-      ScalarSystemBase<dim, AssemblyPolicy, SolutionPolicy>(sys_name, var_name)
-
-      m_ptr_(nullptr),
+      ScalarSystemBase<dim, AssemblyPolicy, SolutionPolicy>(sys_name, var_name),
       dofs_manager_(),
       volume_func_(nullptr)
 {}
@@ -114,18 +112,13 @@ template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
 void
 ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy>::distribute_dofs(){
 
-
-    if(!m_ptr_){
-        throw std::logic_error("Mehs pointer is null");
-    }
-
-    dofs_manager_.distribute_dofs(*m_ptr_, var_);
+    dofs_manager_.distribute_dofs(this->get_mesh(), this->get_variable());
 
     // initialize the matrix and vector. Policy should take care
     // this
-    matrix_.init(dofs_manager_.n_dofs(), dofs_manager_.n_dofs(), 6);
-    solution_.init(dofs_manager_.n_dofs(), false);
-    rhs_.init(dofs_manager_.n_dofs(), false);
+    this->get_matrix().init(dofs_manager_.n_dofs(), dofs_manager_.n_dofs(), 6);
+    this->get_solution().init(dofs_manager_.n_dofs(), false);
+    this->get_rhs_vector().init(dofs_manager_.n_dofs(), false);
 
 }
 
@@ -134,37 +127,32 @@ void
 ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy>::assemble_system(){
 
     // zero the system entries
-    matrix_.zero();
-    rhs_.zero();
-    solution_.zero();
+   this->zero_linear_algebra_objects();
 
-    assembly_.set_dof_manager(dofs_manager_);
+   this->get_assembly_policy().set_dof_manager(dofs_manager_);
 
-    if(boundary_func_){
+    /*if(boundary_func_){
         assembly_.set_boundary_function(*boundary_func_);
     }
 
     if(rhs_func_){
         assembly_.set_rhs_function(*rhs_func_);
-    }
+    }*/
 
-    if(volume_func_){
-        assembly_.set_volume_term_function(*volume_func_);
-    }
+   if(volume_func_){
+       this->get_assembly_policy().set_volume_term_function(*volume_func_);
+   }
 
-    assembly_.set_mesh(*m_ptr_);
-    assembly_.assemble(matrix_, solution_, rhs_);
-    matrix_.fill_completed();
-    solution_.compress();
-    rhs_.compress();
+   // call base class to assemble
+   this->ScalarSystemBase<dim, AssemblyPolicy, SolutionPolicy>::assemble_system();
+
+   /*assembly_.set_mesh(*m_ptr_);
+   assembly_.assemble(matrix_, solution_, rhs_);
+   matrix_.fill_completed();
+   solution_.compress();
+   rhs_.compress();*/
 }
 
-template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
-typename ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy>::solver_output_t
-ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy>::solve(){
-
-    return solver_.solve(matrix_, solution_, rhs_);
-}
 
 template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
 void
@@ -172,22 +160,13 @@ ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy>::save_solution(const std::st
 
     /// \brief Constructor
     VtkWriter writer(file_name, true);
-    writer.write_solution(*m_ptr_, solution_, dofs_manager_);
+    writer.write_solution(this->get_mesh(),  this->get_solution(), dofs_manager_);
 
 }
 
-template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
-std::ostream&
-ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy>::print_system_matrix(std::ostream& out)const{
-    return matrix_.print(out);
-}
 
-template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
-std::ostream&
-ScalarFVSystem<dim, AssemblyPolicy, SolutionPolicy>::print_system_rhs(std::ostream& out)const{
-    return rhs_.print(out);
-}
 
+}
 }
 }
 
