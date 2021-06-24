@@ -55,6 +55,7 @@ namespace cengine{
     
 #ifdef USE_PYTORCH
     using torch_t = kernel::torch_t;
+    using torch_int_t = kernel::torch_int_t;
 #endif
     
     
