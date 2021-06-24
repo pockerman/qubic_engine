@@ -12,9 +12,9 @@ std::vector<T> flatten_vector(std::vector<T> const &input)
 }
 
 template <typename T>
-std::vector<float> flatten_vector(std::vector<std::vector<T>> const &input)
+std::vector<real_t> flatten_vector(std::vector<std::vector<T>> const &input)
 {
-    std::vector<float> output;
+    std::vector<real_t> output;
 
     for (auto const &element : input)
     {
@@ -54,7 +54,7 @@ A2CAtariLunarLander::train(){
 
     if (observation_space_shape.size() > 1){
         //observation_vec = flatten_vector(communicator.get_response<CnnResetResponse>()->observation);
-        observation_vec = flatten_vector(this->world()->reset()->observation);
+        observation_vec = flatten_vector(this->world()->reset());
         observation = torch::from_blob(observation_vec.data(), observation_shape).to(device);
     }
     else{
