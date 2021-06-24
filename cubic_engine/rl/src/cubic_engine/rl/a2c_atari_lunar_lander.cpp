@@ -41,7 +41,7 @@ A2CAtariLunarLander::train(){
 
     auto num_updates = max_frames_ / (batch_size_ * this->num_envs());
 
-    auto observation_space_shape = this->world()->observation_space_shape();
+    auto observation_space_shape = this->world()->observation_space_shape_as_torch();
     auto observation_shape = observation_space_shape;
     observation_shape.insert(observation_shape.begin(), this->num_envs());
 
@@ -55,19 +55,23 @@ A2CAtariLunarLander::train(){
     if (observation_space_shape.size() > 1){
         //observation_vec = flatten_vector(communicator.get_response<CnnResetResponse>()->observation);
         observation_vec = flatten_vector(this->world()->reset());
-        observation = torch::from_blob(observation_vec.data(), observation_shape).to(device);
+        //observation = torch::from_blob(observation_vec.data(), observation_shape).to(device);
     }
     else{
         //observation_vec = flatten_vector(communicator.get_response<MlpResetResponse>()->observation);
-        observation = torch::from_blob(observation_vec.data(), observation_shape).to(device);
+        //observation = torch::from_blob(observation_vec.data(), observation_shape).to(device);
    }
 
 
     actions::ActionSpace space{action_space_type, action_space_shape};
 
+    // set up the policy correctly
+
     utils::TorchRolloutStorage storage(batch_size_, this->num_envs(),
                                        observation_space_shape,
                                        space, hidden_size_, this->device());
+
+    storage.set_first_observation(observation);
 
     auto episode_count = 0;
     for (auto update = 0; update < num_updates; ++update)
@@ -103,20 +107,18 @@ A2CAtariLunarLander::train(){
                 }
             }
 
-            auto step_request = this->world()->make_step_request(); //std::make_shared<StepParam>();
-            step_request->actions = actions;
+            auto [observations, rewards, done, any] = this->world()->vector_step(actions); //make_step_request(); //std::make_shared<StepParam>();
+            //step_request->actions = actions;
 
             // render
             //step_request->render = render;
 
             // step in the environment and return
             // a TimeStep
-            auto [observations, rewards, done, any] = this->world()->step_from_request(step_request);
+            //auto [observations, rewards, done, any] = this->world()->step_from_request(step_request);
 
             //Request<StepParam> step_request("step", step_param);
             //communicator.send_request(step_request);
-
-            std::vector<real_t> rewards;
             std::vector<float> real_rewards;
             std::vector<std::vector<bool>> dones_vec;
 
@@ -127,8 +129,8 @@ A2CAtariLunarLander::train(){
                 //auto step_result = communicator.get_response<CnnStepResponse>();
                 auto observation_vec = flatten_vector(observations);
 
-                auto observation = torch::from_blob(observation_vec.data(), observation_shape).to(device);
-                auto raw_reward_vec = flatten_vector(step_result->real_reward);
+                auto observation = torch::from_blob(observation_vec.data(), observation_shape).to(this->device());
+                /*auto raw_reward_vec = flatten_vector(step_result->real_reward);
 
                 auto reward_tensor = torch::from_blob(raw_reward_vec.data(), {num_envs}, torch::kFloat);
                 returns = returns * discount_factor + reward_tensor;
@@ -139,12 +141,12 @@ A2CAtariLunarLander::train(){
                 rewards = std::vector<float>(reward_tensor.data_ptr<float>(),
                                              reward_tensor.data_ptr<float>() + reward_tensor.numel());
                 real_rewards = flatten_vector(step_result->real_reward);
-                dones_vec = step_result->done;
+                dones_vec = step_result->done;*/
             }
             else
             {
                 //auto step_result = communicator.get_response<MlpStepResponse>();
-                observation_vec = flatten_vector(step_result->observation);
+                /*observation_vec = flatten_vector(step_result->observation);
                 observation = torch::from_blob(observation_vec.data(), observation_shape).to(device);
                 auto raw_reward_vec = flatten_vector(step_result->real_reward);
                 auto reward_tensor = torch::from_blob(raw_reward_vec.data(), {num_envs}, torch::kFloat);
@@ -154,30 +156,32 @@ A2CAtariLunarLander::train(){
                                              -reward_clip_value, reward_clip_value);
                 rewards = std::vector<float>(reward_tensor.data_ptr<float>(), reward_tensor.data_ptr<float>() + reward_tensor.numel());
                 real_rewards = flatten_vector(step_result->real_reward);
-                dones_vec = step_result->done;
+                dones_vec = step_result->done;*/
             }
 
             for (auto i = 0; i < this->num_envs(); ++i){
 
-                  running_rewards[i] += real_rewards[i];
+                  /*running_rewards[i] += real_rewards[i];
                   if (dones_vec[i][0])
                   {
                       reward_history[episode_count % reward_average_window_size] = running_rewards[i];
                       running_rewards[i] = 0;
                       returns[i] = 0;
                       episode_count++;
-                  }
+                  }*/
              }
 
-            auto dones = torch::zeros({num_envs, 1}, TensorOptions(device));
-            for (int i = 0; i < num_envs; ++i)
+            auto dones = torch::zeros({static_cast<long>(this->num_envs()), 1},
+                                      c10::TensorOptions(this->device()));
+
+            for (int i = 0; i < this->num_envs(); ++i)
             {
                 dones[i][0] = static_cast<int>(dones_vec[i][0]);
             }
 
             storage.insert(observation, act_result[3],
                             act_result[1], act_result[2],
-                            act_result[0], torch::from_blob(rewards.data(), {num_envs, 1}).to(device),
+                            act_result[0], torch::from_blob(rewards.data(), {static_cast<torch_int_t>(this->num_envs()), 1}).to(this->device()),
                             1 - dones);
 
         }// for batch size

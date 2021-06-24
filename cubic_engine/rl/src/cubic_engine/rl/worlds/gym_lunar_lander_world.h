@@ -1,6 +1,7 @@
 ﻿#ifndef GYM_LUNAR_LANDER_WORLD_H
 #define GYM_LUNAR_LANDER_WORLD_H
 
+#include "kernel/base/config.h"
 #include "cubic_engine/rl/worlds/gym_world_base.h"
 
 #include <msgpack.hpp>
@@ -21,17 +22,24 @@ class Communicator;
 namespace worlds {
 
 
+
+
 ///
 /// \brief The GymLunarLanderWorld class
 ///
-class GymLunarLanderWorld: public GymWorldBase<std::vector<real_t>, uint_t>
+class GymLunarLanderWorld: public GymWorldBase<std::vector<real_t>, std::vector<real_t> >
 {
 public:
 
     ///
     /// \brief state_t
     ///
-    typedef GymWorldBase<std::vector<real_t>, uint_t>::state_t state_t;
+    typedef GymWorldBase<std::vector<real_t>,  std::vector<real_t>>::state_t state_t;
+
+    ///
+    /// \brief state_t
+    ///
+    typedef GymWorldBase<std::vector<real_t>,  std::vector<real_t>>::action_t action_t;
 
     ///
     /// \brief The ResetResponse struct
@@ -43,7 +51,7 @@ public:
     ///
     struct StepRequest
     {
-        std::vector<std::vector<real_t> > actions;
+        std::vector<action_t> actions;
         bool render;
         MSGPACK_DEFINE_MAP(actions, render);
     };
@@ -91,8 +99,12 @@ public:
     /// \param request
     /// \return
     ///
-    std::tuple<std::vector<state_t>, std::vector<real_t>,
-               std::vector<bool>, std::vector<std::any>> step_from_request(std::unique_ptr<StepRequest> request);
+    ///
+    /// \brief vector_step
+    ///
+    virtual std::tuple<std::vector<state_t>, std::vector<real_t>,
+                       std::vector<bool>, std::vector<std::any>> vector_step(const std::vector<action_t>&);
+
 
     ///
     /// \brief restart. Restart the world and
@@ -115,6 +127,10 @@ public:
     ///
     std::vector<uint_t> observation_space_shape()const;
 
+#ifdef USE_PYTORCH
+    std::vector<torch_int_t> observation_space_shape_as_torch()const;
+#endif
+
     ///
     /// \brief observation_space_shape
     ///
@@ -136,6 +152,22 @@ private:
 
 
 };
+
+
+std::tuple<std::vector<GymLunarLanderWorld::state_t>, std::vector<real_t>,
+                       std::vector<bool>, std::vector<std::any>>
+GymLunarLanderWorld::vector_step(const std::vector<action_t>& actions){
+
+    std::tuple<std::vector<GymLunarLanderWorld::state_t>,
+               std::vector<real_t>, std::vector<bool>, std::vector<std::any>> result;
+
+    for(const auto& action: actions){
+        step(action);
+    }
+
+    result;
+}
+
 
 }
 
