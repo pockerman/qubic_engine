@@ -22,6 +22,14 @@ template<int dim> class BoundaryFunctionBase;
 template<int dim> class NumericScalarFunction;
 template<int dim> class NumericVectorFunctionBase;
 
+#ifdef USE_TRILINOS
+class TrilinosEpetraMatrix;
+class TrilinosEpetraVector;
+#endif
+
+namespace fvm {
+
+
 ///
 /// \brief Base class for deriving
 /// assemble policies for FVM
@@ -32,10 +40,45 @@ class FVAssemblyPolicy
 public:
 
     ///
+    /// \brief ~FVAssemblyPolicy
+    ///
+    virtual ~FVAssemblyPolicy()=default;
+
+    ///
     /// \brief Compute the fluxes over the cell last
     /// reinitialized
     ///
-    void compute_fluxes();
+    virtual void compute_fluxes()=0;
+
+    ///
+    /// \brief Reinitialize the policy
+    ///
+    virtual void reinit(const Element<dim>& element);
+
+    ///
+    /// \brief Reinitialize the policy
+    ///
+    virtual void reinit(const Element<dim>& element, const std::vector<real_t>& qvals);
+
+#ifdef USE_TRILINOS
+
+    ///
+    /// \brief Assemble the data
+    ///
+    virtual void assemble(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b )=0;
+
+    ///
+    /// \brief Apply the boundary conditions
+    ///
+    virtual void apply_boundary_conditions(const  std::vector<uint_t>& bfaces, TrilinosEpetraMatrix& mat,
+                                           TrilinosEpetraVector& x, TrilinosEpetraVector& b )=0;
+
+    ///
+    /// \brief assemble one element contribution
+    ///
+    virtual void assemble_one_element(TrilinosEpetraMatrix& mat, TrilinosEpetraVector& x, TrilinosEpetraVector& b )=0;
+
+#endif
 
     ///
     /// \brief Set the function that describes the boundary conditions
@@ -67,7 +110,14 @@ protected:
     ///
     /// \brief Constructor
     ///
-    FVAssemblyPolicy();
+    FVAssemblyPolicy(const std::string& name);
+
+
+    ///
+    /// \brief name_ Name of the variable the assembly
+    /// policy is working on
+    ///
+    std::string name_;
 
     ///
     /// \brief The element over which the policy is working
@@ -132,7 +182,7 @@ protected:
 
 };
 
-
+}
 }
 }
 #endif

@@ -10,11 +10,12 @@
 
 namespace kernel{
 namespace numerics{
-
+namespace fvm {
 
 template<int dim>
-FVAssemblyPolicy<dim>::FVAssemblyPolicy()
+FVAssemblyPolicy<dim>::FVAssemblyPolicy(const std::string& name)
     :
+      name_(name),
       elem_(nullptr),
       qvals_(),
       neigh_dofs_(),
@@ -70,10 +71,11 @@ FVAssemblyPolicy<dim>::initialize_dofs_(){
 }
 
 
-template class FVAssemblyPolicy<1>;
+//template class FVAssemblyPolicy<1>;
 template class FVAssemblyPolicy<2>;
 template class FVAssemblyPolicy<3>;
 
+}
 }
 }
 #endif

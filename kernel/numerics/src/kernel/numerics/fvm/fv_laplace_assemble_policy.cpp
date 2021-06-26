@@ -24,11 +24,13 @@
 
 namespace kernel{
 namespace numerics{
+namespace fvm {
 
 
 template<int dim>
 FVLaplaceAssemblyPolicy<dim>::FVLaplaceAssemblyPolicy()
     :
+      FVAssemblyPolicy<dim> ("LaplaceAssembly"),
       fv_grads_(),
       elem_(nullptr),
       qvals_(),
@@ -107,10 +109,9 @@ FVLaplaceAssemblyPolicy<dim>::reinit(const Element<dim>& element){
 
 template<int dim>
 void
-FVLaplaceAssemblyPolicy<dim>::reinit(const Element<dim>& element, std::vector<real_t>&& qvals){
+FVLaplaceAssemblyPolicy<dim>::reinit(const Element<dim>& element, const std::vector<real_t>& qvals){
     elem_ = &element;
     qvals_ = qvals;
-    qvals.clear();
     initialize_dofs();
     compute_fluxes();
 }
@@ -247,6 +248,7 @@ template class FVLaplaceAssemblyPolicy<1>;
 template class FVLaplaceAssemblyPolicy<2>;
 template class FVLaplaceAssemblyPolicy<3>;
 
+}
 }
 }
 #endif
