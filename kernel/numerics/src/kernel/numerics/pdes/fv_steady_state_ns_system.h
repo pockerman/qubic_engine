@@ -45,8 +45,6 @@ public:
     ///
     typedef AssemblyPolicy  assembly_policy_t;
 
-
-
     ///
     /// \brief vector_t
     ///
