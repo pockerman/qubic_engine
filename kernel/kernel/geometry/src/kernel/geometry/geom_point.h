@@ -45,13 +45,19 @@ public:
     ///
     GeomPoint(const std::initializer_list<T>& list);
 
+    ///
     /// \brief copy ctor
+    ///
     GeomPoint(const GeomPoint& t);
 
+    ///
     /// \brief copy assignement operator
+    ///
     GeomPoint& operator=(const GeomPoint& t);
 
+    ///
     /// \brief dtor
+    ///
     virtual ~GeomPoint(){}
 
     /// \brief Add another vector, i.e. move
