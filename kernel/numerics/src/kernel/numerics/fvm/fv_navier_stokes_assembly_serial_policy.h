@@ -38,7 +38,12 @@ public:
     typedef PressureAssemblyTp pressure_policy_t;
 
     ///
-    /// \brief Constructors
+    ///
+    ///
+    FVNavierStokesAssemblySerialPolicy();
+
+    ///
+    /// \brief Constructor
     ///
     FVNavierStokesAssemblySerialPolicy(const std::array<std::string, dim>& velocity, const std::string& pressure);
 
@@ -73,6 +78,11 @@ public:
     ///
     void set_mesh(const Mesh<dim>& mesh);
 
+    ///
+    /// \brief assemble
+    ///
+    void assemble(){}
+
 private:
 
     ///
@@ -88,6 +98,13 @@ private:
 
 
 };
+
+template<int dim, typename DivGradAssemblyTp, typename PressureAssemblyTp>
+FVNavierStokesAssemblySerialPolicy<dim, DivGradAssemblyTp, PressureAssemblyTp>::FVNavierStokesAssemblySerialPolicy()
+    :
+      div_grad_policy_(),
+      pressure_policy_()
+{}
 
 template<int dim, typename DivGradAssemblyTp, typename PressureAssemblyTp>
 FVNavierStokesAssemblySerialPolicy<dim,

@@ -44,7 +44,9 @@ public:
     ///
     /// \brief Constructor
     ///
-    FVLaplaceAssemblyPolicy();
+    FVLaplaceAssemblyPolicy(const std::string& name="LaplaceAssembly");
+
+
 
     ///
     /// \brief Reinitialize the policy

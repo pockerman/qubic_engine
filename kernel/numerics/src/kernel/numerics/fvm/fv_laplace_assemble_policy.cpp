@@ -28,9 +28,9 @@ namespace fvm {
 
 
 template<int dim>
-FVLaplaceAssemblyPolicy<dim>::FVLaplaceAssemblyPolicy()
+FVLaplaceAssemblyPolicy<dim>::FVLaplaceAssemblyPolicy(const std::string& name)
     :
-      FVAssemblyPolicy<dim> ("LaplaceAssembly"),
+      FVAssemblyPolicy<dim> (name),
       fv_grads_(),
       elem_(nullptr),
       qvals_(),

@@ -8,6 +8,19 @@ namespace kernel{
 namespace numerics{
 namespace fvm{
 
+template<>
+std::array<std::string, 2>
+FVStokesAssemblyPolicy<2>::default_components(){
+    return {"u", "v"};
+}
+
+template<>
+std::array<std::string, 3>
+FVStokesAssemblyPolicy<3>::default_components(){
+    return {"u", "v", "w"};
+}
+
+
 template<int dim>
 FVStokesAssemblyPolicy<dim>::FVStokesAssemblyPolicy(const std::array<std::string, dim>& components)
     :

@@ -17,10 +17,12 @@ class FVStokesAssemblyPolicy: public FVVectorAssemblePolicy<dim>
 {
   public:
 
+    static std::array<std::string, dim> default_components();
+
     ///
     /// \brief Constructor
     ///
-    FVStokesAssemblyPolicy(const std::array<std::string, dim>& components);
+    FVStokesAssemblyPolicy(const std::array<std::string, dim>& components=default_components());
 
     ///
     /// \brief Compute the fluxes over the cell last
