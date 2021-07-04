@@ -16,6 +16,11 @@ class VectorPolynomial
 public:
 
     ///
+    /// \brief default constructor
+    ///
+    VectorPolynomial() = default;
+
+    ///
     /// \brief VectorPolynomial. Create a vector polynomial where
     /// all terms have order one
     ///
@@ -34,11 +39,16 @@ public:
     real_t value(const PointTp& point)const;
 
     ///
+    /// \brief n_coeffs
+    /// \return
+    ///
+    uint_t n_coeffs()const{return monomials_.size();}
+
+    ///
     /// \brief get_parameters
     /// \return
     ///
     std::vector<real_t> get_parameters()const;
-
 
     ///
     /// \brief set_coeffs
