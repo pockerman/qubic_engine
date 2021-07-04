@@ -8,18 +8,23 @@ namespace cengine {
 namespace ml {
 
 ///
+///
+///
+class DatasetBase;
+
+///
 /// \brief Base class for supervised models
 ///
-template<typename DatasetTp, typename ValueTp>
+template<typename ValueTp>
 class SupervisedModel
 {
 
 public:
 
     ///
-    /// \brief dataset_t. The type of the dataset
+    /// \brief dataset_t
     ///
-    typedef DatasetTp dataset_t;
+    typedef DatasetBase dataset_t;
 
     ///
     /// \brief value_t The result value type
@@ -35,17 +40,17 @@ public:
     /// \brief train. Train the supervised model on the
     /// provided dataset
     ///
-    //virtual void train(const DatasetTp& data) = 0;
+    virtual void fit(const DatasetBase& data) = 0;
 
     ///
     /// \brief predict
     ///
-    virtual value_t predict(const dataset_t& data)const=0;
+    virtual value_t predict(const DatasetBase& data)const=0;
 
     ///
     /// \brief predict
     ///
-    virtual std::vector<value_t> predict_many(const dataset_t& data)const=0;
+    virtual std::vector<value_t> predict_many(const DatasetBase& data)const=0;
 
 protected:
 

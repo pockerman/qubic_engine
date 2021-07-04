@@ -2,7 +2,10 @@
 #define LINEAR_REGRESSOR_H
 
 #include "cubic_engine/ml/supervised_learning/parametric_supervised_model.h"
-#include "kernel/maths/vector_polynomial.h"
+#include "cubic_engine/ml/supervised_learning/regularizer_type.h"
+#include "kernel/maths/functions/vector_polynomial.h"
+
+#include<ostream>
 
 namespace cengine{
 namespace ml {
@@ -10,30 +13,34 @@ namespace ml {
 ///
 /// \brief Forward declaration
 ///
-class SupervisedDataset;
+class RegressionDataset;
 
 ///
 /// \brief The LinearRegressor class
 ///
-class LinearRegressor: public ParametricSupervisedModel<SupervisedDataset, real_t>
+class LinearRegressor: public ParametricSupervisedModel<real_t>
 {
 public:
 
     ///
     /// \brief dataset_t. The type of the dataset
     ///
-    typedef ParametricSupervisedModel<SupervisedDataset, real_t>::dataset_t dataset_t;
+    typedef ParametricSupervisedModel<real_t>::dataset_t dataset_t;
 
     ///
     /// \brief value_t The result value type
     ///
-    typedef ParametricSupervisedModel<SupervisedDataset, real_t>::value_t value_t;
-
+    typedef ParametricSupervisedModel<real_t>::value_t value_t;
 
     ///
     /// \brief LinearRegressor
     ///
-    LinearRegressor(uint_t n_features, bool use_intercept);
+    LinearRegressor(uint_t n_features, bool use_intercept, RegularizerType rtype=RegularizerType::INVALID_TYPE);
+
+    ///
+    /// \brief fit. Fit the model on the given dataset
+    ///
+    void fit(const dataset_t& dataset) override;
 
     ///
     /// \brief predict
@@ -55,7 +62,22 @@ public:
     ///
     virtual void update_parameters(const std::vector<real_t>& parameters){polynomial_.set_coeffs(parameters);}
 
+    ///
+    /// \brief Print the model coeffs
+    ///
+    std::ostream& print(std::ostream& out)const;
+
 private:
+
+    ///
+    /// \brief use_intercept_
+    ///
+    bool use_intercept_;
+
+    ///
+    ///
+    ///
+    RegularizerType rtype_;
 
     ///
     /// \brief polynomial_ The polynomial
