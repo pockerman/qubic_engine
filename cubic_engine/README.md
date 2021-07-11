@@ -27,7 +27,7 @@
 - <a href="examples/exe5/doc/exe.md">Example 5: </a> Simulate standard error for the mean
 - <a href="examples/exe7/doc/exe.md">Example 7: </a> Multithreaded  gradient descent
 - <a href="examples/exe11/doc/exe.md">Example 11: </a> Neural Network with PyTorch (TODO)
-- <a href="examples/exe12/doc/exe.ipynb">Example 12: </a> Linear regression
+- <a href="examples/example_12/example_12">Example 12: Linear regression with one feature </a> 
 - <a href="examples/exe13/doc/exe.md">Example 13: </a> Logistic regression classification
 - <a href="examples/exe14/doc/exe.md">Example 14: </a> Logistic regression with ```GradientDescentWrapper```
 - <a href="examples/exe15/doc/exe.md">Example 15: </a> Linear Regression with ```PYLinearRegressor``` (TODO)
