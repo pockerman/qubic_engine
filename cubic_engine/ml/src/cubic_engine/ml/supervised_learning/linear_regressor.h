@@ -1,11 +1,14 @@
 #ifndef LINEAR_REGRESSOR_H
 #define LINEAR_REGRESSOR_H
 
+#include "kernel/base/config.h"
 #include "cubic_engine/ml/supervised_learning/parametric_supervised_model.h"
 #include "cubic_engine/ml/supervised_learning/regularizer_type.h"
 #include "kernel/maths/functions/vector_polynomial.h"
 
-#include<ostream>
+#include <ostream>
+#include <map>
+#include <any>
 
 namespace cengine{
 namespace ml {
@@ -35,12 +38,12 @@ public:
     ///
     /// \brief LinearRegressor
     ///
-    LinearRegressor(uint_t n_features, bool use_intercept, RegularizerType rtype=RegularizerType::INVALID_TYPE);
+    LinearRegressor(uint_t n_features, bool use_intercept, RegularizerType rtype);
 
     ///
     /// \brief fit. Fit the model on the given dataset
     ///
-    void fit(const dataset_t& dataset) override;
+    void fit(const dataset_t& dataset, const std::map<std::string, std::any>& options) override;
 
     ///
     /// \brief predict
@@ -58,6 +61,11 @@ public:
     virtual std::vector<real_t> get_parameters()const{return polynomial_.get_parameters();}
 
     ///
+    /// \brief get_interception
+    ///
+    real_t get_interception()const;
+
+    ///
     /// \brief update_parameters
     ///
     virtual void update_parameters(const std::vector<real_t>& parameters){polynomial_.set_coeffs(parameters);}
@@ -67,6 +75,18 @@ public:
     ///
     std::ostream& print(std::ostream& out)const;
 
+    ///
+    /// \brief predict
+    ///
+    virtual value_t predict(const DatasetBase& data)const override;
+
+    ///
+    /// \brief predict
+    ///
+    virtual std::vector<value_t> predict_many(const DatasetBase& data)const override;
+
+
+
 private:
 
     ///
@@ -75,7 +95,7 @@ private:
     bool use_intercept_;
 
     ///
-    ///
+    /// \brief rtype_
     ///
     RegularizerType rtype_;
 
@@ -83,6 +103,14 @@ private:
     /// \brief polynomial_ The polynomial
     ///
     kernel::VectorPolynomial polynomial_;
+
+#ifdef KERNEL_DEBUG
+    ///
+    /// \brief check_options
+    /// \param options
+    ///
+    void check_options_(const std::map<std::string, std::any>& options)const;
+#endif
 
 };
 

@@ -3,6 +3,7 @@
 
 #include "cubic_engine/ml/supervised_learning/supervised_model.h"
 
+
 namespace cengine {
 namespace ml {
 
@@ -36,14 +37,31 @@ public:
     ///
     virtual void update_parameters(const std::vector<real_t>& parameters)=0;
 
+    ///
+    /// \brief predict
+    ///
+    virtual value_t predict(const DatasetBase& data)const=0;
+
+    ///
+    /// \brief predict
+    ///
+    virtual std::vector<value_t> predict_many(const DatasetBase& data)const=0;
+
 protected:
 
     ///
     /// \brief Constructor
     ///
-    ParametricSupervisedModel()=default;
+    ParametricSupervisedModel();
 
 };
+
+template<typename ValueTp>
+ParametricSupervisedModel<ValueTp>::ParametricSupervisedModel()
+    :
+      SupervisedModel<ValueTp>()
+{}
+
 
 }
 

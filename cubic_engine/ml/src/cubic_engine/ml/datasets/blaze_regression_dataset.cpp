@@ -6,7 +6,7 @@ namespace ml{
 BlazeRegressionDataset::BlazeRegressionDataset()
     :
       RegressionDatasetBase(DataStorageEngineType::BLAZE_MAT),
-      features_(),
+      examples_(),
       labels_()
 {}
 

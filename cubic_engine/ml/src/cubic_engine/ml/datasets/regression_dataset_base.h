@@ -7,6 +7,7 @@
 
 #include <string>
 #include <map>
+#include <any>
 
 namespace cengine {
 namespace ml {
@@ -38,12 +39,33 @@ public:
     ///
     void set_columns(const std::vector<std::string>& columns);
 
-
     ///
     /// \brief load_from_file
     ///
     virtual void load_from_file(const std::string& filename);
 
+    ///
+    /// \brief n_features
+    ///
+    virtual uint_t n_features()const = 0;
+
+    ///
+    /// \brief n_examples
+    ///
+    virtual uint_t n_examples()const = 0;
+
+    ///
+    /// \brief get_features. This call creates a copy of the
+    /// features so it may be expensive
+    ///
+    virtual std::any get_features()const=0;
+
+    ///
+    /// \brief get_labels. This call creates a copy of the
+    /// labels so it may be expensive
+    /// \return
+    ///
+    virtual std::any get_labels()const=0;
 
 protected:
 

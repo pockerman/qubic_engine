@@ -5,7 +5,8 @@ namespace cengine {
 namespace ml {
 
 ///
-/// \brief The DatasetBase class
+/// \brief The DatasetBase class. This class does not
+/// simply used for providing dataset type uniformity
 ///
 class DatasetBase
 {

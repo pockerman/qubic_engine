@@ -7,7 +7,7 @@ namespace ml {
 ///
 /// \brief The RegularizerType enum
 ///
-enum class RegularizerType{LASSO, RIDGE, INVALID_TYPE};
+enum class RegularizerType{LASSO, RIDGE, NONE, INVALID_TYPE};
 
 }
 
