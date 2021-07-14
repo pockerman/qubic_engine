@@ -51,17 +51,17 @@ public:
     ///
     /// \brief Assemble the system
     ///
-    virtual void assemble_system()=0;
+    virtual void assemble_system();
 
     ///
     /// \brief Solve the system
     ///
-    virtual solver_output_t solve()=0;
+    virtual solver_output_t solve();
 
     ///
     /// \brief Save the solution vector
     ///
-    virtual void save_solution(const std::string& file_name)const;
+    virtual void save_solution(const std::string& file_name)const=0;
 
     ///
     /// \brief Returns the number of dofs
@@ -103,6 +103,36 @@ public:
     /// \brief Print the rhs
     ///
     std::ostream& print_system_rhs(std::ostream& out)const;
+
+    ///
+    /// \brief get_variable
+    /// \return
+    ///
+    ScalarVar& get_variable(){return var_;}
+
+    ///
+    /// \brief get_mesh
+    /// \return
+    ///
+    Mesh<dim>& get_mesh(){return *m_ptr_;}
+
+    ///
+    /// \brief get_matrix
+    /// \return
+    ///
+    matrix_t& get_matrix(){return matrix_; }
+
+    ///
+    /// \brief get_rhs_vector
+    /// \return
+    ///
+    vector_t& get_rhs_vector(){return rhs_;}
+
+    ///
+    /// \brief zero_linear_algebra_objects
+    ///
+    void zero_linear_algebra_objects();
+
 
 protected:
 
@@ -161,7 +191,57 @@ protected:
 
 };
 
+template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
+void
+ScalarSystemBase<dim, AssemblyPolicy, SolutionPolicy>::zero_linear_algebra_objects(){
 
+    // zero the system entries
+    matrix_.zero();
+    rhs_.zero();
+    solution_.zero();
+}
+
+template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
+void
+ScalarSystemBase<dim, AssemblyPolicy, SolutionPolicy>::assemble_system(){
+
+    if(boundary_func_){
+        assembly_.set_boundary_function(*boundary_func_);
+    }
+
+    if(rhs_func_){
+        assembly_.set_rhs_function(*rhs_func_);
+    }
+
+    /*if(volume_func_){
+        assembly_.set_volume_term_function(*volume_func_);
+    }*/
+
+    assembly_.set_mesh(*m_ptr_);
+    assembly_.assemble(matrix_, solution_, rhs_);
+    matrix_.fill_completed();
+    solution_.compress();
+    rhs_.compress();
+}
+
+template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
+typename ScalarSystemBase<dim, AssemblyPolicy, SolutionPolicy>::solver_output_t
+ScalarSystemBase<dim, AssemblyPolicy, SolutionPolicy>::solve(){
+    return solver_.solve(matrix_, solution_, rhs_);
+}
+
+
+template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
+std::ostream&
+ScalarSystemBase<dim, AssemblyPolicy, SolutionPolicy>::print_system_matrix(std::ostream& out)const{
+    return matrix_.print(out);
+}
+
+template<int dim, typename AssemblyPolicy, typename SolutionPolicy>
+std::ostream&
+ScalarSystemBase<dim, AssemblyPolicy, SolutionPolicy>::print_system_rhs(std::ostream& out)const{
+    return rhs_.print(out);
+}
 
 }
 

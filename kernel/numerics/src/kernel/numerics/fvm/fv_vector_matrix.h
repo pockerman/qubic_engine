@@ -16,8 +16,9 @@ namespace numerics{
 /// forward declarations
 template<typename AssemblyPolicy> class FVVectorMatrix;
 
-
-/// \brief Wrapper to
+///
+/// \brief FVM matrix for Navier-Stokes equations.
+///
 template<typename MatrixPolicy>
 class FVVectorMatrix<RelaxedFVMatrixAssemblyPolicy<MatrixPolicy>>
 {

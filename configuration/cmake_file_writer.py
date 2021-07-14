@@ -9,10 +9,10 @@ class CMakeFileWriter(object):
         self._configuration = configuration
         self._project_name = project_name
         self._install_prefix = install_prefix
-        self._version = '1.5.2'
+        self._version = '1.5.3'
         self._v_major = 1
         self._v_minor = 5
-        self._v_patch = 2
+        self._v_patch = 3
 
 
     @property
@@ -51,10 +51,11 @@ class CMakeFileWriter(object):
             fh.write('SET(BUILD_SHARED_LIBS ON)\n')
 
             if self._project_name == 'kernel':
+
                 fh.write('SET(KERNELLIB_VERSION_MAJOR {0})\n'.format(self._v_major))
                 fh.write('SET(KERNELLIB_VERSION_MINOR {0})\n'.format(self._v_minor))
                 fh.write('SET(KERNELLIB_VERSION_PATCH {0})\n'.format(self._v_patch))
-                #fh.write('PROJECT(CubicEngineLib VERSION ${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH})\n')
+
                 fh.write('SET(KERNELLIB_VERSION "${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH}")\n')
                 fh.write('MESSAGE(STATUS "CubicEngineLib Version ${KERNELLIB_VERSION}")\n')
                 fh.write('\n')
@@ -67,7 +68,6 @@ class CMakeFileWriter(object):
             fh.write('SET(CMAKE_CXX_STANDARD_REQUIRED True)\n')
             fh.write('SET(CMAKE_C_COMPILER {0})\n'.format(self.configuration["CMAKE_C_COMPILER"]))
 
-            #fh.write('SET(PWD ${PROJECT_SOURCE_DIR})\n')
             fh.write('SET(CMAKE_INSTALL_PREFIX {0})\n'.format(self._install_prefix))
             fh.write('SET(MAGIC_ENUM_INCL_DIR " ")\n')
             fh.write('SET(CMAKE_LINKER_FLAGS "-pthread")\n')
