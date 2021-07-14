@@ -4,7 +4,7 @@
 #include "kernel/base/config.h"
 #include "cubic_engine/ml/supervised_learning/parametric_supervised_model.h"
 #include "cubic_engine/ml/supervised_learning/regularizer_type.h"
-#include "kernel/maths/functions/vector_polynomial.h"
+#include "kernel/maths/functions/real_vector_polynomial.h"
 
 #include <ostream>
 #include <map>
@@ -13,10 +13,6 @@
 namespace cengine{
 namespace ml {
 
-///
-/// \brief Forward declaration
-///
-class RegressionDataset;
 
 ///
 /// \brief The LinearRegressor class
@@ -48,17 +44,17 @@ public:
     ///
     /// \brief predict
     ///
-    virtual value_t predict(const dataset_t& data)const;
+    //virtual value_t predict(const dataset_t& data)const;
 
     ///
     /// \brief predict
     ///
-    virtual std::vector<value_t> predict_many(const dataset_t& data)const;
+    //virtual std::vector<value_t> predict_many(const dataset_t& data)const;
 
     ///
     /// \brief get_parameters. Returns the parameters of the model
     ///
-    virtual std::vector<real_t> get_parameters()const{return polynomial_.get_parameters();}
+    virtual DynVec<real_t> get_parameters()const{return polynomial_.coeffs();}
 
     ///
     /// \brief get_interception
@@ -68,7 +64,7 @@ public:
     ///
     /// \brief update_parameters
     ///
-    virtual void update_parameters(const std::vector<real_t>& parameters){polynomial_.set_coeffs(parameters);}
+    virtual void update_parameters(const std::vector<real_t>& parameters) override{polynomial_.set_coeffs(parameters);}
 
     ///
     /// \brief Print the model coeffs
@@ -86,7 +82,6 @@ public:
     virtual std::vector<value_t> predict_many(const DatasetBase& data)const override;
 
 
-
 private:
 
     ///
@@ -102,7 +97,7 @@ private:
     ///
     /// \brief polynomial_ The polynomial
     ///
-    kernel::VectorPolynomial polynomial_;
+    kernel::RealVectorPolynomialFunction polynomial_;
 
 #ifdef KERNEL_DEBUG
     ///

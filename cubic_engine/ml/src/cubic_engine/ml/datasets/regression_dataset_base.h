@@ -19,7 +19,7 @@ public:
     ///
     /// \brief Destructor
     ///
-    virtual ~RegressionDatasetBase() = default;
+    virtual ~RegressionDatasetBase() {}
 
     ///
     /// \brief get_storage_type
@@ -31,18 +31,18 @@ public:
     /// \brief get_columns
     /// \return
     ///
-    std::vector<std::string> get_columns()const;
+    std::vector<std::string> get_columns()const{}
 
     ///
     /// \brief set_columns
     /// \param columns
     ///
-    void set_columns(const std::vector<std::string>& columns);
+    void set_columns(const std::vector<std::string>& columns){}
 
     ///
     /// \brief load_from_file
     ///
-    virtual void load_from_file(const std::string& filename);
+    virtual void load_from_file(const std::string& filename) = 0;
 
     ///
     /// \brief n_features
@@ -86,6 +86,14 @@ protected:
 
 
 };
+
+inline
+RegressionDatasetBase::RegressionDatasetBase(DataStorageEngineType storage_type)
+    :
+      DatasetBase(),
+      storage_type_(storage_type),
+      columns_()
+{}
 
 }
 

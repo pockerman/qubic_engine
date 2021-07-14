@@ -30,7 +30,7 @@ public:
     ///
     /// \brief get_parameters. Returns the parameters of the model
     ///
-    virtual std::vector<real_t> get_parameters()const=0;
+    virtual DynVec<real_t> get_parameters()const=0;
 
     ///
     /// \brief update_parameters
@@ -52,15 +52,15 @@ protected:
     ///
     /// \brief Constructor
     ///
-    ParametricSupervisedModel();
+    ParametricSupervisedModel() = default;
 
 };
 
-template<typename ValueTp>
+/*template<typename ValueTp>
 ParametricSupervisedModel<ValueTp>::ParametricSupervisedModel()
     :
       SupervisedModel<ValueTp>()
-{}
+{}*/
 
 
 }

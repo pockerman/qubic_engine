@@ -15,14 +15,14 @@ public:
     ///
     /// \brief Destructor
     ///
-    virtual ~DatasetBase()=default;
+    virtual ~DatasetBase() = default;
 
 protected:
 
     ///
     /// \brief Destructor
     ///
-    DatasetBase()=default;
+    DatasetBase() = default;
 };
 
 }

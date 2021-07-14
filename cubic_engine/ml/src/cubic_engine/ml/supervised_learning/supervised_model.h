@@ -12,7 +12,7 @@ namespace cengine {
 namespace ml {
 
 ///
-///
+/// forward declarations
 ///
 class DatasetBase;
 
@@ -42,7 +42,7 @@ public:
 
     ///
     /// \brief train. Train the supervised model on the
-    /// provided dataset
+    /// provided dataset using the supplied options
     ///
     virtual void fit(const dataset_t& data, const std::map<std::string, std::any>& options) = 0;
 
@@ -62,13 +62,13 @@ protected:
     ///
     /// \brief Constructor
     ///
-    SupervisedModel();
+    SupervisedModel() = default;
 
 };
 
-template<typename ValueTp>
+/*template<typename ValueTp>
 SupervisedModel<ValueTp>::SupervisedModel()
-{}
+{}*/
 
 
 }

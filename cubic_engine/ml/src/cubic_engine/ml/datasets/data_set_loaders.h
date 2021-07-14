@@ -1,12 +1,14 @@
 #ifndef DATA_SET_LOADERS_H
 #define DATA_SET_LOADERS_H
 
-#include "kernel/base/types.h"
+#include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/parallel/utilities/partitioned_type.h"
 #include <utility>
 
-namespace kernel
-{
+namespace cengine{
+namespace ml {
+
+
 
 ///
 /// \brief The car plant data set is a simple dataset with two columns
@@ -24,16 +26,16 @@ std::pair<DynMat<real_t>, DynVec<real_t>> load_car_plant_multi_dataset(uint_t la
 /// \brief The car plant data set is a simple dataset with two columns
 /// of real type and 12 observations
 ///
-std::pair<PartitionedType<DynMat<real_t>>,
-          PartitionedType<DynVec<real_t>>> load_car_plant_multi_dataset_with_partitions(uint nparts,
+std::pair<kernel::PartitionedType<DynMat<real_t>>,
+          kernel::PartitionedType<DynVec<real_t>>> load_car_plant_multi_dataset_with_partitions(uint nparts,
                                                                                         uint_t label_idx=2,
                                                                                         bool add_ones_column=true);
 ///
 /// \brief The car plant data set is a simple dataset with two columns
 /// of real type and 12 observations
 ///
-std::pair<PartitionedType<DynMat<real_t>>,
-          PartitionedType<DynVec<real_t>>> load_car_plant_dataset_with_partitions(uint nparts,
+std::pair<kernel::PartitionedType<DynMat<real_t>>,
+          kernel::PartitionedType<DynVec<real_t>>> load_car_plant_dataset_with_partitions(uint nparts,
                                                                                   uint_t label_idx=1,
                                                                                   bool add_ones_column=true);
 
@@ -45,8 +47,8 @@ std::pair<DynMat<real_t>, DynVec<uint_t>> load_reduced_iris_data_set(bool add_on
 ///
 /// \brief Load the reduced iris data set and assigned partitions
 ///
-std::pair<PartitionedType<DynMat<real_t>>,
-          PartitionedType<DynVec<uint_t>>> load_reduced_iris_data_set_with_partitions(uint nparts,
+std::pair<kernel::PartitionedType<DynMat<real_t>>,
+          kernel::PartitionedType<DynVec<uint_t>>> load_reduced_iris_data_set_with_partitions(uint nparts,
                                                                                       bool add_ones_column=true);
 
 ///
@@ -58,8 +60,8 @@ std::pair<DynMat<real_t>,
 ///
 /// \brief Load the reduced iris data set and assigned partitions
 ///
-std::pair<PartitionedType<DynMat<real_t>>,
-          PartitionedType<DynVec<uint_t>>> load_iris_data_set_with_partitions(uint nparts,
+std::pair<kernel::PartitionedType<DynMat<real_t>>,
+          kernel::PartitionedType<DynVec<uint_t>>> load_iris_data_set_with_partitions(uint nparts,
                                                                               bool add_ones_column=true);
 
 ///
@@ -71,8 +73,8 @@ std::pair<DynMat<real_t>, DynVec<real_t>> load_x_y_sinuisoid_data_set(bool add_o
 ///
 /// \brief Load the reduced iris data set and assigned partitions
 ///
-std::pair<PartitionedType<DynMat<real_t>>,
-          PartitionedType<DynVec<real_t>>> load_x_y_sinuisoid_data_set_with_partitions(uint nparts,
+std::pair<kernel::PartitionedType<DynMat<real_t>>,
+          kernel::PartitionedType<DynVec<real_t>>> load_x_y_sinuisoid_data_set_with_partitions(uint nparts,
                                                                                       bool add_ones_column=true);
 
 ///
@@ -100,6 +102,7 @@ std::pair<DynMat<real_t>,
 ///
 void load_random_set_one(DynMat<real_t>& matrix);
 
+}
 }
 
 #endif // DATA_SET_LOADERS_H
