@@ -2,6 +2,15 @@
 
 namespace kernel{
 
+IterativeAlgorithmResult::IterativeAlgorithmResult(real_t tol, real_t res,
+                                                   uint_t nitrs, std::chrono::seconds time)
+    :
+      tolerance(tol),
+      residual(res),
+      num_iterations(nitrs),
+      total_time(time)
+{}
+
 std::ostream&
 IterativeAlgorithmResult:: print(std::ostream& out)const{
 
