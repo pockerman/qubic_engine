@@ -42,3 +42,5 @@ cubic_engine/rl/gym_server/__pycache__/
 kernel/numerics/build/
 kernel/kernel/build/
 kernel/discretization/build/
+cubic_engine/ml/tests/test_data_set_loaders/CMakeLists.txt
+cubic_engine/ml/tests/test_data_set_loaders/build/

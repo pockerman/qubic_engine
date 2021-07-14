@@ -1,4 +1,4 @@
-#include "kernel/utilities/data_set_loaders.h"
+#include "cubic_engine/ml/datasets/data_set_loaders.h"
 #include "kernel/parallel/utilities/array_partitioner.h"
 #include "kernel/utilities/csv_file_reader.h"
 #include "kernel/base/kernel_consts.h"
@@ -8,8 +8,18 @@
 #include <cstdlib> //std::atof
 #include <iostream>
 
-namespace kernel
-{
+
+namespace cengine{
+namespace ml {
+
+namespace  {
+
+using kernel::PartitionedType;
+using kernel::range1d;
+using kernel::CSVFileReader;
+
+}
+
 
 std::pair<DynMat<real_t>, DynVec<real_t>>
 load_car_plant_dataset(uint_t label_idx, bool add_ones_column){
@@ -345,8 +355,7 @@ load_reduced_iris_data_set(bool add_ones_column){
 
 std::pair<PartitionedType<DynMat<real_t>>,
           PartitionedType<DynVec<uint_t>>> 
-		  load_reduced_iris_data_set_with_partitions(uint nparts,
-													 bool add_ones_column){
+                  load_reduced_iris_data_set_with_partitions(uint nparts, bool add_ones_column){
 
     std::string file(DATA_SET_FOLDER);
     file += "/iris_dataset_reduced.csv";
@@ -400,7 +409,7 @@ std::pair<PartitionedType<DynMat<real_t>>,
 
 }
 
-/// \brief Load the iris data set and assigned
+
 std::pair<DynMat<real_t>, DynVec<uint_t>> 
 load_iris_data_set(bool add_ones_column){
 
@@ -456,8 +465,7 @@ load_iris_data_set(bool add_ones_column){
 
 std::pair<PartitionedType<DynMat<real_t>>,
           PartitionedType<DynVec<uint_t>>> 
-		  load_iris_data_set_with_partitions(uint nparts,
-											 bool add_ones_column){
+                  load_iris_data_set_with_partitions(uint nparts, bool add_ones_column){
 
     std::string file(DATA_SET_FOLDER);
     file += "/iris_data.csv";
@@ -560,11 +568,10 @@ load_x_y_sinuisoid_data_set(bool add_ones_column){
       return std::pair(std::move(matrix), std::move(labels));
 }
 
-/// \brief Load the reduced iris data set and assigned partitions
+
 std::pair<PartitionedType<DynMat<real_t>>,
           PartitionedType<DynVec<real_t>>> 
-		  load_x_y_sinuisoid_data_set_with_partitions(uint nparts,
-													  bool add_ones_column){
+                  load_x_y_sinuisoid_data_set_with_partitions(uint nparts, bool add_ones_column){
     std::string file(DATA_SET_FOLDER);
     file += "/X_Y_Sinusoid_Data.csv";
 
@@ -695,7 +702,7 @@ load_random_set_one(DynMat<real_t>& matrix){
 		
 		auto line = reader.read_line();
 		
-		if(line[0] == KernelConsts::eof_string()){
+                if(line[0] == kernel::KernelConsts::eof_string()){
 			break;
 		}
 		
@@ -723,4 +730,5 @@ load_random_set_one(DynMat<real_t>& matrix){
 	}
 }
 
+}
 }
