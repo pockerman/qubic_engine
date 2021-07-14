@@ -40,22 +40,30 @@ LinearRegressor::fit(const dataset_t& dataset, const std::map<std::string, std::
 std::ostream&
 LinearRegressor::print(std::ostream& out)const{
 
+    return out;
 }
 
 
 LinearRegressor::value_t
 LinearRegressor::predict(const DatasetBase& data)const{
 
+    return 0.0;
 }
 
 std::vector<LinearRegressor::value_t >
 LinearRegressor::predict_many(const DatasetBase& data)const{
 
+    return std::vector<LinearRegressor::value_t >();
 }
 
 real_t
 LinearRegressor::get_interception()const{
 
+#ifdef KERNEL_DEBUG
+     assert(use_intercept_ && "No intercept term defined");
+#endif
+
+     return polynomial_.coeff(0);
 }
 
 #ifdef KERNEL_DEBUG
