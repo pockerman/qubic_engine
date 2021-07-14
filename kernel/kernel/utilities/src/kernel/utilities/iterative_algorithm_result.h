@@ -13,13 +13,46 @@ namespace kernel{
 ///
 struct IterativeAlgorithmResult  {
 
-    bool converged=false;
+    ///
+    /// \brief tolerance
+    ///
     real_t tolerance;
+
+    ///
+    /// \brief residual
+    ///
     real_t residual;
+
+    ///
+    /// \brief num_iterations
+    ///
     uint_t num_iterations;
+
+    ///
+    /// \brief converged
+    ///
+    bool converged=false;
+
+    ///
+    /// \brief total_time
+    ///
     std::chrono::seconds total_time;
 
-    virtual std::ostream& print(std::ostream& out)const;
+    ///
+    /// \brief IterativeAlgorithmResult
+    ///
+    IterativeAlgorithmResult() = default;
+
+    ///
+    /// \brief IterativeAlgorithmResult
+    ///
+    IterativeAlgorithmResult(real_t tol, real_t res,
+                             uint_t nitrs, std::chrono::seconds time);
+
+    ///
+    /// \brief print
+    ///
+    std::ostream& print(std::ostream& out)const;
 };
 
 

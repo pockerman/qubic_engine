@@ -38,14 +38,41 @@ struct UpdateDatum;
 struct A2CInput
 {
     typedef real_t value_t ;
+
+
     value_t actor_loss_coef;
     value_t value_loss_coef;
     value_t entropy_coef;
     value_t learning_rate;
     value_t original_learning_rate;
     value_t epsilon{1e-8};
-    value_t alpha{0.99};
+    value_t gamma{0.99};
     value_t max_grad_norm{0.5};
+
+    ///
+    /// \brief The GAE factor
+    ///
+    real_t gae{0.9};
+
+    ///
+    /// \brief
+    ///
+    bool use_gae{false};
+
+    ///
+    /// \brief
+    ///
+    bool use_decay_lr{false};
+
+    ///
+    /// \brief num_envs
+    ///
+    uint_t num_envs;
+
+    ///
+    /// \brief device
+    ///
+    torch::Device device;
 
 };
 
@@ -69,9 +96,14 @@ class A2C
     typedef WorldTp world_t;
 
     ///
-    /// \brief A2C Constructor
+    /// \brief state_t
     ///
-    A2C(world_t& comm, policies::TorchPolicy& policy, const A2CInput input);
+    typedef typename WorldTp::state_t state_t;
+
+    ///
+    /// \brief Destructor
+    ///
+    virtual ~A2C() = default;
 
     ///
     /// \brief update
@@ -87,7 +119,54 @@ class A2C
     ///
     /// \brief train
     ///
-    void train();
+    virtual void train() = 0;
+
+    ///
+    /// \brief num_envs. Returns the number of environments
+    ///
+    uint_t num_envs()const{return input_.num_envs;}
+
+    ///
+    /// \brief use_gae
+    ///
+    bool use_gae()const{return input_.use_gae;}
+
+    ///
+    /// \brief gamma Returns the discount factor
+    ///
+    real_t gamma()const{return input_.gamma;}
+
+    ///
+    /// \brief gae. Returns the gae factor
+    ///
+    real_t gae()const{return input_.gae;}
+
+    ///
+    /// \brief device
+    ///
+    torch::Device device()const{return input_.device;}
+
+    ///
+    /// \brief get_decay_level
+    ///
+    real_t get_decay_level(uint_t update_idx, uint_t num_updates)const;
+
+protected:
+
+    ///
+    /// \brief A2C Constructor
+    ///
+    A2C(world_t& environment, policies::TorchPolicy& policy, const A2CInput input);
+
+    ///
+    /// \brief world
+    ///
+    world_t* world(){return world_ptr_;}
+
+    ///
+    /// \brief policy
+    ///
+    policies::TorchPolicy& policy(){return policy_;}
 
 private:
 
@@ -122,7 +201,7 @@ A2C<WorldTp>::A2C(world_t& comm, policies::TorchPolicy& policy, const A2CInput i
                     policy->parameters(),
                     torch::optim::RMSpropOptions(input.learning_rate)
                         .eps(input.epsilon)
-                        .alpha(input.alpha)))
+                        .alpha(input.gamma)))
 {}
 
 template<typename WorldTp>
@@ -138,6 +217,17 @@ A2C<WorldTp>::decay_learning_rate(value_t decay_level){
                 options.lr(input_.original_learning_rate * decay_level);
             }
         }
+}
+
+template<typename WorldTp>
+real_t
+A2C<WorldTp>::get_decay_level(uint_t update_idx, uint_t num_updates)const{
+
+    if(input_.use_decay_lr){
+        return 1. - static_cast<real_t>(update_idx) / num_updates;
+    }
+
+    return 1.0;
 }
 
 template<typename WorldTp>
