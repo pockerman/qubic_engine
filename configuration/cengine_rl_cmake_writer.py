@@ -71,7 +71,11 @@ class RLCMakeWriter(CMakeFileWriter):
                 local_fh.write('ENDIF(COMMAND cmake_policy)\n')
                 local_fh.write('\n')
                 local_fh.write('FILE(GLOB %s ${PROJECT_SOURCE_DIR}/src/cubic_engine/rl/*.cpp '
-                               '${PROJECT_SOURCE_DIR}/src/cubic_engine/rl/*/*.cpp)\n' % dir_upper)
+                               '${PROJECT_SOURCE_DIR}/src/cubic_engine/rl/*/*.cpp)  '
+                               '${PROJECT_SOURCE_DIR}/src/cubic_engine/rl/algorithms/dp/*.cpp) '
+                               '${PROJECT_SOURCE_DIR}/src/cubic_engine/rl/algorithms/mc/*.cpp) '
+                               '${PROJECT_SOURCE_DIR}/src/cubic_engine/rl/algorithms/td/*.cpp)\n' % dir_upper)
+
                 local_fh.write('TARGET_SOURCES(%s PUBLIC ${%s})\n' % (self.project_name, dir_upper))
 
             fh.write('\n')
@@ -162,7 +166,6 @@ class RLCMakeWriter(CMakeFileWriter):
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.numerics_name))
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.cengine_name))
             tfh.write('TARGET_LINK_LIBRARIES(%s %s)\n' % ("${EXECUTABLE}", self.ml_name))
-
 
             if example is False:
                 tfh.write('TARGET_LINK_LIBRARIES(${EXECUTABLE} gtest)\n')

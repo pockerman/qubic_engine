@@ -41,28 +41,6 @@ class KernelCMakeWriter(CMakeFileWriter):
 
             fh = self.write_basic_lists(fh=fh)
 
-            if self.configuration["pytorch"]["USE_PYTORCH"]:
-                fh.write('LIST(APPEND CMAKE_PREFIX_PATH {0})\n'.format(self.configuration["pytorch"]["PYTORCH_PATH"]))
-                fh.write('FIND_PACKAGE(Torch REQUIRED CONFIG)\n')
-                fh.write('MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")\n')
-                fh.write('INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})\n')
-                fh.write('\n')
-
-            fh.write('INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})\n')
-            fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
-
-            for directory in self.dirs:
-                fh.write('INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/%s/src/)\n' % (directory))
-
-            if self.configuration["trilinos"]["USE_TRILINOS"]:
-                fh.write('INCLUDE_DIRECTORIES(${TRILINOS_INCL_DIR})\n')
-
-            if self.configuration["opencv"]["USE_OPEN_CV"]:
-                fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["opencv"]["OPENCV_INCL_DIR"]))
-
-            if self.configuration["pytorch"]["USE_PYTORCH"]:
-                fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["pytorch"]["PYTORCH_INC_DIR"]))
-
             fh.write('\n')
             fh.write('ADD_LIBRARY({0} SHARED "")\n'.format(self.project_name))
             fh.write('\n')
@@ -144,6 +122,11 @@ class KernelCMakeWriter(CMakeFileWriter):
         fh.write('configure_file(config.h.in ${PROJECT_SOURCE_DIR}/base/src/kernel/base/config.h @ONLY)\n')
         fh.write('configure_file(version.h.in ${PROJECT_SOURCE_DIR}/base/src/kernel/base/version.h @ONLY)\n')
         fh.write('\n')
+        return fh
+
+    def _write_include_files(self, fh):
+        for directory in self.dirs:
+            fh.write('INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/%s/src/)\n' % (directory))
         return fh
 
     def _write_single_cmake(self, path: Path, directory: str, example: bool) -> None:

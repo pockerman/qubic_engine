@@ -6,9 +6,11 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/gym_comm/communicator.h"
+#include "cubic_engine/rl/a2c.h"
+#include "cubic_engine/rl/policies/torch_policy.h"
 #include "cubic_engine/rl/worlds/gym_lunar_lander_world.h"
 
-//#include "torch/torch.h"
+#include "torch/torch.h"
 
 #include <iostream>
 #include <memory>
@@ -17,13 +19,14 @@
 namespace example{
 
 
-// Environment parameters
+// Environment hyperparameters
 const int num_envs = 1;
 const std::string server_addr = "tcp://127.0.0.1:10201";
-
-using cengine::uint_t;
 using cengine::rl::gym::Communicator;
 using cengine::rl::worlds::GymLunarLanderWorld;
+using cengine::rl::A2CInput;
+using cengine::rl::A2C;
+using cengine::rl::policies::TorchPolicy;
 
 }
 
@@ -34,18 +37,27 @@ int main(){
 
     try{
 
+        // set up the device
+        torch::Device device(torch::kCPU);
 
 #ifdef USE_LOG
-        kernel::Logger::set_log_file_name("example_9_log.log");
+        kernel::Logger::set_log_file_name("example_10_log.log");
 #endif
 
         // create the communicator
         Communicator communicator(server_addr);
 
+        // the environment
         GymLunarLanderWorld environment("v2", communicator);
         environment.build(true);
 
-        std::cout<<"Environment name: "<<environment.name()<<std::endl;
+        A2CInput agend_input;
+        TorchPolicy policy;
+        A2C<GymLunarLanderWorld> agend(environment, policy, agend_input);
+
+        // train the agend
+        agend.train();
+
 
     }
     catch(std::exception& e){

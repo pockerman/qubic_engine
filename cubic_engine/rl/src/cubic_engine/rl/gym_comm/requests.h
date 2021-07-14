@@ -19,11 +19,36 @@ namespace  gym {
 template <class T>
 struct Request
 {
-    Request(const std::string &method, std::shared_ptr<T> param) : method(method), param(param) {}
+    Request(const std::string &method, std::shared_ptr<T> param)
+        :
+          method(method),
+          param(param)
+    {}
 
     std::string method;
     std::shared_ptr<T> param;
     MSGPACK_DEFINE_MAP(method, param)
+};
+
+///
+/// \brief The MakeParam struct
+///
+struct MakeRequest
+{
+    std::string env_name;
+    int num_envs;
+    MSGPACK_DEFINE_MAP(env_name, num_envs);
+};
+
+
+///
+/// \brief The MakeResponse struct. The response returned
+/// by the server when a MakeRequest is issued
+///
+struct MakeResponse
+{
+    std::string result;
+    MSGPACK_DEFINE_MAP(result);
 };
 
 ///
@@ -35,23 +60,14 @@ struct InfoParam
     MSGPACK_DEFINE_MAP(x);
 };
 
-///
-/// \brief The MakeParam struct
-///
-struct MakeParam
-{
-    std::string env_name;
-    int num_envs;
-    MSGPACK_DEFINE_MAP(env_name, num_envs);
-};
 
-struct ResetParam
+struct ResetRequest
 {
     int x;
     MSGPACK_DEFINE_MAP(x);
 };
 
-struct StepParam
+struct StepRequest
 {
     int action;
     bool render;
@@ -108,11 +124,6 @@ struct ResetResponse
     MSGPACK_DEFINE_MAP(observation);
 };
 
-struct MakeResponse
-{
-    std::string result;
-    MSGPACK_DEFINE_MAP(result);
-};
 
 struct CnnResetResponse
 {

@@ -74,6 +74,11 @@ namespace kernel
    /// \brief placeholder for torch
    ///
    struct torch_t {};
+
+   ///
+   /// \brief torch_int_t
+   ///
+   typedef long int torch_int_t;
 #endif
 
 }
