@@ -9,6 +9,10 @@ class CMakeFileWriter(object):
         self._configuration = configuration
         self._project_name = project_name
         self._install_prefix = install_prefix
+        self._version = '1.5.2'
+        self._v_major = 1
+        self._v_minor = 5
+        self._v_patch = 2
 
 
     @property
@@ -25,7 +29,7 @@ class CMakeFileWriter(object):
             fh.write("CMAKE_MINIMUM_REQUIRED(VERSION 3.6)\n")
             fh.write('MESSAGE(STATUS "Using CMake ${CMAKE_VERSION}")\n')
             fh.write('\n')
-            fh.write('PROJECT({0} CXX)\n'.format(self._project_name))
+            fh.write('PROJECT({0} VERSION {1} LANGUAGES CXX)\n'.format(self._project_name, self._version))
             fh.write('\n')
             fh.write('# -----------------------------------------------------------------------------\n')
             fh.write('# Prevent in-source builds.\n')
@@ -47,20 +51,23 @@ class CMakeFileWriter(object):
             fh.write('SET(BUILD_SHARED_LIBS ON)\n')
 
             if self._project_name == 'kernel':
-                fh.write('SET(KERNELLIB_VERSION_MAJOR 1)\n')
-                fh.write('SET(KERNELLIB_VERSION_MINOR 5)\n')
-                fh.write('SET(KERNELLIB_VERSION_PATCH 2)\n')
-                fh.write('PROJECT(CubicEngineLib VERSION ${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH})\n')
+                fh.write('SET(KERNELLIB_VERSION_MAJOR {0})\n'.format(self._v_major))
+                fh.write('SET(KERNELLIB_VERSION_MINOR {0})\n'.format(self._v_minor))
+                fh.write('SET(KERNELLIB_VERSION_PATCH {0})\n'.format(self._v_patch))
+                #fh.write('PROJECT(CubicEngineLib VERSION ${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH})\n')
                 fh.write('SET(KERNELLIB_VERSION "${KERNELLIB_VERSION_MAJOR}.${KERNELLIB_VERSION_MINOR}.${KERNELLIB_VERSION_PATCH}")\n')
                 fh.write('MESSAGE(STATUS "CubicEngineLib Version ${KERNELLIB_VERSION}")\n')
+                fh.write('\n')
 
+            # set variables
             build_type = self.configuration["CMAKE_BUILD_TYPE"]
             fh.write('SET(CMAKE_BUILD_TYPE "{0}")\n'.format(build_type))
             fh.write('SET(CMAKE_CXX_COMPILER {0})\n'.format(self.configuration["CMAKE_CXX_COMPILER"]))
-            fh.write('SET(CMAKE_CXX_STANDARD 17)\n')
+            fh.write('SET(CMAKE_CXX_STANDARD 20)\n')
             fh.write('SET(CMAKE_CXX_STANDARD_REQUIRED True)\n')
             fh.write('SET(CMAKE_C_COMPILER {0})\n'.format(self.configuration["CMAKE_C_COMPILER"]))
-            fh.write('SET(PWD ${PROJECT_SOURCE_DIR})\n')
+
+            #fh.write('SET(PWD ${PROJECT_SOURCE_DIR})\n')
             fh.write('SET(CMAKE_INSTALL_PREFIX {0})\n'.format(self._install_prefix))
             fh.write('SET(MAGIC_ENUM_INCL_DIR " ")\n')
             fh.write('SET(CMAKE_LINKER_FLAGS "-pthread")\n')
@@ -72,8 +79,9 @@ class CMakeFileWriter(object):
 
             nlohmann_json_dir = self.configuration["NLOHMANN_JSON_INCL_DIR"]
             fh.write('SET(NLOHMANN_JSON_INCL_DIR "{0}")\n'.format(nlohmann_json_dir))
-            fh = self._write_project_variables(fh=fh)
+            fh.write("\n")
 
+            fh = self._write_project_variables(fh=fh)
             fh = self._find_boost(fh=fh)
             fh = self._find_blas(fh=fh)
             fh = self._find_pytorch(fh=fh)
@@ -159,6 +167,7 @@ class CMakeFileWriter(object):
             fh.write('LIST(APPEND CMAKE_PREFIX_PATH {0})\n'.format(self.configuration["pytorch"]["PYTORCH_PATH"]))
             fh.write('FIND_PACKAGE(Torch REQUIRED CONFIG)\n')
             fh.write('MESSAGE(STATUS "TORCH Include directory ${TORCH_INCLUDE_DIRS}")\n')
+            fh.write("\n")
         return fh
 
     def _write_includes(self, fh):
@@ -168,6 +177,9 @@ class CMakeFileWriter(object):
         fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
         fh.write('INCLUDE_DIRECTORIES({0})\n'.format(self.configuration["NLOHMANN_JSON_INCL_DIR"]))
         fh.write('INCLUDE_DIRECTORIES("{0}")\n'.format(path / 'third_party/'))
+
+        fh.write('INCLUDE_DIRECTORIES(${BLAZE_INCL_DIR})\n')
+        fh.write('INCLUDE_DIRECTORIES(${BOOST_INCLUDEDIR})\n')
 
         if self.configuration["pytorch"]["USE_PYTORCH"]:
             fh.write('INCLUDE_DIRECTORIES(${TORCH_INCLUDE_DIRS})\n')
