@@ -117,7 +117,6 @@ std::pair<DynMat<real_t>, DynVec<real_t>>
 load_car_plant_multi_dataset(uint_t labels_idx, bool add_ones_column){
 
     if(labels_idx != 0 || labels_idx != 1 || labels_idx != 2){
-
         throw std::invalid_argument("labels_idx should be 0 or 1 or 2 but got "+std::to_string(labels_idx));
     }
 
@@ -202,6 +201,92 @@ load_car_plant_multi_dataset(uint_t labels_idx, bool add_ones_column){
 
     return std::pair(mat, labels);
 
+}
+
+void load_car_plant_multi_dataset(DynMat<real_t>& mat, DynVec<real_t>& labels,
+                                  uint_t labels_idx, bool add_ones_column){
+
+
+    if(labels_idx != 0 && labels_idx != 1 && labels_idx != 2){
+        throw std::invalid_argument("labels_idx should be 0 or 1 or 2 but got "+std::to_string(labels_idx));
+    }
+
+    uint_t ncols = add_ones_column?3:2;
+
+    static real_t col0[] = {4.51, 3.58, 4.31,
+                            5.06, 5.64, 4.99,
+                            5.29, 5.83, 4.70,
+                            5.61, 4.90, 4.20};
+
+    static real_t col1[] = {0.0, 0.0, 13.0,
+                            56.0, 117.0, 306.0,
+                            358.0, 330.0, 187.0,
+                            94.0, 23.0, 0.0};
+
+    static real_t col2[] = {2.48, 2.26, 2.47,
+                            2.77, 2.99, 3.05,
+                            3.18, 3.46, 3.03,
+                            3.26, 2.67, 2.53};
+
+    if(labels_idx == 0 ){
+        labels = col0;
+    }
+    else if(labels_idx == 1) {
+        labels = col1;
+    }
+    else{
+      labels = col2;
+    }
+
+    mat.resize(sizeof (col1)/sizeof (real_t), ncols, add_ones_column?1.0:0.0);
+
+    if(add_ones_column){
+
+         if(labels_idx == 0 ){
+
+            for(uint_t r=0; r<mat.rows(); ++r){
+                mat(r, 1) = col1[r];
+                mat(r, 2) = col2[r];
+            }
+         }
+         else if(labels_idx == 1 ){
+
+            for(uint_t r=0; r<mat.rows(); ++r){
+                mat(r, 1) = col0[r];
+                mat(r, 2) = col2[r];
+            }
+         }
+         else if(labels_idx == 2 ){
+
+            for(uint_t r=0; r<mat.rows(); ++r){
+                mat(r, 1) = col0[r];
+                mat(r, 2) = col1[r];
+            }
+         }
+    }
+    else{
+        if(labels_idx == 0 ){
+
+           for(uint_t r=0; r<mat.rows(); ++r){
+               mat(r, 0) = col1[r];
+               mat(r, 1) = col2[r];
+           }
+        }
+        else if(labels_idx == 1 ){
+
+           for(uint_t r=0; r<mat.rows(); ++r){
+               mat(r, 0) = col0[r];
+               mat(r, 1) = col2[r];
+           }
+        }
+        else if(labels_idx == 2 ){
+
+           for(uint_t r=0; r<mat.rows(); ++r){
+               mat(r, 0) = col0[r];
+               mat(r, 1) = col1[r];
+           }
+        }
+    }
 }
 
 std::pair<PartitionedType<DynMat<real_t>>,
