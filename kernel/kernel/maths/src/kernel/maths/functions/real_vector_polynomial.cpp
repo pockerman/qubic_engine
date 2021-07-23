@@ -1,4 +1,9 @@
 #include "kernel/maths/functions/real_vector_polynomial.h"
+#include "kernel/base/config.h"
+
+#ifdef KERNEL_DEBUG
+#include <cassert>
+#endif
 
 #include <exception>
 namespace kernel
@@ -77,9 +82,13 @@ RealVectorPolynomialFunction::coeffs()const{
 void
 RealVectorPolynomialFunction::set_coeffs(const std::vector<real_t>& coeffs){
 
-    if(monomials_.size() != coeffs.size()){
-        throw std::invalid_argument("Monomials size "+std::to_string(monomials_.size()) +
-                                    " does not match the coeffs: "+std::to_string(coeffs.size()));
+#ifdef KERNEL_DEBUG
+    if(monomials_.size() != 0)
+        assert(monomials_.size() != coeffs.size() && "Coeffs size does not not match monomials");
+#endif
+
+    if(monomials_.size() == 0){
+        monomials_.resize(coeffs.size());
     }
 
     auto itr = coeffs.cbegin();
