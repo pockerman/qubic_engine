@@ -46,13 +46,13 @@ public:
     /// \brief empty
     /// \return
     ///
-    bool empty()const{return examples_.rows() == 0;}
+    bool empty()const noexcept{return examples_.rows() == 0;}
 
     ///
     /// \brief n_rows
     /// \return
     ///
-    uint_t n_rows()const{return examples_.rows();}
+    uint_t n_rows()const noexcept{return examples_.rows();}
 
     ///
     /// \brief n_features
@@ -106,6 +106,12 @@ public:
     virtual void load_from_file(const std::string& filename) override;
 
     ///
+    /// \brief Load the dataset from the given loader
+    ///
+    template<typename DataLoader>
+    void load_from_loader(const DataLoader& loader);
+
+    ///
     /// \brief load_from_data
     /// \param features
     /// \param labels
@@ -127,6 +133,13 @@ private:
     labels_t labels_;
 
 };
+
+
+template<typename DataLoader>
+void
+BlazeRegressionDataset::load_from_loader(const DataLoader& loader){
+    loader.load(examples_, labels_, this->columns());
+}
 
 }
 }

@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace kernel{
-namespace maths {
+namespace numerics {
 namespace opt {
 
 ///

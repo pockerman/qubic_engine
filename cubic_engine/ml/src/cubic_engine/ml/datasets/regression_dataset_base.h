@@ -19,7 +19,7 @@ public:
     ///
     /// \brief Destructor
     ///
-    virtual ~RegressionDatasetBase() {}
+    virtual ~RegressionDatasetBase() = default;
 
     ///
     /// \brief get_storage_type
@@ -31,7 +31,7 @@ public:
     /// \brief get_columns
     /// \return
     ///
-    std::vector<std::string> get_columns()const{}
+    std::vector<std::string> get_columns()const;
 
     ///
     /// \brief set_columns
@@ -66,6 +66,16 @@ public:
     /// \return
     ///
     virtual std::any get_labels()const=0;
+
+    ///
+    /// \brief columns
+    ///
+    auto columns()-> std::map<std::string, uint_t>&{return columns_;}
+
+    ///
+    /// \brief columns
+    ///
+    auto columns()const-> const std::map<std::string, uint_t>&{return columns_;}
 
 protected:
 
