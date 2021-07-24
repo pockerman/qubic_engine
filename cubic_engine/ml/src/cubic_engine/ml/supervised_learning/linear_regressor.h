@@ -13,23 +13,25 @@
 namespace cengine{
 namespace ml {
 
+class BlazeRegressionDataset;
+
 
 ///
 /// \brief The LinearRegressor class
 ///
-class LinearRegressor: public ParametricSupervisedModel<real_t>
+class LinearRegressor
 {
 public:
 
     ///
     /// \brief dataset_t. The type of the dataset
     ///
-    typedef ParametricSupervisedModel<real_t>::dataset_t dataset_t;
+    typedef BlazeRegressionDataset dataset_t;
 
     ///
     /// \brief value_t The result value type
     ///
-    typedef ParametricSupervisedModel<real_t>::value_t value_t;
+    typedef real_t value_t;
 
     ///
     /// \brief LinearRegressor
@@ -39,17 +41,7 @@ public:
     ///
     /// \brief fit. Fit the model on the given dataset
     ///
-    void fit(const dataset_t& dataset, const std::map<std::string, std::any>& options) override;
-
-    ///
-    /// \brief predict
-    ///
-    //virtual value_t predict(const dataset_t& data)const;
-
-    ///
-    /// \brief predict
-    ///
-    //virtual std::vector<value_t> predict_many(const dataset_t& data)const;
+    void fit(const dataset_t& dataset, const std::map<std::string, std::any>& options);
 
     ///
     /// \brief get_parameters. Returns the parameters of the model
@@ -64,7 +56,7 @@ public:
     ///
     /// \brief update_parameters
     ///
-    virtual void update_parameters(const std::vector<real_t>& parameters) override{polynomial_.set_coeffs(parameters);}
+    void update_parameters(const std::vector<real_t>& parameters){polynomial_.set_coeffs(parameters);}
 
     ///
     /// \brief Print the model coeffs
@@ -74,12 +66,12 @@ public:
     ///
     /// \brief predict
     ///
-    virtual value_t predict(const DatasetBase& data)const override;
+    value_t predict_one(const DynVec<real_t>& data)const;
 
     ///
     /// \brief predict
     ///
-    virtual std::vector<value_t> predict_many(const DatasetBase& data)const override;
+    std::vector<value_t> predict_many(const DynMat<real_t>& data)const;
 
 
 private:
