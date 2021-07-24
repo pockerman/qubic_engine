@@ -5,6 +5,9 @@
 #include "kernel/utilities/iterative_algorithm_controller.h"
 #include "kernel/base/kernel_consts.h"
 
+#include <string>
+#include <map>
+#include <any>
 
 namespace kernel{
 namespace numerics {
@@ -32,6 +35,11 @@ struct GDConfig: public kernel::IterativeAlgorithmController
     GDConfig( uint_t max_num_itrs,
                real_t tolerance=kernel::KernelConsts::tolerance(),
                real_t eta=GDConfig::DEFAULT_LEARNING_RATE );
+
+    ///
+    /// \brief Constructor
+    ///
+    GDConfig(const std::map<std::string, std::any>& options);
 
     ///
     /// \brief reset
