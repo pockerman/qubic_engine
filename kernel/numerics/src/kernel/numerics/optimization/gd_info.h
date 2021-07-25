@@ -24,12 +24,16 @@ struct GDInfo: public kernel::AlgInfo
     ///
     virtual std::ostream& print(std::ostream& out)const;
 
+    ///
+    ///
+    ///
+    GDInfo() = default;
+
 };
 
 inline
 std::ostream&
 operator<<(std::ostream& out,const GDInfo& info){
-
     return info.print(out);
 }
 
