@@ -2,8 +2,9 @@
 #define	SERIAL_BATCH_GRADIENT_DESCENT_H
 
 #include "kernel/base/types.h"
+#include "kernel/utilities/algorithm_info.h"
 #include "kernel/numerics/optimization/gd_control.h"
-#include "kernel/numerics/optimization/gd_info.h"
+//#include "kernel/numerics/optimization/gd_info.h"
 #include "kernel/numerics/optimization/optimizer_base.h"
 
 #include <boost/noncopyable.hpp>
@@ -36,7 +37,7 @@ public:
     /// \brief Expose the type that is returned by this object
     /// when calling its solve functions
     ///
-    typedef GDInfo output_t;
+    typedef AlgInfo output_t;
     
     ///
     /// \brief Constructor
@@ -78,12 +79,12 @@ private:
     ///
     /// \brief info_
     ///
-    GDInfo info_;
+    AlgInfo info_;
 
     ///
     /// \brief actually solve the problem
     ///
-    GDInfo do_solve_(const MatType& mat,const VecType& v, function_t& h);
+    AlgInfo do_solve_(const MatType& mat,const VecType& v, function_t& h);
     
 };
 
@@ -167,17 +168,16 @@ Gd::solve(FunctionTp& function){
 */
 
 template<typename MatType, typename VecType>
-GDInfo
+typename Gd<MatType, VecType>::output_t
 Gd<MatType, VecType>::do_solve_(const MatType& data,const VecType& y, function_t& function){
 
 
-    /*std::chrono::time_point<std::chrono::system_clock> start, end;
+    std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
 
 
     //the info object to return
-    GDInfo info;
-    info.learning_rate = input_.learning_rate;
+    AlgInfo info;
 
     real_t j_old = function.value(data, y).get_resource();
     real_t j_current = 0.0;
@@ -197,7 +197,7 @@ Gd<MatType, VecType>::do_solve_(const MatType& data,const VecType& y, function_t
         }
 
         // reset again the coeffs
-        function.update_model(coeffs);
+        function.update_coeffs(coeffs);
 
         //recalculate...
         j_current = function.value(data, y).get_resource();
@@ -227,14 +227,14 @@ Gd<MatType, VecType>::do_solve_(const MatType& data,const VecType& y, function_t
     info.residual = state.residual;
     info.tolerance = state.tolerance;
     info.niterations = state.num_iterations;
-    return info;*/
+    return info;
 }
 
 template<typename MatType, typename VecType>
 void
 Gd<MatType, VecType>::reset_configuration(const GDConfig& control){
     input_.reset(control);
-    info_ = GDInfo();
+    info_ = typename Gd<MatType, VecType>::output_t();
 }
         
 }
