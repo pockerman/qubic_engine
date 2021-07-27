@@ -1,10 +1,12 @@
 #include "cubic_engine/ml/supervised_learning/linear_regressor.h"
 #include "cubic_engine/ml/datasets/regression_dataset_base.h"
-#include "cubic_engine/ml/optimization/unconstraint_optimizer_wrapper.h"
-#include "cubic_engine/ml/optimization/optimizer_type.h"
 #include "cubic_engine/ml/datasets/blaze_regression_dataset.h"
+
 #include "kernel/base/config.h"
 #include "kernel/maths/errorfunctions/error_function_type.h"
+#include "kernel/maths/errorfunctions/error_function_factory.h"
+#include "kernel/numerics/optimization/optimizer_type.h"
+#include "kernel/numerics/optimization/optimizer_factory.h"
 
 #ifdef KERNEL_DEBUG
 #include <cassert>
@@ -33,13 +35,15 @@ LinearRegressor::fit(const dataset_t& dataset, const std::map<std::string, std::
     check_options_(options);
 #endif
 
-    auto opt_type =  std::any_cast<opt::OptimizerType>(options.find("solver_type")->second);
-    auto solver = opt::OptimizerWrapper(opt_type);
+    auto opt_type =  std::any_cast<kernel::numerics::opt::OptimizerType>(options.find("solver_type")->second);
+
     const auto& solver_options = std::any_cast<const std::map<std::string, std::any>&>(options.find("solver_options")->second);
+    auto solver = kernel::numerics::opt::OptimizerFactory().build<dataset_t::features_t, dataset_t::labels_t>(opt_type, solver_options);
 
     auto err_type = std::any_cast<kernel::ErrorFuncType>(options.find("error_function_type")->second);
-    auto error_function = opt::ErrorFuncWrapper();
-    solver.solve(dataset.feature_matrix(), dataset.labels(), polynomial_, solver_options);
+    auto error_function_ptr = kernel::ErrFuncFactory().build<kernel::RealVectorPolynomialFunction, dataset_t::features_t, dataset_t::labels_t>(err_type, polynomial_);
+
+    solver->solve(dataset.feature_matrix(), dataset.labels(), *error_function_ptr.get());
 }
 
 std::ostream&
@@ -51,8 +55,7 @@ LinearRegressor::print(std::ostream& out)const{
 
 LinearRegressor::value_t
 LinearRegressor::predict_one(const DynVec<real_t>& data)const{
-
-    return 0.0;
+    return polynomial_.value(data);
 }
 
 std::vector<LinearRegressor::value_t >
