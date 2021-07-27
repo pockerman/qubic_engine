@@ -7,6 +7,9 @@
 namespace kernel
 {
 
+///
+///
+///
 template<typename OutputTp, typename... InputTp>
 class FunctionBase
 {
@@ -36,6 +39,18 @@ public:
     /// \brief Returns the number of coefficients
     ///
     virtual uint_t n_coeffs()const=0;
+
+    ///
+    /// \brief coeffs
+    /// \return
+    ///
+    virtual DynVec<real_t> coeffs()const = 0;
+
+    ///
+    /// \brief update_coeffs
+    /// \param params
+    ///
+    virtual void update_coeffs(const DynVec<real_t>& params)=0;
 
 protected:
 

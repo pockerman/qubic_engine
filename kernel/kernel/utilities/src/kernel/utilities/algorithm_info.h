@@ -69,7 +69,7 @@ struct AlgInfo
       /// \brief Print the information about the performance of
       /// the algorithm on the given stream
       ///
-      virtual std::ostream& print(std::ostream& out)const;
+      std::ostream& print(std::ostream& out)const;
 };
 
 inline

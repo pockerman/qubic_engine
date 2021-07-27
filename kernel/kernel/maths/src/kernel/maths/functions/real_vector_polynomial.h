@@ -79,7 +79,7 @@ public:
     ///
     /// \brief Returns the coefficients of the underlying monomials
     ///
-    DynVec<real_t> coeffs()const;
+    DynVec<real_t> coeffs()const override final;
 
     ///
     /// \brief Returns the coefficients of the underlying monomials
@@ -90,6 +90,12 @@ public:
     /// \brief Returns the coefficients of the underlying monomials
     ///
     void set_coeffs(const DynVec<real_t>& coeffs);
+
+    ///
+    /// \brief update_coeffs
+    /// \param params
+    ///
+    virtual void update_coeffs(const DynVec<real_t>& params) override final{set_coeffs(params);};
 
     ///
     /// \brief Returns the i-th coefficient

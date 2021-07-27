@@ -25,7 +25,6 @@ public:
     ///
     virtual ~RealVectorValuedFunctionBase(){}
 
-
     ///
     /// \brief Returns the gradient of the function for the i-th variable
     ///
