@@ -3,9 +3,10 @@
 #include "cubic_engine/ml/datasets/data_set_loaders.h"
 #include "cubic_engine/ml/supervised_learning/linear_regressor.h"
 #include "cubic_engine/ml/supervised_learning/regularizer_type.h"
-#include "cubic_engine/ml/optimization/optimizer_type.h"
-#include "kernel/numerics/optimization/utils/gd_control.h"
+
+#include "kernel/numerics/optimization/gd_control.h"
 #include "kernel/maths/errorfunctions/error_function_type.h"
+#include "kernel/numerics/optimization/optimizer_type.h"
 
 #include <vector>
 #include <map>
@@ -22,7 +23,7 @@ using cengine::real_t;
 using cengine::ml::BlazeRegressionDataset;
 using cengine::ml::LinearRegressor;
 using cengine::ml::RegularizerType;
-using cengine::ml::opt::OptimizerType;
+using kernel::numerics::opt::OptimizerType;
 using kernel::numerics::opt::GDConfig;
 using kernel::ErrorFuncType;
 
