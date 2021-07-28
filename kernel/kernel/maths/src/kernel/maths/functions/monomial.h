@@ -73,6 +73,18 @@ public:
     ///
     void set_coeff(real_t coeff){coeff_ = coeff;}
 
+    ///
+    /// \brief coeffs
+    /// \return
+    ///
+    virtual DynVec<real_t> coeffs()const override final{return DynVec<real_t>(1, coeff_);}
+
+    ///
+    /// \brief update_coeffs
+    /// \param params
+    ///
+    virtual void update_coeffs(const DynVec<real_t>& params) override final{coeff_ = params[0];}
+
 private:
 
      ///
