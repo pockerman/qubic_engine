@@ -154,6 +154,42 @@ TEST(TestLinearRegressor, End_To_End) {
     }
 }
 
+TEST(TestLinearRegressor, Predict_Valid_Shape)
+{
+
+    try{
+
+        // use two features no intercept term
+        LinearRegressor regressor(2, false, RegularizerType::INVALID_TYPE);
+
+        DynVec<real_t> point(2, 0.0);
+        auto value = regressor.predict_one(point);
+
+    }
+    catch(...){
+        FAIL()<<"A non expected exception was thrown";
+    }
+
+}
+
+TEST(TestLinearRegressor, Predict_Invalid_Shape_1)
+{
+
+    try{
+
+        // use two features no intercept term
+        LinearRegressor regressor(2, false, RegularizerType::INVALID_TYPE);
+
+        DynVec<real_t> point(3, 0.0);
+        EXPECT_DEATH(regressor.predict_one(point), "Invalid data point shape");
+
+    }
+    catch(...){
+        FAIL()<<"A non expected exception was thrown";
+    }
+
+}
+
 
 
 
