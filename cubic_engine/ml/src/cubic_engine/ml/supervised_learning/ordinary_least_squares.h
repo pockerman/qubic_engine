@@ -65,7 +65,7 @@ private:
     ///
     /// \brief hypothesis_ The polynomial to fit in the data set
     ///
-    kernel::RealVectorPolynomialFunction hypothesis_;
+    kernel::PolynomialFunction hypothesis_;
 };
 
 
