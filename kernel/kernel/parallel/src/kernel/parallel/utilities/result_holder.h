@@ -105,12 +105,16 @@ public:
     /// \brief Get a copy of the internals
     void get_copy(ResultHolder<T>& other)const;
 
+    ///
     /// \brief busy wait for the thread that calls it until the
     /// result becomes valid
+    ///
     result_type get()const;
 
+    ///
     /// \brief Attempt to get the result only if it is valid. It yields the calling thread
     /// as long as  the result is not valid
+    ///
     result_type get_or_wait()const;
 
     ///
