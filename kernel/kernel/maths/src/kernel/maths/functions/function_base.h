@@ -14,7 +14,6 @@ template<typename OutputTp, typename... InputTp>
 class FunctionBase
 {
 
-
 public:
 
     typedef OutputTp output_t;
@@ -51,6 +50,7 @@ public:
     /// \param params
     ///
     virtual void update_coeffs(const DynVec<real_t>& params)=0;
+
 
 protected:
 
