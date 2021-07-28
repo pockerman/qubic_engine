@@ -23,6 +23,12 @@ GDConfig::GDConfig(const std::map<std::string, std::any>& options)
     if(itr != options.end()){
         learning_rate = std::any_cast<real_t>(itr->second);
     }
+
+    itr = options.find("verbose");
+
+    if(itr != options.end()){
+        set_show_iterations_flag(true);
+    }
 }
 
 void
