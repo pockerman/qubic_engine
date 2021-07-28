@@ -12,6 +12,9 @@
 namespace cengine {
 namespace ml {
 
+///
+/// \brief The RegressionDatasetBase class
+///
 class RegressionDatasetBase: public DatasetBase
 {
 public:
@@ -55,15 +58,12 @@ public:
     virtual uint_t n_examples()const = 0;
 
     ///
-    /// \brief get_features. This call creates a copy of the
-    /// features so it may be expensive
+    /// \brief get_features.
     ///
     virtual std::any get_features()const=0;
 
     ///
-    /// \brief get_labels. This call creates a copy of the
-    /// labels so it may be expensive
-    /// \return
+    /// \brief get_labels.
     ///
     virtual std::any get_labels()const=0;
 

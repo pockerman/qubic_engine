@@ -206,11 +206,12 @@ MSEFunction<SigmoidFunction<HypothesisFn>, DataSetType,
     return result;
 }
 
+}// kernel
 
 ///==============================================================================================
 
 /// \brief base class for task description
-namespace detail
+/*namespace detail
 {
 
 template<typename HypothesisFn, typename DataSetType, typename LabelsType, typename ResultType>
@@ -954,6 +955,6 @@ MSEFunction<SigmoidFunction<HypothesisFn>, PartitionedType<DataSetType>,
 
 }
 
-}
+}*/
 
 #endif // MSE_FUNCTION_IMPL_H

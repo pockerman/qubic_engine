@@ -1,9 +1,8 @@
-#include "kernel/numerics/optimization/utils/gd_info.h"
+#include "kernel/numerics/optimization/gd_info.h"
 
 namespace kernel{
-namespace maths {
+namespace numerics {
 namespace opt {
-
 
 
 std::ostream&

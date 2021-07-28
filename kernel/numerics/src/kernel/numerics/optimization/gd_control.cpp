@@ -1,4 +1,4 @@
-#include "kernel/numerics/optimization/utils/gd_control.h"
+#include "kernel/numerics/optimization/gd_control.h"
 
 namespace kernel{
 namespace numerics{
@@ -23,7 +23,21 @@ GDConfig::GDConfig(const std::map<std::string, std::any>& options)
     if(itr != options.end()){
         learning_rate = std::any_cast<real_t>(itr->second);
     }
+
+    itr = options.find("verbose");
+
+    if(itr != options.end()){
+        set_show_iterations_flag(true);
+    }
 }
+
+void
+GDConfig::reset(const GDConfig& control){
+
+    this->kernel::IterativeAlgorithmController::reset(control);
+    learning_rate = control.learning_rate;
+}
+
 }
 }
 }

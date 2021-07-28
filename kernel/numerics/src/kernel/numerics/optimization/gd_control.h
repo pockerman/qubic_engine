@@ -55,12 +55,7 @@ kernel::IterativeAlgorithmController(max_num_itrs,  tolerance),
 learning_rate(eta_)
 {}
 
-void
-GDConfig::reset(const GDConfig& control){
 
-    this->kernel::IterativeAlgorithmController::reset(control);
-    learning_rate = control.learning_rate;
-}
 
 }
 }

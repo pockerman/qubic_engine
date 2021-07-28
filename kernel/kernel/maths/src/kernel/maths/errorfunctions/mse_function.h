@@ -75,7 +75,14 @@ public:
     ///
     /// \brief coeffs. Returns the coefficients of the underlying model
     ///
-    DynVec<real_t> coeffs()const{return h_ptr_->coeffs();}
+    DynVec<real_t> coeffs()const override final{return h_ptr_->coeffs();}
+
+    ///
+    /// \brief update_coeffs
+    /// \param params
+    ///
+    virtual void update_coeffs(const DynVec<real_t>& params) override final{update_model(params);};
+
 
 protected:
 
@@ -156,7 +163,7 @@ public:
 /// This is a partial specialization to account for partitioned datasets
 ///  in this case we also allow parallel execution if an executor is given
 ///
-template<typename HypothesisFn, typename DataSetType,
+/*template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 class MSEFunction<HypothesisFn, PartitionedType<DataSetType>,
                   PartitionedType<LabelsType>, RegularizerFn>: public detail::mse_detail<HypothesisFn, DataSetType, LabelsType, RegularizerFn>
@@ -219,7 +226,7 @@ private:
     /// \list of gradient tasks
     std::vector<std::unique_ptr<task_gradient_type>> gradient_tasks_;
 
-};
+};*/
 
 
 
@@ -227,7 +234,7 @@ private:
 /// This is a partial specialization to account for partitioned datasets
 /// in this case we also allow parallel execution if an executor is given
 /// Furthermore this accounts for SigmoidFunction transformation
-template<typename HypothesisFn, typename DataSetType,
+/*template<typename HypothesisFn, typename DataSetType,
          typename LabelsType, typename RegularizerFn>
 class MSEFunction<SigmoidFunction<HypothesisFn>,
                   PartitionedType<DataSetType>,
@@ -305,7 +312,7 @@ private:
     /// \list of gradient tasks
     std::vector<std::unique_ptr<task_gradient_type>> gradient_tasks_;
 
-};
+};*/
 
 }
 
