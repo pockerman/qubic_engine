@@ -25,14 +25,14 @@ class OptimizerFactory
 {
 public:
 
-    template<typename MatTp, typename VecTp>
-    auto build(OptimizerType type, const std::map<std::string, std::any>& options) -> std::shared_ptr<OptimizerBase<MatTp, VecTp>>;
+    template<typename MatTp, typename VecTp, typename SolverOps>
+    auto build(OptimizerType type, const SolverOps& options) -> std::shared_ptr<OptimizerBase<MatTp, VecTp>>;
 
 };
 
-template<typename MatTp, typename VecTp>
+template<typename MatTp, typename VecTp, typename SolverOps>
 auto
-OptimizerFactory::build(OptimizerType type, const std::map<std::string, std::any>& options) -> std::shared_ptr<OptimizerBase<MatTp, VecTp>>{
+OptimizerFactory::build(OptimizerType type, const SolverOps& options) -> std::shared_ptr<OptimizerBase<MatTp, VecTp>>{
 
     auto ptr = std::shared_ptr<OptimizerBase<MatTp, VecTp>>(nullptr);
     switch(type){
