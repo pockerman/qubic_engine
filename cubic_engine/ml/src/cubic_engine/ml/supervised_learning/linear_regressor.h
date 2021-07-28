@@ -77,6 +77,11 @@ public:
 private:
 
     ///
+    /// \brief num_features_
+    ///
+    uint_t num_features_;
+
+    ///
     /// \brief use_intercept_
     ///
     bool use_intercept_;
@@ -89,7 +94,7 @@ private:
     ///
     /// \brief polynomial_ The polynomial
     ///
-    kernel::RealVectorPolynomialFunction polynomial_;
+    kernel::PolynomialFunction polynomial_;
 
 #ifdef KERNEL_DEBUG
     ///

@@ -18,13 +18,17 @@ namespace ml {
 LinearRegressor::LinearRegressor(uint_t n_features, bool use_intercept,
                                  RegularizerType rtype)
     :
+     num_features_(n_features),
      use_intercept_(use_intercept),
      rtype_(rtype),
      polynomial_()
 {
 
-    auto num_features = use_intercept ? n_features + 1 : n_features;
-    polynomial_.set_coeffs(std::vector<real_t>(num_features, 0.0));
+    num_features_ = use_intercept ? n_features + 1 : n_features;
+    std::vector<int> order(num_features_, 1);
+    order[0] = 0;
+    polynomial_.create_from(DynVec<real_t>(num_features_, 0.0), order);
+    //polynomial_.set_coeffs(std::vector<real_t>(num_features_, 0.0));
 }
 
 void
@@ -41,7 +45,7 @@ LinearRegressor::fit(const dataset_t& dataset, const std::map<std::string, std::
     auto solver = kernel::numerics::opt::OptimizerFactory().build<dataset_t::features_t, dataset_t::labels_t>(opt_type, solver_options);
 
     auto err_type = std::any_cast<kernel::ErrorFuncType>(options.find("error_function_type")->second);
-    auto error_function_ptr = kernel::ErrFuncFactory().build<kernel::RealVectorPolynomialFunction, dataset_t::features_t, dataset_t::labels_t>(err_type, polynomial_);
+    auto error_function_ptr = kernel::ErrFuncFactory().build<kernel::PolynomialFunction, dataset_t::features_t, dataset_t::labels_t>(err_type, polynomial_);
 
     solver->solve(dataset.feature_matrix(), dataset.labels(), *error_function_ptr.get());
 }
@@ -55,6 +59,11 @@ LinearRegressor::print(std::ostream& out)const{
 
 LinearRegressor::value_t
 LinearRegressor::predict_one(const DynVec<real_t>& data)const{
+
+#ifdef KERNEL_DEBUG
+    assert(data.size() == num_features_ && "Invalid data point shape");
+#endif
+
     return polynomial_.value(data);
 }
 
