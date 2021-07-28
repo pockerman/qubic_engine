@@ -37,7 +37,7 @@ public:
     /// \brief Expose the type that is returned by this object
     /// when calling its solve functions
     ///
-    typedef AlgInfo output_t;
+    typedef typename OptimizerBase<MatType, VecType>::output_t output_t;
     
     ///
     /// \brief Constructor
@@ -54,7 +54,7 @@ public:
     /// \brief Solves the optimization problem. Returns information
     /// about the performance of the solver.
     ///
-    virtual void solve(const MatType& mat,const VecType& v, function_t& h) override final;
+    virtual output_t solve(const MatType& mat,const VecType& v, function_t& h) override final;
 
     ///
     /// \brief Solve for the coefficients that minimize
@@ -78,12 +78,12 @@ private:
     ///
     /// \brief info_
     ///
-    AlgInfo info_;
+    output_t info_;
 
     ///
     /// \brief actually solve the problem
     ///
-    AlgInfo do_solve_(const MatType& mat,const VecType& v, function_t& h);
+    output_t do_solve_(const MatType& mat,const VecType& v, function_t& h);
     
 };
 
@@ -104,9 +104,10 @@ Gd<MatType, VecType>::Gd(const std::map<std::string, std::any>& options)
 {}
 
 template<typename MatType, typename VecType>
-void
+typename Gd<MatType, VecType>::output_t
 Gd<MatType, VecType>::solve(const MatType& data, const VecType& y, function_t& function){
     info_ = do_solve_(data, y, function);
+    return info_;
 }
 
 

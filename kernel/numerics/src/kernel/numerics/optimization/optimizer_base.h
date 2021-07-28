@@ -3,6 +3,7 @@
 
 #include "kernel/base/types.h"
 #include "kernel/parallel/utilities/result_holder.h"
+#include "kernel/utilities/algorithm_info.h"
 #include <boost/noncopyable.hpp>
 
 namespace kernel {
@@ -24,6 +25,12 @@ public:
     typedef FunctionBase<ResultHolder<real_t>, MatTp, VecTp> function_t;
 
     ///
+    /// \brief Expose the type that is returned by this object
+    /// when calling its solve functions
+    ///
+    typedef AlgInfo output_t;
+
+    ///
     ///
     ///
     virtual ~OptimizerBase()=default;
@@ -34,7 +41,7 @@ public:
     /// \param labels
     /// \param fnc
     ///
-    virtual void solve(const data_set_t& features, const labels_set_t& labels, function_t& fnc) = 0;
+    virtual output_t solve(const data_set_t& features, const labels_set_t& labels, function_t& fnc) = 0;
 
 protected:
 

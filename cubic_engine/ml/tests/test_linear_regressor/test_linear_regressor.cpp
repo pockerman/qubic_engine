@@ -7,6 +7,7 @@
 #include "kernel/numerics/optimization/gd_control.h"
 #include "kernel/maths/errorfunctions/error_function_type.h"
 #include "kernel/numerics/optimization/optimizer_type.h"
+#include "kernel/utilities/algorithm_info.h"
 
 #include <vector>
 #include <map>
@@ -26,6 +27,7 @@ using cengine::ml::RegularizerType;
 using kernel::numerics::opt::OptimizerType;
 using kernel::numerics::opt::GDConfig;
 using kernel::ErrorFuncType;
+using kernel::AlgInfo;
 
 struct TestSetLoader{
 
@@ -39,6 +41,14 @@ TestSetLoader::load(DynMat<real_t>& mat, DynVec<real_t>& labels, ColsTp& /*colum
 
     cengine::ml::load_car_plant_multi_dataset(mat, labels, 2, false);
 }
+
+struct TestSolver{
+
+    typedef AlgInfo output_t;
+
+    template<typename MatTyp, typename LabelTp, typename FunTp>
+    output_t solve(MatTyp& /*mat*/, LabelTp& /*labels*/, FunTp& /*columns*/) const{return output_t();}
+};
 
 }
 
@@ -64,14 +74,15 @@ TEST(TestLinearRegressor, Empty_Options) {
         LinearRegressor regressor(2, false, RegularizerType::INVALID_TYPE);
 
         // attempt to fit with an empty dataset
-        EXPECT_DEATH(regressor.fit(dataset, std::map<std::string, std::any>()), "Options are empty");
+        TestSolver solver;
+        EXPECT_DEATH(regressor.fit(dataset, solver, std::map<std::string, std::any>()), "Options are empty");
     }
     catch(...){
         FAIL()<<"A non expected exception was thrown";
     }
 }
 
-TEST(TestLinearRegressor, Empty_Solver_Type) {
+TEST(TestLinearRegressor, DISABLED_Empty_Solver_Type) {
 
     try{
 
@@ -84,14 +95,15 @@ TEST(TestLinearRegressor, Empty_Solver_Type) {
         options["solver_options"] = nullptr;
 
         // attempt to fit with an empty dataset
-        EXPECT_DEATH(regressor.fit(dataset, options), "Solver was not specified");
+         TestSolver solver;
+        EXPECT_DEATH(regressor.fit(dataset, solver, options), "Solver was not specified");
     }
     catch(...){
         FAIL()<<"A non expected exception was thrown";
     }
 }
 
-TEST(TestLinearRegressor, Empty_Solver_Options) {
+TEST(TestLinearRegressor, DISABLED_Empty_Solver_Options) {
 
     try{
 
@@ -104,7 +116,8 @@ TEST(TestLinearRegressor, Empty_Solver_Options) {
         options["error_function_type"] = nullptr;
 
         // attempt to fit with an empty dataset
-        EXPECT_DEATH(regressor.fit(dataset, options), "Solver options not specified");
+         TestSolver solver;
+        EXPECT_DEATH(regressor.fit(dataset, solver, options), "Solver options not specified");
     }
     catch(...){
         FAIL()<<"A non expected exception was thrown";
@@ -124,7 +137,8 @@ TEST(TestLinearRegressor, Empty_Error_Metric) {
         options["solver_options"] = nullptr;
 
         // attempt to fit with an empty dataset
-        EXPECT_DEATH(regressor.fit(dataset, options), "Error metric was not specified");
+         TestSolver solver;
+        EXPECT_DEATH(regressor.fit(dataset, solver, options), "Error metric was not specified");
     }
     catch(...){
         FAIL()<<"A non expected exception was thrown";
@@ -147,7 +161,8 @@ TEST(TestLinearRegressor, End_To_End) {
         options["solver_options"] = solver_opts;
 
         // attempt to fit with an empty dataset
-        regressor.fit(dataset, options);
+         TestSolver solver;
+        regressor.fit(dataset, solver, options);
     }
     catch(...){
         FAIL()<<"A non expected exception was thrown";

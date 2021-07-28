@@ -5,6 +5,7 @@
 #include "kernel/maths/errorfunctions/error_function_type.h"
 #include "kernel/numerics/optimization/optimizer_type.h"
 #include "kernel/maths/functions/real_vector_polynomial.h"
+#include "kernel/numerics/optimization/serial_gradient_descent.h"
 
 #include <iostream>
 #include <map>
@@ -20,6 +21,9 @@ using cengine::DynMat;
 using cengine::DynVec;
 using cengine::ml::BlazeRegressionDataset;
 using cengine::ml::LinearRegressor;
+using kernel::numerics::opt::Gd;
+using kernel::numerics::opt::GDConfig;
+
 
 struct DataSetLoader
 {
@@ -85,7 +89,9 @@ int main(){
         solver_ops["verbose"] = std::any(true);
 
         options["solver_options"] = std::any(solver_ops);
-        regressor.fit(dataset, options);
+        GDConfig gd_config(10000, 1.0e-8, 0.01);
+        Gd<DynMat<real_t>, DynVec<real_t>> solver(gd_config);
+        regressor.fit(dataset, solver, options);
 
         std::cout<<"Intercept: "<<regressor.get_interception()<<" slope: "<<regressor.get_parameters()[1]<<std::endl;
 
