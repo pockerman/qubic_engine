@@ -109,7 +109,6 @@ public:
     ///
     void load_from_data(const features_t& features, const labels_t& labels);
 
-
     ///
     /// \brief get_columns
     /// \return
@@ -121,7 +120,6 @@ public:
     /// \param columns
     ///
     void set_columns(const std::vector<std::string>& columns);
-
 
     ///
     /// \brief columns
