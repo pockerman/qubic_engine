@@ -54,7 +54,6 @@ public:
     /// \brief Solves the optimization problem. Returns information
     /// about the performance of the solver.
     ///
-
     virtual void solve(const MatType& mat,const VecType& v, function_t& h) override final;
 
     ///
@@ -179,10 +178,10 @@ Gd<MatType, VecType>::do_solve_(const MatType& data,const VecType& y, function_t
     //the info object to return
     AlgInfo info;
 
-    real_t j_old = function.value(data, y).get_resource();
-    real_t j_current = 0.0;
+    auto j_old = function.value(data, y).get_resource();
+    auto j_current = 0.0;
 
-    const uint_t ncoeffs = function.n_coeffs();
+    const auto ncoeffs = function.n_coeffs();
 
     while(input_.continue_iterations()){
 
@@ -202,9 +201,9 @@ Gd<MatType, VecType>::do_solve_(const MatType& data,const VecType& y, function_t
         //recalculate...
         j_current = function.value(data, y).get_resource();
 
-        real_t error = std::fabs(j_current - j_old);
+        auto error = std::fabs(j_current - j_old);
         input_.update_residual(error);
-        uint_t itr = input_.get_current_iteration();
+        auto itr = input_.get_current_iteration();
 
         if(input_.show_iterations()){
 
