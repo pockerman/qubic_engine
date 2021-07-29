@@ -55,7 +55,13 @@ public:
    ///
    bool show_iterations()const{return show_iterations_;}
 
-	///
+   ///
+   /// \brief set_tolerance
+   /// \param tol
+   ///
+   void set_tolerance(real_t tol){exit_tolerance_ = tol;}
+
+   ///
    /// \brief show iterations
    ///
    void set_show_iterations_flag(bool flag){show_iterations_ = flag;}
@@ -66,18 +72,20 @@ public:
    void set_num_threads(uint_t nthreads){n_threads_ = nthreads;}
 
    ///
+   /// \brief set_max_itrs
+   /// \param max_itrs
+   ///
+   void set_max_itrs(uint_t max_itrs){max_iterations_ = max_itrs;}
+
+   ///
    /// \brief Returns the current iteration index
    ///
-   uint_t get_current_iteration()const{
-          return current_iteration_idx_;
-   }
+   uint_t get_current_iteration()const{return current_iteration_idx_;}
 
    ///
    /// \brief Returns the exit tolerance for the algorithm
    ///
-   real_t get_exit_tolerance()const{
-       return exit_tolerance_;
-   }
+   real_t get_exit_tolerance()const{return exit_tolerance_;}
    
    ///
    /// \brief Return the maximum number of iterations
@@ -97,14 +105,12 @@ public:
    ///
    /// \brief Update the residual
    ///
-   void update_residual(real_t res){
-     current_res_ = res;
-   }
+   void update_residual(real_t res){current_res_ = res;}
 
-	///
-    /// \brief reset
-	///
-	virtual void reset(const IterativeAlgorithmController& control);
+   ///
+   /// \brief reset
+   ///
+   virtual void reset(const IterativeAlgorithmController& control);
 
 private:
 
@@ -114,7 +120,7 @@ private:
     uint_t current_iteration_idx_;
     real_t current_res_;
     bool show_iterations_;
-	uint_t n_threads_;
+    uint_t n_threads_;
 };
 
 inline

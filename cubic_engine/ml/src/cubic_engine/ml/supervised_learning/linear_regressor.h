@@ -5,6 +5,8 @@
 #include "cubic_engine/ml/supervised_learning/parametric_supervised_model.h"
 #include "cubic_engine/ml/supervised_learning/regularizer_type.h"
 #include "kernel/maths/functions/real_vector_polynomial.h"
+#include "kernel/maths/errorfunctions/error_function_type.h"
+#include "kernel/maths/errorfunctions/error_function_factory.h"
 
 #include <ostream>
 #include <map>
@@ -13,23 +15,25 @@
 namespace cengine{
 namespace ml {
 
+class BlazeRegressionDataset;
+
 
 ///
 /// \brief The LinearRegressor class
 ///
-class LinearRegressor: public ParametricSupervisedModel<real_t>
+class LinearRegressor
 {
 public:
 
     ///
     /// \brief dataset_t. The type of the dataset
     ///
-    typedef ParametricSupervisedModel<real_t>::dataset_t dataset_t;
+    //typedef BlazeRegressionDataset dataset_t;
 
     ///
     /// \brief value_t The result value type
     ///
-    typedef ParametricSupervisedModel<real_t>::value_t value_t;
+    typedef real_t value_t;
 
     ///
     /// \brief LinearRegressor
@@ -39,17 +43,8 @@ public:
     ///
     /// \brief fit. Fit the model on the given dataset
     ///
-    void fit(const dataset_t& dataset, const std::map<std::string, std::any>& options) override;
-
-    ///
-    /// \brief predict
-    ///
-    //virtual value_t predict(const dataset_t& data)const;
-
-    ///
-    /// \brief predict
-    ///
-    //virtual std::vector<value_t> predict_many(const dataset_t& data)const;
+    template<typename DataSetTp, typename SolverTp>
+    typename SolverTp::output_t fit(const DataSetTp& dataset, SolverTp& solver, const std::map<std::string, std::any>& options);
 
     ///
     /// \brief get_parameters. Returns the parameters of the model
@@ -64,7 +59,7 @@ public:
     ///
     /// \brief update_parameters
     ///
-    virtual void update_parameters(const std::vector<real_t>& parameters) override{polynomial_.set_coeffs(parameters);}
+    void update_parameters(const std::vector<real_t>& parameters){polynomial_.set_coeffs(parameters);}
 
     ///
     /// \brief Print the model coeffs
@@ -74,15 +69,20 @@ public:
     ///
     /// \brief predict
     ///
-    virtual value_t predict(const DatasetBase& data)const override;
+    value_t predict_one(const DynVec<real_t>& data)const;
 
     ///
     /// \brief predict
     ///
-    virtual std::vector<value_t> predict_many(const DatasetBase& data)const override;
+    std::vector<value_t> predict_many(const DynMat<real_t>& data)const;
 
 
 private:
+
+    ///
+    /// \brief num_features_
+    ///
+    uint_t num_features_;
 
     ///
     /// \brief use_intercept_
@@ -97,7 +97,7 @@ private:
     ///
     /// \brief polynomial_ The polynomial
     ///
-    kernel::RealVectorPolynomialFunction polynomial_;
+    kernel::PolynomialFunction polynomial_;
 
 #ifdef KERNEL_DEBUG
     ///
@@ -108,6 +108,30 @@ private:
 #endif
 
 };
+
+template<typename DataSetTp, typename SolverTp>
+typename SolverTp::output_t
+LinearRegressor::fit(const DataSetTp& dataset, SolverTp& solver, const std::map<std::string, std::any>& options){
+
+#ifdef KERNEL_DEBUG
+    assert(dataset.n_features() == polynomial_.n_coeffs() && "Invalid feature space size");
+    check_options_(options);
+#endif
+
+    auto err_type = std::any_cast<kernel::ErrorFuncType>(options.find("error_function_type")->second);
+    auto error_function_ptr = kernel::ErrFuncFactory().build<kernel::PolynomialFunction, typename DataSetTp::features_t, typename DataSetTp::labels_t>(err_type, polynomial_);
+    auto output = solver.solve(dataset.feature_matrix(), dataset.labels(), *error_function_ptr.get());
+
+    return output;
+    /*auto opt_type =  std::any_cast<kernel::numerics::opt::OptimizerType>(options.find("solver_type")->second);
+
+    const auto& solver_options = std::any_cast<const std::map<std::string, std::any>&>(options.find("solver_options")->second);
+    auto solver = kernel::numerics::opt::OptimizerFactory().build<dataset_t::features_t, dataset_t::labels_t>(opt_type, solver_options);
+
+
+
+    solver->solve(dataset.feature_matrix(), dataset.labels(), *error_function_ptr.get());*/
+}
 
 
 }

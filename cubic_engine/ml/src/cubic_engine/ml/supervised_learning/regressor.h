@@ -158,7 +158,7 @@ std::ostream& operator<<(std::ostream& out, const Regressor<HypothesisType>& reg
 
 
 /// \brief linear regression
-using LinearRegression = Regressor<kernel::RealVectorPolynomialFunction>;
+using LinearRegression = Regressor<kernel::PolynomialFunction>;
     
 }
 

@@ -1,10 +1,16 @@
 #ifndef REAL_VECTOR_POLYNOMIAL_H
 #define REAL_VECTOR_POLYNOMIAL_H
 
-#include "kernel/maths/functions/real_vector_function_base.h"
+#include "kernel/base/config.h"
+#include "kernel/maths/functions/function_base.h"
 #include "kernel/maths/functions/monomial.h"
 
 #include <vector>
+
+#ifdef KERNEL_DEBUG
+#include <cassert>
+#endif
+
 namespace kernel
 {
 
@@ -12,39 +18,34 @@ namespace kernel
 /// \brief The RealVectorPolynomialFunction class.
 /// Models a function of the form f(x) = a0 + a1x_1^b_1+...aNx_N^b_N
 ///
-class RealVectorPolynomialFunction: public RealVectorValuedFunctionBase
+class PolynomialFunction: public FunctionBase<real_t, DynVec<real_t> >
 {
 
 public:
 
-    typedef RealVectorValuedFunctionBase::input_t input_t;
-    typedef RealVectorValuedFunctionBase::output_t output_t;
+    typedef DynVec<real_t> input_t;
+    typedef FunctionBase<real_t, DynVec<real_t>>::output_t output_t;
 
     ///
     /// \brief Constructor
     ///
-    RealVectorPolynomialFunction();
+    PolynomialFunction();
 
     ///
     /// \brief Constructor Create a polynomial where
     /// each variable has order 1
     ///
-    RealVectorPolynomialFunction(const std::vector<real_t>& coeffs);
+    PolynomialFunction(const std::vector<real_t>& coeffs);
 
     ///
     /// \brief Constructor
     ///
-    RealVectorPolynomialFunction(const DynVec<real_t>& coeffs, const std::vector<int>& order);
+    PolynomialFunction(const DynVec<real_t>& coeffs, const std::vector<int>& order);
 
     ///
     /// \brief Build the function from the given coeffs and orders
-    ///
-    void create_from(const DynVec<real_t>& coeffs, const std::vector<int>& order);
-
-    ///
-    /// \brief Create a polynomial where each variable has order 1
-    ///
-    void create_from(const std::vector<real_t>& coeffs);
+    template<typename ContainerTp>
+    void create_from(const ContainerTp& coeffs, const std::vector<int>& order);
 
     ///
     /// \brief Returns the value of the function
@@ -59,7 +60,7 @@ public:
     ///
     /// \brief Returns the gradient of the function for the i-th coefficient
     ///
-    virtual real_t coeff_grad(uint_t i, const DynVec<real_t>& point)const override final;
+    real_t coeff_grad(uint_t i, const DynVec<real_t>& point)const;
 
     ///
     /// \brief Returns the gradient of the function for the i-th coefficient
@@ -69,7 +70,7 @@ public:
     ///
     /// \brief Returns the gradient of the function for the i-th variable
     ///
-    virtual real_t grad(uint_t i, const DynVec<real_t>& point)const override final;
+    real_t grad(uint_t i, const DynVec<real_t>& point)const;
 
     ///
     /// \brief Returns the gradients of the function
@@ -79,17 +80,19 @@ public:
     ///
     /// \brief Returns the coefficients of the underlying monomials
     ///
-    DynVec<real_t> coeffs()const;
+    DynVec<real_t> coeffs()const override final;
 
     ///
     /// \brief Returns the coefficients of the underlying monomials
     ///
-    void set_coeffs(const std::vector<real_t>& coeffs);
+    template<typename ContainerTp>
+    void set_coeffs(const ContainerTp& coeffs);
 
     ///
-    /// \brief Returns the coefficients of the underlying monomials
+    /// \brief update_coeffs
+    /// \param params
     ///
-    void set_coeffs(const DynVec<real_t>& coeffs);
+    virtual void update_coeffs(const DynVec<real_t>& params) override final{set_coeffs(params);};
 
     ///
     /// \brief Returns the i-th coefficient
@@ -104,6 +107,51 @@ private:
     std::vector<Monomial> monomials_;
 
 };
+
+template<typename ContainerTp>
+void
+PolynomialFunction::create_from(const ContainerTp& coeffs, const std::vector<int>& order){
+
+
+    if(coeffs.size() != order.size()){
+        throw std::invalid_argument("Coeffs size: " + std::to_string(coeffs.size())+
+                                    " not equal to order size: " + std::to_string(order.size()) );
+    }
+
+    monomials_.resize((coeffs.size()));
+    auto coeff_itr = coeffs.begin();
+    auto order_itr = order.begin();
+
+    for(auto& monomial : monomials_){
+        monomial.create_from(*coeff_itr, *order_itr);
+        coeff_itr++;
+        order_itr++;
+    }
+}
+
+template<typename ContainerTp>
+void
+PolynomialFunction::set_coeffs(const ContainerTp& coeffs){
+
+#ifdef KERNEL_DEBUG
+
+    assert(coeffs.size() != 0 && "Empty coefficients");
+
+    if(monomials_.size() != 0)
+        assert(monomials_.size() != coeffs.size() && "Coeffs size does not not match monomials");
+#endif
+
+    if(monomials_.size() == 0){
+        monomials_.resize(coeffs.size());
+    }
+
+    auto itr = coeffs.cbegin();
+
+    for(auto& monomial : monomials_){
+        monomial.set_coeff(*itr);
+        itr++;
+    }
+}
 
 }
 

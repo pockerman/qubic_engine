@@ -12,8 +12,11 @@ OrdinaryLeastSquares::OrdinaryLeastSquares(uint_t num_coeffs, bool use_intercept
      intercept_(0.0),
      hypothesis_()
 {
-    std::vector<real_t> coeffs(num_coeffs, 0.0);
-    hypothesis_.create_from(coeffs);
+    auto num_features = use_intercept ? num_coeffs + 1 : num_coeffs;
+    std::vector<int> order(num_features, 1);
+    order[0] = 0;
+    std::vector<real_t> coeffs(num_features, 0.0);
+    hypothesis_.create_from(coeffs, order);
 }
 
 void

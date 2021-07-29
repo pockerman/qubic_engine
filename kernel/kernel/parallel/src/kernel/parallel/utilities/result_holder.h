@@ -26,30 +26,46 @@ public:
     typedef T value_type;
     typedef std::pair<value_type*, bool> result_type;
 
+    ///
     /// \brief Constructor
+    ///
     explicit ResultHolder(bool valid=false);
 
+    ///
     /// \brief Constructor. Initialize the result
+    ///
     explicit ResultHolder(value_type&& init, bool valid=false);
 
+    ///
     /// \brief Copy constructor
+    ///
     ResultHolder(const ResultHolder<T>& other);
 
+    ///
     /// \brief  Copy assignement
+    ///
     ResultHolder<T>& operator=(const ResultHolder<T>& other);
 
+    ///
     /// \brief Move Copy constructor
+    ///
     ResultHolder(ResultHolder<T>&& other)noexcept;
 
+    ///
     /// \brief Move Copy assignement
+    ///
     ResultHolder<T>& operator=(ResultHolder<T>&& other)noexcept;
 
+    ///
     /// \brief Add factor to the result
+    ///
     template<typename U>
     ResultHolder<T>& operator += (const U& factor);
 
+    ///
     /// \brief Add the other result to this result
     /// if other is invalid the throws exception
+    ///
     ResultHolder<T>& operator += (const ResultHolder<T>& other);
 
     /// \brief Subtract factor from the result
@@ -89,22 +105,32 @@ public:
     /// \brief Get a copy of the internals
     void get_copy(ResultHolder<T>& other)const;
 
+    ///
     /// \brief busy wait for the thread that calls it until the
     /// result becomes valid
+    ///
     result_type get()const;
 
+    ///
     /// \brief Attempt to get the result only if it is valid. It yields the calling thread
     /// as long as  the result is not valid
+    ///
     result_type get_or_wait()const;
 
+    ///
     /// \brief Attempt to get the result. If the result is not valid is waits for the
     /// specified time in milliseconds. It then returns the result regardless of its validity
+    ///
     result_type get_or_wait_for(uint_t milliseconds)const;
 
+    ///
     /// \brief Raw access to the resource
+    ///
     value_type& get_resource(){return item_; }
 
+    ///
     /// \brief Raw access to the resource
+    ///
     const value_type& get_resource()const{return item_; }
 
 private:

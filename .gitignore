@@ -44,3 +44,5 @@ kernel/kernel/build/
 kernel/discretization/build/
 cubic_engine/ml/tests/test_data_set_loaders/CMakeLists.txt
 cubic_engine/ml/tests/test_data_set_loaders/build/
+cubic_engine/ml/tests/test_blaze_regression_dataset/CMakeLists.txt
+cubic_engine/ml/tests/test_blaze_regression_dataset/build/

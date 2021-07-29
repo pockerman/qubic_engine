@@ -2,51 +2,66 @@
 #define	SERIAL_BATCH_GRADIENT_DESCENT_H
 
 #include "kernel/base/types.h"
-#include "kernel/numerics/optimization/utils/gd_control.h"
-#include "kernel/numerics/optimization/utils/gd_info.h"
+#include "kernel/utilities/algorithm_info.h"
+#include "kernel/numerics/optimization/gd_control.h"
+//#include "kernel/numerics/optimization/gd_info.h"
+#include "kernel/numerics/optimization/optimizer_base.h"
 
 #include <boost/noncopyable.hpp>
 #include <chrono>
 #include <iostream>
 #include <vector>
+#include <string>
+#include <map>
+#include <any>
 
 namespace kernel{
-namespace maths {
+namespace numerics {
 namespace opt {
 
 ///
 /// \brief Implementation of the gradient descent (GC) algorithm
 /// for solving optimization problems.
 ///
-class Gd: private boost::noncopyable
+template<typename MatType, typename VecType>
+class Gd: public OptimizerBase<MatType, VecType>
 {
     
 public:
+
+    typedef typename OptimizerBase<MatType, VecType>::data_set_t data_set_t;
+    typedef typename OptimizerBase<MatType, VecType>::labels_set_t labels_set_t;
+    typedef typename OptimizerBase<MatType, VecType>::function_t function_t;
 
     ///
     /// \brief Expose the type that is returned by this object
     /// when calling its solve functions
     ///
-    typedef GDInfo output_t;
+    typedef typename OptimizerBase<MatType, VecType>::output_t output_t;
     
     ///
     /// \brief Constructor
     ///
     Gd(const GDConfig& input);
+
+    ///
+    /// \brief Gd
+    /// \param options
+    ///
+    Gd(const std::map<std::string, std::any>& options);
     
     ///
     /// \brief Solves the optimization problem. Returns information
     /// about the performance of the solver.
     ///
-    template<typename MatType, typename VecType, typename FunctionTp>
-    GDInfo solve(const MatType& mat,const VecType& v, FunctionTp& h);
+    virtual output_t solve(const MatType& mat,const VecType& v, function_t& h) override final;
 
     ///
     /// \brief Solve for the coefficients that minimize
     /// the given function
     ///
-    template<typename FunctionTp>
-    GDInfo solve(FunctionTp& function);
+    //template<typename FunctionTp>
+    //GDInfo solve(FunctionTp& function);
 
     ///
     /// \brief Reset the control
@@ -61,35 +76,42 @@ private:
     GDConfig input_;
 
     ///
-    /// \brief The error function to use
+    /// \brief info_
     ///
-    error_t err_function_;
+    output_t info_;
 
     ///
     /// \brief actually solve the problem
     ///
-    template<typename MatType, typename VecType, typename FunctionTp>
-    GDInfo do_solve_(const MatType& mat,const VecType& v, FunctionTp& h);
+    output_t do_solve_(const MatType& mat,const VecType& v, function_t& h);
     
 };
 
-
-inline
-Gd::Gd(const GDConfig& input)
+template<typename MatType, typename VecType>
+Gd<MatType, VecType>::Gd(const GDConfig& input)
     :
+      OptimizerBase<MatType, VecType>(),
       input_(input),
-      err_function_()
+      info_()
 {}
 
+template<typename MatType, typename VecType>
+Gd<MatType, VecType>::Gd(const std::map<std::string, std::any>& options)
+    :
+      OptimizerBase<MatType, VecType>(),
+      input_(options),
+      info_()
+{}
 
-template<typename MatType, typename VecType, typename FunctionTp>
-GDInfo 
-Gd::solve(const MatType& data, const VecType& y, FunctionTp& function){
-    return do_solve_(data, y, function);
+template<typename MatType, typename VecType>
+typename Gd<MatType, VecType>::output_t
+Gd<MatType, VecType>::solve(const MatType& data, const VecType& y, function_t& function){
+    info_ = do_solve_(data, y, function);
+    return info_;
 }
 
 
-template<typename FunctionTp>
+/*template<typename FunctionTp>
 GDInfo
 Gd::solve(FunctionTp& function){
 
@@ -143,10 +165,11 @@ Gd::solve(FunctionTp& function){
     info.niterations = state.num_iterations;
     return info;
 }
+*/
 
-template<typename MatType, typename VecType, typename FunctionTp>
-GDInfo
-Gd::do_solve_(const MatType& data,const VecType& y, FunctionTp& function){
+template<typename MatType, typename VecType>
+typename Gd<MatType, VecType>::output_t
+Gd<MatType, VecType>::do_solve_(const MatType& data,const VecType& y, function_t& function){
 
 
     std::chrono::time_point<std::chrono::system_clock> start, end;
@@ -154,13 +177,12 @@ Gd::do_solve_(const MatType& data,const VecType& y, FunctionTp& function){
 
 
     //the info object to return
-    GDInfo info;
-    info.learning_rate = input_.learning_rate;
+    AlgInfo info;
 
-    real_t j_old = function.value(data, y).get_resource();
-    real_t j_current = 0.0;
+    auto j_old = function.value(data, y).get_resource();
+    auto j_current = 0.0;
 
-    const uint_t ncoeffs = function.n_coeffs();
+    const auto ncoeffs = function.n_coeffs();
 
     while(input_.continue_iterations()){
 
@@ -175,14 +197,14 @@ Gd::do_solve_(const MatType& data,const VecType& y, FunctionTp& function){
         }
 
         // reset again the coeffs
-        function.update_model(coeffs);
+        function.update_coeffs(coeffs);
 
         //recalculate...
         j_current = function.value(data, y).get_resource();
 
-        real_t error = std::fabs(j_current - j_old);
+        auto error = std::fabs(j_current - j_old);
         input_.update_residual(error);
-        uint_t itr = input_.get_current_iteration();
+        auto itr = input_.get_current_iteration();
 
         if(input_.show_iterations()){
 
@@ -208,10 +230,11 @@ Gd::do_solve_(const MatType& data,const VecType& y, FunctionTp& function){
     return info;
 }
 
-inline
+template<typename MatType, typename VecType>
 void
-Gd::reset_configuration(const GDConfig& control){
+Gd<MatType, VecType>::reset_configuration(const GDConfig& control){
     input_.reset(control);
+    info_ = typename Gd<MatType, VecType>::output_t();
 }
         
 }

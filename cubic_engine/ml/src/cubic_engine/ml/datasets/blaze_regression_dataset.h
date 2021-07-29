@@ -4,6 +4,7 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/datasets/regression_dataset_base.h"
 
+#include <boost/noncopyable.hpp>
 #include <string>
 #include <map>
 
@@ -13,7 +14,7 @@ namespace ml{
 ///
 /// \brief The BlazeRegressionDataset class
 ///
-class BlazeRegressionDataset: public RegressionDatasetBase
+class BlazeRegressionDataset: private boost::noncopyable
 {
 public:
 
@@ -46,24 +47,24 @@ public:
     /// \brief empty
     /// \return
     ///
-    bool empty()const{return examples_.rows() == 0;}
+    bool empty()const noexcept{return examples_.rows() == 0;}
 
     ///
     /// \brief n_rows
     /// \return
     ///
-    uint_t n_rows()const{return examples_.rows();}
+    uint_t n_rows()const noexcept{return examples_.rows();}
 
     ///
     /// \brief n_features
     /// \return
     ///
-    virtual uint_t n_features()const override{return examples_.columns();}
+    uint_t n_features()const{return examples_.columns();}
 
     ///
     /// \brief n_examples
     ///
-    virtual uint_t n_examples()const override{return examples_.rows();}
+    uint_t n_examples()const{return examples_.rows();}
 
     ///
     /// \brief feature_matrix
@@ -90,20 +91,16 @@ public:
     labels_t& labels(){return labels_;}
 
     ///
-    /// \brief get_features
-    ///
-    virtual std::any get_features()const override{return std::any(examples_);}
-
-    ///
-    /// \brief get_labels
-    /// \return
-    ///
-    virtual std::any get_labels()const override{return std::any(labels_);}
-
-    ///
     /// \brief load_from_file
     ///
-    virtual void load_from_file(const std::string& filename) override;
+    template<typename FileReader>
+    void load_from_file(FileReader& reader);
+
+    ///
+    /// \brief Load the dataset from the given loader
+    ///
+    template<typename DataLoader>
+    void load_from_loader(const DataLoader& loader);
 
     ///
     /// \brief load_from_data
@@ -111,6 +108,28 @@ public:
     /// \param labels
     ///
     void load_from_data(const features_t& features, const labels_t& labels);
+
+    ///
+    /// \brief get_columns
+    /// \return
+    ///
+    std::vector<std::string> get_columns()const;
+
+    ///
+    /// \brief set_columns
+    /// \param columns
+    ///
+    void set_columns(const std::vector<std::string>& columns);
+
+    ///
+    /// \brief columns
+    ///
+    auto columns()-> std::map<std::string, uint_t>&{return columns_;}
+
+    ///
+    /// \brief columns
+    ///
+    auto columns()const-> const std::map<std::string, uint_t>&{return columns_;}
 
 private:
 
@@ -126,7 +145,25 @@ private:
     ///
     labels_t labels_;
 
+    ///
+    ///
+    ///
+    std::map<std::string, uint_t> columns_;
+
 };
+
+
+template<typename DataLoader>
+void
+BlazeRegressionDataset::load_from_loader(const DataLoader& loader){
+    loader.load(examples_, labels_, columns());
+}
+
+template<typename FileReader>
+void
+BlazeRegressionDataset::load_from_file(FileReader& reader){
+    reader.read(examples_, labels_, columns());
+}
 
 }
 }
