@@ -3,6 +3,7 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/policies/policy_base.h"
+#include "cubic_engine/rl/policies/policy_type.h"
 
 #include <vector>
 #include <utility>
@@ -11,6 +12,9 @@ namespace cengine {
 namespace rl {
 namespace policies {
 
+///
+/// \brief The DiscretePolicyBase class
+///
 class DiscretePolicyBase: public PolicyBase
 {
 public:
@@ -19,7 +23,6 @@ public:
     /// \brief Destructor
     ///
     virtual ~DiscretePolicyBase() = default;
-
 
     ///
     /// \brief operator []
@@ -31,7 +34,6 @@ public:
     ///
     virtual bool equals(const DiscretePolicyBase& other)const = 0;
 
-
 protected:
 
     ///
@@ -39,9 +41,15 @@ protected:
     /// \param n_states
     /// \param n_actions
     ///
-    DiscretePolicyBase() = default;
+    DiscretePolicyBase(PolicyType type);
 
 };
+
+inline
+DiscretePolicyBase::DiscretePolicyBase(PolicyType type)
+    :
+      PolicyBase(type)
+{}
 
 inline
 bool operator==(const DiscretePolicyBase& p1, const DiscretePolicyBase& p2){
