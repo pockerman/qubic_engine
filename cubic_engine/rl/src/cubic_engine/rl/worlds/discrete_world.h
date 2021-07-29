@@ -4,6 +4,8 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/worlds/world_base.h"
 
+#include <vector>
+#include <tuple>
 #include <string>
 
 namespace cengine{
@@ -53,7 +55,7 @@ public:
     ///
     /// \brief transition_dynamics
     ///
-    virtual std::vector<time_step_t> transition_dynamics(uint_t s, uint_t aidx)const = 0;
+    virtual std::vector<std::tuple<real_t, uint_t, real_t, bool>> transition_dynamics(uint_t s, uint_t aidx)const = 0;
 
 protected:
 

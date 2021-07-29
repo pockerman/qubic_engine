@@ -22,7 +22,7 @@ public:
     ///
     /// \brief ~AlgorithmBase. Destructor
     ///
-    virtual ~AlgorithmBase();
+    virtual ~AlgorithmBase() = default;
 
     ///
     /// \brief actions_before_training_iterations. Execute any actions the
