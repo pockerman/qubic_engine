@@ -1,5 +1,5 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef KERNEL_TYPES_H
+#define KERNEL_TYPES_H
 
 #include "kernel/base/config.h"
 
