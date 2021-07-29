@@ -64,7 +64,7 @@ public:
     /// \brief restart. Restart the world and
     /// return the starting state
     ///
-    virtual state_t reset()=0;
+    virtual time_step_t reset()=0;
 
     ///
     /// \brief Build the  world
