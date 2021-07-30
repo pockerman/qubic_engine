@@ -4,7 +4,10 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/algorithms/algorithm_base.h"
 #include "cubic_engine/rl/worlds/discrete_world.h"
+#include "kernel/utilities/csv_file_writer.h"
 
+#include <tuple>
+#include <vector>
 #include <string>
 
 namespace cengine {
@@ -40,6 +43,7 @@ public:
     /// algorithm needs before starting the iterations
     ///
     virtual void actions_before_training_iterations();
+
     ///
     /// \brief actions_after_training_iterations. Actions to execute after
     /// the training iterations have finisehd
@@ -66,6 +70,14 @@ public:
     ///
     virtual void reset();
 
+    ///
+    /// \brief save. Save the value function
+    /// to a CSV file. Applications can override this
+    /// behaviour if not suitable.
+    /// \param filename
+    ///
+    virtual void save(const std::string& filename)const;
+
 protected:
 
     ///
@@ -73,7 +85,6 @@ protected:
     /// \param name
     ///
     DPAlgoBase(uint_t n_max_itrs, real_t tolerance, real_t gamma, env_t& env);
-
 
     ///
     /// \brief env_ref_
@@ -124,6 +135,22 @@ DPAlgoBase<TimeStepTp>::actions_before_training_iterations(){
     reset();
 }
 
+template<typename TimeStepTp>
+void
+DPAlgoBase<TimeStepTp>::save(const std::string& filename)const{
+
+    kernel::utilities::CSVWriter writer(filename, ',', true);
+
+    std::vector<std::string> columns(2);
+    columns[0] = "State Id";
+    columns[1] = "Value";
+    writer.write_column_names(columns);
+
+    for(uint_t s=0; s < v_.size(); ++s){
+        auto row = std::make_tuple(s, v_[s]);
+        writer.write_row(row);
+    }
+}
 
 
 }
