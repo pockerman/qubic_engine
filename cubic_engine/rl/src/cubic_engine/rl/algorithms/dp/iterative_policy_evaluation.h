@@ -99,10 +99,10 @@ IterativePolicyEval<TimeStepTp>::step(){
             auto transition_dyn = this->env_ref_().transition_dynamics(s, aidx);
 
             for(auto& dyn: transition_dyn){
-                auto prob = std::get<0>(dyn); //.probabilities[0];
-                auto next_state = std::get<1>(dyn); //.states[0];
-                auto reward = std::get<2>(dyn); //.rewards[0];
-                auto done = std::get<3>(dyn); //.dones[0];
+                auto prob = std::get<0>(dyn);
+                auto next_state = std::get<1>(dyn);
+                auto reward = std::get<2>(dyn);
+                auto done = std::get<3>(dyn);
 
                 new_v += action_p * prob * (reward + this->gamma() * this->value_func()[next_state]);
 
