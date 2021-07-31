@@ -15,8 +15,6 @@
 namespace cengine{
 namespace ml {
 
-class BlazeRegressionDataset;
-
 
 ///
 /// \brief The LinearRegressor class

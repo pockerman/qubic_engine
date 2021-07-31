@@ -46,3 +46,4 @@ cubic_engine/ml/tests/test_data_set_loaders/CMakeLists.txt
 cubic_engine/ml/tests/test_data_set_loaders/build/
 cubic_engine/ml/tests/test_blaze_regression_dataset/CMakeLists.txt
 cubic_engine/ml/tests/test_blaze_regression_dataset/build/
+cubic_engine/ml/src/cubic_engine/ml/CMakeLists.txt
