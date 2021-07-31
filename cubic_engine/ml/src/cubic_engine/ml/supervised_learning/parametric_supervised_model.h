@@ -56,13 +56,6 @@ protected:
 
 };
 
-/*template<typename ValueTp>
-ParametricSupervisedModel<ValueTp>::ParametricSupervisedModel()
-    :
-      SupervisedModel<ValueTp>()
-{}*/
-
-
 }
 
 }

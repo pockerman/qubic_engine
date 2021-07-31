@@ -15,8 +15,6 @@
 namespace cengine{
 namespace ml {
 
-class BlazeRegressionDataset;
-
 
 ///
 /// \brief The LinearRegressor class
@@ -24,11 +22,6 @@ class BlazeRegressionDataset;
 class LinearRegressor
 {
 public:
-
-    ///
-    /// \brief dataset_t. The type of the dataset
-    ///
-    //typedef BlazeRegressionDataset dataset_t;
 
     ///
     /// \brief value_t The result value type
@@ -76,7 +69,6 @@ public:
     ///
     std::vector<value_t> predict_many(const DynMat<real_t>& data)const;
 
-
 private:
 
     ///
@@ -123,14 +115,6 @@ LinearRegressor::fit(const DataSetTp& dataset, SolverTp& solver, const std::map<
     auto output = solver.solve(dataset.feature_matrix(), dataset.labels(), *error_function_ptr.get());
 
     return output;
-    /*auto opt_type =  std::any_cast<kernel::numerics::opt::OptimizerType>(options.find("solver_type")->second);
-
-    const auto& solver_options = std::any_cast<const std::map<std::string, std::any>&>(options.find("solver_options")->second);
-    auto solver = kernel::numerics::opt::OptimizerFactory().build<dataset_t::features_t, dataset_t::labels_t>(opt_type, solver_options);
-
-
-
-    solver->solve(dataset.feature_matrix(), dataset.labels(), *error_function_ptr.get());*/
 }
 
 
