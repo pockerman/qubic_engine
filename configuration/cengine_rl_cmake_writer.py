@@ -52,6 +52,7 @@ class RLCMakeWriter(CMakeFileWriter):
 
         # set the kernel path
         current_dir = Path(os.getcwd())
+        project_source_dir = current_dir /  "cubic_engine" / "rl"
         with open(current_dir / "cubic_engine" / "rl" / "CMakeLists.txt", 'w', newline="\n") as fh:
 
             # write the basic set variables
@@ -70,11 +71,12 @@ class RLCMakeWriter(CMakeFileWriter):
                 local_fh.write('\tCMAKE_POLICY(SET CMP0076 NEW)\n')
                 local_fh.write('ENDIF(COMMAND cmake_policy)\n')
                 local_fh.write('\n')
-                local_fh.write('FILE(GLOB %s ${PROJECT_SOURCE_DIR}/src/cubic_engine/rl/*.cpp '
-                               '${PROJECT_SOURCE_DIR}/src/cubic_engine/rl/*/*.cpp)  '
-                               '${PROJECT_SOURCE_DIR}/src/cubic_engine/rl/algorithms/dp/*.cpp) '
-                               '${PROJECT_SOURCE_DIR}/src/cubic_engine/rl/algorithms/mc/*.cpp) '
-                               '${PROJECT_SOURCE_DIR}/src/cubic_engine/rl/algorithms/td/*.cpp)\n' % dir_upper)
+                local_fh.write('FILE(GLOB %s "%s/src/cubic_engine/rl/*.cpp" '
+                               '"%s/src/cubic_engine/rl/*/*.cpp"  '
+                               '"%s/src/cubic_engine/rl/algorithms/dp/*.cpp" '
+                               '"%s/src/cubic_engine/rl/algorithms/mc/*.cpp" '
+                               '"%s/src/cubic_engine/rl/algorithms/td/*.cpp")\n' % (dir_upper, project_source_dir, project_source_dir,
+                                                                                  project_source_dir, project_source_dir, project_source_dir))
 
                 local_fh.write('TARGET_SOURCES(%s PUBLIC ${%s})\n' % (self.project_name, dir_upper))
 

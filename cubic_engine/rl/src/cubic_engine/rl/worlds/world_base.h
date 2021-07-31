@@ -11,9 +11,13 @@
 
 namespace cengine {
 namespace rl {
-namespace worlds{
+namespace envs{
 
-template<typename StateTp, typename ActionTp>
+
+///
+///
+///
+template<typename StateTp, typename ActionTp, typename TimeStepTp>
 class WorldBase: private boost::noncopyable
 {
 
@@ -28,6 +32,11 @@ public:
     /// \brief action_t
     ///
     typedef ActionTp action_t;
+
+    ///
+    /// \brief time_step_t
+    ///
+    typedef TimeStepTp time_step_t;
 
     ///
     /// \brief Destructor
@@ -49,13 +58,13 @@ public:
     /// learning (for example, it might contain the raw probabilities behind the environment’s last state change).
     /// However, official evaluations of your agent are not allowed to use this for learning.
     ///
-    virtual std::tuple<state_t, real_t, bool, std::any> step(const action_t&)=0;
+    virtual time_step_t step(const action_t&)=0;
 
     ///
     /// \brief restart. Restart the world and
     /// return the starting state
     ///
-    virtual state_t reset()=0;
+    virtual time_step_t reset()=0;
 
     ///
     /// \brief Build the  world
@@ -104,8 +113,8 @@ protected:
 
 };
 
-template<typename StateTp, typename ActionTp>
-WorldBase<StateTp, ActionTp>::WorldBase(const std::string& name)
+template<typename StateTp, typename ActionTp, typename TimeStepTp>
+WorldBase<StateTp, ActionTp, TimeStepTp>::WorldBase(const std::string& name)
     :
       name_(name),
       is_built_(false)
