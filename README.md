@@ -81,5 +81,5 @@ You can find some example applications below
      alt="Carrot Patth Following"
      style="float: left; margin-right: 10px; width: 500px;" />
      
-[Value function on FrozenLake environment][images/state_value_function.png]
+![Value function on FrozenLake environment][images/state_value_function.png]
 
