@@ -2,196 +2,116 @@
 #define	LOGISTIC_REGRESSION_H
 
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "kernel/maths/matrix_utilities.h"
-#include "kernel/maths/errorfunctions/mse_function.h"
+#include "cubic_engine/ml/supervised_learning/linear_parametric_model.h"
+#include "kernel/maths/errorfunctions/error_function_type.h"
+#include "kernel/maths/errorfunctions/error_function_factory.h"
 #include "kernel/maths/functions/sigmoid_function.h"
 
 #include <boost/noncopyable.hpp>
 #include <vector>
 #include <ostream>
+#include <map>
+#include <any>
+#include <string>
 
 
-namespace cengine
-{
-    
-/// \brief LogisticRegression. Logistic Regression classifier
-template<typename HypothesisType, typename TransformerType>
-class LogisticRegression: private boost::noncopyable
+namespace cengine{
+namespace ml{
+
+
+///
+/// \brief LogisticRegression. Logistic Regression classifier suitable
+/// only for binary class classification
+///
+class LogisticRegression: public  LinearParametricModel<uint_t>
 {
 
  public:
 
-    typedef HypothesisType hypothesis_t;
-    typedef TransformerType transformer_t;
-    typedef uint_t output_t;
+    ///
+    /// \brief output_t
+    ///
+    typedef LinearParametricModel<uint_t>::value_t value_t;
 
     ///
     /// \brief Constructor
     ///
-    LogisticRegression();
+    LogisticRegression(uint_t n_features, bool use_intercept);
 
     ///
-    /// \brief Constructor. Set the initial coeffs of the
-    /// underlying hypothesis model
+    /// \brief fit. Fit the model on the given dataset
     ///
-    LogisticRegression(const std::vector<real_t>& coeffs);
+    template<typename DataSetTp, typename SolverTp>
+    typename SolverTp::output_t fit(const DataSetTp& dataset, SolverTp& solver, const std::map<std::string, std::any>& options);
 
     ///
-    /// \brief Set the number of parameters for the model
+    /// \brief predict
     ///
-    void set_model_parameters(const std::vector<real_t>& coeffs);
+    value_t predict_one(const DynVec<real_t>& data)const;
 
     ///
-    /// \brief Train the model
+    /// \brief predict
     ///
-    template<typename DataSetType, typename LabelsType, typename Trainer>
-    typename Trainer::output_t
-    train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer);
+    std::vector<value_t> predict_many(const DynMat<real_t>& data)const{}
 
     ///
-    /// \brief Train the model
+    /// \brief score
     ///
-    template<typename DataSetType, typename LabelsType,
-             typename Trainer, typename RegularizerType>
-    typename Trainer::output_t
-    train(const DataSetType& dataset, const LabelsType& labels,
-          Trainer& trainer, const RegularizerType& regularizer);
-
-    ///
-    /// \brief Predict the class for the given data point
-    ///
-    template<typename DataPoint>
-    output_t predict(const DataPoint& point)const;
-
-    ///
-    /// \brief Predict on the data set
-    ///
-    template<typename DataSet, typename OutputType>
-    void predict(const DataSet& point, OutputType& out)const;
-
-    ///
-    /// \brief Returns the raw model
-    ///
-    const hypothesis_t& get_model()const{return hypothesis_;}
-
-    ///
-    /// \brief Return the i-th parameter
-    ///
-    real_t coeff(uint_t i)const{return hypothesis_.coeff(i);}
-
-    ///
-    /// \brief Print the model coeffs
-    ///
-    std::ostream& print(std::ostream& out)const;
+    template<typename DataSetTp>
+    real_t score(const DataSetTp& data)const;
 
 private:
 
-    hypothesis_t hypothesis_;
 
-    TransformerType transformer_;
+    ///
+    /// \brief transformer_
+    ///
+    kernel::SigmoidFunction<kernel::PolynomialFunction> transformer_;
  };
+
+template<typename DataSetTp, typename SolverTp>
+typename SolverTp::output_t
+LogisticRegression::fit(const DataSetTp& dataset, SolverTp& solver, const std::map<std::string, std::any>& /*options*/){
+
+#ifdef KERNEL_DEBUG
+    assert(dataset.n_features() == polynomial_.n_coeffs() && "Invalid feature space size");
+#endif
+
+    auto err_type = kernel::ErrorFuncType::MSE;
+    auto error_function_ptr = kernel::ErrFuncFactory().build<kernel::PolynomialFunction,
+                                                             typename DataSetTp::features_t, typename DataSetTp::labels_t>(err_type, this->polynomial_);
+    auto output = solver.solve(dataset.feature_matrix(), dataset.labels(), *error_function_ptr.get());
+
+    return output;
+}
+
+template<typename DataSetTp>
+real_t
+LogisticRegression::score(const DataSetTp& dataset)const{
+
+#ifdef KERNEL_DEBUG
+    assert(dataset.n_features() == polynomial_.n_coeffs() && "Invalid feature space size");
+    //check_options_(options);
+#endif
+
+    real_t correctly_clss = 0;
+    for(uint_t p=0; p < dataset.size(); ++p){
+
+        auto[point, label] = dataset[p];
+
+        auto p_class = static_cast<uint_t>(predict_one(point));
+
+        if(p_class == label){
+            correctly_clss += 1.;
+        }
+    }
+
+    return correctly_clss/dataset.size();
+
+}
  
-template<typename HypothesisType, typename TransformerType>
-LogisticRegression<HypothesisType, TransformerType>::LogisticRegression()
-:
-hypothesis_(),
-transformer_(hypothesis_)
-{}
 
-template<typename HypothesisType, typename TransformerType>
-LogisticRegression<HypothesisType, TransformerType>::LogisticRegression(const std::vector<real_t>& coeffs)
-    :
-      hypothesis_(coeffs),
-      transformer_(hypothesis_)
-{}
-
-template<typename HypothesisType, typename TransformerType>
-template<typename DataSetType, typename LabelsType, typename Trainer>
-typename Trainer::output_t
-LogisticRegression<HypothesisType, TransformerType>::train(const DataSetType& dataset, const LabelsType& labels, Trainer& trainer ){
-    
-    kernel::MSEFunction<TransformerType, DataSetType, LabelsType> error(transformer_);
-    return trainer.solve(dataset, labels, error);
 }
-
-template<typename HypothesisType, typename TransformerType>
-template<typename DataSetType, typename LabelsType,
-         typename Trainer, typename RegularizerType>
-typename Trainer::output_t
-LogisticRegression<HypothesisType, TransformerType>::train(const DataSetType& dataset, const LabelsType& labels,
-                                                           Trainer& trainer, const RegularizerType& regularizer){
-
-    kernel::MSEFunction<TransformerType, DataSetType, LabelsType, RegularizerType> error(transformer_, regularizer);
-    return trainer.solve(dataset, labels, error);
-}
-
-template<typename HypothesisType, typename TransformerType>
-void 
-LogisticRegression<HypothesisType, TransformerType>::set_model_parameters(const std::vector<real_t>& coeffs){
-    
-    hypothesis_.set_coeffs(coeffs);
-}
-
-template<typename HypothesisType, typename TransformerType>
-template<typename DataPoint>
-typename LogisticRegression<HypothesisType, TransformerType>::output_t
-LogisticRegression<HypothesisType, TransformerType>::predict(const DataPoint& point)const{
-    
-    //TransformerType transformer(hypothesis_);
-    auto value = transformer_.value(point);
-
-    if(value >= 0.5){
-        return 1;
-    }
-
-    return 0;
-}
-
-template<typename HypothesisType, typename TransformerType>
-template<typename DataSet, typename OutputType>
-void
-LogisticRegression<HypothesisType, TransformerType>::predict(const DataSet& data, OutputType& out)const{
-
-
-    if(out.size() != data.rows()){
-        throw std::logic_error("out vector size " +
-                               std::to_string(out.size()) +
-                               " not equal to " +
-                               std::to_string(data.rows()));
-    }
-
-    for(uint_t r = 0; r < data.rows(); ++r){
-
-        auto row = kernel::get_row(data, r);
-        out[r] = predict(row);
-    }
-}
-
-template<typename HypothesisType, typename TransformerType>
-std::ostream&
-LogisticRegression<HypothesisType, TransformerType>::print(std::ostream& out)const{
-
-    for(uint_t c=0; c < hypothesis_.n_coeffs(); ++c){
-        out<<hypothesis_.coeff(c);
-
-        if(c == hypothesis_.n_coeffs() - 1){
-            out<<"\n";
-        }
-        else{
-            out<<",";
-        }
-    }
-
-    return out;
-}
-
-template<typename HypothesisType, typename TransformerType>
-inline
-std::ostream& operator<<(std::ostream& out,
-                         const LogisticRegression<HypothesisType, TransformerType>& classifier){
-    return classifier.print(out);
-}
-    
 }
 
 #endif
