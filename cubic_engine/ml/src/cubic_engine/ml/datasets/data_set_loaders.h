@@ -3,11 +3,38 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "kernel/parallel/utilities/partitioned_type.h"
+#include "kernel/base/config.h"
+
+#ifdef KERNEL_DEBUG
+#include <cassert>
+#endif
+
 #include <utility>
 
 namespace cengine{
 namespace ml {
 
+
+template<typename ResultVecTp>
+ResultVecTp linesplit(real_t a, real_t b, uint_t n){
+
+#ifdef KERNEL_DEBUG
+    assert(a < b && "Invalid range end points. It should be a<b");
+    assert(n > 0 && "Invalid number of points. It should be n > 0");
+#endif
+
+    auto dx = (b - a)/n;
+
+    ResultVecTp vec(n);
+    vec[0] = a;
+
+    for(uint_t i = 1; i <n - 1 ; ++i){
+        vec[i]  = a + i*dx;
+    }
+
+    vec[n - 1] = b;
+    return vec;
+}
 
 
 ///

@@ -410,6 +410,10 @@ load_reduced_iris_data_set(bool add_ones_column){
 
           auto line = reader.read_line();
 
+          if(line.empty() || line[0] == kernel::KernelConsts::eof_string()){
+              break;
+          }
+
           std::vector<real_t> row(4, 0.0);
 
           for(uint_t i = 0; i<line.size()-1; ++i){
