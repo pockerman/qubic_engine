@@ -29,12 +29,15 @@ def main(filename):
 		value_func = []
 		for row in csv_file_reader:
 			if not row[0].startswith('#'):
-				value_func.append(float(row[1]))
+				try:
+					value_func.append(float(row[1]))
+				except:
+					continue
 		plot_values(np.array(value_func))
        
 		
 if __name__ == '__main__':
-  main("iterative_policy_eval.csv")
+  main("/home/alex/qi3/scalarl/iterative_policy_evaluation_frozen_lake_v0.csv")
 	
 	
 
