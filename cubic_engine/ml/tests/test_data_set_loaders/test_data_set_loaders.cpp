@@ -11,16 +11,32 @@ namespace {
 using cengine::DynMat;
 using cengine::DynVec;
 using cengine::real_t;
+using cengine::uint_t;
 }
 
-/// 
-/// Test Scenario:   The application attempts to load the reduced iris data set
-/// Expected Output:	Data set should be loaded
-///
+TEST(TestDataSetLoaders, Line_Split){
+
+
+    try{
+
+        auto data = cengine::ml::linesplit<std::vector<real_t>>(0.0, 2.0, 4);
+
+        ASSERT_EQ(data.size(), static_cast<std::size_t>(4));
+        ASSERT_DOUBLE_EQ(data[0], 0.0);
+        ASSERT_DOUBLE_EQ(data[1], 0.5);
+        ASSERT_DOUBLE_EQ(data[2], 1.0);
+        ASSERT_DOUBLE_EQ(data[3], 2.0);
+
+
+    }
+    catch(...){
+
+        FAIL()<<"A non expected exception was thrown";
+    }
+}
+
 TEST(TestDataSetLoaders, LoadReducedIrisSet) {
 
-
-    // TODO: Is there a better way to do this?
     try{
 
         auto data = cengine::ml::load_reduced_iris_data_set();
@@ -31,19 +47,13 @@ TEST(TestDataSetLoaders, LoadReducedIrisSet) {
     }
     catch(...){
 
-        ASSERT_FALSE("A non expected exception was thrown");
+        FAIL()<<"A non expected exception was thrown";
     }
 }
 
-/***
- * Test Scenario:   The application attempts to load the iris data set without ones
- * Expected Output:	Data set should be loaded
- **/
 
 TEST(TestDataSetLoaders, LoadIrisSetNoOnes) {
 
-
-    // TODO: Is there a better way to do this?
     try{
 
         auto data = cengine::ml::load_iris_data_set(false);
@@ -56,14 +66,10 @@ TEST(TestDataSetLoaders, LoadIrisSetNoOnes) {
     }
     catch(...){
 
-        ASSERT_FALSE("A non expected exception was thrown");
+        FAIL()<<"A non expected exception was thrown";
     }
 }
 
-/***
- * Test Scenario:   The application attempts to load the iris data set with ones column
- * Expected Output:	Data set should be loaded
- **/
 
 TEST(TestDataSetLoaders, LoadIrisSetWithOnes) {
 
