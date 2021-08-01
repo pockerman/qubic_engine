@@ -1,10 +1,17 @@
 #include "kernel/utilities/csv_file_reader.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/base/config.h"
+
 #include <boost/algorithm/string.hpp>
+
+#ifdef KERNEL_DEBUG
+#include <cassert>
+#endif
+
 namespace kernel
 {
 
-CSVFileReader::CSVFileReader(const std::string& file_name, bool open,
+CSVFileReader::CSVFileReader(const std::string& file_name, bool do_open,
                              const std::string delimeter)
     :
       file_name_(file_name),
@@ -13,8 +20,8 @@ CSVFileReader::CSVFileReader(const std::string& file_name, bool open,
       current_row_idx_(0)
 {
 
-    if(open){
-       file_reader_.open(file_name_, std::ios_base::in);
+    if(do_open){
+       open();
     }
 }
 
@@ -27,7 +34,31 @@ void
 CSVFileReader::open(){
 
     if(!file_reader_.is_open()){
-        file_reader_.open(file_name_, std::ios_base::in);
+
+        try{
+            file_reader_.open(file_name_, std::ios_base::in);
+
+#ifdef KERNEL_DEBUG
+
+            if(!file_reader_.good()){
+                std::string msg("Failed to open file: ");
+                msg += file_name_;
+                assert(false && msg.c_str());
+            }
+#endif
+
+        }
+        catch(...){
+
+#ifdef KERNEL_DEBUG
+            std::string msg("Failed to open file: ");
+            msg += file_name_;
+            assert(false && msg.c_str());
+#else
+            throw;
+#endif
+
+        }
     }
 }
 
@@ -42,14 +73,25 @@ CSVFileReader::close(){
 std::vector<std::string>
 CSVFileReader::read_line(){
 
-    open();
+    if(!file_reader_.is_open()){
+        return std::vector<std::string>(1, "FILE_NOT_OPEN");
+    }
+
+#ifdef KERNEL_DEBUG
+
+            if(!file_reader_.good()){
+                std::string msg("Failed to open file: ");
+                msg += file_name_;
+                assert(false && msg.c_str());
+            }
+#endif
 	
-	std::vector<std::string> result;
-	if(file_reader_.eof()){
+    std::vector<std::string> result;
+    if(file_reader_.eof()){
 		
-		result.push_back(KernelConsts::eof_string());
-		return result;
-	}
+        result.push_back(KernelConsts::eof_string());
+        return result;
+    }
 
     std::string line = "";
     std::getline(file_reader_, line);
