@@ -29,6 +29,52 @@ uint_t arg_min(const std::vector<T, A>& vec) {
   return static_cast<uint_t>(std::distance(vec.begin(), min_element(vec.begin(), vec.end())));
 }
 
+template<typename T>
+std::vector<uint_t> max_indices(const DynVec<T>& vec){
+
+    // find max value
+    auto max_val = blaze::max(vec);
+
+    auto result = std::vector<uint_t>();
+    auto counter = 0;
+
+    for(uint_t i=0; i<vec.size(); ++i){
+        T value = vec[i];
+        if(value == max_val){
+            result.push_back(i);
+        }
+    }
+
+    return result;
+}
+
+///
+/// \brief Returns the indices of vec
+/// where the maximum value in vec occurs
+///
+template<typename VecTp>
+std::vector<uint_t> max_indices(const VecTp& vec){
+
+    // find max value
+    auto max_val = std::max_element(vec.begin(), vec.end());
+
+    auto result = std::vector<uint_t>();
+    auto counter = 0;
+
+    std::for_each(vec.begin(), vec.end(),
+                  [&](auto val){
+        if(val == max_val){
+            result.push_back(counter);
+        }
+        ++counter;
+    });
+
+    return result;
+}
+
+
+
+
 }
 
 }

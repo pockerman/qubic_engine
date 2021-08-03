@@ -39,4 +39,11 @@ IterativeAlgorithmController::reset(const IterativeAlgorithmController& control)
     current_res_ = control.current_res_;
 }
 
+void
+IterativeAlgorithmController::reset(){
+
+    current_res_ = std::numeric_limits<real_t>::max();
+    current_iteration_idx_ = 0;
+}
+
 }
