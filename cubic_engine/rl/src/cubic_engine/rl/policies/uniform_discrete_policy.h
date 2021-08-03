@@ -34,15 +34,38 @@ public:
     virtual std::vector<std::pair<uint_t, real_t>> operator[](uint_t sidx)const override final;
 
     ///
+    /// \brief Update the policy for state with index sidx
+    ///
+    virtual void update(uint_t sidx, const std::vector<std::pair<uint_t, real_t>>& vals)override final;
+
+    ///
     /// \brief equals
     ///
     virtual bool equals(const DiscretePolicyBase& other)const override final;
+
+    ///
+    /// \brief state_actions_values
+    /// \return
+    ///
+    virtual std::vector<std::vector<std::pair<uint_t, real_t>>>& state_actions_values() override final{return state_actions_prob_;}
 
     ///
     /// \brief shape
     /// \return
     ///
     std::pair<uint_t, uint_t> shape()const{return {n_states_, n_actions_};}
+
+    ///
+    /// \brief make_copy. Make a copy of this
+    ///
+    virtual std::shared_ptr<DiscretePolicyBase> make_copy()const override final;
+
+    ///
+    /// \brief print
+    /// \param out
+    /// \return
+    ///
+    virtual std::ostream& print(std::ostream& out)const override final;
 
 private:
 

@@ -1,6 +1,8 @@
 #ifndef POLICY_ADAPTOR_BASE_H
 #define POLICY_ADAPTOR_BASE_H
 
+#include "cubic_engine/rl/policies/discrete_policy_base.h"
+
 #include <any>
 #include <map>
 #include <string>
@@ -10,22 +12,27 @@ namespace cengine {
 namespace rl {
 namespace policies {
 
-class PolicyBase;
+
+//class DiscretePolicyBase;
 
 ///
 /// \brief The PolicyAdaptorBase class
 ///
-class PolicyAdaptorBase
+class DiscretePolicyAdaptorBase
 {
 public:
 
+    ///
+    ///
+    ///
+    virtual ~DiscretePolicyAdaptorBase() = default;
 
     ///
     /// \brief operator ()
     /// \param options_ptr
     /// \return
     ///
-    virtual std::shared_ptr<PolicyBase> operator()(const std::map<std::string, std::any>& options)=0;
+    virtual std::shared_ptr<DiscretePolicyBase> operator()(const std::map<std::string, std::any>& options)=0;
 
 protected:
 
@@ -33,22 +40,11 @@ protected:
     /// \brief PolicyAdaptorBase
     /// \param policy
     ///
-    PolicyAdaptorBase(std::shared_ptr<PolicyBase> policy);
-
-    ///
-    /// \brief policy_
-    ///
-    std::shared_ptr<PolicyBase> policy_;
+    DiscretePolicyAdaptorBase() = default;
 
 
 
 };
-
-inline
-PolicyAdaptorBase::PolicyAdaptorBase(std::shared_ptr<PolicyBase> policy)
-    :
-      policy_(policy)
-{}
 
 }
 }
