@@ -37,7 +37,7 @@ def main(filename):
        
 		
 if __name__ == '__main__':
-  main("/home/alex/qi3/scalarl/iterative_policy_evaluation_frozen_lake_v0.csv")
+  main("policy_iteration.csv")
 	
 	
 

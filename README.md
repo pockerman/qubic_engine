@@ -76,7 +76,6 @@ You can find some example applications below
      alt="Extended Kalman Filter"
      style="float: left; margin-right: 10px; width: 50px;" />
 
-
 <img src="images/path_following.gif"
      alt="Carrot Path Following"
      style="float: left; margin-right: 10px; width: 500px;" />
@@ -84,4 +83,5 @@ You can find some example applications below
 <img src="images/state_value_function.png" 
      alt="State value function"
      style="float:left;margin-right:10px;width:500px;"/>
+
 

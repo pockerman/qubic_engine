@@ -6,8 +6,9 @@
 #include "cubic_engine/rl/algorithms/dp/iterative_policy_evaluation.h"
 #include "cubic_engine/rl/algorithms/dp/policy_improvement.h"
 #include "cubic_engine/rl/policies/policy_adaptor_base.h"
-#include "cubic_engine/rl/policies/policy_base.h"
+#include "cubic_engine/rl/policies/discrete_policy_base.h"
 
+//#include <iostream>
 #include <memory>
 
 namespace cengine{
@@ -29,9 +30,9 @@ public:
     /// \brief PolicyIteration
     ///
     PolicyIteration(uint_t n_max_iterations, real_t tolerance, env_t& env,
-                    real_t gamma, uint_t n_policy_eval_steps, std::shared_ptr<policies::DiscretePolicyBase> policy,
-                    std::shared_ptr<policies::PolicyAdaptorBase> policy_adaptor);
-
+                    real_t gamma, uint_t n_policy_eval_steps,
+                    std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy,
+                    std::shared_ptr<cengine::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor);
 
     ///
     /// \brief step
@@ -43,6 +44,12 @@ public:
     /// algorithm needs before starting the iterations
     ///
     virtual void actions_before_training_iterations() override final;
+
+    ///
+    /// \brief actions_after_training_iterations. Actions to execute after
+    /// the training iterations have finisehd
+    ///
+    virtual void actions_after_training_iterations()override final{this->value_func() = policy_eval_.value_func();}
 
 private:
 
@@ -61,8 +68,9 @@ private:
 
 template<typename TimeStepTp>
 PolicyIteration<TimeStepTp>::PolicyIteration(uint_t n_max_iterations, real_t tolerance, env_t& env,
-                                             real_t gamma, uint_t n_policy_eval_steps, std::shared_ptr<policies::DiscretePolicyBase> policy,
-                                             std::shared_ptr<policies::PolicyAdaptorBase> policy_adaptor)
+                                             real_t gamma, uint_t n_policy_eval_steps,
+                                             std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy,
+                                             std::shared_ptr<cengine::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor)
     :
     DPAlgoBase<TimeStepTp>(n_max_iterations, tolerance, gamma, env),
     policy_eval_(n_policy_eval_steps, tolerance, gamma, env, policy),
@@ -84,26 +92,29 @@ void
 PolicyIteration<TimeStepTp>::step(){
 
     // make a copy of the policy already obtained
-    auto old_policy = policy_eval_.policy();
+    auto old_policy = policy_eval_.policy().make_copy();
 
     // evaluate the policy
     policy_eval_.train();
 
     // update the value function to
     // improve for
-    policy_imp_.v() = policy_eval_.v();
+    policy_imp_.value_func() = policy_eval_.value_func();
 
     // improve the policy
     policy_imp_.train();
 
-    auto new_policy = policy_imp_.policy();
+    auto new_policy = policy_imp_.policy_ptr();
 
-    // check of the two policies are the same
-    if(old_policy == new_policy){
-        this->iter_controller_().residual = this->iter_controller_().tolerance*std::pow(10,-1);
+    if(*old_policy == *new_policy){
+        this->iter_controller_().update_residual(this->iter_controller_().get_exit_tolerance()*std::pow(10,-1));
+        return;
     }
 
-    policy_eval_.policy() = new_policy;
+
+    policy_eval_.update_policy_ptr(new_policy);
+    policy_eval_.reset();
+    policy_imp_.reset();
 }
 
 }

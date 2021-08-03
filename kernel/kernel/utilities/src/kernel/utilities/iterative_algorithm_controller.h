@@ -43,7 +43,7 @@ public:
    ///
    /// \brief Destructor
    ///
-   virtual ~IterativeAlgorithmController()=default;
+   ~IterativeAlgorithmController()=default;
 
    ///
    /// \brief Returns true if the iterations of the algorithm should be continued
@@ -110,7 +110,12 @@ public:
    ///
    /// \brief reset
    ///
-   virtual void reset(const IterativeAlgorithmController& control);
+   void reset(const IterativeAlgorithmController& control);
+
+   ///
+   /// \brief reset
+   ///
+   void reset();
 
 private:
 

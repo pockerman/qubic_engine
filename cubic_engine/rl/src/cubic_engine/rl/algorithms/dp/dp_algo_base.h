@@ -124,6 +124,8 @@ template<typename TimeStepTp>
 void
 DPAlgoBase<TimeStepTp>::reset(){
 
+    this->AlgorithmBase::reset();
+
     env_ref_().reset();
     v_.resize(env_ref_().n_states(), 0.0);
 

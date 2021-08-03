@@ -1,6 +1,12 @@
 #include "cubic_engine/rl/policies/uniform_discrete_policy.h"
 #include "cubic_engine/rl/policies/policy_type.h"
 
+#ifdef KERNEL_DEBUG
+#include <cassert>
+#endif
+
+#include <unordered_map>
+
 namespace cengine{
 namespace rl {
 namespace policies {
@@ -50,6 +56,37 @@ UniformDiscretePolicy::operator[](uint_t sidx)const {
     return state_actions_prob_[sidx];
 }
 
+void
+UniformDiscretePolicy::update(uint_t sidx, const std::vector<std::pair<uint_t, real_t>>& vals){
+
+#ifdef KERNEL_DEBUG
+    assert(sidx < n_states_ && "Invalid state index. Index must be < n_states_");
+    assert(!vals.empty() && "Empty values to update state status are not allwed");
+#endif
+
+    auto& view = state_actions_prob_[sidx];
+
+    //collect all the actions in a map
+    auto act_val_map = std::unordered_map<uint_t, real_t>();
+
+    for(uint_t a=0; a<vals.size(); ++a){
+        act_val_map.insert({vals[a].first, vals[a].second});
+    }
+
+    for(uint_t a=0; a<view.size(); ++a){
+        auto action = view[a].first;
+
+        if(act_val_map.contains(action)){
+            view[a].second = act_val_map[action];
+        }
+        /*else{
+            view[a].second = 0.0;
+        }*/
+    }
+
+    //state_actions_prob_[sidx] = vals;
+}
+
 bool
 UniformDiscretePolicy::equals(const DiscretePolicyBase& other)const{
 
@@ -57,12 +94,33 @@ UniformDiscretePolicy::equals(const DiscretePolicyBase& other)const{
         return false;
     }
 
-    if(shape() != dynamic_cast<const UniformDiscretePolicy&>(other).shape()){
+    const auto& pol = dynamic_cast<const UniformDiscretePolicy&>(other);
+
+    if(shape() != pol.shape()){
         return false;
     }
 
-    if(val_ != dynamic_cast<const UniformDiscretePolicy&>(other).val_){
+    if(val_ != pol.val_){
         return false;
+    }
+
+    // check individual values
+   // bool are_equal = true;
+
+    for(uint_t s=0; s<state_actions_prob_.size(); ++s){
+        for(uint_t a=0; a< state_actions_prob_[s].size(); ++a){
+
+            auto aidx = state_actions_prob_[s][a].first;
+            auto value = state_actions_prob_[s][a].second;
+
+            if(aidx != pol.state_actions_prob_[s][a].first){
+                return false;
+            }
+
+            if(value != pol.state_actions_prob_[s][a].second){
+                return false;
+            }
+        }
     }
 
     return true;
@@ -81,6 +139,33 @@ UniformDiscretePolicy::init_(){
         }
     }
 
+}
+
+std::shared_ptr<DiscretePolicyBase>
+UniformDiscretePolicy::make_copy()const{
+
+    auto ptr = std::make_shared<UniformDiscretePolicy>(n_states_, n_actions_, val_);
+    ptr->state_actions_prob_ = state_actions_prob_;
+
+    return ptr;
+}
+
+std::ostream&
+UniformDiscretePolicy::print(std::ostream& out)const{
+
+    for(uint_t s=0; s<state_actions_prob_.size(); ++s){
+        for(uint_t a=0; a<state_actions_prob_[s].size(); ++a){
+
+            if(a == state_actions_prob_[s].size() - 1){
+                out<<state_actions_prob_[s][a].second<<"\n";
+            }
+            else {
+                out<<state_actions_prob_[s][a].second<<",";
+            }
+        }
+    }
+
+    return out;
 }
 
 }

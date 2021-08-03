@@ -35,8 +35,8 @@ public:
     /// \brief IterativePolicyEval
     ///
     PolicyImprovement(uint_t n_max_itrs,  real_t gamma, const DynVec<real_t>& val_func,
-                      env_t& env, std::shared_ptr<policies::DiscretePolicyBase> policy,
-                      std::shared_ptr<policies::PolicyAdaptorBase> policy_adaptor);
+                      env_t& env, std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy,
+                      std::shared_ptr<cengine::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor);
 
     ///
     /// \brief step
@@ -44,21 +44,28 @@ public:
     virtual void step()override final;
 
     ///
-    /// \brief set_policy_from
+    /// \brief policy
+    /// \return
     ///
-    void set_policy_from(const policies::DiscretePolicyBase& policy_data){*policy_ = policy_data;}
+    const cengine::rl::policies::DiscretePolicyBase& policy()const{return  *policy_;}
 
     ///
     /// \brief policy
     /// \return
     ///
-    const policies::DiscretePolicyBase& policy()const{return  *policy_;}
+    cengine::rl::policies::DiscretePolicyBase& policy(){return  *policy_;}
 
     ///
-    /// \brief policy
+    /// \brief policy_ptr
     /// \return
     ///
-    policies::DiscretePolicyBase& policy(){return  *policy_;}
+    std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy_ptr(){return  policy_;}
+
+    ///
+    /// \brief update_policy_ptr
+    /// \param ptr
+    ///
+    void update_policy_ptr(std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> ptr){policy_ = ptr;}
 
 
 protected:
@@ -66,19 +73,19 @@ protected:
     ///
     /// \brief policy_
     ///
-    std::shared_ptr<policies::DiscretePolicyBase> policy_;
+    std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy_;
 
     ///
     /// \brief policy_adaptor_
     ///
-    std::shared_ptr<policies::PolicyAdaptorBase> policy_adaptor_;
+    std::shared_ptr<cengine::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor_;
 
 };
 
 template<typename TimeStepTp>
 PolicyImprovement<TimeStepTp>::PolicyImprovement(uint_t n_max_itrs,  real_t gamma, const DynVec<real_t>& val_func,
-                                                 env_t& env, std::shared_ptr<policies::DiscretePolicyBase> policy,
-                                                 std::shared_ptr<policies::PolicyAdaptorBase> policy_adaptor)
+                                                 env_t& env, std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy,
+                                                 std::shared_ptr<cengine::rl::policies::DiscretePolicyAdaptorBase> policy_adaptor)
     :
       DPAlgoBase<TimeStepTp>(n_max_itrs, 1.0e-4, gamma, env),
       policy_(policy),
@@ -97,9 +104,9 @@ PolicyImprovement<TimeStepTp>::step(){
         auto state_actions = state_actions_from_v(this->env_ref_(), this->value_func(),
                                                   this->gamma(), s);
 
-
-        options.insert({"state_actions", std::any(state_actions)});
-        this->policy_ = this->policy_adaptor_(options);
+        options.insert_or_assign("state", s);
+        options.insert_or_assign("state_actions", std::any(state_actions));
+        this->policy_ = this->policy_adaptor_->operator()(options);
 
     }
 
