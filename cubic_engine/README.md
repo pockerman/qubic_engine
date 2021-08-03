@@ -44,8 +44,7 @@
 ### <a name="reinforcement_learning"></a> Reinforcement Learning
 
 - <a href="rl/examples/example_6/example_6.cpp">Iterative policy evaluation on FrozenLake-v0</a>
-- <a href="#">Policy improvement on FrozenLake-v0</a>
-- <a href="#">Policy iteration on FrozenLake-v0</a>
+- <a href="rl/examples/example_7/example_7.cpp">Policy iteration on FrozenLake-v0</a>
 - <a href="#">Value iteration on FrozenLake-v0</a>
 - <a href="#">Example 3: </a> SARSA
 - <a href="#">Example 4: </a> Q-learning 
