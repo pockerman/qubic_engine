@@ -45,7 +45,7 @@ public:
     ///
     /// \brief reset
     ///
-    virtual void reset() = 0;
+    virtual void reset();
 
     ///
     /// \brief train Iterate to train the agent

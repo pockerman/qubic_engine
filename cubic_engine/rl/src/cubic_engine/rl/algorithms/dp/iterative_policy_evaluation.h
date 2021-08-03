@@ -12,10 +12,6 @@
 namespace cengine{
 namespace rl{
 
-namespace policies {
-class DiscretePolicyBase;
-}
-
 namespace algos {
 namespace dp {
 
@@ -36,7 +32,7 @@ public:
     /// \brief IterativePolicyEval
     ///
     IterativePolicyEval(uint_t n_max_itrs, real_t tolerance, real_t gamma,
-                        env_t& env, std::shared_ptr<policies::DiscretePolicyBase> policy);
+                        env_t& env, std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy);
 
     ///
     /// \brief step
@@ -44,34 +40,40 @@ public:
     virtual void step()override final;
 
     ///
-    /// \brief set_policy_from
+    /// \brief policy
+    /// \return
     ///
-    void set_policy_from(const policies::DiscretePolicyBase& policy_data){*policy_ = policy_data;}
+    const cengine::rl::policies::DiscretePolicyBase& policy()const{return  *policy_;}
 
     ///
     /// \brief policy
     /// \return
     ///
-    const policies::DiscretePolicyBase& policy()const{return  *policy_;}
+    cengine::rl::policies::DiscretePolicyBase& policy(){return  *policy_;}
 
     ///
-    /// \brief policy
+    /// \brief policy_ptr
     /// \return
     ///
-    policies::DiscretePolicyBase& policy(){return  *policy_;}
+    std::shared_ptr<policies::DiscretePolicyBase> policy_ptr(){return  policy_;}
+
+    ///
+    ///
+    ///
+    void update_policy_ptr(std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> ptr){policy_ = ptr;}
 
 protected:
 
     ///
     /// \brief policy_
     ///
-    std::shared_ptr<policies::DiscretePolicyBase> policy_;
+    std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy_;
 
 };
 
 template<typename TimeStepTp>
 IterativePolicyEval<TimeStepTp>::IterativePolicyEval(uint_t n_max_itrs, real_t tolerance, real_t gamma,
-                                         env_t& env, std::shared_ptr<policies::DiscretePolicyBase> policy)
+                                         env_t& env, std::shared_ptr<cengine::rl::policies::DiscretePolicyBase> policy)
     :
       DPAlgoBase<TimeStepTp>(n_max_itrs, tolerance, gamma, env),
       policy_(policy)
