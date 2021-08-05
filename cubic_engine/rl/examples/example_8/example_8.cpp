@@ -1,70 +1,119 @@
-#include "kernel/base/config.h"
-
-#ifdef USE_LOG
-#include "kernel/utilities/logger.h"
-#endif
-
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/rl/worlds/discrete_gym_world.h"
-#include "cubic_engine/rl/worlds/discrete_gym_world_with_dynamics.h"
-#include "cubic_engine/rl/gym_comm/communicator.h"
-#include "cubic_engine/rl/synchronous_value_function_learning.h"
+#include "cubic_engine/rl/algorithms/dp/value_iteration.h"
+#include "cubic_engine/rl/worlds/discrete_world.h"
+#include "cubic_engine/rl/policies/uniform_discrete_policy.h"
+#include "cubic_engine/rl/policies/stochastic_adaptor_policy.h"
 
+#include "gymfcpp/gymfcpp_types.h"
+#include "gymfcpp/frozen_lake.h"
+#include "gymfcpp/time_step.h"
+
+#include <boost/python.hpp>
+
+#include <cmath>
+#include <utility>
+#include <tuple>
 #include <iostream>
-#include <memory>
-#include <string>
+#include <random>
+#include <algorithm>
 
-namespace example{
+namespace exe
+{
+
+using cengine::real_t;
+using cengine::uint_t;
+using cengine::rl::envs::DiscreteWorldBase;
+using cengine::rl::policies::UniformDiscretePolicy;
+using cengine::rl::policies::StochasticAdaptorPolicy;
+using cengine::rl::algos::dp::ValueIteration;
 
 
-// Environment hyperparameters
-const std::string env_name = "FrozenLake-v0";
-const int num_envs = 1;
-const std::string server_addr = "tcp://127.0.0.1:10201";
-using cengine::rl::gym::Communicator;
-using cengine::rl::worlds::DiscreteGymWorldWithDynamics;
-using cengine::rl::SyncValueFuncItr;
-using cengine::rl::SyncValueFuncItrInput;
+
+class FrozenLakeEnv: public DiscreteWorldBase<gymfcpp::TimeStep>
+{
+
+public:
+
+    typedef DiscreteWorldBase<gymfcpp::TimeStep>::action_t action_t;
+    typedef DiscreteWorldBase<gymfcpp::TimeStep>::time_step_t time_step_t;
+
+    //
+    FrozenLakeEnv(gymfcpp::obj_t gym_namespace);
+
+    ~FrozenLakeEnv() = default;
+
+    virtual uint_t n_actions()const override final {return env_impl_.n_actions();}
+    virtual uint_t n_states()const override final {return env_impl_.n_states();}
+    virtual std::vector<std::tuple<real_t, uint_t, real_t, bool>> transition_dynamics(uint_t s, uint_t aidx)const override final;
+
+    virtual time_step_t step(const action_t&)override final {return time_step_t();}
+
+    virtual time_step_t reset() override final;
+    virtual  void build(bool reset) override final;
+    virtual uint_t n_copies()const override final{return 1;}
+
+private:
+
+    // the environment implementation
+    gymfcpp::FrozenLake env_impl_;
+
+};
+
+FrozenLakeEnv::FrozenLakeEnv(gymfcpp::obj_t gym_namespace)
+    :
+     DiscreteWorldBase<gymfcpp::TimeStep>("FrozenLake"),
+     env_impl_("v0", gym_namespace)
+{}
+
+
+FrozenLakeEnv::time_step_t
+FrozenLakeEnv::reset(){
+    return env_impl_.reset();
 }
 
+void
+FrozenLakeEnv::build(bool reset){
+    env_impl_.make();
+}
 
-int main(){
+std::vector<std::tuple<real_t, uint_t, real_t, bool>>
+FrozenLakeEnv::transition_dynamics(uint_t s, uint_t aidx)const{
+    return env_impl_.p(s, aidx);
+}
 
-    using namespace example;
+}
 
-    try{
+int main() {
 
-#ifdef USE_LOG
-        kernel::Logger::set_log_file_name("example_8_log.log");
-#endif
+    using namespace exe;
 
-        // create the communicator
-        Communicator communicator(server_addr);
+    Py_Initialize();
+    auto gym_module = boost::python::import("gym");
+    auto gym_namespace = gym_module.attr("__dict__");
 
-        DiscreteGymWorldWithDynamics world(communicator);
-        world.build(env_name);
+    FrozenLakeEnv env(gym_namespace);
+    env.build(true);
 
-        std::cout<<"Number of states="<<world.n_states()<<std::endl;
-        std::cout<<"Number of actions="<<world.n_actions()<<std::endl;
+    // start with a uniform random policy i.e.
+    // the agnet knows nothing about the environment
+    auto policy = std::make_shared<UniformDiscretePolicy>(env.n_states(), env.n_actions());
 
-        SyncValueFuncItrInput input;
-        input.tol = 1.0e-5;
-        input.gamma = 1.0;
-        input.n_iterations = 100;
-        input.show_iterations = true;
+    std::cout<<"Policy before training..."<<std::endl;
+    std::cout<<*policy<<std::endl;
 
-        SyncValueFuncItr<DiscreteGymWorldWithDynamics> value_function(input);
-        value_function.initialize(world, 0.0);
-        value_function.train();
-    }
-    catch(std::exception& e){
+    auto policy_adaptor = std::make_shared<StochasticAdaptorPolicy>(env.n_states(), env.n_actions(), policy);
 
-        std::cerr<<e.what()<<std::endl;
-    }
-    catch(...){
+    ValueIteration<gymfcpp::TimeStep> value_itr(500, 1.0e-8, env, 1.0, policy, policy_adaptor);
+    value_itr.do_verbose_output();
+    value_itr.train();
 
-        std::cerr<<"Unknown exception occured"<<std::endl;
-    }
+    std::cout<<"Optimal Policy (LEFT = 0, DOWN = 1, RIGHT = 2, UP = 3):"<<std::endl;
+    std::cout<<*policy<<std::endl;
+
+    // save the value function into a csv file
+    value_itr.save("value_iteration.csv");
 
     return 0;
 }
+
+
