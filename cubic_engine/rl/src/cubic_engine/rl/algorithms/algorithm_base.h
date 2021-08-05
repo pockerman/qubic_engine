@@ -30,7 +30,6 @@ public:
     ///
     virtual void actions_before_training_iterations() = 0;
 
-
     ///
     /// \brief actions_after_training_iterations. Actions to execute after
     /// the training iterations have finisehd
@@ -51,6 +50,22 @@ public:
     /// \brief train Iterate to train the agent
     ///
     virtual kernel::IterativeAlgorithmResult train();
+
+    ///
+    /// \brief do_minimla_output
+    ///
+    void do_minimal_output(){itr_ctrl_.set_show_iterations_flag(false);}
+
+    ///
+    /// \brief do_verbose_output
+    ///
+    void do_verbose_output(){itr_ctrl_.set_show_iterations_flag(true);}
+
+    ///
+    /// \brief is_verbose
+    /// \return
+    ///
+    bool is_verbose()const{return itr_ctrl_.show_iterations();}
 
 protected:
 
