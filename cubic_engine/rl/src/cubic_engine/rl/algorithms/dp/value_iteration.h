@@ -1,6 +1,7 @@
 #ifndef VALUE_ITERATION_H
 #define VALUE_ITERATION_H
 
+#include "kernel/base/config.h" //KERNEL_PRINT_DBG_MSGS
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/rl/algorithms/dp/dp_algo_base.h"
 #include "cubic_engine/rl/algorithms/dp/policy_improvement.h"
@@ -8,8 +9,13 @@
 #include "cubic_engine/rl/policies/policy_adaptor_base.h"
 #include "cubic_engine/rl/policies/discrete_policy_base.h"
 
+
 #include <memory>
 #include <cmath>
+
+#ifdef KERNEL_PRINT_DBG_MSGS
+#include <iostream>
+#endif
 
 namespace cengine{
 namespace rl {
@@ -46,6 +52,12 @@ public:
     /// algorithm needs before starting the iterations
     ///
     virtual void actions_before_training_iterations() override final;
+
+    ///
+    /// \brief actions_after_training_iterations. Actions to execute after
+    /// the training iterations have finisehd
+    ///
+    virtual void actions_after_training_iterations() override final;
 
     ///
     /// \brief policy_ptr
@@ -95,20 +107,40 @@ template<typename TimeStepTp>
 void
 ValueIteration<TimeStepTp>::step(){
 
-
     auto delta = 0.0;
     for(uint_t s=0; s< this->env_ref_().n_states(); ++s){
 
         auto v = this->value_func()[s];
-        this->value_func()[s] = blaze::max(state_actions_from_v(this->env_ref_(), this->value_func(), s, this->gamma()));
+        auto max_val = blaze::max(state_actions_from_v(this->env_ref_(), this->value_func(), this->gamma(), s));
+
+ #if defined (KERNEL_DEBUG) && defined (KERNEL_PRINT_DBG_MSGS)
+        if(this->is_verbose()){
+            std::cout<<"Max val for state="<<s<<" is "<<max_val<<std::endl;
+        }
+#endif
+
+        this->value_func()[s] = max_val;
         delta = std::max(delta, std::fabs(this->value_func()[s] - v));
     }
 
-    this->iter_controller_().residual = delta;
+#if defined (KERNEL_DEBUG) && defined (KERNEL_PRINT_DBG_MSGS)
+    if(this->is_verbose()){
+        std::cout<<"V="<<this->value_func()<<std::endl;
+    }
+#endif
+
+    // update residual
+    this->iter_controller_().update_residual( delta );
+}
+
+template<typename TimeStepTp>
+void
+ValueIteration<TimeStepTp>::actions_after_training_iterations(){
 
     policy_imp_.value_func() = this->value_func();
     policy_imp_.step();
     policy_ = policy_imp_.policy().make_copy();
+
 }
 
 }
