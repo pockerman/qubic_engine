@@ -4,6 +4,9 @@
 /*DEBUG*/
 #cmakedefine KERNEL_DEBUG
 
+/* Print debug messages */
+#cmakedefine KERNEL_PRINT_DBG_MSGS
+
 /*Use log */
 #cmakedefine USE_LOG
 

@@ -98,6 +98,12 @@ public:
    uint_t get_num_threads()const{return n_threads_;}
 
    ///
+   /// \brief get_residual
+   /// \return
+   ///
+   real_t get_residual()const{return current_res_;}
+
+   ///
    /// \brief Returns the state of the controller
    ///
    IterativeAlgorithmResult get_state()const;

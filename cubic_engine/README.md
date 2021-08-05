@@ -45,7 +45,7 @@
 
 - <a href="rl/examples/example_6/example_6.cpp">Iterative policy evaluation on FrozenLake-v0</a>
 - <a href="rl/examples/example_7/example_7.cpp">Policy iteration on FrozenLake-v0</a>
-- <a href="#">Value iteration on FrozenLake-v0</a>
+- <a href="rl/examples/example_8/example_8.cpp">Value iteration on FrozenLake-v0</a>
 - <a href="#">Example 3: </a> SARSA
 - <a href="#">Example 4: </a> Q-learning 
 - <a href="#">Example 5: </a> Expected SARSA 
@@ -57,12 +57,13 @@
 - <a href="examples/exe19/doc/exe.ipynb">Example 19:</a> Differential drive system simulation
 - <a href="#">Example 21:</a> Pure pursuit path tracking
 - <a href="examples/exe23/doc/exe.ipynb">Example 23:</a> Follow the carrot path tracking
-- <a href="examples/exe35/doc/exe.ipynb">Example 35:</a> The dynamic window approach  
+ 
 
 ### <a name="miscellaneous"></a>Planning
 
 - <a href="examples/exe9/doc/exe.md">Example 9: </a> A* search
 - <a href="#">TODO: </a> D* search
 - <a href="examples/exe29/doc/exe.ipynb">Example 29:</a> Path planning with rapidly-exploring random trees
+- <a href="examples/exe35/doc/exe.ipynb">Example 35:</a> Path planning with dynamic windows  
 
 

@@ -3,6 +3,7 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include <vector>
+#include <iostream>
 
 namespace cengine{
 namespace rl {
@@ -23,15 +24,12 @@ auto state_actions_from_v(const WorldTp& env, const DynVec<real_t>& v,
         const auto& transition_dyn = env.transition_dynamics(state, a);
 
         for(auto& dyn: transition_dyn){
-            auto prob = std::get<0>(dyn); //.probabilities[0];
-            auto next_state = std::get<1>(dyn); //.states[0];
-            auto reward = std::get<2>(dyn); //.rewards[0];
-            auto done = std::get<3>(dyn); //.dones[0];
-
+            auto prob = std::get<0>(dyn);
+            auto next_state = std::get<1>(dyn);
+            auto reward = std::get<2>(dyn);
+            auto done = std::get<3>(dyn);
             q[a] += prob * (reward + gamma * v[next_state]);
-
         }
-
     }
 
     return q;
