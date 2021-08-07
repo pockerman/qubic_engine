@@ -2,10 +2,11 @@
 #define	SERIAL_BATCH_GRADIENT_DESCENT_H
 
 #include "kernel/base/types.h"
-#include "kernel/utilities/algorithm_info.h"
+
 #include "kernel/numerics/optimization/gd_control.h"
 //#include "kernel/numerics/optimization/gd_info.h"
 #include "kernel/numerics/optimization/optimizer_base.h"
+#include "kernel/numerics/optimization/optimizer_type.h"
 
 #include <boost/noncopyable.hpp>
 #include <chrono>
@@ -29,8 +30,19 @@ class Gd: public OptimizerBase<MatType, VecType>
     
 public:
 
+    ///
+    /// \brief data_set_t
+    ///
     typedef typename OptimizerBase<MatType, VecType>::data_set_t data_set_t;
+
+    ///
+    /// \brief labels_set_t
+    ///
     typedef typename OptimizerBase<MatType, VecType>::labels_set_t labels_set_t;
+
+    ///
+    /// \brief function_t
+    ///
     typedef typename OptimizerBase<MatType, VecType>::function_t function_t;
 
     ///
@@ -67,6 +79,12 @@ public:
     /// \brief Reset the control
     ///
     void reset_configuration(const GDConfig& control);
+
+    ///
+    /// \brief type
+    /// \return
+    ///
+    virtual OptimizerType type()const override final{return OptimizerType::GD;}
       
 private:
     
@@ -177,7 +195,11 @@ Gd<MatType, VecType>::do_solve_(const MatType& data,const VecType& y, function_t
 
 
     //the info object to return
-    AlgInfo info;
+    auto info = typename Gd<MatType, VecType>::output_t();
+
+    if(input_.track_residuals()){
+        info.residuals.reserve(input_.get_max_iterations());
+    }
 
     auto j_old = function.value(data, y).get_resource();
     auto j_current = 0.0;
@@ -204,6 +226,11 @@ Gd<MatType, VecType>::do_solve_(const MatType& data,const VecType& y, function_t
 
         auto error = std::fabs(j_current - j_old);
         input_.update_residual(error);
+
+        if(input_.track_residuals()){
+            info.residuals.push_back(error);
+        }
+
         auto itr = input_.get_current_iteration();
 
         if(input_.show_iterations()){
@@ -220,13 +247,11 @@ Gd<MatType, VecType>::do_solve_(const MatType& data,const VecType& y, function_t
     auto state = input_.get_state();
 
     end = std::chrono::system_clock::now();
-    info.runtime = end-start;
-    info.nprocs = 1;
-    info.nthreads = 1;
+    info.total_time =  std::chrono::duration_cast<std::chrono::seconds>(end - start); //end-start;
     info.converged = state.converged;
     info.residual = state.residual;
     info.tolerance = state.tolerance;
-    info.niterations = state.num_iterations;
+    info.num_iterations = state.num_iterations;
     return info;
 }
 

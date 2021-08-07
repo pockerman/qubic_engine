@@ -7,7 +7,7 @@
 #include "kernel/numerics/optimization/gd_control.h"
 #include "kernel/maths/errorfunctions/error_function_type.h"
 #include "kernel/numerics/optimization/optimizer_type.h"
-#include "kernel/utilities/algorithm_info.h"
+#include "kernel/utilities/iterative_algorithm_result.h"
 
 #include <vector>
 #include <map>
@@ -27,7 +27,7 @@ using cengine::ml::RegularizerType;
 using kernel::numerics::opt::OptimizerType;
 using kernel::numerics::opt::GDConfig;
 using kernel::ErrorFuncType;
-using kernel::AlgInfo;
+using kernel::IterativeAlgorithmResult;
 
 struct TestSetLoader{
 
@@ -44,7 +44,7 @@ TestSetLoader::load(DynMat<real_t>& mat, DynVec<real_t>& labels, ColsTp& /*colum
 
 struct TestSolver{
 
-    typedef AlgInfo output_t;
+    typedef IterativeAlgorithmResult output_t;
 
     template<typename MatTyp, typename LabelTp, typename FunTp>
     output_t solve(MatTyp& /*mat*/, LabelTp& /*labels*/, FunTp& /*columns*/) const{return output_t();}

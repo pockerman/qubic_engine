@@ -10,6 +10,7 @@
 #include "kernel/numerics/optimization/optimizer_type.h"
 #include "kernel/numerics/optimization/optimizer_base.h"
 #include "kernel/numerics/optimization/serial_gradient_descent.h"
+#include "kernel/numerics/optimization/stochastic_gradient_descent.h"
 
 #include <map>
 #include <any>
@@ -40,6 +41,11 @@ OptimizerFactory::build(OptimizerType type, const SolverOps& options) -> std::sh
         case OptimizerType::GD:
         {
             ptr = std::make_shared<Gd<MatTp, VecTp>>(options);
+            break;
+        }
+        case OptimizerType::SGD:
+        {
+            ptr = std::make_shared<SGD<MatTp, VecTp>>(options);
             break;
         }
 #ifdef KERNEL_DEBUG

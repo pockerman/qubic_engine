@@ -4,6 +4,7 @@
 #include "kernel/base/types.h"
 #include <ostream>
 #include <chrono>
+#include <vector>
 
 namespace kernel{
 
@@ -37,6 +38,11 @@ struct IterativeAlgorithmResult  {
     /// \brief total_time
     ///
     std::chrono::seconds total_time;
+
+    ///
+    /// \brief residuals
+    ///
+    std::vector<real_t> residuals;
 
     ///
     /// \brief IterativeAlgorithmResult
