@@ -3,7 +3,8 @@
 
 #include "kernel/base/types.h"
 #include "kernel/parallel/utilities/result_holder.h"
-#include "kernel/utilities/algorithm_info.h"
+#include "kernel/utilities/iterative_algorithm_result.h"
+#include "kernel/numerics/optimization/optimizer_type.h"
 #include <boost/noncopyable.hpp>
 
 namespace kernel {
@@ -28,7 +29,7 @@ public:
     /// \brief Expose the type that is returned by this object
     /// when calling its solve functions
     ///
-    typedef AlgInfo output_t;
+    typedef IterativeAlgorithmResult output_t;
 
     ///
     ///
@@ -42,6 +43,12 @@ public:
     /// \param fnc
     ///
     virtual output_t solve(const data_set_t& features, const labels_set_t& labels, function_t& fnc) = 0;
+
+    ///
+    /// \brief type
+    /// \return
+    ///
+    virtual OptimizerType type()const=0;
 
 protected:
 

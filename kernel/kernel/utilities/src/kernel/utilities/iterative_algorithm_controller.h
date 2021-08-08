@@ -56,6 +56,12 @@ public:
    bool show_iterations()const{return show_iterations_;}
 
    ///
+   /// \brief track_residuals
+   /// \return
+   ///
+   bool track_residuals()const{return track_residuals_;}
+
+   ///
    /// \brief set_tolerance
    /// \param tol
    ///
@@ -65,6 +71,12 @@ public:
    /// \brief show iterations
    ///
    void set_show_iterations_flag(bool flag){show_iterations_ = flag;}
+
+   ///
+   /// \brief set_track_residuals_flag
+   /// \param flag
+   ///
+   void set_track_residuals_flag(bool flag){track_residuals_ = flag;}
    
    ///
    /// \brief Set the number of threads
@@ -129,9 +141,11 @@ private:
     uint_t max_iterations_;
     real_t exit_tolerance_;
     uint_t current_iteration_idx_;
+    uint_t n_threads_;
     real_t current_res_;
     bool show_iterations_;
-    uint_t n_threads_;
+    bool track_residuals_;
+
 };
 
 inline
@@ -140,9 +154,10 @@ IterativeAlgorithmController::IterativeAlgorithmController(uint_t max_iterations
   max_iterations_(max_iterations),
   exit_tolerance_(exit_tolerance),
   current_iteration_idx_(0),
+  n_threads_(1),
   current_res_(std::numeric_limits<real_t>::max()),
   show_iterations_(false),
-  n_threads_(1)
+  track_residuals_(false)
 {}
 
 

@@ -19,6 +19,14 @@ struct BlazeDirectSolverConfig
    DirectSolverType dstype;
 };
 
+
+///
+/// \brief The BlazeDirectSolver class. This class is simply
+/// a wrapper to the blaze::solve() function.
+/// It computes a solution for the given dense linear system of equations (LSE) A*x=b,
+/// where A is the given system matrix, x is the solution vector, and b
+/// is the given dense right-hand side vector:
+///
 class BlazeDirectSolver: public DirectSolverBase<DynMat<real_t>, DynVec<real_t>>
 {
 public:
