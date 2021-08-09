@@ -34,6 +34,11 @@ public:
     typedef DynVec<real_t> labels_t;
 
     ///
+    /// \brief label_value_t
+    ///
+    typedef real_t label_value_t;
+
+    ///
     /// \brief row_t
     ///
     typedef DynVec<real_t> row_t;
@@ -42,6 +47,13 @@ public:
     /// \brief RegressionDataset
     ///
     BlazeRegressionDataset();
+
+    ///
+    /// \brief operator []
+    /// \param i
+    /// \return
+    ///
+    std::tuple<row_t, label_value_t> operator[](uint_t i)const;
 
     ///
     /// \brief empty
@@ -131,6 +143,8 @@ public:
     ///
     auto columns()const-> const std::map<std::string, uint_t>&{return columns_;}
 
+
+
 private:
 
 
@@ -138,7 +152,6 @@ private:
     /// \brief features_ The features matrix
     ///
     storage_engine_t examples_;
-
 
     ///
     /// \brief labels_
