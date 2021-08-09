@@ -25,7 +25,8 @@ struct BlazeDirectSolverConfig
 /// a wrapper to the blaze::solve() function.
 /// It computes a solution for the given dense linear system of equations (LSE) A*x=b,
 /// where A is the given system matrix, x is the solution vector, and b
-/// is the given dense right-hand side vector:
+/// is the given dense right-hand side vector. See the PR here
+/// https://bitbucket.org/blaze-lib/blaze/issues/30/provide-support-for-solving-dense-linear
 ///
 class BlazeDirectSolver: public DirectSolverBase<DynMat<real_t>, DynVec<real_t>>
 {
@@ -44,7 +45,7 @@ public:
     ///
     /// \brief BlazeDirectSolver Constructor
     ///
-    BlazeDirectSolver(const BlazeDirectSolverConfig& config);
+    explicit BlazeDirectSolver(const BlazeDirectSolverConfig& config);
 
     ///
     /// \brief solve. Solve the system Ax=b
