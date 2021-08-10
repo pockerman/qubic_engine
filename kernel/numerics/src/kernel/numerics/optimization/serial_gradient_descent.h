@@ -4,11 +4,10 @@
 #include "kernel/base/types.h"
 
 #include "kernel/numerics/optimization/gd_control.h"
-//#include "kernel/numerics/optimization/gd_info.h"
 #include "kernel/numerics/optimization/optimizer_base.h"
 #include "kernel/numerics/optimization/optimizer_type.h"
+#include "kernel/maths/functions/function_base.h"
 
-#include <boost/noncopyable.hpp>
 #include <chrono>
 #include <iostream>
 #include <vector>

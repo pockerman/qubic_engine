@@ -3,8 +3,8 @@
 
 #include "kernel/base/types.h"
 #include "kernel/maths/matrix_traits.h"
+#include "kernel/maths/functions/function_base.h"
 #include "kernel/numerics/optimization/gd_control.h"
-#include "kernel/numerics/optimization/gd_info.h"
 #include "kernel/numerics/optimization/optimizer_base.h"
 #include "kernel/numerics/optimization/optimizer_type.h"
 
@@ -144,11 +144,13 @@ SGD<MatType, VecType>::do_solve_(const MatType& mat,const VecType& v, function_t
         for(uint_t exidx = 0; exidx < mat.rows(); ++ exidx){
 
             auto row = matrix_row_trait<MatType>::get_row(mat, exidx);
-            auto val = h.value(row);
-            auto error = v[exidx] - val;
+
+
+            auto error = h.value(exidx, mat, v).get_resource();
+            //auto error = v[exidx] - val;
 
             // get the gradients with respect to the coefficients
-            auto j_grad = h.gradient(row, v[exidx]);
+            auto j_grad = DynVec<real_t>(); //h.gradient(row, v[exidx]);
             auto coeffs = h.coeffs();
 
             for(uint_t c=0; c<coeffs.size(); ++c){

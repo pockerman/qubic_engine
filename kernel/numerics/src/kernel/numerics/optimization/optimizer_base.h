@@ -5,6 +5,7 @@
 #include "kernel/parallel/utilities/result_holder.h"
 #include "kernel/utilities/iterative_algorithm_result.h"
 #include "kernel/numerics/optimization/optimizer_type.h"
+
 #include <boost/noncopyable.hpp>
 
 namespace kernel {
