@@ -67,6 +67,12 @@ public:
     ///
     bool is_verbose()const{return itr_ctrl_.show_iterations();}
 
+    ///
+    /// \brief current_iteration
+    /// \return
+    ///
+    uint_t current_iteration()const{return itr_ctrl_.get_current_iteration();}
+
 protected:
 
     ///

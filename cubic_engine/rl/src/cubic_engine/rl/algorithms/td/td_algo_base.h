@@ -77,12 +77,12 @@ public:
     ///
     /// \brief value_func
     ///
-    value_func_t& value_func(){return v_;}
+    //value_func_t& value_func(){return v_;}
 
     ///
     /// \brief value_func
     ///
-    const value_func_t& value_func()const{return v_;}
+    //const value_func_t& value_func()const{return v_;}
 
     ///
     /// \brief q_table
@@ -102,6 +102,12 @@ public:
     /// \param filename
     ///
     virtual void save(const std::string& filename)const;
+
+    ///
+    /// \brief plot_frequency
+    /// \return
+    ///
+    uint_t plot_frequency()const{return plot_freq_;}
 
 protected:
 

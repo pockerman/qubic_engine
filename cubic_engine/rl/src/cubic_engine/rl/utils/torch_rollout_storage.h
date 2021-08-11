@@ -28,12 +28,10 @@ public:
     ///
     /// \brief RolloutStorage
     ///
-    RolloutStorage(int64_t num_steps,
-                       int64_t num_processes,
-                       c10::ArrayRef<int64_t> obs_shape,
-                       actions::ActionSpace action_space,
-                       int64_t hidden_state_size,
-                       torch::Device device);
+    RolloutStorage(int64_t num_steps, int64_t num_processes,
+                   c10::ArrayRef<int64_t> obs_shape,
+                   const actions::TorchActionSpace& action_space,
+                   int64_t hidden_state_size, torch::Device device);
 
     ///
     /// \brief RolloutStorage
