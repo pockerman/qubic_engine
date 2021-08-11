@@ -1,32 +1,83 @@
 #include "kernel/base/config.h"
+#include "cubic_engine/rl/algorithms/td/sarsa.h"
+#include "cubic_engine/rl/worlds/discrete_world.h"
+#include "cubic_engine/rl/policies/epsilon_greedy_policy.h"
 
-#ifdef USE_LOG
-#include "kernel/utilities/logger.h"
-#endif
-
-#include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/rl/gym_comm/communicator.h"
-#include "cubic_engine/rl/worlds/gym_lunar_lander_world.h"
-
-//#include "torch/torch.h"
+#include "gymfcpp/gymfcpp_types.h"
+#include "gymfcpp/cliff_world.h"
+#include "gymfcpp/time_step.h"
 
 #include <iostream>
-#include <memory>
-#include <string>
 
 namespace example{
 
-
-// Environment parameters
-const int num_envs = 1;
-const std::string server_addr = "tcp://127.0.0.1:10201";
-
+using cengine::real_t;
 using cengine::uint_t;
-using cengine::rl::gym::Communicator;
-using cengine::rl::worlds::GymLunarLanderWorld;
+using cengine::rl::envs::DiscreteWorldBase;
+using cengine::rl::policies::EpsilonGreedyPolicy;
+using cengine::rl::algos::td::Sarsa;
 
+
+class CliffWalkingEnv: public DiscreteWorldBase<gymfcpp::TimeStep>
+{
+public:
+
+    typedef  DiscreteWorldBase<gymfcpp::TimeStep>::time_step_t time_step_t;
+
+    CliffWalkingEnv(gymfcpp::obj_t gym_namespace);
+    ~CliffWalkingEnv()=default;
+
+    virtual uint_t n_actions()const override final {return env_impl_.n_actions();}
+    virtual uint_t n_copies()const override final{return 1;}
+    virtual uint_t n_states()const override final {return env_impl_.n_states();}
+
+
+    virtual std::vector<std::tuple<real_t, uint_t, real_t, bool>> transition_dynamics(uint_t s, uint_t aidx)const override final;
+
+    virtual time_step_t step(const action_t&)override final;
+
+    virtual time_step_t reset() override final;
+
+    virtual  void build(bool reset) override final;
+
+
+private:
+
+    gymfcpp::CliffWorld env_impl_;
+
+};
+
+CliffWalkingEnv::CliffWalkingEnv(gymfcpp::obj_t gym_namespace)
+    :
+      DiscreteWorldBase<gymfcpp::TimeStep>("Cliffwalking"),
+      env_impl_("v0", gym_namespace, false)
+{}
+
+std::vector<std::tuple<real_t, uint_t, real_t, bool>>
+CliffWalkingEnv::transition_dynamics(uint_t s, uint_t aidx)const{
+    return std::vector<std::tuple<real_t, uint_t, real_t, bool>>();
 }
 
+void
+CliffWalkingEnv::build(bool reset_){
+    env_impl_.make();
+
+    if(reset_){
+        reset();
+    }
+}
+
+CliffWalkingEnv::time_step_t
+CliffWalkingEnv::step(const action_t& action){
+    return env_impl_.step(action);
+}
+
+CliffWalkingEnv::time_step_t
+CliffWalkingEnv::reset(){
+    env_impl_.reset();
+}
+
+}
 
 int main(){
 
@@ -34,27 +85,26 @@ int main(){
 
     try{
 
+        Py_Initialize();
+        auto gym_module = boost::python::import("gym");
+        auto gym_namespace = gym_module.attr("__dict__");
 
-#ifdef USE_LOG
-        kernel::Logger::set_log_file_name("example_9_log.log");
-#endif
+        CliffWalkingEnv env(gym_namespace);
+        env.build(true);
 
-        // create the communicator
-        Communicator communicator(server_addr);
-
-        GymLunarLanderWorld environment("v2", communicator);
-        environment.build(true);
-
-        std::cout<<"Environment name: "<<environment.name()<<std::endl;
+        EpsilonGreedyPolicy policy(0.1, true);
+        //Sarsa<gymfcpp::TimeStep, EpsilonGreedyPolicy> sarsa(5000, 1.0e-8,
+        //                                          1.0, 0.01, env, 100, policy);
+        //sarsa.train();
 
     }
     catch(std::exception& e){
 
-        std::cerr<<e.what()<<std::endl;
+        std::cout<<e.what()<<std::endl;
     }
     catch(...){
 
-        std::cerr<<"Unknown exception occured"<<std::endl;
+        std::cout<<"Unknown exception occured"<<std::endl;
     }
 
     return 0;
