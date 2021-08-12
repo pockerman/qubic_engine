@@ -81,16 +81,19 @@ protected:
     AlgorithmBase(uint_t n_max_itrs, real_t tolerance);
 
     ///
+    /// \brief iter_controller
+    /// \return
+    ///
+    kernel::IterativeAlgorithmController& iter_controller_(){return itr_ctrl_;}
+
+private:
+
+    ///
     /// \brief itr_ctrl_. The object controlling the iterations
     ///
     kernel::IterativeAlgorithmController itr_ctrl_;
 
 
-    ///
-    /// \brief iter_controller
-    /// \return
-    ///
-    kernel::IterativeAlgorithmController& iter_controller_(){return itr_ctrl_;}
 };
 
 }
