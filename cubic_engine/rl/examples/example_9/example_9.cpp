@@ -23,6 +23,7 @@ class CliffWalkingEnv: public DiscreteWorldBase<gymfcpp::TimeStep>
 public:
 
     typedef  DiscreteWorldBase<gymfcpp::TimeStep>::time_step_t time_step_t;
+    typedef  DiscreteWorldBase<gymfcpp::TimeStep>::action_t action_t;
 
     CliffWalkingEnv(gymfcpp::obj_t gym_namespace);
     ~CliffWalkingEnv()=default;
@@ -31,15 +32,10 @@ public:
     virtual uint_t n_copies()const override final{return 1;}
     virtual uint_t n_states()const override final {return env_impl_.n_states();}
 
-
     virtual std::vector<std::tuple<real_t, uint_t, real_t, bool>> transition_dynamics(uint_t s, uint_t aidx)const override final;
-
     virtual time_step_t step(const action_t&)override final;
-
     virtual time_step_t reset() override final;
-
     virtual  void build(bool reset) override final;
-
 
 private:
 
@@ -74,7 +70,7 @@ CliffWalkingEnv::step(const action_t& action){
 
 CliffWalkingEnv::time_step_t
 CliffWalkingEnv::reset(){
-    env_impl_.reset();
+    return env_impl_.reset();
 }
 
 }
@@ -93,9 +89,9 @@ int main(){
         env.build(true);
 
         EpsilonGreedyPolicy policy(0.1, true);
-        //Sarsa<gymfcpp::TimeStep, EpsilonGreedyPolicy> sarsa(5000, 1.0e-8,
-        //                                          1.0, 0.01, env, 100, policy);
-        //sarsa.train();
+        Sarsa<gymfcpp::TimeStep, EpsilonGreedyPolicy> sarsa(5000, 1.0e-8,
+                                                  1.0, 0.01, env, 100, policy);
+        sarsa.train();
 
     }
     catch(std::exception& e){
