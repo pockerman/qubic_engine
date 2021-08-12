@@ -97,12 +97,11 @@ Sarsa<TimeStepTp, ActionSelector>::step(){
         auto reward = step_type_result.reward();
         auto done = step_type_result.done();
 
-        //auto [prob, next_state, reward, done] = this->env_ref_().step(action);
         score += reward;
 
         if(not done){
 
-            auto next_action = action_selector_(this->q_table());
+            auto next_action = action_selector_(this->q_table(), state);
             update_q_table_(action, state, next_state, next_action, reward);
             state = next_state;
             action = next_action;
@@ -117,9 +116,14 @@ Sarsa<TimeStepTp, ActionSelector>::step(){
         }
     }
 
-    if(this->current_iteration() % this->plot_frequency()){
+    if(this->current_iteration() % this->plot_frequency() == 0){
         this->avg_scores().push_back(0.0);
     }
+
+    // make any adjustments to the way
+    // actions are selected given the experience collected
+    // in the episode
+    action_selector_.adjust_on_episode(this->current_iteration() + 1);
 }
 
 template <typename TimeStepTp, typename ActionSelector>
