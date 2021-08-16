@@ -22,7 +22,7 @@ public:
     ///
     /// \brief dataset_t Type of the dataset
     ///
-    typedef typename ModelEvaluatorBase<Model, DatasetTp>::model_t dataset_t;
+    typedef typename ModelEvaluatorBase<Model, DatasetTp>::dataset_t dataset_t;
 
     ///
     /// \brief row_t

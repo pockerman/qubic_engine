@@ -2,12 +2,14 @@
 #define MODEL_EVALUATOR_BASE_H
 
 #include "cubic_engine/base/cubic_engine_types.h"
+#include "boost/noncopyable.hpp"
+
 
 namespace cengine{
 namespace ml {
 
 template<typename Model, typename DatasetTp>
-class ModelEvaluatorBase
+class ModelEvaluatorBase: private boost::noncopyable
 {
 public:
 
@@ -56,6 +58,23 @@ public:
     /// \brief param_gradient_at
     ///
     virtual DynVec<real_t> param_gradient_at(const row_t& p, const label_value_t& label)const=0;
+
+    ///
+    ///
+    ///
+    virtual DynVec<real_t> parameters()const{return model_ptr_->coeffs();}
+
+    ///
+    /// \brief update_parameters
+    /// \param params
+    ///
+    virtual void update_parameters(const DynVec<real_t>& params){model_ptr_->update_coeffs(params);}
+
+    ///
+    /// \brief n_parameters
+    /// \return
+    ///
+    uint_t n_parameters()const{return model_ptr_ -> n_coeffs();}
 
 protected:
 
