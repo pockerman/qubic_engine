@@ -24,31 +24,26 @@ namespace opt {
 /// \brief The SGD class. Vanilla implementation of stochastic gradient descent
 /// optimization algorithm
 ///
-template<typename MatType, typename VecType>
-class SGD: public OptimizerBase<MatType, VecType>
+template<typename DatasetTp, typename FunctionTp>
+class SGD: public OptimizerBase<DatasetTp, FunctionTp>
 {
 public:
 
     ///
     /// \brief data_set_t
     ///
-    typedef typename OptimizerBase<MatType, VecType>::data_set_t data_set_t;
-
-    ///
-    /// \brief labels_set_t
-    ///
-    typedef typename OptimizerBase<MatType, VecType>::labels_set_t labels_set_t;
+    typedef typename OptimizerBase<DatasetTp, FunctionTp>::data_set_t data_set_t;
 
     ///
     /// \brief function_t
     ///
-    typedef typename OptimizerBase<MatType, VecType>::function_t function_t;
+    typedef typename OptimizerBase<DatasetTp, FunctionTp>::function_t function_t;
 
     ///
     /// \brief Expose the type that is returned by this object
     /// when calling its solve functions
     ///
-    typedef typename OptimizerBase<MatType, VecType>::output_t output_t;
+    typedef typename OptimizerBase<DatasetTp, FunctionTp>::output_t output_t;
 
     ///
     /// \brief Constructor
@@ -65,7 +60,7 @@ public:
     /// \brief Solves the optimization problem. Returns information
     /// about the performance of the solver.
     ///
-    virtual output_t solve(const MatType& mat,const VecType& v, function_t& h) override final;
+    virtual output_t solve(const data_set_t& mat, function_t& h) override final;
 
     ///
     /// \brief type
@@ -92,38 +87,38 @@ private:
     /// \param h
     /// \return
     ///
-    output_t do_solve_(const MatType& mat,const VecType& v, function_t& h);
+    output_t do_solve_(const data_set_t& mat, function_t& h);
 };
 
-template<typename MatType, typename VecType>
-SGD<MatType, VecType>::SGD(const GDConfig& input)
+template<typename DatasetTp, typename FunctionTp>
+SGD<DatasetTp, FunctionTp>::SGD(const GDConfig& input)
     :
-      OptimizerBase<MatType, VecType>(),
+      OptimizerBase<DatasetTp, FunctionTp>(),
       input_(input)
 {}
 
-template<typename MatType, typename VecType>
-SGD<MatType, VecType>::SGD(const std::map<std::string, std::any>& options)
+template<typename DatasetTp, typename FunctionTp>
+SGD<DatasetTp, FunctionTp>::SGD(const std::map<std::string, std::any>& options)
     :
-      OptimizerBase<MatType, VecType>(),
+      OptimizerBase<DatasetTp, FunctionTp>(),
       input_(options)
 {}
 
-template<typename MatType, typename VecType>
-typename SGD<MatType, VecType>::output_t
-SGD<MatType, VecType>::solve(const MatType& mat,const VecType& v, function_t& h){
-    return do_solve_(mat, v, h);
+template<typename DatasetTp, typename FunctionTp>
+typename SGD<DatasetTp, FunctionTp>::output_t
+SGD<DatasetTp, FunctionTp>::solve(const data_set_t& mat, function_t& h){
+    return do_solve_(mat, h);
 }
 
-template<typename MatType, typename VecType>
-typename SGD<MatType, VecType>::output_t
-SGD<MatType, VecType>::do_solve_(const MatType& mat,const VecType& v, function_t& h){
+template<typename DatasetTp, typename FunctionTp>
+typename SGD<DatasetTp, FunctionTp>::output_t
+SGD<DatasetTp, FunctionTp>::do_solve_(const data_set_t& mat, function_t& h){
 
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
 
     //the info object to return
-    auto info = typename SGD<MatType, VecType>::output_t();
+    auto info = typename SGD<DatasetTp, FunctionTp>::output_t();
 
     if(input_.track_residuals()){
         info.residuals.reserve(input_.get_max_iterations());
@@ -141,24 +136,21 @@ SGD<MatType, VecType>::do_solve_(const MatType& mat,const VecType& v, function_t
 
         // total error for iteration
         auto total_error = 0.0;
-        for(uint_t exidx = 0; exidx < mat.rows(); ++ exidx){
+        for(uint_t exidx = 0; exidx < mat.n_examples(); ++ exidx){
 
-            auto row = matrix_row_trait<MatType>::get_row(mat, exidx);
-
-
-            auto error = h.value(exidx, mat, v).get_resource();
-            //auto error = v[exidx] - val;
+            auto [row, label] = mat[exidx];
+            auto error = h.error_at(row, label);
 
             // get the gradients with respect to the coefficients
-            auto j_grad = DynVec<real_t>(); //h.gradient(row, v[exidx]);
-            auto coeffs = h.coeffs();
+            auto j_grad = h.param_gradient_at(row, label);
+            auto coeffs = h.parameters();
 
             for(uint_t c=0; c<coeffs.size(); ++c){
                coeffs[c] += -input_.learning_rate*j_grad[c];
             }
 
             // reset again the coeffs
-            h.set_coeffs(coeffs);
+            h.update_parameters(coeffs);
             total_error += error;
         }
 

@@ -16,15 +16,21 @@ class FunctionBase;
 namespace numerics {
 namespace opt {
 
-template<typename MatTp, typename VecTp>
+template<typename DatasetTp, typename FunctionTp>
 class OptimizerBase: private boost::noncopyable
 {
 
 public:
 
-    typedef MatTp data_set_t;
-    typedef VecTp labels_set_t;
-    typedef FunctionBase<ResultHolder<real_t>, MatTp, VecTp> function_t;
+    ///
+    /// \brief data_set_t
+    ///
+    typedef DatasetTp data_set_t;
+
+    ///
+    /// \brief function_t
+    ///
+    typedef FunctionTp function_t;
 
     ///
     /// \brief Expose the type that is returned by this object
@@ -43,7 +49,7 @@ public:
     /// \param labels
     /// \param fnc
     ///
-    virtual output_t solve(const data_set_t& features, const labels_set_t& labels, function_t& fnc) = 0;
+    virtual output_t solve(const data_set_t& points, function_t& fnc) = 0;
 
     ///
     /// \brief type

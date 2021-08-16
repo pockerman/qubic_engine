@@ -23,8 +23,8 @@ namespace opt {
 /// \brief Implementation of the gradient descent (GC) algorithm
 /// for solving optimization problems.
 ///
-template<typename MatType, typename VecType>
-class Gd: public OptimizerBase<MatType, VecType>
+template<typename DatasetTp, typename FunctionTp>
+class Gd: public OptimizerBase<DatasetTp, FunctionTp>
 {
     
 public:
@@ -32,23 +32,18 @@ public:
     ///
     /// \brief data_set_t
     ///
-    typedef typename OptimizerBase<MatType, VecType>::data_set_t data_set_t;
-
-    ///
-    /// \brief labels_set_t
-    ///
-    typedef typename OptimizerBase<MatType, VecType>::labels_set_t labels_set_t;
+    typedef typename OptimizerBase<DatasetTp, FunctionTp>::data_set_t data_set_t;
 
     ///
     /// \brief function_t
     ///
-    typedef typename OptimizerBase<MatType, VecType>::function_t function_t;
+    typedef typename OptimizerBase<DatasetTp, FunctionTp>::function_t function_t;
 
     ///
     /// \brief Expose the type that is returned by this object
     /// when calling its solve functions
     ///
-    typedef typename OptimizerBase<MatType, VecType>::output_t output_t;
+    typedef typename OptimizerBase<DatasetTp, FunctionTp>::output_t output_t;
     
     ///
     /// \brief Constructor
@@ -65,7 +60,7 @@ public:
     /// \brief Solves the optimization problem. Returns information
     /// about the performance of the solver.
     ///
-    virtual output_t solve(const MatType& mat,const VecType& v, function_t& h) override final;
+    virtual output_t solve(const data_set_t& mat, function_t& h) override final;
 
     ///
     /// \brief Solve for the coefficients that minimize
@@ -100,30 +95,30 @@ private:
     ///
     /// \brief actually solve the problem
     ///
-    output_t do_solve_(const MatType& mat,const VecType& v, function_t& h);
+    output_t do_solve_(const data_set_t& mat, function_t& h);
     
 };
 
-template<typename MatType, typename VecType>
-Gd<MatType, VecType>::Gd(const GDConfig& input)
+template<typename DatasetTp, typename FunctionTp>
+Gd<DatasetTp, FunctionTp>::Gd(const GDConfig& input)
     :
-      OptimizerBase<MatType, VecType>(),
+      OptimizerBase<DatasetTp, FunctionTp>(),
       input_(input),
       info_()
 {}
 
-template<typename MatType, typename VecType>
-Gd<MatType, VecType>::Gd(const std::map<std::string, std::any>& options)
+template<typename DatasetTp, typename FunctionTp>
+Gd<DatasetTp, FunctionTp>::Gd(const std::map<std::string, std::any>& options)
     :
-      OptimizerBase<MatType, VecType>(),
+      OptimizerBase<DatasetTp, FunctionTp>(),
       input_(options),
       info_()
 {}
 
-template<typename MatType, typename VecType>
-typename Gd<MatType, VecType>::output_t
-Gd<MatType, VecType>::solve(const MatType& data, const VecType& y, function_t& function){
-    info_ = do_solve_(data, y, function);
+template<typename DatasetTp, typename FunctionTp>
+typename Gd<DatasetTp, FunctionTp>::output_t
+Gd<DatasetTp, FunctionTp>::solve(const data_set_t& data, function_t& function){
+    info_ = do_solve_(data, function);
     return info_;
 }
 
@@ -184,9 +179,9 @@ Gd::solve(FunctionTp& function){
 }
 */
 
-template<typename MatType, typename VecType>
-typename Gd<MatType, VecType>::output_t
-Gd<MatType, VecType>::do_solve_(const MatType& data,const VecType& y, function_t& function){
+template<typename DatasetTp, typename FunctionTp>
+typename Gd<DatasetTp, FunctionTp>::output_t
+Gd<DatasetTp, FunctionTp>::do_solve_(const data_set_t& data, function_t& function){
 
 
     std::chrono::time_point<std::chrono::system_clock> start, end;
@@ -194,34 +189,34 @@ Gd<MatType, VecType>::do_solve_(const MatType& data,const VecType& y, function_t
 
 
     //the info object to return
-    auto info = typename Gd<MatType, VecType>::output_t();
+    auto info = typename Gd<DatasetTp, FunctionTp>::output_t();
 
     if(input_.track_residuals()){
         info.residuals.reserve(input_.get_max_iterations());
     }
 
-    auto j_old = function.value(data, y).get_resource();
+    auto j_old = function.evaluate(data);
     auto j_current = 0.0;
 
-    const auto ncoeffs = function.n_coeffs();
+    const auto ncoeffs = function.n_parameters();
 
     while(input_.continue_iterations()){
 
         // get the gradients with respect to the coefficients
-        auto j_grads = function.gradients(data, y);
+        auto j_grads = function.params_gradients(data);
 
         //update the coefficients
-        auto coeffs = function.coeffs();
+        auto coeffs = function.parameters();
 
         for(uint_t c=0; c<ncoeffs; ++c){
             coeffs[c] -= input_.learning_rate*j_grads[c];
         }
 
         // reset again the coeffs
-        function.update_coeffs(coeffs);
+        function.update_parameters(coeffs);
 
         //recalculate...
-        j_current = function.value(data, y).get_resource();
+        j_current = function.evaluate(data);
 
         auto error = std::fabs(j_current - j_old);
         input_.update_residual(error);
