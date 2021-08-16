@@ -3,8 +3,6 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/supervised_learning/linear_parametric_model.h"
-#include "kernel/maths/errorfunctions/error_function_type.h"
-#include "kernel/maths/errorfunctions/error_function_factory.h"
 #include "kernel/maths/functions/sigmoid_function.h"
 
 #include <boost/noncopyable.hpp>
@@ -77,10 +75,12 @@ LogisticRegression::fit(const DataSetTp& dataset, SolverTp& solver, const std::m
     assert(dataset.n_features() == polynomial_.n_coeffs() && "Invalid feature space size");
 #endif
 
-    auto err_type = kernel::ErrorFuncType::MSE;
-    auto error_function_ptr = kernel::ErrFuncFactory().build<kernel::PolynomialFunction,
-                                                             typename DataSetTp::features_t, typename DataSetTp::labels_t>(err_type, this->polynomial_);
-    auto output = solver.solve(dataset.feature_matrix(), dataset.labels(), *error_function_ptr.get());
+    //auto err_type = kernel::ErrorFuncType::MSE;
+    //auto error_function_ptr = kernel::ErrFuncFactory().build<kernel::PolynomialFunction,
+    //                                                         typename DataSetTp::features_t, typename DataSetTp::labels_t>(err_type, this->polynomial_);
+
+    typename SolverTp::function_t loss(polynomial_);
+    auto output = solver.solve(dataset, loss);
 
     return output;
 }
