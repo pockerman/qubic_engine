@@ -32,6 +32,11 @@ class LogisticRegression: public  LinearParametricModel<uint_t>
     typedef LinearParametricModel<uint_t>::value_t value_t;
 
     ///
+    /// \brief model_t
+    ///
+    typedef kernel::PolynomialFunction model_t;
+
+    ///
     /// \brief Constructor
     ///
     LogisticRegression(uint_t n_features, bool use_intercept);
