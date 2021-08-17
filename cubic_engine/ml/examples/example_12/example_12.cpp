@@ -2,8 +2,10 @@
 #include "cubic_engine/ml/supervised_learning/linear_regressor.h"
 #include "cubic_engine/ml/supervised_learning/regularizer_type.h"
 #include "cubic_engine/ml/datasets/blaze_regression_dataset.h"
-#include "kernel/maths/errorfunctions/error_function_type.h"
-#include "kernel/numerics/optimization/optimizer_type.h"
+#include "cubic_engine/ml/loss_functions/mse_loss.h"
+//#include "kernel/maths/errorfunctions/error_function_type.h"
+
+//#include "kernel/numerics/optimization/optimizer_type.h"
 #include "kernel/maths/functions/real_vector_polynomial.h"
 #include "kernel/numerics/optimization/serial_gradient_descent.h"
 
@@ -21,6 +23,7 @@ using cengine::DynMat;
 using cengine::DynVec;
 using cengine::ml::BlazeRegressionDataset;
 using cengine::ml::LinearRegressor;
+using cengine::ml::MSELoss;
 using kernel::numerics::opt::Gd;
 using kernel::numerics::opt::GDConfig;
 
@@ -74,13 +77,14 @@ int main(){
         DataSetLoader loader(1.0, 2.0);
         dataset.load_from_loader(loader);
 
-        // linear model trained with OLS
+        // linear model
         LinearRegressor regressor(1, true, cengine::ml::RegularizerType::NONE);
 
         // train the model
         std::map<std::string, std::any> options;
-        options["solver_type"] = std::any(kernel::numerics::opt::OptimizerType::GD);
-        options["error_function_type"] = std::any(kernel::ErrorFuncType::MSE);
+
+        //options["solver_type"] = std::any(kernel::numerics::opt::OptimizerType::GD);
+        //options["error_function_type"] = std::any(kernel::ErrorFuncType::MSE);
 
         std::map<std::string, std::any> solver_ops;
         solver_ops["max_num_itrs"] = std::any(static_cast<uint_t>(10000));
@@ -88,9 +92,12 @@ int main(){
         solver_ops["learning_rate"] = std::any(static_cast<real_t>(0.01));
         solver_ops["verbose"] = std::any(true);
 
-        options["solver_options"] = std::any(solver_ops);
-        GDConfig gd_config(10000, 1.0e-8, 0.01);
-        Gd<DynMat<real_t>, DynVec<real_t>> solver(gd_config);
+        //options["solver_options"] = std::any(solver_ops);
+
+
+        GDConfig gd_config(solver_ops); //(10000, 1.0e-8, 0.01);
+
+        Gd<BlazeRegressionDataset, MSELoss<LinearRegressor::model_t, BlazeRegressionDataset>> solver(gd_config);
         regressor.fit(dataset, solver, options);
 
         std::cout<<"Intercept: "<<regressor.get_interception()<<" slope: "<<regressor.get_parameters()[1]<<std::endl;
