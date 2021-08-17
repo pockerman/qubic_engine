@@ -9,8 +9,9 @@
 #include <ostream>
 #include <iostream>
 
-namespace cengine
-{
+namespace cengine{
+namespace ml {
+
 
 ///
 /// \brief ConfusionMatrix. Wraps the idea of a confusion matrix
@@ -160,6 +161,6 @@ std::ostream& operator<<(std::ostream& out, const ConfusionMatrix& mat){
     return mat.print(out);
 }
 
-
+}
 }
 #endif // CONFUSION_MATRIX_H
