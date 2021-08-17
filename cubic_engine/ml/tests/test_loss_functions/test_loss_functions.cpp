@@ -1,5 +1,6 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/loss_functions/sse_loss.h"
+#include "cubic_engine/ml/loss_functions/mse_loss.h"
 #include "kernel/maths/functions/real_vector_polynomial.h"
 #include "cubic_engine/ml/datasets/blaze_regression_dataset.h"
 
@@ -17,6 +18,7 @@ using cengine::DynVec;
 using cengine::real_t;
 using kernel::PolynomialFunction;
 using cengine::ml::SSELoss;
+using cengine::ml::MSELoss;
 using cengine::ml::BlazeRegressionDataset;
 
 /*struct TestSetLoader{
@@ -99,6 +101,20 @@ TEST(TestSSELoss, Param_Gradient_At) {
     }
     catch(...){
         FAIL()<<"A non expected exception was thrown";
+    }
+}
+
+
+TEST(TestMSELoss, Constructor) {
+
+    try{
+
+        PolynomialFunction model;
+        MSELoss<PolynomialFunction, BlazeRegressionDataset> loss(model);
+    }
+    catch(...){
+
+        FAIL()<<"Could not build SSELoss";
     }
 }
 
