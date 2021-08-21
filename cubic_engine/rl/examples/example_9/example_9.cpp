@@ -1,4 +1,3 @@
-#include "kernel/base/config.h"
 #include "cubic_engine/rl/algorithms/td/sarsa.h"
 #include "cubic_engine/rl/worlds/discrete_world.h"
 #include "cubic_engine/rl/policies/epsilon_greedy_policy.h"
@@ -7,6 +6,7 @@
 #include "gymfcpp/cliff_world.h"
 #include "gymfcpp/time_step.h"
 
+#include <deque>
 #include <iostream>
 
 namespace example{
@@ -88,14 +88,29 @@ int main(){
         CliffWalkingEnv env(gym_namespace);
         env.build(true);
 
-        EpsilonGreedyPolicy policy(0.1, true);
+        std::cout<<"Number of states="<<env.n_states()<<std::endl;
+        std::cout<<"Number of actions="<<env.n_actions()<<std::endl;
+
+        EpsilonGreedyPolicy policy(1.0, env.n_actions(), true);
         Sarsa<gymfcpp::TimeStep, EpsilonGreedyPolicy> sarsa(5000, 1.0e-8,
-                                                  1.0, 0.01, env, 100, policy);
-        sarsa.train();
+                                                            1.0, 0.01, 100, env, 1000, policy);
+
+        sarsa.do_verbose_output();
+
+        std::cout<<"Starting training..."<<std::endl;
+        auto train_result = sarsa.train();
+
+        std::cout<<train_result<<std::endl;
+        std::cout<<"Finished training..."<<std::endl;
+
+        std::cout<<"Saving value function..."<<std::endl;
+        std::cout<<"Value function..."<<sarsa.value_func()<<std::endl;
+        sarsa.save("sarsa_value_func.csv");
+        sarsa.save_avg_scores("sarsa_avg_scores.csv");
+        sarsa.save_state_action_function("sarsa_state_action_function.csv");
 
     }
     catch(std::exception& e){
-
         std::cout<<e.what()<<std::endl;
     }
     catch(...){
