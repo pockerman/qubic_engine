@@ -73,6 +73,12 @@ public:
     ///
     uint_t current_iteration()const{return itr_ctrl_.get_current_iteration();}
 
+    ///
+    /// \brief n_max_itrs
+    /// \return
+    ///
+    uint_t n_max_itrs()const{return this->itr_ctrl_.get_max_iterations();}
+
 protected:
 
     ///
@@ -92,7 +98,6 @@ private:
     /// \brief itr_ctrl_. The object controlling the iterations
     ///
     kernel::IterativeAlgorithmController itr_ctrl_;
-
 
 };
 
