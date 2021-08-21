@@ -3,6 +3,19 @@
 
 #include "cubic_engine/rl/algorithms/td/td_algo_base.h"
 #include "kernel/base/kernel_consts.h"
+#include "kernel/base/config.h"
+
+#ifdef KERNEL_DEBUG
+#include <cassert>
+#endif
+
+#include "boost/accumulators/accumulators.hpp"
+#include <boost/accumulators/statistics/stats.hpp>
+#include "boost/accumulators/statistics/mean.hpp"
+#include "boost/bind.hpp"
+#include "boost/ref.hpp"
+
+#include <iostream>
 
 namespace cengine{
 namespace rl {
@@ -39,8 +52,8 @@ public:
     /// \brief Sarsa
     ///
     Sarsa(uint_t n_max_itrs, real_t tolerance,
-          real_t gamma, real_t eta, env_t& env,
-          uint_t max_num_iterations_per_episode, const ActionSelector& selector);
+          real_t gamma, real_t eta, uint_t plot_f,
+          env_t& env, uint_t max_num_iterations_per_episode, const ActionSelector& selector);
 
     ///
     /// \brief step
@@ -53,6 +66,11 @@ private:
     /// \brief max_num_iterations_per_episode_
     ///
     uint_t max_num_iterations_per_episode_;
+
+    ///
+    /// \brief current_score_counter_
+    ///
+    uint_t current_score_counter_;
 
     ///
     /// \brief action_selector_
@@ -69,10 +87,12 @@ private:
 
 template <typename TimeStepTp, typename ActionSelector>
 Sarsa<TimeStepTp, ActionSelector>::Sarsa(uint_t n_max_itrs, real_t tolerance, real_t gamma,
-                                         real_t eta, env_t& env, uint_t max_num_iterations_per_episode, const ActionSelector& selector)
+                                         real_t eta, uint_t plot_f,
+                                         env_t& env, uint_t max_num_iterations_per_episode, const ActionSelector& selector)
     :
-      TDAlgoBase<TimeStepTp>(n_max_itrs, tolerance, gamma, eta, env),
+      TDAlgoBase<TimeStepTp>(n_max_itrs, tolerance, gamma, eta, plot_f, env),
       max_num_iterations_per_episode_(max_num_iterations_per_episode),
+      current_score_counter_(0),
       action_selector_(selector)
 {}
 
@@ -82,13 +102,23 @@ void
 Sarsa<TimeStepTp, ActionSelector>::step(){
 
 
+     std::cout<<"Starting episode="<<this->current_iteration()<<std::endl;
+
+    // total score for the episode
     auto score = 0.0;
     auto state = this->env_ref_().reset().observation();
 
-    // select an action
-    auto action = action_selector_(this->q_table());
+    uint_t itr=0;
+    for(;  itr < max_num_iterations_per_episode_; ++itr){
 
-    for( uint_t itr=0;  itr < max_num_iterations_per_episode_; ++itr){
+        // select an action
+        auto action = action_selector_(this->q_table(), state);
+
+        if(this->is_verbose()){
+            std::cout<<"Episode iteration="<<itr<<" of="<<max_num_iterations_per_episode_<<std::endl;
+            std::cout<<"State="<<state<<std::endl;
+            std::cout<<"Action="<<action<<std::endl;
+        }
 
         // Take a step
         auto step_type_result = this->env_ref_().step(action);
@@ -97,10 +127,10 @@ Sarsa<TimeStepTp, ActionSelector>::step(){
         auto reward = step_type_result.reward();
         auto done = step_type_result.done();
 
+        // accumulate score
         score += reward;
 
-        if(not done){
-
+        if(!done){
             auto next_action = action_selector_(this->q_table(), state);
             update_q_table_(action, state, next_state, next_action, reward);
             state = next_state;
@@ -111,25 +141,56 @@ Sarsa<TimeStepTp, ActionSelector>::step(){
             update_q_table_(action, state, kernel::KernelConsts::invalid_size_type(),
                             kernel::KernelConsts::invalid_size_type(), reward);
 
-            this->tmp_scores().push_back(score);
+            this->tmp_scores()[current_score_counter_++] = score;
+
+            if(current_score_counter_ >= this->plot_frequency()){
+                current_score_counter_ = 0;
+            }
+
+            if(this->is_verbose()){
+                std::cout<<"============================================="<<std::endl;
+                std::cout<<"Break out from episode="<<this->current_iteration()<<std::endl;
+                std::cout<<"============================================="<<std::endl;
+            }
+
             break;
         }
     }
 
     if(this->current_iteration() % this->plot_frequency() == 0){
-        this->avg_scores().push_back(0.0);
+
+        boost::accumulators::accumulator_set<real_t, boost::accumulators::stats<boost::accumulators::tag::mean > > acc;
+        std::for_each(this->tmp_scores().begin(), this->tmp_scores().end(), boost::bind<void>( boost::ref(acc), _1 ) );
+        this->avg_scores()[this->current_iteration()] = boost::accumulators::mean(acc);
     }
+
 
     // make any adjustments to the way
     // actions are selected given the experience collected
     // in the episode
-    action_selector_.adjust_on_episode(this->current_iteration() + 1);
+    action_selector_.adjust_on_episode(this->current_iteration());
+    if(current_score_counter_ >= this->plot_frequency()){
+        current_score_counter_ = 0;
+    }
+
+    std::cout<<"Finished step="<<this->current_iteration()<<std::endl;
 }
 
 template <typename TimeStepTp, typename ActionSelector>
 void
 Sarsa<TimeStepTp, ActionSelector>::update_q_table_(const action_t& action, const state_t& cstate,
                                                    const state_t& next_state, const action_t& next_action, real_t reward){
+
+#ifdef KERNEL_DEBUG
+    assert(action < this->env_ref_().n_actions() && "Inavlid action idx");
+    assert(cstate < this->env_ref_().n_states() && "Inavlid state idx");
+
+    if(next_state != kernel::KernelConsts::invalid_size_type())
+        assert(next_state < this->env_ref_().n_states() && "Inavlid next_state idx");
+
+    if(next_action != kernel::KernelConsts::invalid_size_type())
+        assert(next_action < this->env_ref_().n_actions() && "Inavlid next_action idx");
+#endif
 
     auto q_current = this->q_table()[cstate][action];
     auto q_next = next_state != kernel::KernelConsts::invalid_size_type() ? this->q_table()[next_state][next_action] : 0.0;
