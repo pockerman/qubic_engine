@@ -3,7 +3,7 @@
 #include "cubic_engine/ml/evaluation/confusion_matrix.h"
 #include "cubic_engine/ml/datasets/blaze_regression_dataset.h"
 #include "cubic_engine/ml/datasets/data_set_loaders.h"
-#include "cubic_engine/ml/loss_functions/mse_loss.h"
+#include "cubic_engine/ml/loss_functions/categorical_cross_entropy.h"
 #include "kernel/numerics/optimization/gd_control.h"
 #include "kernel/numerics/optimization/serial_gradient_descent.h"
 
@@ -20,7 +20,7 @@ int main(){
     using cengine::DynVec;
     using cengine::ml::BlazeRegressionDataset;
     using cengine::ml::LogisticRegression;
-    using cengine::ml::MSELoss;
+    using cengine::ml::CategoricalCrossEntropy;
     using cengine::ml::ConfusionMatrix;
     using kernel::numerics::opt::Gd;
     using kernel::numerics::opt::GDConfig;
@@ -38,7 +38,7 @@ int main(){
         LogisticRegression classifier(4,  true);
 
         GDConfig gd_config(10000, 1.0e-8, 0.01);
-        Gd<BlazeRegressionDataset, MSELoss<LogisticRegression::model_t, BlazeRegressionDataset>> solver(gd_config);
+        Gd<BlazeRegressionDataset, CategoricalCrossEntropy<LogisticRegression::model_t, BlazeRegressionDataset>> solver(gd_config);
 
         auto result = classifier.fit(dataset, solver, std::map<std::string, std::any>());
         std::cout<<result<<std::endl;
