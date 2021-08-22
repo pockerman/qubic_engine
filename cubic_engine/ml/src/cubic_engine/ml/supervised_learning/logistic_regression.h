@@ -55,7 +55,13 @@ class LogisticRegression: public  LinearParametricModel<uint_t>
     ///
     /// \brief predict
     ///
-    std::vector<value_t> predict_many(const DynMat<real_t>& data)const{}
+    DynVec<value_t> predict_many(const DynMat<real_t>& data)const;
+
+    ///
+    /// \brief predict
+    ///
+    template<typename DataSetTp>
+    DynVec<value_t> predict_many(const DataSetTp& data)const;
 
     ///
     /// \brief score
@@ -80,10 +86,6 @@ LogisticRegression::fit(const DataSetTp& dataset, SolverTp& solver, const std::m
     assert(dataset.n_features() == polynomial_.n_coeffs() && "Invalid feature space size");
 #endif
 
-    //auto err_type = kernel::ErrorFuncType::MSE;
-    //auto error_function_ptr = kernel::ErrFuncFactory().build<kernel::PolynomialFunction,
-    //                                                         typename DataSetTp::features_t, typename DataSetTp::labels_t>(err_type, this->polynomial_);
-
     typename SolverTp::function_t loss(polynomial_);
     auto output = solver.solve(dataset, loss);
 
@@ -91,12 +93,18 @@ LogisticRegression::fit(const DataSetTp& dataset, SolverTp& solver, const std::m
 }
 
 template<typename DataSetTp>
+DynVec<LogisticRegression::value_t>
+LogisticRegression::predict_many(const DataSetTp& data)const{
+    return predict_many(data.feature_matrix());
+}
+
+
+template<typename DataSetTp>
 real_t
 LogisticRegression::score(const DataSetTp& dataset)const{
 
 #ifdef KERNEL_DEBUG
     assert(dataset.n_features() == polynomial_.n_coeffs() && "Invalid feature space size");
-    //check_options_(options);
 #endif
 
     real_t correctly_clss = 0;
