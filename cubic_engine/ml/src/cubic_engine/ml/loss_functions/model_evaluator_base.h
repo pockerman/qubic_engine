@@ -74,7 +74,7 @@ public:
     /// \brief n_parameters
     /// \return
     ///
-    uint_t n_parameters()const{return model_ptr_ -> n_coeffs();}
+    uint_t n_parameters()const noexcept{return model_ptr_ -> n_coeffs();}
 
 protected:
 
@@ -94,8 +94,8 @@ protected:
     model_t* model_ptr_;
 
 
-    model_t& model_ref_(){return *model_ptr_;}
-    const model_t& model_ref_()const{return *model_ptr_;}
+    model_t& model_ref_() noexcept{return *model_ptr_;}
+    const model_t& model_ref_()const noexcept{return *model_ptr_;}
 
 };
 
