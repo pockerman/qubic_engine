@@ -27,6 +27,11 @@ public:
     virtual output_t value(const input_t&  input)const final override;
 
     ///
+    /// \brief Returns the value of the function
+    ///
+    virtual output_t value(uint_t i, const input_t&  input)const final override;
+
+    ///
     /// \breif Returns the raw value of the function it wraps
     ///
     output_t raw_value(const input_t&  input)const{return function_ptr_->value(input);}
@@ -82,6 +87,14 @@ typename SigmoidFunction<FunctionType>::output_t
 SigmoidFunction<FunctionType>::value(const input_t&  input)const{
 
     auto result = function_ptr_->value(input);
+    return 1.0/(1.0 + std::exp(-result));
+}
+
+template<typename FunctionType>
+typename SigmoidFunction<FunctionType>::output_t
+SigmoidFunction<FunctionType>::value(uint_t i, const input_t&  input)const{
+
+    auto result = function_ptr_->value(i, input);
     return 1.0/(1.0 + std::exp(-result));
 }
 
