@@ -21,13 +21,20 @@ public:
     ///
     /// \brief Destructor
     ///
-    virtual ~FunctionBase()
-    {}
+    virtual ~FunctionBase() = default;
 
     ///
     /// \brief Returns the value of the function
     ///
     virtual output_t value(const InputTp&...  input)const=0;
+
+    ///
+    /// \brief value
+    /// \param i
+    /// \param input
+    /// \return
+    ///
+    virtual output_t value(uint_t i, const InputTp&...  input )const=0;
 
     ///
     /// \brief Returns the gradients of the function

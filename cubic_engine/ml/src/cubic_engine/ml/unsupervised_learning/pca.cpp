@@ -1,9 +1,10 @@
-#include "kernel/maths/pca.h"
+#include "cubic_engine/ml/unsupervised_learning/pca.h"
 #include "kernel/maths/matrix_utilities.h"
 #include <stdexcept>
 #include <iostream>
 
-namespace kernel{
+namespace cengine{
+namespace ml{
 
 PCA::PCA(uint_t ncomponents)
     :
@@ -49,7 +50,7 @@ PCA::fit(DynMat<real_t>& data){
 
     // do SVD
     DynMat<real_t> V;
-    svd(data, U_, s_, V );
+    blaze::svd(data, U_, s_, V );
 
     if(n_components_ == data.columns()){
         V_ = std::move(V);
@@ -72,7 +73,7 @@ PCA::fit(DynMat<real_t>& data){
         for(uint_t c=0; c<n_components_; ++c){
 
             explained_variance_[c] = (s_[c]*s_[c])/total_data_var_;
-            auto col = get_column(V, c);
+            auto col = kernel::get_column(V, c);
 
             for(uint_t r=0; r<V_.rows(); ++r){
                 V_(r,c) = col[r];
@@ -84,5 +85,6 @@ PCA::fit(DynMat<real_t>& data){
     // compute the transformed data
     data = data*V_;
 
+}
 }
 }

@@ -4,9 +4,11 @@
 #include "kernel/base/config.h"
 #include "cubic_engine/ml/supervised_learning/parametric_supervised_model.h"
 #include "cubic_engine/ml/supervised_learning/regularizer_type.h"
+#include "cubic_engine/ml/loss_functions/mse_loss.h"
 #include "kernel/maths/functions/real_vector_polynomial.h"
-#include "kernel/maths/errorfunctions/error_function_type.h"
-#include "kernel/maths/errorfunctions/error_function_factory.h"
+
+//#include "kernel/maths/errorfunctions/error_function_type.h"
+//#include "kernel/maths/errorfunctions/error_function_factory.h"
 
 #include <ostream>
 #include <map>
@@ -27,6 +29,11 @@ public:
     /// \brief value_t The result value type
     ///
     typedef real_t value_t;
+
+    ///
+    /// \brief model_t
+    ///
+    typedef kernel::PolynomialFunction model_t;
 
     ///
     /// \brief LinearRegressor
@@ -107,12 +114,14 @@ LinearRegressor::fit(const DataSetTp& dataset, SolverTp& solver, const std::map<
 
 #ifdef KERNEL_DEBUG
     assert(dataset.n_features() == polynomial_.n_coeffs() && "Invalid feature space size");
-    check_options_(options);
+    //check_options_(options);
 #endif
 
-    auto err_type = std::any_cast<kernel::ErrorFuncType>(options.find("error_function_type")->second);
-    auto error_function_ptr = kernel::ErrFuncFactory().build<kernel::PolynomialFunction, typename DataSetTp::features_t, typename DataSetTp::labels_t>(err_type, polynomial_);
-    auto output = solver.solve(dataset.feature_matrix(), dataset.labels(), *error_function_ptr.get());
+    //auto err_type = std::any_cast<kernel::ErrorFuncType>(options.find("error_function_type")->second);
+    //auto error_function_ptr = kernel::ErrFuncFactory().build<kernel::PolynomialFunction, typename DataSetTp::features_t, typename DataSetTp::labels_t>(err_type, polynomial_);
+    //MSELoss<kernel::PolynomialFunction, DataSetTp> loss(polynomial_);
+    typename SolverTp::function_t loss(polynomial_);
+    auto output = solver.solve(dataset, loss);
 
     return output;
 }

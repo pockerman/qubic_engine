@@ -1,8 +1,10 @@
-#include "cubic_engine/maths/confusion_matrix.h"
+#include "cubic_engine/ml/evaluation/confusion_matrix.h"
 #include <exception>
 
-namespace cengine
-{
+namespace cengine{
+namespace ml {
+
+
 
 real_t
 ConfusionMatrix::accuracy()const{
@@ -120,5 +122,6 @@ ConfusionMatrix::print(std::ostream& out)const{
     }
 
     return out;
+}
 }
 }

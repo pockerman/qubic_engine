@@ -37,6 +37,13 @@ public:
     virtual output_t value(const input_t& input)const override final;
 
     ///
+    /// \brief value
+    /// \param input
+    /// \return
+    ///
+    virtual output_t value(uint_t, const input_t& input)const override final{return value(input);}
+
+    ///
     /// \brief gradient/ Returns the o-th order gradient of the monomial
     /// at point p
     ///

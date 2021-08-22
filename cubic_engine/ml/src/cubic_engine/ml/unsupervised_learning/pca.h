@@ -1,10 +1,12 @@
 #ifndef PCA_H
 #define PCA_H
 
-#include "kernel/base/types.h"
+#include "cubic_engine/base/cubic_engine_types.h"
 #include "boost/noncopyable.hpp"
 
-namespace kernel{
+namespace cengine{
+namespace ml{
+
 
 ///
 /// \brief The PCA class. Principal Component Analisys
@@ -20,7 +22,7 @@ public:
     /// retain from the initial data. If ncomponents=0
     /// then all components are retained
     ///
-    PCA(uint_t ncomponents=0);
+    explicit PCA(uint_t ncomponents=0);
 
     ///
     /// \brief fit Apply PCA to the given data
@@ -84,6 +86,7 @@ private:
 
 };
 
+}
 }
 
 #endif // PCA_H
