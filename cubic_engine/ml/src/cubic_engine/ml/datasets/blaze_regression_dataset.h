@@ -85,25 +85,39 @@ public:
     /// \brief feature_matrix
     /// \return
     ///
-    const storage_engine_t& feature_matrix()const{return examples_;}
+    const storage_engine_t& feature_matrix()const noexcept{return examples_;}
+
+    ///
+    /// \brief get_row
+    /// \param idx
+    /// \return
+    ///
+    row_t get_row(uint_t idx)const{return row_t();}
+
+    ///
+    /// \brief get_label
+    /// \param i
+    /// \return
+    ///
+    label_value_t get_label(uint_t i)const{return labels_[i];}
 
     ///
     /// \brief labels
     /// \return
     ///
-    const labels_t& labels()const{return labels_;}
+    const labels_t& labels()const noexcept{return labels_;}
 
     ///
     /// \brief feature_matrix
     /// \return
     ///
-    storage_engine_t& feature_matrix(){return examples_;}
+    storage_engine_t& feature_matrix()noexcept{return examples_;}
 
     ///
     /// \brief labels
     /// \return
     ///
-    labels_t& labels(){return labels_;}
+    labels_t& labels()noexcept{return labels_;}
 
     ///
     /// \brief load_from_file
@@ -144,7 +158,7 @@ public:
     ///
     /// \brief columns
     ///
-    auto columns()const-> const std::map<std::string, uint_t>&{return columns_;}
+    const std::map<std::string, uint_t>& columns()const noexcept {return columns_;}
 
     ///
     ///
