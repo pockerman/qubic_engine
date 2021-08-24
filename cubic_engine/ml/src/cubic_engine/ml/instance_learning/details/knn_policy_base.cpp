@@ -1,12 +1,12 @@
-#include "cubic_engine/ml/instance_learning/utils/knn_policy_base.h"
+#include "cubic_engine/ml/instance_learning/details/knn_policy_base.h"
 #include "kernel/base/kernel_consts.h"
 #include <limits>
 
-namespace cengine
-{
-    
+namespace cengine{
+namespace ml {
+namespace details{
 
-     
+
 knn_policy_base_data_handler<true>::knn_policy_base_data_handler(uint_t k_)
 :
 k(k_),
@@ -113,4 +113,6 @@ knn_policy_base<is_regressor>::resume(uint_t k){
 template class knn_policy_base<true>;
 template class knn_policy_base<false>;
     
+}
+}
 }

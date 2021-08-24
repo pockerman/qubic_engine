@@ -1,6 +1,7 @@
 #include "cubic_engine/base/cubic_engine_types.h"
 #include "cubic_engine/ml/loss_functions/sse_loss.h"
 #include "cubic_engine/ml/loss_functions/mse_loss.h"
+#include "cubic_engine/ml/loss_functions/categorical_cross_entropy.h"
 #include "kernel/maths/functions/real_vector_polynomial.h"
 #include "cubic_engine/ml/datasets/blaze_regression_dataset.h"
 
@@ -19,6 +20,7 @@ using cengine::real_t;
 using kernel::PolynomialFunction;
 using cengine::ml::SSELoss;
 using cengine::ml::MSELoss;
+using cengine::ml::CategoricalCrossEntropy;
 using cengine::ml::BlazeRegressionDataset;
 
 /*struct TestSetLoader{
@@ -114,10 +116,23 @@ TEST(TestMSELoss, Constructor) {
     }
     catch(...){
 
-        FAIL()<<"Could not build SSELoss";
+        FAIL()<<"Could not build MSELoss";
     }
 }
 
+
+TEST(TestCategoricalCrossEntropy, Constructor) {
+
+    try{
+
+        PolynomialFunction model;
+        CategoricalCrossEntropy<PolynomialFunction, BlazeRegressionDataset> loss(model);
+    }
+    catch(...){
+
+        FAIL()<<"Could not build CategoricalCrossEntropy";
+    }
+}
 
 
 

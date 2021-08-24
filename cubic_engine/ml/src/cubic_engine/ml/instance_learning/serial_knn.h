@@ -1,204 +1,184 @@
 #ifndef SERIAL_KNN_H
 #define	SERIAL_KNN_H
 
-#include "cubic_engine/ml/instance_learning/utils/knn_control.h"
-#include "cubic_engine/ml/instance_learning/utils/knn_info.h"
-#include "kernel/utilities/range_1d.h"
-#include "kernel/maths/matrix_utilities.h"
+#include "cubic_engine/ml/instance_learning/knn_control.h"
+#include "cubic_engine/ml/instance_learning/knn_info.h"
+#include "cubic_engine/ml/instance_learning/details/knn_classification_policy.h"
+
+#include "kernel/base/config.h"
+
+#ifdef KERNEL_DEBUG
+#include <cassert>
+#endif
 
 #include <utility>
 #include <chrono>
 #include <iostream>
 
-namespace cengine
-{
+namespace cengine{
+namespace ml {
+
+
     
 ///
 /// \brief Serial implementation
 /// of K-nearest neighbors algorithm
 ///
-template<typename DataSetType, typename LabelType, typename Similarity, typename Actor>
-class Knn
+template<typename DataSetType, typename Similarity>
+class KnnClassifier
 {
     
 public:
 
-     /// \brief
-     typedef KnnInfo output_t;
-
-     /// \brief The return type
-     typedef typename Actor::return_t return_t;
-
+     ///
      /// \brief Constructor
-     Knn(const KnnControl& control);
+     ///
+     KnnClassifier(const KnnControl& control);
 
 	 ///
      /// \brief Train the model
 	 ///
-     void train(const DataSetType& data_set, const LabelType& labels);
+     void fit(const DataSetType& data_set);
 
 	 ///
      /// \brief Predict outcome for the given vector
 	 ///
      template<typename DataPoint>
-     std::pair<return_t, output_t> predict(const DataPoint& data);
+     uint_t predict_one(const DataPoint& data);
 
 	 ///
      /// \brief Predict outcome for the given dataset
 	 ///
-     std::pair<std::vector<return_t>, output_t> predict(const DataSetType& data);
+     DynVec<uint_t> predict_many(const DataSetType& data);
+
+     ///
+     /// \brief
+     ///
+     template<typename OtherDataSetTp>
+     real_t score(const OtherDataSetTp& data)const;
 
 private:
 
-      const KnnControl input_;
-      const DataSetType* data_ptr_;
-      const LabelType* labels_ptr_;
+     ///
+     /// \brief input_
+     ///
+     const KnnControl input_;
+
+     ///
+     /// \brief data_ptr_. Pointer to the data
+     ///
+     const DataSetType* data_ptr_;
 };
 
-template<typename DataSetType, typename LabelType, typename Similarity, typename Actor>
-Knn<DataSetType, LabelType, Similarity, Actor>::Knn(const KnnControl& control)
+template<typename DataSetType, typename Similarity>
+KnnClassifier<DataSetType, Similarity>::KnnClassifier(const KnnControl& control)
     :
    input_(control),
-   data_ptr_(nullptr),
-   labels_ptr_(nullptr)
+   data_ptr_(nullptr)
 {}
 
 
-template<typename DataSetType, typename LabelType, typename Similarity, typename Actor>
+template<typename DataSetType, typename Similarity>
 void
-Knn<DataSetType, LabelType, Similarity, Actor>::train(const DataSetType& data_set, const LabelType& labels){
+KnnClassifier<DataSetType, Similarity>::fit(const DataSetType& data_set){
     data_ptr_ = &data_set;
-    labels_ptr_ = &labels;
 }
 
-template<typename DataSetType, typename LabelType, typename Similarity, typename Actor>
+template<typename DataSetType, typename Similarity>
 template<typename DataVec>
-std::pair<typename Knn<DataSetType, LabelType, Similarity, Actor>::return_t,
-          typename Knn<DataSetType, LabelType, Similarity, Actor>::output_t>
-Knn<DataSetType, LabelType, Similarity, Actor>::predict(const DataVec& point){
+uint_t
+KnnClassifier<DataSetType, Similarity>::predict_one(const DataVec& point){
 
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-    start = std::chrono::system_clock::now();
-
-    if(data_ptr_ == nullptr){
-        throw std::logic_error("Dataset pointer in null");
-    }
-
-    if(labels_ptr_ == nullptr){
-        throw std::logic_error("Labels pointer in null");
-    }
-    
+#ifdef KERNEL_DEBUG
+    assert(data_ptr_ != nullptr && "Model has not been trained");
+    assert(input_.k != 0 && "Number of neighbors cannot be zero");
+    assert(input_.k < data_ptr_->n_examples() && "Number of neighbors cannot be >= number of examples");
+#endif
 
     uint_t k = input_.k;
-    uint_t nrows = data_ptr_->rows();
-    uint_t labels_size = labels_ptr_->size();
-
-    if(labels_size != nrows){
-        throw std::logic_error("Labels size: "+std::to_string(labels_size)+
-		" does not match dataset rows: "+std::to_string(nrows));
-    }
-
-    if(k == 0 || k>= nrows){
-        throw std::logic_error("Number of neighbors: "+std::to_string(k)+
-                               " not in [1,"+std::to_string(nrows)+")");
-    }
-    
-    KnnInfo info;
-    info.n_neighbors = k;
-    info.n_pts_predicted = 1;
-    info.nprocs = 1;
-    info.nthreads = 1;
-
-    //for serial knn the range is all the
-    //data set
-    kernel::range1d<uint_t> r(0, nrows);
+    uint_t n_examples = data_ptr_->n_examples();
 
     // the type that will do the classification
-    Actor actor(k);
+    KnnClassificationPolicy actor(k);
 
     // the metric used for classification
     Similarity sim;
     
     //find the k smallest distances of
     //the given point from the given data set
-    actor(*this->data_ptr_, *this->labels_ptr_, point, sim, r);
+    actor(*this->data_ptr_, point, sim);
     
     //get the result
     auto rslt = actor.get_result();
-    
-    end = std::chrono::system_clock::now();
-    info.runtime = end-start;
-    return std::make_pair(rslt,info);
+    return rslt;
 }
 
-template<typename DataSetType, typename LabelType, typename Similarity, typename Actor>
-std::pair<std::vector<typename Knn<DataSetType, LabelType, Similarity, Actor>::return_t>,
-          typename Knn<DataSetType, LabelType, Similarity, Actor>::output_t>
-Knn<DataSetType, LabelType, Similarity, Actor>::predict(const DataSetType& data){
+template<typename DataSetType, typename Similarity>
+DynVec<uint_t>
+KnnClassifier<DataSetType, Similarity>::predict_many(const DataSetType& data){
 
-    if(data_ptr_ == nullptr){
-        throw std::logic_error("Dataset pointer in null");
-    }
-
-    if(labels_ptr_ == nullptr){
-        throw std::logic_error("Labels pointer in null");
-    }
-
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-    start = std::chrono::system_clock::now();
+#ifdef KERNEL_DEBUG
+    assert(data_ptr_ != nullptr && "Model has not been trained");
+    assert(input_.k != 0 && "Number of neighbors cannot be zero");
+    assert(input_.k < data_ptr_->n_examples() && "Number of neighbors cannot be >= number of examples");
+#endif
 
     uint_t k = input_.k;
-    uint_t nrows = data_ptr_->rows();
-    uint_t labels_size = labels_ptr_->size();
-
-    if(labels_size != nrows){
-        throw std::logic_error("Labels size: "+std::to_string(labels_size)+" does not match dataset rows: "+std::to_string(nrows));
-    }
-
-    if(k == 0 || k>= nrows){
-        throw std::logic_error("Number of neighbors: "+std::to_string(k)+
-                               " not in [1,"+std::to_string(nrows)+")");
-    }
-
-    KnnInfo info;
-    info.n_neighbors = k;
-    info.nprocs = 1;
-    info.nthreads = 1;
-
-    //for serial knn the range is all the
-    //data set
-    kernel::range1d<uint_t> range(0, nrows);
+    uint_t n_examples = data_ptr_->n_examples();
 
     // the type that will do the classification
-    Actor actor(k);
+    KnnClassificationPolicy actor(k);
 
     // the metric used for classification
     Similarity sim;
 
-    std::vector<typename Knn<DataSetType, LabelType, Similarity, Actor>::return_t> result(data.rows());
+    DynVec<uint_t> result(data.n_examples());
 
     //find the k smallest distances of
     //the given point from the given data set
 
-    for(uint row_idx=0; row_idx<data.rows(); ++row_idx){
+    for(uint row_idx=0; row_idx<data.n_examples(); ++row_idx){
 
-        auto point = kernel::get_row(data, row_idx);
+        auto point = data.get_row(row_idx);
 
-        actor(*this->data_ptr_, *this->labels_ptr_, point, sim, range);
+        actor(*this->data_ptr_, point, sim);
 
         //get the result
         auto rslt = actor.get_result();
         result[row_idx] = rslt;
     }
 
-    end = std::chrono::system_clock::now();
-    info.runtime = end-start;
-    return std::make_pair(std::move(result), std::move(info));
+    return result;
+}
 
+template<typename DataSetType, typename Similarity>
+template<typename OtherDataSetTp>
+real_t
+KnnClassifier<DataSetType, Similarity>::score(const OtherDataSetTp& data)const{
+
+#ifdef KERNEL_DEBUG
+    assert(data_ptr_ != nullptr && "Model has not been trained");
+    assert(data_ptr_ ->n_features() == data.n_features() && "Invalid feature space size");
+#endif
+
+    real_t correctly_clss = 0;
+
+    for(uint_t p=0; p < data.n_examples(); ++p){
+
+        auto[point, label] = data[p];
+
+        auto p_class = static_cast<uint_t>(predict_one(point));
+
+        if(p_class == label){
+            correctly_clss += 1.;
+        }
+    }
+
+    return correctly_clss/data.size();
 }
    
 }
-
+}
 
 
 #endif	/* SERIAL_KNN_H */

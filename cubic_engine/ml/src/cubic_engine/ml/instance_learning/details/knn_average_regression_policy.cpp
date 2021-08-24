@@ -1,14 +1,15 @@
-#include "cubic_engine/ml/instance_learning/utils/knn_average_regression_policy.h"
+#include "cubic_engine/ml/instance_learning/details/knn_average_regression_policy.h"
 #include <algorithm>
 
 
-namespace cengine
-{
-    
- 
+namespace cengine{
+namespace ml {
+
+
+     
 KnnAvgRegressionPolicy::KnnAvgRegressionPolicy(uint_t k)
 :
-knn_policy_base<true>(k)
+ml::details::knn_policy_base<true>(k)
 {}
 
 
@@ -66,4 +67,5 @@ knn_avg_regression_policy::get_result(const boost::scoped_array<knn_avg_regressi
     
     
     
+}
 }

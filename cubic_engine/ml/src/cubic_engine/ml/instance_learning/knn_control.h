@@ -3,8 +3,8 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 
-namespace cengine
-{
+namespace cengine{
+namespace ml{
 
 struct KnnControl
 {
@@ -20,5 +20,5 @@ struct KnnControl
 };
 
 }
-
+}
 #endif // KNN_INPUT_H

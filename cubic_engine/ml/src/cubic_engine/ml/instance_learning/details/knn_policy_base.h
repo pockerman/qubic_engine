@@ -4,9 +4,9 @@
 
 #include "cubic_engine/base/cubic_engine_types.h"
 
-#include "kernel/utilities/range_1d.h"
+//#include "kernel/utilities/range_1d.h"
 #include "kernel/utilities/map_utilities.h"
-#include "kernel/maths/matrix_utilities.h"
+//#include "kernel/maths/matrix_utilities.h"
 #include "kernel/parallel/utilities/result_holder.h"
 
 
@@ -15,10 +15,10 @@
 #include <map>
 #include <iostream>
 
-namespace cengine
-{
-    
-    
+namespace cengine{
+namespace ml{
+namespace details {
+
 /**
  * @brief Small struct that holds the right
  * data structures for classification and regression policies
@@ -229,9 +229,9 @@ class knn_policy_base
     
 public:
     
-    /**
-     * @brief Expose the return type of the policy
-     */
+    ///
+    /// \brief Expose the return type of the policy
+    ///
     typedef typename knn_policy_base_data_handler<is_regressor>::return_t return_type;
     
     /**
@@ -263,25 +263,24 @@ public:
     uint_t n_neighbors()const{return data_handler_.k;}
     
     
-    /**
-     * @brief Predict the result for the given data point. 
-     * 
-     * When working serially the range includes all the rows of the DataInput matrix.
-     * 
-     * When working on multi-core machines we assume that the entire data set can 
-     * be held in RAM the range parameter holds the rows indices the thread
-     * is working on
-     * 
-     * When working with MPI then \f$data\f$ may be all in the working process
-     * or a chunk of it. In the former case we simply iterate over the row 
-     * indices supplied in the given \f$range\f$. If \f$data\f$ is simply
-     * a chunk of the whole data then indices in \f$range\f$ should start from zero. 
-     * In any case this function expects that the indices have been set up correctly
-     * by the client code.
-     */
-    template<typename DataMat, typename LabelType, typename DataVec,typename Similarity>
-    void operator()(const DataMat& data, const LabelType& labels, const DataVec& input,
-                    const Similarity& sim, const kernel::range1d<uint_t>& range);
+    ///
+    /// \brief Predict the result for the given data point.
+    ///
+    /// When working serially the range includes all the rows of the DataInput matrix.
+    ///
+    /// When working on multi-core machines we assume that the entire data set can
+    /// be held in RAM the range parameter holds the rows indices the thread
+    /// is working on
+    ///
+    /// When working with MPI then \f$data\f$ may be all in the working process
+    /// or a chunk of it. In the former case we simply iterate over the row
+    /// indices supplied in the given \f$range\f$. If \f$data\f$ is simply
+    /// a chunk of the whole data then indices in \f$range\f$ should start from zero.
+    /// In any case this function expects that the indices have been set up correctly
+    /// by the client code.
+    ///
+    template<typename DataSetTp, typename DataVec, typename Similarity>
+    void operator()(const DataSetTp& data, const DataVec& input, const Similarity& sim);
     
     
     /**
@@ -338,26 +337,25 @@ protected:
 };
 
 template<bool is_regressor>
-template<typename DataMat, typename LabelType, typename DataVec,typename Similarity>
+template<typename DataSetTp, typename DataVec,typename Similarity>
 void 
-knn_policy_base<is_regressor>::operator()(const DataMat& data,  const LabelType& labels, const DataVec& point,
-                                          const Similarity& sim, const kernel::range1d<uint_t>& range){
+knn_policy_base<is_regressor>::operator()(const DataSetTp& data,  const DataVec& point, const Similarity& sim){
     
     typedef typename knn_policy_base<is_regressor>::Pair Pair;
      
     //we will calculating as many distances as
     //the size of the range
     std::vector<Pair> distances;
-    distances.reserve(range.size());
+    distances.reserve(data.n_examples());
     
-    for(uint_t r=range.begin(); r<range.end(); ++r){
+    for(uint_t r = 0; r <data.n_examples();  ++r){
         
         //access the r-th row of the matrix
-        const DataVec& data_point = kernel::get_row(data, r);
+        auto [features, label] = data[r];
         
         //compute the distance between the data point and the 
         //input point
-        real_t dis = sim(data_point, point);
+        real_t dis = sim(features, point);
 
         //compute the similarity and append it to distances
         distances.push_back(std::make_pair(r,dis));  
@@ -382,7 +380,7 @@ knn_policy_base<is_regressor>::operator()(const DataMat& data,  const LabelType&
     }   
     
     //fill in the majority vote
-    fillin_majority_vote(labels);
+    fillin_majority_vote(data.labels());
 }
 
 template<bool is_regressor>
@@ -407,7 +405,8 @@ knn_policy_base<is_regressor>::fillin_majority_vote(const DataVec& labels,
     
 }
 
-
+}
+}
 
 #endif	/* KNN_POLICY_BASE_H */
 
