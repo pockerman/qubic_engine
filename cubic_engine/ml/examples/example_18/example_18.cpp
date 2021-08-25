@@ -1,7 +1,6 @@
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/ml/instance_learning/serial_knn.h"
+#include "cubic_engine/ml/instance_learning/knn_classifier.h"
 #include "cubic_engine/ml/instance_learning/knn_control.h"
-#include "cubic_engine/ml/instance_learning/knn_info.h"
 #include "cubic_engine/ml/datasets/data_set_loaders.h"
 #include "cubic_engine/ml/datasets/blaze_regression_dataset.h"
 #include "kernel/maths/lp_metric.h"
