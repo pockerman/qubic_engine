@@ -33,7 +33,7 @@
 - <a href="examples/exe15/doc/exe.md">Example 15: </a> Linear Regression with ```PYLinearRegressor``` (TODO)
 - <a href="examples/exe16/doc/exe.md">Example 16: </a> Compare Lasso, Ridge and ElasticNet Regularizers
 - <a href="examples/exe17/doc/exe.md">Example 17: </a> k-Means clustering
-- <a href="examples/exe18/doc/exe.md">Example 18: </a> KNN classification
+- <a href="ml/examples/example_18/example_18.cpp">Example 18: </a> KNN classification</a>
 - <a href="examples/exe20/doc/exe.md">Example 20: </a> KNN classification with multiple threads
 - <a href="examples/exe24/doc/exe.ipynb">Example 24: </a> Sampling from multivariate normal distribution
 - <a href="examples/exe30/doc/exe.ipynb">Example 30: </a> PCA for dimensionality reduction
