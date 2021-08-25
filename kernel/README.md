@@ -37,6 +37,7 @@
 - <a href="examples/example_36/exe.ipynb">Example 36: </a> Alternating Direction Method of Multipliers
 - <a href="examples/example_37/doc/exe.ipynb">Example 37: </a> Unconstrained optimization with Stochastic Gradient Descent
 - <a href="examples/example_38/doc/exe.ipynb">Example 38: </a> Unconstrained optimization with Gradient Descent
+- <a href="#">Multithreaded  gradient descent</a> 
 
 
 ### <a name="numerics"></a> Numerics

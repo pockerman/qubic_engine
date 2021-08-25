@@ -2,7 +2,6 @@
 #define	SERIAL_KNN_H
 
 #include "cubic_engine/ml/instance_learning/knn_control.h"
-#include "cubic_engine/ml/instance_learning/knn_info.h"
 #include "cubic_engine/ml/instance_learning/details/knn_classification_policy.h"
 
 #include "kernel/base/config.h"
@@ -11,9 +10,8 @@
 #include <cassert>
 #endif
 
-#include <utility>
-#include <chrono>
-#include <iostream>
+//#include <utility>
+//#include <iostream>
 
 namespace cengine{
 namespace ml {
@@ -33,7 +31,7 @@ public:
      ///
      /// \brief Constructor
      ///
-     KnnClassifier(const KnnControl& control);
+     explicit KnnClassifier(const KnnControl& control);
 
 	 ///
      /// \brief Train the model
@@ -44,12 +42,12 @@ public:
      /// \brief Predict outcome for the given vector
 	 ///
      template<typename DataPoint>
-     uint_t predict_one(const DataPoint& data);
+     uint_t predict_one(const DataPoint& data)const;
 
 	 ///
      /// \brief Predict outcome for the given dataset
 	 ///
-     DynVec<uint_t> predict_many(const DataSetType& data);
+     DynVec<uint_t> predict_many(const DataSetType& data)const;
 
      ///
      /// \brief
@@ -87,7 +85,7 @@ KnnClassifier<DataSetType, Similarity>::fit(const DataSetType& data_set){
 template<typename DataSetType, typename Similarity>
 template<typename DataVec>
 uint_t
-KnnClassifier<DataSetType, Similarity>::predict_one(const DataVec& point){
+KnnClassifier<DataSetType, Similarity>::predict_one(const DataVec& point)const{
 
 #ifdef KERNEL_DEBUG
     assert(data_ptr_ != nullptr && "Model has not been trained");
@@ -115,7 +113,7 @@ KnnClassifier<DataSetType, Similarity>::predict_one(const DataVec& point){
 
 template<typename DataSetType, typename Similarity>
 DynVec<uint_t>
-KnnClassifier<DataSetType, Similarity>::predict_many(const DataSetType& data){
+KnnClassifier<DataSetType, Similarity>::predict_many(const DataSetType& data)const{
 
 #ifdef KERNEL_DEBUG
     assert(data_ptr_ != nullptr && "Model has not been trained");

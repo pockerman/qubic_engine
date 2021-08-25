@@ -1,5 +1,5 @@
 #include "cubic_engine/base/cubic_engine_types.h"
-#include "cubic_engine/ml/instance_learning/knn_classifier.h"
+#include "cubic_engine/ml/instance_learning/knn_regressor.h"
 #include "cubic_engine/ml/instance_learning/knn_control.h"
 #include "cubic_engine/ml/datasets/data_set_loaders.h"
 #include "cubic_engine/ml/datasets/blaze_regression_dataset.h"
@@ -16,7 +16,7 @@ int main(){
     using cengine::DynMat;
     using cengine::DynVec;
     using cengine::ml::KnnControl;
-    using cengine::ml::KnnClassifier;
+    using cengine::ml::KnnRegressor;
     using cengine::ml::BlazeRegressionDataset;
     using kernel::LpMetric;
     using kernel::utilities::CSVWriter;
@@ -32,7 +32,7 @@ int main(){
             dataset.load_from_data(features.first, features.second);
         }
 
-        KnnClassifier<BlazeRegressionDataset, similarity_t> knn(KnnControl(4));
+        KnnRegressor<BlazeRegressionDataset, similarity_t> knn(KnnControl(4));
         knn.fit(dataset);
 
         // for every row predict the label
