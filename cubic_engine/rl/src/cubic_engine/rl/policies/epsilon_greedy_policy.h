@@ -44,13 +44,18 @@ public:
     ///
     /// \brief reset
     ///
-    void reset(){eps_ = eps_init_;}
+    void reset()noexcept{eps_ = eps_init_;}
 
     ///
     /// \brief set_epsilon_decay_factor
     /// \param eps_decay
     ///
-    void set_epsilon_decay_factor(real_t eps_decay){epsilon_decay_ = eps_decay;}
+    void set_epsilon_decay_factor(real_t eps_decay)noexcept{epsilon_decay_ = eps_decay;}
+
+    ///
+    /// \brief eps_value
+    ///
+    real_t eps_value()const noexcept{return eps_;}
 
 private:
 
@@ -62,9 +67,6 @@ private:
     uint_t n_actions_;
     uint_t seed_;
     EpsilonDecayOption decay_op_;
-
-    //mutable std::uniform_real_distribution<> real_dist_;
-    //mutable std::uniform_int_distribution<> distrib_;
 };
 
 EpsilonGreedyPolicy::EpsilonGreedyPolicy(real_t eps, uint_t n_actions, EpsilonDecayOption decay_op,

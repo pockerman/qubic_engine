@@ -63,11 +63,6 @@ public:
 private:
 
     ///
-    /// \brief max_num_iterations_per_episode_
-    ///
-    uint_t max_num_iterations_per_episode_;
-
-    ///
     /// \brief current_score_counter_
     ///
     uint_t current_score_counter_;
@@ -90,8 +85,7 @@ Sarsa<TimeStepTp, ActionSelector>::Sarsa(uint_t n_max_itrs, real_t tolerance, re
                                          real_t eta, uint_t plot_f,
                                          env_t& env, uint_t max_num_iterations_per_episode, const ActionSelector& selector)
     :
-      TDAlgoBase<TimeStepTp>(n_max_itrs, tolerance, gamma, eta, plot_f, env),
-      max_num_iterations_per_episode_(max_num_iterations_per_episode),
+      TDAlgoBase<TimeStepTp>(n_max_itrs, tolerance, gamma, eta, plot_f, max_num_iterations_per_episode, env),
       current_score_counter_(0),
       action_selector_(selector)
 {}
@@ -109,13 +103,13 @@ Sarsa<TimeStepTp, ActionSelector>::step(){
     auto state = this->env_ref_().reset().observation();
 
     uint_t itr=0;
-    for(;  itr < max_num_iterations_per_episode_; ++itr){
+    for(;  itr < this->max_num_iterations_per_episode(); ++itr){
 
         // select an action
         auto action = action_selector_(this->q_table(), state);
 
         if(this->is_verbose()){
-            std::cout<<"Episode iteration="<<itr<<" of="<<max_num_iterations_per_episode_<<std::endl;
+            std::cout<<"Episode iteration="<<itr<<" of="<<this->max_num_iterations_per_episode()<<std::endl;
             std::cout<<"State="<<state<<std::endl;
             std::cout<<"Action="<<action<<std::endl;
         }

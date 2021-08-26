@@ -155,7 +155,7 @@ protected:
      /// \param name
      ///
      TDAlgoBase(uint_t n_max_itrs, real_t tolerance, real_t gamma,
-                real_t eta, uint_t plot_f, env_t& env);
+                real_t eta, uint_t plot_f, uint_t max_num_iterations_per_episode, env_t& env);
 
      ///
      /// \brief env_ref_
@@ -181,12 +181,22 @@ protected:
      ///
      const std::deque<real_t>& tmp_scores()const{return tmp_scores_;}
 
+     ///
+     ///
+     ///
+     uint_t max_num_iterations_per_episode()const noexcept{return max_num_iterations_per_episode_;}
+
 private:
 
      ///
      /// \brief plot_freq_
      ///
      uint_t plot_freq_;
+
+     ///
+     /// \brief max_num_iterations_per_episode_
+     ///
+     uint_t max_num_iterations_per_episode_;
 
      ///
      /// \brief gamma_
@@ -221,10 +231,11 @@ private:
 
 template<typename TimeStepTp>
 TDAlgoBase<TimeStepTp>::TDAlgoBase(uint_t n_max_itrs, real_t tolerance, real_t gamma,
-                                   real_t eta, uint_t plot_f, env_t& env)
+                                   real_t eta, uint_t plot_f, uint_t max_num_iterations_per_episode, env_t& env)
     :
     AlgorithmBase(n_max_itrs, tolerance),
     plot_freq_(plot_f),
+    max_num_iterations_per_episode_(max_num_iterations_per_episode)
     gamma_(gamma),
     eta_(eta),
     env_(env),
