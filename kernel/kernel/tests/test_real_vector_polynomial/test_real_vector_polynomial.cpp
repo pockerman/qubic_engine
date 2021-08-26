@@ -22,7 +22,7 @@ TEST(TestRealVectorPolynomialFunction, CreateWithUnequalNumberOfOrdersAndCoeffs)
 
     using kernel::real_t;
     using kernel::uint_t;
-    using kernel::RealVectorPolynomialFunction;
+    using kernel::PolynomialFunction;
     using DynVec = kernel::DynVec<real_t>;
 
 
@@ -30,7 +30,7 @@ TEST(TestRealVectorPolynomialFunction, CreateWithUnequalNumberOfOrdersAndCoeffs)
     /// TODO: Is there a better way to do this?
     try{
 
-       RealVectorPolynomialFunction function;
+       PolynomialFunction function;
 
        DynVec coeffs;
        std::vector<int> order(10, 1.0);
@@ -58,14 +58,14 @@ TEST(TestRealVectorPolynomialFunction, EvaluateWithIncorrectInputSize) {
 
     using kernel::real_t;
     using kernel::uint_t;
-    using kernel::RealVectorPolynomialFunction;
+    using kernel::PolynomialFunction;
     using DynVec = kernel::DynVec<real_t>;
 
     /// TODO: Is there a better way to do this?
     std::string expected;
     try{
 
-        RealVectorPolynomialFunction function;
+        PolynomialFunction function;
 
         DynVec coeffs(10, 1.0);
         std::vector<int> order(10, 1.0);

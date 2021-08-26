@@ -32,14 +32,14 @@ struct GDConfig: public kernel::IterativeAlgorithmController
     ///
     /// \brief Constructor
     ///
-    GDConfig( uint_t max_num_itrs,
-               real_t tolerance=kernel::KernelConsts::tolerance(),
-               real_t eta=GDConfig::DEFAULT_LEARNING_RATE );
+    explicit GDConfig( uint_t max_num_itrs,
+                       real_t tolerance=kernel::KernelConsts::tolerance(),
+                       real_t eta=GDConfig::DEFAULT_LEARNING_RATE );
 
     ///
     /// \brief Constructor
     ///
-    GDConfig(const std::map<std::string, std::any>& options);
+    explicit GDConfig(const std::map<std::string, std::any>& options);
 
     ///
     /// \brief reset

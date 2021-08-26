@@ -25,7 +25,6 @@
 ### <a name="machine_learning"></a> Machine Learning & Statistics
 
 - <a href="examples/exe5/doc/exe.md">Example 5: </a> Simulate standard error for the mean
-- <a href="examples/exe7/doc/exe.md">Example 7: </a> Multithreaded  gradient descent
 - <a href="examples/exe11/doc/exe.md">Example 11: </a> Neural Network with PyTorch (TODO)
 - <a href="ml/examples/example_12/example_12.cpp">Linear regression with one feature </a> 
 - <a href="ml/examples/example_13/example_13.cpp">Logistic regression classification </a>
@@ -33,7 +32,8 @@
 - <a href="examples/exe15/doc/exe.md">Example 15: </a> Linear Regression with ```PYLinearRegressor``` (TODO)
 - <a href="examples/exe16/doc/exe.md">Example 16: </a> Compare Lasso, Ridge and ElasticNet Regularizers
 - <a href="examples/exe17/doc/exe.md">Example 17: </a> k-Means clustering
-- <a href="examples/exe18/doc/exe.md">Example 18: </a> KNN classification
+- <a href="ml/examples/example_18/example_18.cpp">KNN classification</a>
+- <a href="ml/examples/example_19/example_19.cpp">KNN regression</a>
 - <a href="examples/exe20/doc/exe.md">Example 20: </a> KNN classification with multiple threads
 - <a href="examples/exe24/doc/exe.ipynb">Example 24: </a> Sampling from multivariate normal distribution
 - <a href="examples/exe30/doc/exe.ipynb">Example 30: </a> PCA for dimensionality reduction

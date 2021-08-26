@@ -66,6 +66,18 @@ PolynomialFunction::value(const input_t& input)const{
 }
 
 
+PolynomialFunction::output_t
+PolynomialFunction::value(uint_t i, const input_t& input)const{
+
+    if(i >=  monomials_.size()){
+        throw std::invalid_argument("Invalid index= " + std::to_string(i)+
+                                    " should be less than  " + std::to_string(monomials_.size()) );
+    }
+
+    return monomials_[i].value(input[i]);
+}
+
+
 real_t
 PolynomialFunction::coeff_grad(uint_t i, const DynVec<real_t>& point)const{
 

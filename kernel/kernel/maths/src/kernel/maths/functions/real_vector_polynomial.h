@@ -52,6 +52,13 @@ public:
     ///
     virtual output_t value(const input_t& input)const override final;
 
+    output_t value_at(const input_t& input)const{return value(input);}
+
+    ///
+    /// \brief value
+    ///
+    virtual output_t value(uint_t i, const input_t&  input )const override final;
+
     ///
     /// \brief Returns the number of coefficients
     ///
@@ -66,6 +73,9 @@ public:
     /// \brief Returns the gradient of the function for the i-th coefficient
     ///
     DynVec<real_t> coeff_grads(const DynVec<real_t>& point)const;
+
+
+    DynVec<real_t> param_grads_at(const DynVec<real_t>& point)const{return coeff_grads(point);}
 
     ///
     /// \brief Returns the gradient of the function for the i-th variable
@@ -92,7 +102,7 @@ public:
     /// \brief update_coeffs
     /// \param params
     ///
-    virtual void update_coeffs(const DynVec<real_t>& params) override final{set_coeffs(params);};
+    virtual void update_coeffs(const DynVec<real_t>& params) override final{set_coeffs(params);}
 
     ///
     /// \brief Returns the i-th coefficient

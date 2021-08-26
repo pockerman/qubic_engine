@@ -26,26 +26,26 @@ class OptimizerFactory
 {
 public:
 
-    template<typename MatTp, typename VecTp, typename SolverOps>
-    auto build(OptimizerType type, const SolverOps& options) -> std::shared_ptr<OptimizerBase<MatTp, VecTp>>;
+    template<typename DatasetTp, typename FunctionTp, typename SolverOps>
+    auto build(OptimizerType type, const SolverOps& options) -> std::shared_ptr<OptimizerBase<DatasetTp, FunctionTp>>;
 
 };
 
-template<typename MatTp, typename VecTp, typename SolverOps>
+template<typename DatasetTp, typename FunctionTp, typename SolverOps>
 auto
-OptimizerFactory::build(OptimizerType type, const SolverOps& options) -> std::shared_ptr<OptimizerBase<MatTp, VecTp>>{
+OptimizerFactory::build(OptimizerType type, const SolverOps& options) -> std::shared_ptr<OptimizerBase<DatasetTp, FunctionTp>>{
 
-    auto ptr = std::shared_ptr<OptimizerBase<MatTp, VecTp>>(nullptr);
+    auto ptr = std::shared_ptr<OptimizerBase<DatasetTp, FunctionTp>>(nullptr);
     switch(type){
 
         case OptimizerType::GD:
         {
-            ptr = std::make_shared<Gd<MatTp, VecTp>>(options);
+            ptr = std::make_shared<Gd<DatasetTp, FunctionTp>>(options);
             break;
         }
         case OptimizerType::SGD:
         {
-            ptr = std::make_shared<SGD<MatTp, VecTp>>(options);
+            ptr = std::make_shared<SGD<DatasetTp, FunctionTp>>(options);
             break;
         }
 #ifdef KERNEL_DEBUG

@@ -66,7 +66,8 @@ class MLCMakeWriter(CMakeFileWriter):
                 local_fh.write('ENDIF(COMMAND cmake_policy)\n')
                 local_fh.write('\n')
                 local_fh.write('FILE(GLOB %s ${PROJECT_SOURCE_DIR}/src/cubic_engine/ml/*.cpp '
-                               '${PROJECT_SOURCE_DIR}/src/cubic_engine/ml/*/*.cpp)\n' % dir_upper)
+                               '${PROJECT_SOURCE_DIR}/src/cubic_engine/ml/*/*.cpp '
+                               '${PROJECT_SOURCE_DIR}/src/cubic_engine/ml/instance_learning/details/*.cpp)\n' % dir_upper)
                 local_fh.write('TARGET_SOURCES(%s PUBLIC ${%s})\n' % (self.project_name, dir_upper))
 
             fh.write('\n')
