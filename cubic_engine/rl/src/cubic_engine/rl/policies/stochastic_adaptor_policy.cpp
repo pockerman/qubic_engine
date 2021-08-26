@@ -63,12 +63,6 @@ StochasticAdaptorPolicy::operator()(const std::map<std::string, std::any>& optio
         }
     }
 
-
-    /*for(uint_t i=0; i<best_actions.size(); ++i){
-        best_actions_vals[i] = {best_actions[i], 1.0/best_actions.size()};
-    }
-
-    this->policy_->update(state, best_actions_vals);*/
     return this->policy_;
 }
 

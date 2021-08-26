@@ -46,10 +46,9 @@
 - <a href="rl/examples/example_6/example_6.cpp">Iterative policy evaluation on FrozenLake-v0</a>
 - <a href="rl/examples/example_7/example_7.cpp">Policy iteration on FrozenLake-v0</a>
 - <a href="rl/examples/example_8/example_8.cpp">Value iteration on FrozenLake-v0</a>
-- <a href="#">Example 3: </a> SARSA
-- <a href="#">Example 4: </a> Q-learning 
-- <a href="#">Example 5: </a> Expected SARSA 
-- <a href="#">Example 6: </a> Monte Carlo control with importance sampling
+- <a href="rl/examples/example_9/example_9.cpp">SARSA on Cliffwalking-v0 </a>
+- <a href="rl/examples/example_10/example_10.cpp">Q-learning on Cliffwalking-v0 </a>
+- <a href="rl/examples/example_11/example_11.cpp">Expected SARSA on Cliffwalking-v0 </a>
 
 ### <a name="using_ros"></a> Robotics Simulations
 

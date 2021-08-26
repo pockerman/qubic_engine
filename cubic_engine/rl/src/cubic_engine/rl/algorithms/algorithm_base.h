@@ -67,6 +67,18 @@ public:
     ///
     bool is_verbose()const{return itr_ctrl_.show_iterations();}
 
+    ///
+    /// \brief current_iteration
+    /// \return
+    ///
+    uint_t current_iteration()const{return itr_ctrl_.get_current_iteration();}
+
+    ///
+    /// \brief n_max_itrs
+    /// \return
+    ///
+    uint_t n_max_itrs()const{return this->itr_ctrl_.get_max_iterations();}
+
 protected:
 
     ///
@@ -75,16 +87,18 @@ protected:
     AlgorithmBase(uint_t n_max_itrs, real_t tolerance);
 
     ///
-    /// \brief itr_ctrl_. The object controlling the iterations
-    ///
-    kernel::IterativeAlgorithmController itr_ctrl_;
-
-
-    ///
     /// \brief iter_controller
     /// \return
     ///
     kernel::IterativeAlgorithmController& iter_controller_(){return itr_ctrl_;}
+
+private:
+
+    ///
+    /// \brief itr_ctrl_. The object controlling the iterations
+    ///
+    kernel::IterativeAlgorithmController itr_ctrl_;
+
 };
 
 }

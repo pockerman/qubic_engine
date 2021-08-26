@@ -13,7 +13,7 @@ namespace utils {
 RolloutStorage<torch_t>::RolloutStorage(int64_t num_steps,
                                         int64_t num_processes,
                                         c10::ArrayRef<int64_t> obs_shape,
-                                        actions::ActionSpace action_space,
+                                        const actions::TorchActionSpace& action_space,
                                         int64_t hidden_state_size,
                                         torch::Device device)
     :
