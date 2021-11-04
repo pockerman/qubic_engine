@@ -23,7 +23,7 @@
   },
   
   "trilinos": {
-    "USE_TRILINOS": true,
+    "USE_TRILINOS": false,
     "USE_TRILINOS_LONG_LONG_TYPE": false,
     "TRILINOS_INCL_DIR": "/home/alex/MySoftware/trilinos/install/include",
     "TRILINOS_LIB_DIR": "/home/alex/MySoftware/trilinos/install/lib"
@@ -44,7 +44,6 @@
   },
 
   "zmq": {
-
     "USE_ZMQ": true,
     "ZMQ_PATH": "/home/alex/MySoftware/zmq/",
     "ZMQ_INCLUDE_PATH": "/home/alex/MySoftware/zmq/install/include",
@@ -52,19 +51,19 @@
   },
 
   "kernel": {
-    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_rl_gym_server/install",
-    "USE_DISCRETIZATION": true,
+    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_rl/install",
+    "USE_DISCRETIZATION": false,
     "USE_NUMERICS": true,
     "USE_RIGID_BODY_DYNAMICS": false,
     "USE_FVM": false,
     "USE_FEM": false,
-    "BUILD_KERNEL_TESTS": false,
+    "BUILD_KERNEL_TESTS": true,
     "BUILD_KERNEL_EXAMPLES": false
   },
 
   "cengine": {
     "build_cengine": true,
-    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_rl_gym_server/install",
+    "CMAKE_INSTALL_PREFIX": "/home/alex/qi3/ce_rl/install",
     "BUILD_EXAMPLES": false,
     "BUILD_TESTS": false,
     "rl": {
