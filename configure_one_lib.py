@@ -23,6 +23,10 @@ if __name__ == '__main__':
     print("{0} Generating configuration scripts...".format(INFO))
     config = read_json(filename="config_opts.json")
 
+    kernel_cmake_writer = KernelCMakeWriter(configuration=config)
+    #kernel_cmake_writer.write_cmake_lists()
+
+    """
     numerics_cmake_writer = NumericsCMakeWriter(configuration=config,
                                                 kernel_dirs=KernelCMakeWriter.module_dirs(),
                                                 kernel_dir=KernelCMakeWriter.dir_path(),
@@ -31,7 +35,7 @@ if __name__ == '__main__':
                                                 discretization_dir=DiscretizationCMakeWriter.dir_path(),
                                                 discretization_name=DiscretizationCMakeWriter.module_name())
 
-    #numerics_cmake_writer.write_cmake_lists()
+    numerics_cmake_writer.write_cmake_lists()
 
     ml_cmake_writer = MLCMakeWriter(configuration=config,
                                     kernel_dir=KernelCMakeWriter.dir_path(),
@@ -44,8 +48,8 @@ if __name__ == '__main__':
                                     numerics_dir=NumericsCMakeWriter.dir_path(),
                                     numerics_dirs=NumericsCMakeWriter.module_dirs())
 
-    #ml_cmake_writer.write_cmake_lists()
-
+    ml_cmake_writer.write_cmake_lists()
+    """
     rl_cmake_writer = RLCMakeWriter(configuration=config,
                                     kernel_dir=KernelCMakeWriter.dir_path(),
                                     kernel_dirs=KernelCMakeWriter.module_dirs(),

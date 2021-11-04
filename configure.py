@@ -6,6 +6,7 @@ from configuration.numerics_cmake_writer import NumericsCMakeWriter
 from configuration.discretization_cmake_writer import DiscretizationCMakeWriter
 from configuration.rigid_body_dynamics_cmake_writer import RBDynamicsCMakeWriter
 from configuration.cengine_rl_cmake_writer import RLCMakeWriter
+from configuration.ml_cmake_writer import MLCMakeWriter
 from configuration.build_tests import build_tests
 from configuration.build_examples import build_examples
 
@@ -21,10 +22,7 @@ if __name__ == '__main__':
     print("{0} Generating configuration scripts...".format(INFO))
     config = read_json(filename="config_opts.json")
 
-    # make some logic tests required at the moment
-    if config["kernel"]["USE_DISCRETIZATION"] is False and config["kernel"]["USE_NUMERICS"]:
-        raise ValueError(" 'USE_DISCRETIZATION' is false but 'USE_NUMERICS' is true. Currently this is not supported."
-                         "Turn both flags to True if you want kernel_numerics library to be built")
+    
 
     # basic kernel
     kernel_cmake_writer = KernelCMakeWriter(configuration=config)
@@ -73,14 +71,33 @@ if __name__ == '__main__':
                                                     kernel_dirs=KernelCMakeWriter.module_dirs())
         cubic_cmake_writer.write_cmake_lists()
 
+        ml_cmake_writer = MLCMakeWriter(configuration=config,
+                                        kernel_dir=KernelCMakeWriter.dir_path(),
+                                        kernel_dirs=KernelCMakeWriter.module_dirs(),
+                                        kernel_name=KernelCMakeWriter.module_name(),
+                                        cengine_dir=CMakeCubicEngineWriter.dir_path(),
+                                        cengine_dirs=CMakeCubicEngineWriter.module_dirs(),
+                                        cengine_name=CMakeCubicEngineWriter.module_name(),
+                                        numerics_name=NumericsCMakeWriter.module_name(),
+                                        numerics_dir=NumericsCMakeWriter.dir_path(),
+                                        numerics_dirs=NumericsCMakeWriter.module_dirs())
+
+        ml_cmake_writer.write_cmake_lists()
+
         if config["cengine"]["rl"]["USE_RL"]:
             rl_cmake_writer = RLCMakeWriter(configuration=config,
-                                            kernel_dir=KernelCMakeWriter.dir_path(),
-                                            kernel_dirs=KernelCMakeWriter.module_dirs(),
-                                            kernel_name=KernelCMakeWriter.module_name(),
-                                            cengine_dir=CMakeCubicEngineWriter.dir_path(),
-                                            cengine_dirs=CMakeCubicEngineWriter.module_dirs(),
-                                            cengine_name=CMakeCubicEngineWriter.module_name())
+                                    kernel_dir=KernelCMakeWriter.dir_path(),
+                                    kernel_dirs=KernelCMakeWriter.module_dirs(),
+                                    kernel_name=KernelCMakeWriter.module_name(),
+                                    cengine_dir=CMakeCubicEngineWriter.dir_path(),
+                                    cengine_dirs=CMakeCubicEngineWriter.module_dirs(),
+                                    cengine_name=CMakeCubicEngineWriter.module_name(),
+                                    numerics_name=NumericsCMakeWriter.module_name(),
+                                    numerics_dir=NumericsCMakeWriter.dir_path(),
+                                    numerics_dirs=NumericsCMakeWriter.module_dirs(),
+                                    ml_name=MLCMakeWriter.module_name(),
+                                    ml_dir=MLCMakeWriter.dir_path(),
+                                    ml_dirs=MLCMakeWriter.module_dirs())
             rl_cmake_writer.write_cmake_lists()
 
     print("{0} finished...".format(INFO))
